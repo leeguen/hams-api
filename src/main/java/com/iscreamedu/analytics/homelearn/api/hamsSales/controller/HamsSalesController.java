@@ -65,4 +65,19 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 일일 학습 정보 (HAMS-S-TR-001)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getDailyLrnStt")
+	public ResponseEntity getDailyLrnStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getDailyLrnStt(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }

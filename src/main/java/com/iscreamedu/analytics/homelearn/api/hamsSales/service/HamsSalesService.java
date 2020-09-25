@@ -19,10 +19,18 @@ import java.util.Map;
  */
 public interface HamsSalesService {
 	/**
-	 * 학생 정보 (HAMS-S-C-001)
+	 * 학생 정보 (HAMS-S-C-002)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
 	 */
 	public Map getStudInfo (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 일일 학습 정보 (HAMS-S-TR-001)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getDailyLrnStt (Map<String, Object> paramMap) throws Exception;
 }

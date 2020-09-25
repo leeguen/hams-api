@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -65,7 +66,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 
 		//Dummy Start
-		Map<String, Object> depth1DataMap = new HashMap<>();
+		Map<String, Object> studInfo = new HashMap<>();
 		Map<String, Object> depth2DataMap = new HashMap<>();
 		depth2DataMap.put("studId", 654321);
 		depth2DataMap.put("studNm", "김홈런");
@@ -76,14 +77,58 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		depth2DataMap.put("expStartDt", "2020-09-23");
 		depth2DataMap.put("expEndDt", "2020-09-23");
 		
-		depth1DataMap.put("studInfo", depth2DataMap);
+		studInfo.put("studInfo", depth2DataMap);
 		//Dummy End
 		
 		if(vu.isValid()) {
-			setResult(dataKey, depth1DataMap);
+			setResult(dataKey, studInfo);
 		}else {
 			setResult(msgKey, vu.getResult());
 		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getDailyLrnStt(Map<String, Object> paramMap) throws Exception {
+		Map<String, Object> dailyLrnStt = new HashMap<>();
+		Map<String, Object> depth2DataMap = new HashMap<>();
+		ArrayList<Map> dailyLrnSttlist = new ArrayList<Map>();
+		
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		List commWkDtList = (List) commonMapper.getList(paramMap, "Common.selectCommWkDt");
+		for(int i = 0; i < commWkDtList.size(); i++) {
+			depth2DataMap.put("dt",commWkDtList.get(i));
+			depth2DataMap.put("attYn",false); //HL API output으로 교체 필요
+			depth2DataMap.put("lrnStt",3); //HL API output으로 교체 필요
+			
+			ArrayList<String> loginLoglist = new ArrayList<String>(); //실 데이터 조회로 교체 필요
+			loginLoglist.add("2020-09-07 20:56:33");
+			loginLoglist.add("2020-09-07 15:58:26");
+			loginLoglist.add("2020-09-07 15:22:06");
+			loginLoglist.add("2020-09-07 13:18:03");
+			
+			depth2DataMap.put("loginLog", loginLoglist);
+		
+		dailyLrnSttlist.add(depth2DataMap);
+		}
+		
+		dailyLrnStt.put("dailyLrnStt", dailyLrnSttlist);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, dailyLrnStt);
+		}else {
+			setResult(msgKey, vu.getResult()); 
+		}
+		
 		return result;
 	}
 
