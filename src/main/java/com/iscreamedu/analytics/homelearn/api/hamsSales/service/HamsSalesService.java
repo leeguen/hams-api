@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.service;
 
+import java.util.Map;
 
 /**
  * HAMS Sales API Service
@@ -17,5 +18,11 @@ package com.iscreamedu.analytics.homelearn.api.hamsSales.service;
  *  </pre>
  */
 public interface HamsSalesService {
-	
+	/**
+	 * 학생 정보 (HAMS-S-C-001)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getStudInfo (Map<String, Object> paramMap) throws Exception;
 }
