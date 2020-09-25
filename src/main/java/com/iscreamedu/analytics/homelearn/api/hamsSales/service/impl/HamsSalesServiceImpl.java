@@ -48,14 +48,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 
 	@Override
 	public Map getStudInfo(Map<String, Object> paramMap) throws Exception {
-		//Dummy Start
-		String dt =  "2020-09-23";
-		int studId = 123456;
-		
-		paramMap.put("dt", dt);
-		paramMap.put("studId", studId);
-		//Dummy End
-		
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -67,17 +59,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 
 		//Dummy Start
 		Map<String, Object> studInfo = new HashMap<>();
-		Map<String, Object> depth2DataMap = new HashMap<>();
-		depth2DataMap.put("studId", 654321);
-		depth2DataMap.put("studNm", "김홈런");
-		depth2DataMap.put("grade", 5);
-		depth2DataMap.put("schlNm", "홈런초등학교");
-		depth2DataMap.put("gender", "F");
-		depth2DataMap.put("tchrId", 123456);
-		depth2DataMap.put("expStartDt", "2020-09-23");
-		depth2DataMap.put("expEndDt", "2020-09-23");
+		Map<String, Object> data = new HashMap<>();
+		data.put("studId", 654321);
+		data.put("studNm", "김홈런");
+		data.put("grade", 5);
+		data.put("schlNm", "홈런초등학교");
+		data.put("gender", "F");
+		data.put("tchrId", 123456);
+		data.put("expStartDt", "2020-09-23");
+		data.put("expEndDt", "2020-09-23");
 		
-		studInfo.put("studInfo", depth2DataMap);
+		studInfo.put("studInfo", data);
 		//Dummy End
 		
 		if(vu.isValid()) {
@@ -125,6 +117,38 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		if(vu.isValid()) {
 			setResult(dataKey, dailyLrnStt);
+		}else {
+			setResult(msgKey, vu.getResult()); 
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getSettleInfoPrediction(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> settleInfoPrediction = new HashMap<>();
+		Map<String, Object> data = new HashMap<>();
+		data.put("signal", 1);
+		
+		List<String> list = new ArrayList<>();
+		list.add("수행률");
+		list.add("계획된 학습 학습시간");
+		list.add("정답을 맞힌 문제 수");
+		
+		data.put("list", list);
+		settleInfoPrediction.put("settleInfoPrediction", data);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, settleInfoPrediction);
 		}else {
 			setResult(msgKey, vu.getResult()); 
 		}

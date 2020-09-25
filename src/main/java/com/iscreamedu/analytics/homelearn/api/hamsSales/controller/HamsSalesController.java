@@ -80,4 +80,19 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 전환 예측 (HAMS-S-TR-002)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getSettleInfoPrediction")
+	public ResponseEntity getSettleInfoPrediction(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getSettleInfoPrediction(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }

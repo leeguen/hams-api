@@ -33,4 +33,12 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getDailyLrnStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 일일 학습 정보 (HAMS-S-TR-002)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSettleInfoPrediction (Map<String, Object> paramMap) throws Exception;
 }
