@@ -95,4 +95,19 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 3일 학습 수행 요약 (HAMS-S-TR-003)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getThreeDayLrn")
+	public ResponseEntity getThreeDayLrn(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getThreeDayLrn(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }

@@ -155,6 +155,49 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getThreeDayLrn(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> threeDayLrn = new HashMap<>();
+		threeDayLrn.put("complimentCnt", 5);
+		
+		List<String> complimentList = new ArrayList<>();
+		complimentList.add("3일 연속 수행률이 100%에요");
+		complimentList.add("홈런도서관 읽은 책 1권");
+		complimentList.add("최대 몇 줄까지 표시될까요?");
+		complimentList.add("다섯 줄입니다");
+		complimentList.add("포인트는 최대 5개까지 노출됩니다");
+		
+		threeDayLrn.put("complimentList", complimentList);
+		
+		threeDayLrn.put("prescriptionCnt", 5);
+		
+		List<String> prescriptionList = new ArrayList<>();
+		prescriptionList.add("스스로 학습 수행 0개");
+		prescriptionList.add("타학년 학습 수행 4개");
+		prescriptionList.add("오답노트 미완료 6개");
+		prescriptionList.add("포인트는 최대 5개까지 노출됩니다");
+		prescriptionList.add("포인트는 최대 5개까지 노출됩니다");
+		
+		threeDayLrn.put("prescriptionList", prescriptionList);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, threeDayLrn);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
