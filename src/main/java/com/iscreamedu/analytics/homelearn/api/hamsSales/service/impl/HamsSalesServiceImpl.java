@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.servlet.http.HttpSession;
 
@@ -105,10 +106,10 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			i+=1;
 			if(i%2 == 0) {
 				dailyLrnSttMap.put("attYn",false); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt",0); //HL API output으로 교체 필요				
+				dailyLrnSttMap.put("lrnStt",3); //HL API output으로 교체 필요				
 			} else {
 				dailyLrnSttMap.put("attYn",true); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt",i+1); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("lrnStt",new Random().nextInt(2)+1); //HL API output으로 교체 필요
 				
 				loginLoglist.add(item.get("dt") + " 20:56:33");
 				loginLoglist.add(item.get("dt") + " 15:58:26");
