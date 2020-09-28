@@ -618,6 +618,66 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getMultipleIntelligenceTest(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> multipleIntelligenceTest = new HashMap<>();
+		
+		multipleIntelligenceTest.put("examDt", "2020-09-21");
+		multipleIntelligenceTest.put("examRound", "4회차");
+		multipleIntelligenceTest.put("examRegDt", "2020-09-21");
+		multipleIntelligenceTest.put("examStt", "검사완료");
+		
+		data.put("multipleIntelligenceTest", multipleIntelligenceTest);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getParentingTest(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> multipleIntelligenceTest = new HashMap<>();
+		
+		multipleIntelligenceTest.put("examDt", "2020-09-21");
+		multipleIntelligenceTest.put("examRound", "4회차");
+		multipleIntelligenceTest.put("examRegDt", "2020-09-21");
+		multipleIntelligenceTest.put("examStt", "검사완료");
+		
+		data.put("multipleIntelligenceTest", multipleIntelligenceTest);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

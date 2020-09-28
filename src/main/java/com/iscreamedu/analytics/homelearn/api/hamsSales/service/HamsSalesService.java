@@ -121,4 +121,20 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getIncrtNote (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 학생 - 다중지능 검사 (HAMS-S-TR-013)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getMultipleIntelligenceTest (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-014)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getParentingTest (Map<String, Object> paramMap) throws Exception;
 }

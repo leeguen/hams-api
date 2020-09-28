@@ -245,4 +245,34 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 학생 - 다중지능 검사 (HAMS-S-TR-013)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getMultipleIntelligenceTest")
+	public ResponseEntity getMultipleIntelligenceTest(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getMultipleIntelligenceTest(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-014)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getParentingTest")
+	public ResponseEntity getParentingTest(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getParentingTest(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }
