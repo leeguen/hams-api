@@ -58,14 +58,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Dummy Start
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> studInfo = new HashMap<>();
-		data.put("studId", 654321);
-		data.put("studNm", "김홈런");
-		data.put("grade", 5);
-		data.put("schlNm", "홈런초등학교");
-		data.put("gender", "F");
-		data.put("tchrId", 123456);
-		data.put("expStartDt", "2020-09-23");
-		data.put("expEndDt", "2020-09-23");
+		studInfo.put("studId", 654321);
+		studInfo.put("studNm", "김홈런");
+		studInfo.put("grade", 5);
+		studInfo.put("schlNm", "홈런초등학교");
+		studInfo.put("gender", "F");
+		studInfo.put("tchrId", 123456);
+		studInfo.put("expStartDt", "2020-09-23");
+		studInfo.put("expEndDt", "2020-09-23");
 		
 		data.put("studInfo", studInfo);
 		//Dummy End
