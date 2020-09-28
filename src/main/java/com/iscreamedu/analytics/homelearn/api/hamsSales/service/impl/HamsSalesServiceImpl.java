@@ -262,6 +262,49 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getLrnExStt(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> lrnExCntTop3 = new HashMap<>();
+		Map<String, Object> grpAvg = new HashMap<>();
+		List<String> subjList = new ArrayList<String>();
+		List<Integer> exCntList = new ArrayList<Integer>();
+		
+		subjList.add("C01");
+		subjList.add("C02");
+		subjList.add("C03");
+		
+		exCntList.add(7);
+		exCntList.add(6);
+		exCntList.add(5);
+		
+		lrnExCntTop3.put("subjCd", subjList);
+		lrnExCntTop3.put("exCnt", exCntList);
+		
+		grpAvg.put("exCnt",12);
+		grpAvg.put("grpAvgExCnt",15);
+		
+		data.put("lrnExCntTop3",lrnExCntTop3);
+		data.put("grpAvg",grpAvg);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
