@@ -65,4 +65,12 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getLrnExStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 계획 (HAMS-S-TR-006)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getLrnPlanStt (Map<String, Object> paramMap) throws Exception;
 }
