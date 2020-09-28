@@ -52,7 +52,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 학생 정보 (HAMS-S-C-001)
+	 * 학생 정보 (HAMS-S-C-002)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -107,6 +107,21 @@ public class HamsSalesController {
 	@RequestMapping("/getThreeDayLrn")
 	public ResponseEntity getThreeDayLrn(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.getThreeDayLrn(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 3일 학습 상세 내역 (HAMS-S-TR-004)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getThreeDayLrnDetail")
+	public ResponseEntity getThreeDayLrnDetail(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getThreeDayLrnDetail(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
