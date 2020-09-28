@@ -216,7 +216,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	}
 	
 	@Override
-	public Map getThreeDayLrnDetail(Map<String, Object> paramMap) throws Exception {
+	public Map getLrnPtn(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -331,6 +331,49 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		data.put("lrnEx", lrnEx);
 		data.put("grpAvgEx", grpAvgEx);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getALrnStt(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> lrnExCntTop3 = new HashMap<>();
+		Map<String, Object> grpAvg = new HashMap<>();
+		
+		List<String> subjCd = new ArrayList<String>();
+		List<Integer> exCnt = new ArrayList<Integer>();
+		subjCd.add("C01");
+		subjCd.add("C02");
+		subjCd.add("C03");
+		
+		exCnt.add(7);
+		exCnt.add(6);
+		exCnt.add(5);
+		
+		lrnExCntTop3.put("subjCd", subjCd);
+		lrnExCntTop3.put("exCnt", exCnt);
+		
+		grpAvg.put("exCnt",12);
+		grpAvg.put("grpAvgExCnt",15);
+		
+		data.put("lrnExCntTop3", lrnExCntTop3);
+		data.put("grpAvg", grpAvg);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

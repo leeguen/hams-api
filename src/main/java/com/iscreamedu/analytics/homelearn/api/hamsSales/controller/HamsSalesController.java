@@ -119,9 +119,9 @@ public class HamsSalesController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/getThreeDayLrnDetail")
-	public ResponseEntity getThreeDayLrnDetail(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getThreeDayLrnDetail(params);
+	@RequestMapping("/getLrnPtn")
+	public ResponseEntity getLrnPtn(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getLrnPtn(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
@@ -152,6 +152,21 @@ public class HamsSalesController {
 	@RequestMapping("/getLrnPlanStt")
 	public ResponseEntity getLrnPlanStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.getLrnPlanStt(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 스스로 학습 (HAMS-S-TR-007)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getALrnStt")
+	public ResponseEntity getALrnStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getALrnStt(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}

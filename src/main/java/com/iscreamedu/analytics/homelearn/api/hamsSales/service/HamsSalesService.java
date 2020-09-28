@@ -56,7 +56,7 @@ public interface HamsSalesService {
 	 * @return
 	 * @throws Exception
 	 */
-	public Map getThreeDayLrnDetail (Map<String, Object> paramMap) throws Exception;
+	public Map getLrnPtn (Map<String, Object> paramMap) throws Exception;
 	
 	/**
 	 * 학습 수행 결과 (HAMS-S-TR-005)
@@ -73,4 +73,12 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getLrnPlanStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 스스로 학습 (HAMS-S-TR-007)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getALrnStt (Map<String, Object> paramMap) throws Exception;
 }
