@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.servlet.http.HttpSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,14 +100,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			Map<String, Object> dailyLrnSttMap = new HashMap<>();
 			List<String> loginLoglist = new ArrayList<String>(); //실 데이터 조회로 교체 필요
 			
-			dailyLrnSttMap.put("dt",item.get("dt"));
+			dailyLrnSttMap.put("dt", item.get("dt"));
 			i+=1;
 			if(i%2 == 0) {
-				dailyLrnSttMap.put("attYn",false); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt",3); //HL API output으로 교체 필요				
+				dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
 			} else {
-				dailyLrnSttMap.put("attYn",true); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt",new Random().nextInt(2)+1); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
 				
 				loginLoglist.add(item.get("dt") + " 20:56:33");
 				loginLoglist.add(item.get("dt") + " 15:58:26");
@@ -292,11 +290,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		lrnExCntTop3.put("subjCd", subjList);
 		lrnExCntTop3.put("exCnt", exCntList);
 		
-		grpAvg.put("exCnt",12);
-		grpAvg.put("grpAvgExCnt",15);
+		grpAvg.put("exCnt", 12);
+		grpAvg.put("grpAvgExCnt", 15);
 		
-		data.put("lrnExCntTop3",lrnExCntTop3);
-		data.put("grpAvg",grpAvg);
+		data.put("lrnExCntTop3", lrnExCntTop3);
+		data.put("grpAvg", grpAvg);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -322,13 +320,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> lrnEx = new HashMap<>();
 		Map<String, Object> grpAvgEx = new HashMap<>();
 		
-		lrnEx.put("exRt",95);
-		lrnEx.put("planCnt",12);
-		lrnEx.put("exCnt",10);
+		lrnEx.put("exRt", 95);
+		lrnEx.put("planCnt", 12);
+		lrnEx.put("exCnt", 10);
 		
-		grpAvgEx.put("grpAvgExRt",95);
-		grpAvgEx.put("grpAvgPlanCnt",15);
-		grpAvgEx.put("grpAvgExCnt",12);
+		grpAvgEx.put("grpAvgExRt", 95);
+		grpAvgEx.put("grpAvgPlanCnt", 15);
+		grpAvgEx.put("grpAvgExCnt", 12);
 		
 		data.put("lrnEx", lrnEx);
 		data.put("grpAvgEx", grpAvgEx);
@@ -370,8 +368,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		lrnExCntTop3.put("subjCd", subjCd);
 		lrnExCntTop3.put("exCnt", exCnt);
 		
-		grpAvg.put("exCnt",12);
-		grpAvg.put("grpAvgExCnt",15);
+		grpAvg.put("exCnt", 12);
+		grpAvg.put("grpAvgExCnt", 15);
 		
 		data.put("lrnExCntTop3", lrnExCntTop3);
 		data.put("grpAvg", grpAvg);
@@ -404,11 +402,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		hLBookCafe.put("cnt", 2);
 		hLBookCafe.put("grpAvgCnt", 3);
 		
-		listMap.put("dt","2020-09-25");
-		listMap.put("title","산에 산에 누가 살까");
-		listMap.put("readTm","00:00:43");
-		listMap.put("reviewYn",true);
-		listMap.put("review","200자평 내용 텍스트");
+		listMap.put("dt", "2020-09-25");
+		listMap.put("title", "산에 산에 누가 살까");
+		listMap.put("readTm", "00:00:43");
+		listMap.put("reviewYn", true);
+		listMap.put("review", "200자평 내용 텍스트");
 		
 		list.add(listMap);
 		
@@ -517,6 +515,100 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		exam.put("cursoryQuesCnt", 10);
 		
 		data.put("exam", exam);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getExpl(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		List<Map> expl = new ArrayList<>();
+		Map<String, Object> explMap = new HashMap<>();
+		
+		explMap.put("subjNm", "사회");
+		explMap.put("smtDttm", "2020-05-29 10:33:38");
+		explMap.put("type", "실력평가");
+		explMap.put("examNm", "[3-1] 22장. 교통수단의 발달로 달라질 미래의 생활 모습 예상하기");
+		explMap.put("round", "1차");
+		explMap.put("crtRt", 80);
+		explMap.put("crtQuesCnt", 4);
+		explMap.put("quesCnt", 5);
+		
+		List<Integer> crtQues = new ArrayList<Integer>();
+		List<Integer> guessQues = new ArrayList<Integer>();
+		List<Integer> skipQues = new ArrayList<Integer>();
+		List<Integer> cursoryQues = new ArrayList<Integer>();
+		List<Integer> incrtQues = new ArrayList<Integer>();
+		
+		crtQues.add(1);
+		crtQues.add(3);
+		crtQues.add(5);
+		
+		guessQues.add(4);
+		
+		explMap.put("crtQues", crtQues);
+		explMap.put("guessQues", guessQues);
+		explMap.put("skipQues", skipQues);
+		explMap.put("cursoryQues", cursoryQues);
+		explMap.put("incrtQues", incrtQues);
+		
+		expl.add(explMap);
+		
+		data.put("expl", expl);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getIncrtNote(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		List<Map> incrtNote = new ArrayList<>();
+		Map<String, Object> incrtNoteMap = new HashMap<>();
+		
+		incrtNoteMap.put("gradeTerm", "6-1");
+		incrtNoteMap.put("subjNm", "사회(2015개정)");
+		incrtNoteMap.put("unitNm", "27장.다른 나라와의 경제 교류 사례 알아보기(일반)");
+		incrtNoteMap.put("type", "실력평가");
+		incrtNoteMap.put("lrnStt", "학습완료");
+		incrtNoteMap.put("quesCnt", 2);
+		incrtNoteMap.put("crtQuesCnt", 2);
+		incrtNoteMap.put("remainQuesCnt", 0);
+		incrtNoteMap.put("incrtNoteRegDt", "2020-06-23");
+		incrtNoteMap.put("smtDttm", "2020-06-23 07:41:09");
+		
+		incrtNote.add(incrtNoteMap);
+		
+		data.put("incrtNote", incrtNote);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

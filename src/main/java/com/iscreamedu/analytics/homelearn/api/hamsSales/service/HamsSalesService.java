@@ -105,4 +105,20 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getExam (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 푼 평가지 (HAMS-S-TR-011)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getExpl (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 오답노트 (HAMS-S-TR-012)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getIncrtNote (Map<String, Object> paramMap) throws Exception;
 }

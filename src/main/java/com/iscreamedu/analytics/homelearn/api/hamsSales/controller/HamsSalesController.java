@@ -215,4 +215,34 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 푼 평가지 (HAMS-S-TR-011)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getExpl")
+	public ResponseEntity getExpl(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getExpl(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 오답노트 (HAMS-S-TR-012)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getIncrtNote")
+	public ResponseEntity getIncrtNote(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getIncrtNote(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }
