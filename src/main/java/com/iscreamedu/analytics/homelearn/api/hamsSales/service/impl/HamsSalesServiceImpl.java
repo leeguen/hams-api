@@ -94,6 +94,24 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		List<Map<String,Object>> commWkDtList = (List) commonMapper.getList(paramMap, "Common.selectCommWkDt");
 		
+		/*
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("token", studInfoJson.get("token").toString()); // Auth Token
+
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put("stuId", stuId); // param
+        parameters.put("startDate", commWkDtList.get(0)); // param
+        parameters.put("endDate", commWkDtList.get(6)); // param
+
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://api.home-learn.com/newTodayStudy/NewTodayStudyList?date={date}";
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, parameters);
+        Object obj = parser.parse(response.getBody());
+        JSONObject responseObj = (JSONObject) obj;
+        List list = (List) responseObj.get("list"); 
+		*/
+		
 		int i =0;
 		
 		for (Map<String,Object> item : commWkDtList) {
@@ -241,7 +259,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		timelineDetailMap.put("lrnNm", "예복습 > 3학년 1학기 > 국어 > 2단원 문단의 짜임 > 5장 중심 문장과 뒷받침 문장 알기");
 		timelineDetailMap.put("lrnSec", 841);
 		timelineDetailMap.put("stdLrnSec", 578);
-		timelineDetailMap.put("exType", "P");
+		timelineDetailMap.put("exType", 1);
 		timelineDetailMap.put("planDt", "2020.04.07");
 		
 		timelineDetailList.add(timelineDetailMap);

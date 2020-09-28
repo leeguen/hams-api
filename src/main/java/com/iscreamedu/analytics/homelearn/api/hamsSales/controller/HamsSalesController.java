@@ -112,7 +112,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 3일 학습 상세 내역 (HAMS-S-TR-004)
+	 * 학습패턴 (HAMS-S-TR-004)
 	 * @param params
 	 * @param req
 	 * @param res
