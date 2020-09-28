@@ -244,8 +244,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> threeDayLrnDetail = new HashMap<>();
-		threeDayLrnDetail.put("totalLrnSec", 12840);
+		Map<String, Object> lrnPtn = new HashMap<>();
+		lrnPtn.put("totalLrnSec", 12840);
 		
 		List<Map> timeline = new ArrayList<>();
 		Map<String, Object> timelineMap = new HashMap<>();
@@ -268,8 +268,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		timeline.add(timelineMap);
 		
-		threeDayLrnDetail.put("timeline", timeline);
-		data.put("threeDayLrnDetail", threeDayLrnDetail);
+		lrnPtn.put("timeline", timeline);
+		data.put("lrnPtn", lrnPtn);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
