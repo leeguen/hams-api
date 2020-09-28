@@ -82,7 +82,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	@Override
 	public Map getDailyLrnStt(Map<String, Object> paramMap) throws Exception {
 		Map<String, Object> data = new HashMap<>();
-		List<Map<String, Object>> dailyLrnSttList = new ArrayList();
+		List<Map<String, Object>> dailyLrnStt = new ArrayList();
 		
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
@@ -98,17 +98,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		int i =0;
 		
 		for (Map<String,Object> item : commWkDtList) {
-			Map<String, Object> dailyLrnStt = new HashMap<>();
+			Map<String, Object> dailyLrnSttMap = new HashMap<>();
 			List<String> loginLoglist = new ArrayList<String>(); //실 데이터 조회로 교체 필요
 			
-			dailyLrnStt.put("dt",item.get("dt"));
+			dailyLrnSttMap.put("dt",item.get("dt"));
 			i+=1;
 			if(i%2 == 0) {
-				dailyLrnStt.put("attYn",false); //HL API output으로 교체 필요
-				dailyLrnStt.put("lrnStt",0); //HL API output으로 교체 필요				
+				dailyLrnSttMap.put("attYn",false); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("lrnStt",0); //HL API output으로 교체 필요				
 			} else {
-				dailyLrnStt.put("attYn",true); //HL API output으로 교체 필요
-				dailyLrnStt.put("lrnStt",i+1); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("attYn",true); //HL API output으로 교체 필요
+				dailyLrnSttMap.put("lrnStt",i+1); //HL API output으로 교체 필요
 				
 				loginLoglist.add(item.get("dt") + " 20:56:33");
 				loginLoglist.add(item.get("dt") + " 15:58:26");
@@ -116,12 +116,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				loginLoglist.add(item.get("dt") + " 13:18:03");
 			}
 			
-			dailyLrnStt.put("loginLog", loginLoglist);
+			dailyLrnSttMap.put("loginLogList", loginLoglist);
 		
-			dailyLrnSttList.add(dailyLrnStt);
+			dailyLrnStt.add(dailyLrnSttMap);
 		}
 		
-		data.put("dailyLrnSttList", dailyLrnSttList);
+		data.put("dailyLrnStt", dailyLrnStt);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -147,12 +147,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> settleInfoPrediction = new HashMap<>();
 		settleInfoPrediction.put("signal", 1);
 		
-		List<String> list = new ArrayList<>();
-		list.add("수행률");
-		list.add("계획된 학습 학습시간");
-		list.add("정답을 맞힌 문제 수");
+		List<String> focusPointList = new ArrayList<>();
+		focusPointList.add("수행률");
+		focusPointList.add("계획된 학습 학습시간");
+		focusPointList.add("정답을 맞힌 문제 수");
 		
-		settleInfoPrediction.put("list", list);
+		settleInfoPrediction.put("focusPointList", focusPointList);
 		data.put("settleInfoPrediction", settleInfoPrediction);
 		
 		if(vu.isValid()) {
@@ -230,7 +230,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> threeDayLrnDetail = new HashMap<>();
 		threeDayLrnDetail.put("totalLrnSec", 12840);
 		
-		List<Map> timelineList = new ArrayList<>();
+		List<Map> timeline = new ArrayList<>();
 		Map<String, Object> timelineMap = new HashMap<>();
 		timelineMap.put("dt", "2020.04.07");
 		timelineMap.put("expDay", 3);
@@ -247,11 +247,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		timelineDetailList.add(timelineDetailMap);
 		
-		timelineMap.put("detail", timelineDetailList);
+		timelineMap.put("timelineDetailList", timelineDetailList);
 		
-		timelineList.add(timelineMap);
+		timeline.add(timelineMap);
 		
-		threeDayLrnDetail.put("timeline", timelineList);
+		threeDayLrnDetail.put("timeline", timeline);
 		data.put("threeDayLrnDetail", threeDayLrnDetail);
 		
 		if(vu.isValid()) {
