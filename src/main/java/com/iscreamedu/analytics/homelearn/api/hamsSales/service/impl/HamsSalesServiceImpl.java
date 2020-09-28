@@ -384,6 +384,148 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getHLBookCafe(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> hLBookCafe = new HashMap<>();
+		List<Map> list = new ArrayList<>();
+		Map<String, Object> listMap = new HashMap<>();
+		
+		hLBookCafe.put("cnt", 2);
+		hLBookCafe.put("grpAvgCnt", 3);
+		
+		listMap.put("dt","2020-09-25");
+		listMap.put("title","산에 산에 누가 살까");
+		listMap.put("readTm","00:00:43");
+		listMap.put("reviewYn",true);
+		listMap.put("review","200자평 내용 텍스트");
+		
+		list.add(listMap);
+		
+		hLBookCafe.put("list", list);
+		
+		data.put("hLBookCafe", hLBookCafe);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getEngLibrary(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> engLibrary = new HashMap<>();
+		List<Map> list = new ArrayList<>();
+		Map<String, Object> listMap = new HashMap<>();
+		
+		engLibrary.put("cnt", 2);
+		engLibrary.put("grpAvgCnt", 3);
+		
+		listMap.put("dt", "2020-04-08");
+		listMap.put("title", "Who Can Go In?");
+		listMap.put("readTm", "00:00:43");
+		listMap.put("lvl", 5);
+		listMap.put("quiz", "4/4");
+		
+		list.add(listMap);
+		engLibrary.put("list", list);
+		
+		data.put("engLibrary", engLibrary);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getExam(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> exam = new HashMap<>();
+		
+		exam.put("crtRt", 84);
+		exam.put("explCnt", 33);
+		exam.put("ansQuesCnt", 21);
+		exam.put("crtQuesCnt", 19);
+		
+		List<String> subjCdList = new ArrayList<String>();
+		subjCdList.add("C01");
+		subjCdList.add("C02");
+		subjCdList.add("C03");
+		subjCdList.add("C04");
+		subjCdList.add("C05");
+		subjCdList.add("C06");
+		exam.put("subjCdList", subjCdList);
+		
+		List<Integer> crtRtList = new ArrayList<Integer>();
+		crtRtList.add(98);
+		crtRtList.add(75);
+		crtRtList.add(84);
+		crtRtList.add(82);
+		crtRtList.add(null);
+		crtRtList.add(null);
+		exam.put("crtRtList", crtRtList);
+		
+		List<Integer> explCntList = new ArrayList<Integer>();
+		explCntList.add(8);
+		explCntList.add(10);
+		explCntList.add(8);
+		explCntList.add(7);
+		explCntList.add(null);
+		explCntList.add(null);
+		exam.put("explCntList", explCntList);
+		
+		exam.put("incrtNoteNcCnt", 11);
+		exam.put("imprvSlvHabitCnt", 40);
+		exam.put("skipQuesCnt", 10);
+		exam.put("guessQuesCnt", 20);
+		exam.put("cursoryQuesCnt", 10);
+		
+		data.put("exam", exam);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

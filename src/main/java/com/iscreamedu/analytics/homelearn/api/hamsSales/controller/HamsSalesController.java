@@ -170,4 +170,49 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 홈런북카페 (HAMS-S-TR-008)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getHLBookCafe")
+	public ResponseEntity getHLBookCafe(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getHLBookCafe(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 영어도서관 (HAMS-S-TR-009)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getEngLibrary")
+	public ResponseEntity getEngLibrary(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getEngLibrary(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 평가 (HAMS-S-TR-010)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getExam")
+	public ResponseEntity getExam(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getExam(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }

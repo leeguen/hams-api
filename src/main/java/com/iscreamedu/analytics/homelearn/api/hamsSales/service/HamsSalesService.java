@@ -81,4 +81,28 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getALrnStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 홈런북카페 (HAMS-S-TR-008)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getHLBookCafe (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 영어도서관 (HAMS-S-TR-009)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getEngLibrary (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 평가 (HAMS-S-TR-010)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getExam (Map<String, Object> paramMap) throws Exception;
 }
