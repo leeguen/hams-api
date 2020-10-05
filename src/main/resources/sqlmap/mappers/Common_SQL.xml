@@ -60,5 +60,10 @@
 			BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) 
 				AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))
 	</select>
+	
+	<select id="healthCheck" parameterType="hashMap" resultType="resultMap">
+	/* Common.healthCheck : healthCheck */
+		SELECT NOW() AS DTTM
+	</select>
 		
 </mapper>

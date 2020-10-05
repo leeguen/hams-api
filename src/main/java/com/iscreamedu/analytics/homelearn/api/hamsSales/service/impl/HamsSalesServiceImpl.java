@@ -44,6 +44,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	private String dataKey = "data";
 	
 	@Override
+	public Map healthCheck(Map<String, Object> paramMap) throws Exception {
+		setResult(dataKey, commonMapper.getList(paramMap, "Common.healthCheck"));
+		return result;
+	}
+	
+	@Override
 	public Map getStudInfo(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();

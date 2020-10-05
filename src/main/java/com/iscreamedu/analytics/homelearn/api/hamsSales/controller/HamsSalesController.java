@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.controller;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +51,21 @@ public class HamsSalesController {
 		headers.setContentType(new MediaType("application","json"));
 		headers.setAccessControlAllowOrigin("*");
 		headers.setAccessControlAllowCredentials(true);
+	}
+	
+	/**
+	 * healthCheck
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/healthCheck")
+	public ResponseEntity healthCheck(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.healthCheck(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	/**
@@ -272,6 +289,23 @@ public class HamsSalesController {
 	@RequestMapping("/getParentingTest")
 	public ResponseEntity getParentingTest(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.getParentingTest(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HL API (홈런 API 데이터 조회)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getHl/{apiName}")
+	public ResponseEntity getHlApi(@PathVariable String apiName, @RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		params.put("apiName", apiName);
+		Map<String, Object> body = new HashMap<>();
+		body.put("data", apiName);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}

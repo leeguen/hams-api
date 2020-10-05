@@ -19,6 +19,14 @@ import java.util.Map;
  */
 public interface HamsSalesService {
 	/**
+	 * healthCheck
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map healthCheck (Map<String, Object> paramMap) throws Exception;
+	
+	/**
 	 * 학생 정보 (HAMS-S-C-002)
 	 * @param paramMap
 	 * @return
