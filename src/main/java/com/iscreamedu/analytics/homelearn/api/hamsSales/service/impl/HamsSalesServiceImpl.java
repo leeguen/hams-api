@@ -51,7 +51,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Override
 	public Map getSubjCodeInfo(Map<String, Object> paramMap) throws Exception {
-		setResult(dataKey, commonMapper.getList(paramMap, "HamsSales.subjCodeInfo"));
+		Map<String, Object> data = new HashMap<>();
+		List<Map<String, Object>> subjCodeInfo = new ArrayList();
+		List<Map<String,Object>> subjCodeInfoList = (List) commonMapper.getList(paramMap, "HamsSales.subjCodeInfo");
+		for (Map<String,Object> item : subjCodeInfoList) {
+			subjCodeInfo.add(item);
+		}
+		
+		data.put("subjCodeInfo", subjCodeInfo);
+		
+		setResult(dataKey, data);
+		
 		return result;
 	}
 	
