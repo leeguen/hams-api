@@ -50,6 +50,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	}
 	
 	@Override
+	public Map getSubjCodeInfo(Map<String, Object> paramMap) throws Exception {
+		setResult(dataKey, commonMapper.getList(paramMap, "HamsSales.subjCodeInfo"));
+		return result;
+	}
+	
+	@Override
 	public Map getStudInfo(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();

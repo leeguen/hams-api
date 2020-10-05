@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="HamsSales">
-	
+	<select id="subjCodeInfo" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.subjCodeInfo : 과목 코드 정보 */
+		SELECT 
+			CD AS SUBJ_CD,
+		    CD_NM AS SUBJ_NM,
+		    NULL AS UPPER_SUBJ_CD
+		FROM COMM_CD
+		WHERE 
+			GRP = 'SUBJ'
+			AND GRADE = 6
+			AND LANG_CD = 'ko'
+		    AND CD_TYPE = 'G'
+		UNION ALL
+		SELECT 
+			CD AS SUBJ_CD,
+		    CD_NM AS SUBJ_NM,
+		    UPPER_CD AS UPPER_SUBJ_CD
+		FROM COMM_SUB_CD
+		WHERE 
+			GRP = 'SUBJ'
+			AND GRADE = 6
+			AND LANG_CD = 'ko'
+		    AND CD_TYPE = 'G'
+	</select>
 </mapper>

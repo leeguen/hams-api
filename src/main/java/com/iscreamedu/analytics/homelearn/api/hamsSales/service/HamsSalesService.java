@@ -27,6 +27,14 @@ public interface HamsSalesService {
 	public Map healthCheck (Map<String, Object> paramMap) throws Exception;
 	
 	/**
+	 * 과목 코드 정보 (HAMS-S-C-001)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSubjCodeInfo (Map<String, Object> paramMap) throws Exception;
+	
+	/**
 	 * 학생 정보 (HAMS-S-C-002)
 	 * @param paramMap
 	 * @return

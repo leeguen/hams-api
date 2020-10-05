@@ -69,6 +69,21 @@ public class HamsSalesController {
 	}
 	
 	/**
+	 * 과목 코드 정보 (HAMS-S-C-001)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getSubjCodeInfo")
+	public ResponseEntity getSubjCodeInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getSubjCodeInfo(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * 학생 정보 (HAMS-S-C-002)
 	 * @param params
 	 * @param req
