@@ -718,6 +718,372 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getExpReportIntro(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> expReportIntro = new HashMap<>();
+		
+		expReportIntro.put("title", "짜파게티 요리사");
+		expReportIntro.put("studNm", "양예슬");
+		expReportIntro.put("expDt", "2020.04.06~2020.04.16");
+		expReportIntro.put("linkUrl", "http://gw.i-screamedu.co.kr/");
+		
+		data.put("expReportIntro", expReportIntro);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getTchrFeedback(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> tchrFeedback = new HashMap<>();
+		
+		tchrFeedback.put("msg", "안녕하세요...");
+		tchrFeedback.put("tchrNm", "양예슬");
+		tchrFeedback.put("tchrCell", "010-1234-1234");
+		
+		data.put("tchrFeedback", tchrFeedback);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getSubjLrnPtn(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		List<Map> subjLrnPtn = new ArrayList<>();
+		Map<String, Object> subjLrnPtnMap = new HashMap<>();
+		List<String> subSubjCd = new ArrayList<>();
+		List<Integer> subSubjLrnSec = new ArrayList<>();
+		List<Integer> subSubjExCnt = new ArrayList<>();
+		
+		subjLrnPtnMap.put("subjCd", "C01");
+		subjLrnPtnMap.put("totalLrnSec", 248);
+		
+		subSubjCd.add("C01_01");
+		subSubjCd.add("C01_02");
+		subSubjCd.add("C01_03");
+		subSubjCd.add("C01_04");
+		
+		subSubjLrnSec.add(88);
+		subSubjLrnSec.add(90);
+		subSubjLrnSec.add(70);
+		subSubjLrnSec.add(82);
+		
+		subSubjExCnt.add(3);
+		subSubjExCnt.add(4);
+		subSubjExCnt.add(3);
+		subSubjExCnt.add(1);
+		
+		subjLrnPtnMap.put("subSubjCd", subSubjCd);
+		subjLrnPtnMap.put("subSubjLrnSec", subSubjLrnSec);
+		subjLrnPtnMap.put("subSubjExCnt", subSubjExCnt);
+		
+		subjLrnPtn.add(subjLrnPtnMap);
+		
+		data.put("subjLrnPtn", subjLrnPtn);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getLrnHabits(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> lrnHabits = new HashMap<>();
+		Map<String, Object> planHabit = new HashMap<>();
+		Map<String, Object> incrtNoteHabit = new HashMap<>();
+		Map<String, Object> aLrnHabit = new HashMap<>();
+		Map<String, Object> concnHabit = new HashMap<>();
+		Map<String, Object> slvHabit = new HashMap<>();
+		
+		Map<String, Object> attHabit = new HashMap<>();
+		List<String> dtList = new ArrayList<String>();
+		List<String> planDtList = new ArrayList<String>();
+		List<String> attDtList = new ArrayList<String>();
+		
+		attHabit.put("score", 4);
+		attHabit.put("attRt", 96);
+		attHabit.put("planDayCnt", 8);
+		attHabit.put("attDayCnt", 9);
+		
+		dtList.add("2020-08-30");
+		dtList.add("2020-08-31");
+		dtList.add("2020-09-01");
+		
+		planDtList.add("2020-08-31");
+		planDtList.add("2020-09-01");
+		
+		attDtList.add("2020-08-31");
+		
+		attHabit.put("dtList", dtList);
+		attHabit.put("planDtList", planDtList);
+		attHabit.put("attDtList", attDtList);
+		
+		lrnHabits.put("attHabit", attHabit);
+		
+		planHabit.put("score", 4);
+		planHabit.put("exRt", 100);
+		planHabit.put("planCnt", 34);
+		planHabit.put("exCnt", 34);
+		planHabit.put("bLrnExCnt", 1);
+		planHabit.put("lrnExCnt", 1);
+		planHabit.put("dLrnExCnt", 1);
+		planHabit.put("nLrnExCnt", 1);
+		
+		List<Map> incrtNoteHabitList = new ArrayList<Map>();
+		Map<String, Object> incrtNoteHabitListMap1 = new HashMap<>();
+		Map<String, Object> incrtNoteHabitListMap2 = new HashMap<>();
+		Map<String, Object> incrtNoteHabitListMap3 = new HashMap<>();
+		
+		incrtNoteHabit.put("score", 4);
+		incrtNoteHabit.put("incrtNoteNcCnt", 1);
+		
+		incrtNoteHabitListMap1.put("regDt", "2020-09-08");
+		incrtNoteHabitListMap1.put("subjNm", "과학(2015개정)");
+		incrtNoteHabitListMap1.put("unitNm", "8장.날아다니는 동물에는 어떤 것이 있을까요(일반)");
+		
+		incrtNoteHabitList.add(incrtNoteHabitListMap1);
+		System.out.println(incrtNoteHabitList);
+		
+		incrtNoteHabitListMap2.put("regDt", "2020-09-08");
+		incrtNoteHabitListMap2.put("subjNm", "과학(2015개정)");
+		incrtNoteHabitListMap2.put("unitNm", "3단원.자신의 경험을 글로 써요(일반)");
+		
+		incrtNoteHabitList.add(incrtNoteHabitListMap2);
+		System.out.println(incrtNoteHabitList);
+		
+		incrtNoteHabitListMap3.put("regDt", "2020-09-08");
+		incrtNoteHabitListMap3.put("subjNm", "과학(2015개정)");
+		incrtNoteHabitListMap3.put("unitNm", "2단원.중심 생각을 찾아요(일반)");
+		
+		incrtNoteHabitList.add(incrtNoteHabitListMap3);
+		System.out.println(incrtNoteHabitList);
+		
+		incrtNoteHabit.put("list", incrtNoteHabitList);
+		
+		aLrnHabit.put("score", 4);
+		aLrnHabit.put("aLrnExCnt", 43);
+		
+		List<String> subjCd = new ArrayList<String>();
+		List<Integer> subjExCnt = new ArrayList<Integer>();
+		
+		subjCd.add("C01");
+		subjCd.add("C02");
+		subjCd.add("C03");
+		subjCd.add("C04");
+		subjCd.add("C05");
+		subjCd.add("C06");
+		
+		aLrnHabit.put("subjCd", subjCd);
+		
+		subjExCnt.add(9);
+		subjExCnt.add(8);
+		subjExCnt.add(7);
+		subjExCnt.add(6);
+		subjExCnt.add(5);
+		subjExCnt.add(4);
+		
+		aLrnHabit.put("subjExCnt", subjExCnt);
+		
+		aLrnHabit.put("subjCd", subjCd);
+		
+		concnHabit.put("score", 4);
+		concnHabit.put("lowConcnCnt", 5);
+		
+		List<String> concnHabitList = new ArrayList<String>();
+		concnHabitList.add("20.08.24 11:03~11:06 수학>실력다지기>각뿔을 알아볼까요(2)");
+		concnHabitList.add("20.08.24 11:03~11:06 사회>예복습>세계 여러 나라 사람들의 생…");
+		concnHabitList.add("20.08.24 11:03~11:06 사회>예복습>세계 여러 나라 사람들의 생…");
+		
+		concnHabit.put("list", concnHabitList);
+		
+		slvHabit.put("score", 4);
+		slvHabit.put("imprvSlvHabitCnt", 7);
+		slvHabit.put("skipQuesCnt", 0);
+		slvHabit.put("guessQuesCnt", 0);
+		slvHabit.put("cursoryQuesCnt", 7);
+		
+		data.put("lrnHabits", lrnHabits);
+		data.put("planHabit", planHabit);
+		data.put("incrtNoteHabit", incrtNoteHabit);
+		data.put("aLrnHabit", aLrnHabit);
+		data.put("concnHabit", concnHabit);
+		data.put("slvHabit", slvHabit);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getExamStt(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> examRst = new HashMap<>();
+		Map<String, Object> maxSubj = new HashMap<>();
+		Map<String, Object> minSubj = new HashMap<>();
+		
+		examRst.put("studNm", "양예슬");
+		examRst.put("crtRt", 85);
+		examRst.put("top10AvgScore", 90);
+		examRst.put("explCnt", 14);
+		examRst.put("ansQuesCnt", 96);
+		examRst.put("crtQuesCnt", 82);
+		
+		List<String> maxActFieldNm = new ArrayList<String>();
+		List<Integer> maxActFieldCrtRt = new ArrayList<Integer>();
+		List<String> maxContFieldNm = new ArrayList<String>();
+		List<Integer> maxContFieldCrtRt = new ArrayList<Integer>();
+		
+		maxSubj.put("studNm", "양예슬");
+		maxSubj.put("maxSubjNm", "수학");
+		maxSubj.put("maxSubjcrtRt", 90);
+		maxSubj.put("top10AvgScore", 90);
+		maxSubj.put("explCnt", 3);
+		maxSubj.put("ansQuesCnt", 21);
+		maxSubj.put("crtQuesCnt", 19);
+		
+		maxActFieldNm.add("계산력");
+		maxActFieldNm.add("문제해결력");
+		maxActFieldNm.add("이해력");
+		maxActFieldNm.add("추론력");
+		
+		maxActFieldCrtRt.add(60);
+		maxActFieldCrtRt.add(67);
+		maxActFieldCrtRt.add(100);
+		maxActFieldCrtRt.add(25);
+		
+		maxContFieldNm.add("규칙성");
+		maxContFieldNm.add("도형");
+		maxContFieldNm.add("수와 연산");
+		maxContFieldNm.add("측정");
+		maxContFieldNm.add("확률과 통계");
+		
+		maxContFieldCrtRt.add(0);
+		maxContFieldCrtRt.add(0);
+		maxContFieldCrtRt.add(80);
+		maxContFieldCrtRt.add(80);
+		maxContFieldCrtRt.add(0);
+		
+		maxSubj.put("actFieldNm", maxActFieldNm);
+		maxSubj.put("actFieldCrtRt", maxActFieldCrtRt);
+		maxSubj.put("contFieldNm", maxContFieldNm);
+		maxSubj.put("contFieldCrtRt", maxContFieldCrtRt);
+		
+		List<String> minActFieldNm = new ArrayList<String>();
+		List<Integer> minActFieldCrtRt = new ArrayList<Integer>();
+		List<String> minContFieldNm = new ArrayList<String>();
+		List<Integer> minContFieldCrtRt = new ArrayList<Integer>();
+		
+		minSubj.put("studNm", "양예슬");
+		minSubj.put("minSubjNm", "과학");
+		minSubj.put("minSubjcrtRt", 83);
+		minSubj.put("top10AvgScore", 96);
+		minSubj.put("explCnt", 5);
+		minSubj.put("ansQuesCnt", 40);
+		minSubj.put("crtQuesCnt", 33);
+		
+		minActFieldNm.add("결론도출");
+		minActFieldNm.add("관찰측정");
+		minActFieldNm.add("자료수집");
+		minActFieldNm.add("자료해석력");
+		minActFieldNm.add("적용력");
+		minActFieldNm.add("지식/이해력");
+		minActFieldNm.add("탐구력");
+		
+		minActFieldCrtRt.add(0);
+		minActFieldCrtRt.add(0);
+		minActFieldCrtRt.add(0);
+		minActFieldCrtRt.add(0);
+		minActFieldCrtRt.add(0);
+		minActFieldCrtRt.add(100);
+		minActFieldCrtRt.add(0);
+		
+		minContFieldNm.add("물질");
+		minContFieldNm.add("생명");
+		minContFieldNm.add("운동과 에너지");
+		minContFieldNm.add("지구와 우주");
+		minContFieldNm.add("탐구");
+		
+		minContFieldCrtRt.add(0);
+		minContFieldCrtRt.add(0);
+		minContFieldCrtRt.add(0);
+		minContFieldCrtRt.add(95);
+		minContFieldCrtRt.add(100);
+		
+		minSubj.put("actFieldNm", minActFieldNm);
+		minSubj.put("actFieldCrtRt", minActFieldCrtRt);
+		minSubj.put("contFieldNm", minContFieldNm);
+		minSubj.put("contFieldCrtRt", minContFieldCrtRt);		
+		
+		data.put("examRst", examRst);
+		data.put("maxSubj", maxSubj);
+		data.put("minSubj", minSubj);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

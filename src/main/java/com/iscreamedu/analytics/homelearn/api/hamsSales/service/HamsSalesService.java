@@ -153,4 +153,44 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getParentingTest (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 인트로 (HAMS-S-ER-001)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getExpReportIntro (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 선생님 피드백 (HAMS-S-ER-002)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getTchrFeedback (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 과목별 학습 패턴 (HAMS-S-ER-003)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSubjLrnPtn (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 바른 학습 습관 (HAMS-S-ER-004)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getLrnHabits (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 평가 분석 (HAMS-S-ER-005)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getExamStt (Map<String, Object> paramMap) throws Exception;
 }
