@@ -1084,6 +1084,62 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map getRecommendedContents(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		List<Map> recommendedContents = new ArrayList<Map>();
+		Map<String, Object> recommendedContentsMap1 = new HashMap<>();
+		Map<String, Object> recommendedContentsMap2 = new HashMap<>();
+		Map<String, Object> recommendedContentsMap3 = new HashMap<>();
+		Map<String, Object> recommendedContentsMap4 = new HashMap<>();
+		
+		recommendedContentsMap1.put("type", "학교공부");
+		recommendedContentsMap1.put("subjNm", "수학완성");
+		recommendedContentsMap1.put("ctgr", "홈런연산 테마파크 > 곱셉나눗셈 어드벤처");
+		recommendedContentsMap1.put("cont", "나만의 맞춤 시험지를 놀이공원에서 놀듯이 풀며 연산 실력을 쑥쑥 늘려갑니다!");
+		recommendedContentsMap1.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
+		
+		recommendedContentsMap2.put("type", "학교공부");
+		recommendedContentsMap2.put("subjNm", "수학완성");
+		recommendedContentsMap2.put("ctgr", "홈런연산 테마파크 > 곱셉나눗셈 어드벤처");
+		recommendedContentsMap2.put("cont", "나만의 맞춤 시험지를 놀이공원에서 놀듯이 풀며 연산 실력을 쑥쑥 늘려갑니다!");
+		recommendedContentsMap2.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
+		
+		recommendedContentsMap3.put("type", "특별학습");
+		recommendedContentsMap3.put("subjNm", "글로벌리더십");
+		recommendedContentsMap3.put("ctgr", "진로 > 미래 직업 속으로");
+		recommendedContentsMap3.put("cont", "초콜릿의 연금술사 쇼콜라티에");
+		recommendedContentsMap3.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
+		
+		recommendedContentsMap4.put("type", "특별학습");
+		recommendedContentsMap4.put("subjNm", "글로벌리더십");
+		recommendedContentsMap4.put("ctgr", "과학 > 위기탈출 넘버원");
+		recommendedContentsMap4.put("cont", "올바른 안전벨트 착용법");
+		recommendedContentsMap4.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
+		
+		recommendedContents.add(recommendedContentsMap1);
+		recommendedContents.add(recommendedContentsMap2);
+		recommendedContents.add(recommendedContentsMap3);
+		recommendedContents.add(recommendedContentsMap4);
+		
+		data.put("recommendedContents", recommendedContents);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

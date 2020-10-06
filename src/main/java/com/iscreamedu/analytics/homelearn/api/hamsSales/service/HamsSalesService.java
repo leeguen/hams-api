@@ -193,4 +193,12 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getExamStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 콘텐츠 추천 (HAMS-S-ER-006)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getRecommendedContents (Map<String, Object> paramMap) throws Exception;
 }

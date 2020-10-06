@@ -399,4 +399,19 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 콘텐츠 추천 (HAMS-S-ER-006)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getRecommendedContents")
+	public ResponseEntity getRecommendedContents(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getRecommendedContents(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }
