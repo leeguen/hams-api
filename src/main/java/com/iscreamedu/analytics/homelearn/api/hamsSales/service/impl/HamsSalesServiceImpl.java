@@ -54,6 +54,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> data = new HashMap<>();
 		List<Map<String, Object>> subjCodeInfo = new ArrayList();
 		List<Map<String,Object>> subjCodeInfoList = (List) commonMapper.getList(paramMap, "HamsSales.subjCodeInfo");
+		
 		for (Map<String,Object> item : subjCodeInfoList) {
 			subjCodeInfo.add(item);
 		}
@@ -75,21 +76,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
-
-		//Dummy Start
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> studInfo = new HashMap<>();
-		studInfo.put("studId", 654321);
-		studInfo.put("studNm", "김홈런");
-		studInfo.put("grade", 5);
-		studInfo.put("schlNm", "홈런초등학교");
-		studInfo.put("gender", "F");
-		studInfo.put("tchrId", 123456);
-		studInfo.put("expStartDt", "2020-09-23");
-		studInfo.put("expEndDt", "2020-09-23");
 		
-		data.put("studInfo", studInfo);
-		//Dummy End
+		Map<String, Object> data = new HashMap<>();
+		Map<String,Object> studInfoList = (Map) commonMapper.get(paramMap, "HamsSales.selectStudInfo");
+		
+		data.put("studInfo", studInfoList);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -116,31 +107,19 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		List<Map<String,Object>> commWkDtList = (List) commonMapper.getList(paramMap, "Common.selectCommWkDt");
 		
-		/*
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("token", studInfoJson.get("token").toString()); // Auth Token
-
-        Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put("stuId", stuId); // param
-        parameters.put("startDate", commWkDtList.get(0)); // param
-        parameters.put("endDate", commWkDtList.get(6)); // param
-
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "https://api.home-learn.com/newTodayStudy/NewTodayStudyList?date={date}";
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, parameters);
-        Object obj = parser.parse(response.getBody());
-        JSONObject responseObj = (JSONObject) obj;
-        List list = (List) responseObj.get("list"); 
-		*/
+		paramMap.put("startDt", commWkDtList.get(0).get("dt").toString());
+		paramMap.put("endDt", commWkDtList.get(commWkDtList.size() - 1).get("dt").toString());
+		
+		List<Map<String,Object>>  dayAttLogList = (List) commonMapper.getList(paramMap, "HamsSales.selectLoginLogList");
 		
 		int i =0;
 		
 		for (Map<String,Object> item : commWkDtList) {
 			Map<String, Object> dailyLrnSttMap = new HashMap<>();
-			List<String> loginLoglist = new ArrayList<String>(); //실 데이터 조회로 교체 필요
+			String dt = (String)item.get("dt");
+			paramMap.put("dt", dt);
 			
-			dailyLrnSttMap.put("dt", item.get("dt"));
+			dailyLrnSttMap.put("dt", dt);
 			i+=1;
 			if(i%2 == 0) {
 				dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
@@ -148,14 +127,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			} else {
 				dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
 				dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
-				
-				loginLoglist.add(item.get("dt") + " 20:56:33");
-				loginLoglist.add(item.get("dt") + " 15:58:26");
-				loginLoglist.add(item.get("dt") + " 15:22:06");
-				loginLoglist.add(item.get("dt") + " 13:18:03");
 			}
 			
-			dailyLrnSttMap.put("loginLogList", loginLoglist);
+			List<String> loginLogList = new ArrayList<String>();
+			
+			for(Map<String,Object> dayAttLogItem : dayAttLogList) {
+				if(dayAttLogItem.get("dt").equals(dt)) {
+					loginLogList.add((String)dayAttLogItem.get("loginDttm"));
+				}
+			}
+			
+			dailyLrnSttMap.put("loginLogList", loginLogList);
 		
 			dailyLrnStt.add(dailyLrnSttMap);
 		}

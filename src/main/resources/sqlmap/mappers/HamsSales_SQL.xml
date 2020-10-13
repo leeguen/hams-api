@@ -25,4 +25,34 @@
 			AND LANG_CD = 'ko'
 		    AND CD_TYPE = 'G'
 	</select>
+	
+	<select id="selectStudInfo" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectStudInfo : 학생 정보 */
+		SELECT 
+			STUD_ID,
+			STUD_NM,
+			GRADE,
+			SCHL_NM,
+			GENDER,
+			TCHR_CHA_ID AS TCHR_ID,
+			DATE_FORMAT(START_DT, '%Y-%m-%d') AS EXP_START_DT,
+			DATE_FORMAT(END_DT, '%Y-%m-%d') AS EXP_END_DT
+		FROM STUD
+		WHERE 
+			DT = #{dt}
+		    AND STUD_ID = #{studId}
+	</select>
+	
+	<select id="selectLoginLogList" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLoginLogList : 일별 출석 로그 전체*/
+		SELECT
+			DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+			DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+		FROM DAY_ATT_LOG
+		WHERE
+			DT BETWEEN #{startDt} AND #{endDt}
+		    AND STUD_ID = #{studId}
+		ORDER BY ORD DESC
+		LIMIT 10
+	</select>
 </mapper>
