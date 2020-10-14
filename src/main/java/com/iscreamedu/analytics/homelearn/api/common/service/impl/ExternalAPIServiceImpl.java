@@ -90,8 +90,14 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	LOGGER.debug("message : " + responseData.get("message"));
 	        	LOGGER.debug("data : " + responseData.get("result"));
 	        	
-	        	setResult(msgKey, responseData.get("message"));
-	        	setResult(dataKey, responseData.get("result"));
+	        	if("200".equals(responseData.get("code").toString())) {
+	        		setResult(dataKey, responseData.get("result"));
+	        	}else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		setResult(msgKey, msgMap);
+	        	}
 	        	
 	    	//영어도서관
 	        }else if("engList".equals(apiName)) {
@@ -110,8 +116,14 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	LOGGER.debug("message : " + responseData.get("message"));
 	        	LOGGER.debug("data : " + responseData.get("data"));
 	        	
-	        	setResult(msgKey, responseData.get("message"));
-	        	setResult(dataKey, responseData.get("data"));
+	        	if("200".equals(responseData.get("code").toString())) {
+	        		setResult(dataKey, responseData.get("data"));
+	        	}else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		setResult(msgKey, msgMap);
+	        	}
 	        	
 	    	//HL get일때
 	        }else {
@@ -131,8 +143,14 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	LOGGER.debug("message : " + responseData.get("message"));
 	        	LOGGER.debug("data : " + responseData.get("data"));
 	        	
-	        	setResult(msgKey, responseData.get("message"));
-	        	setResult(dataKey, responseData.get("data"));
+	        	if("200".equals(responseData.get("code").toString())) {
+	        		setResult(dataKey, responseData.get("data"));
+	        	}else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		setResult(msgKey, msgMap);
+	        	}
 	        }
 	        
 		} else {
