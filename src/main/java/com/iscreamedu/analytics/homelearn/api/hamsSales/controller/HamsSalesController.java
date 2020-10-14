@@ -1,6 +1,5 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.controller;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.hamsSales.service.HamsSalesService;
 
 /**
@@ -43,6 +43,8 @@ public class HamsSalesController {
 	
 	@Autowired
 	private HamsSalesService hamsSalesService;
+	@Autowired
+	private ExternalAPIService externalAPIService;
 	public HttpHeaders headers;
 	public LinkedHashMap body;
 	
@@ -319,8 +321,8 @@ public class HamsSalesController {
 	@RequestMapping("/getHl/{apiName}")
 	public ResponseEntity getHlApi(@PathVariable String apiName, @RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		params.put("apiName", apiName);
-		Map<String, Object> body = new HashMap<>();
-		body.put("data", apiName);
+		
+		body = (LinkedHashMap)externalAPIService.callExternalAPI(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
