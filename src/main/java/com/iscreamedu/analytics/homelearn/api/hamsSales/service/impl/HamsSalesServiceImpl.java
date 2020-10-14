@@ -285,6 +285,31 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	}
 	
 	@Override
+	public Map getLrnTmln(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		//2.dt 날짜형 체크
+		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		//3.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> lrnTmln = new HashMap<>();
+		
+		data.put("lrnTmln", lrnTmln);
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
 	public Map getLrnExStt(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();

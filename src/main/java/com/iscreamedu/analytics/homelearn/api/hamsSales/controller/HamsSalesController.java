@@ -159,7 +159,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 학습 수행 결과 (HAMS-S-TR-005)
+	 * 학습 수행 결과 (HAMS-S-TR-006)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -174,7 +174,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 학습 수행 결과 (HAMS-S-TR-006)
+	 * 학습 수행 결과 (HAMS-S-TR-007)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -189,7 +189,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 스스로 학습 (HAMS-S-TR-007)
+	 * 스스로 학습 (HAMS-S-TR-008)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -204,7 +204,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 홈런북카페 (HAMS-S-TR-008)
+	 * 홈런북카페 (HAMS-S-TR-009)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -219,7 +219,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 영어도서관 (HAMS-S-TR-009)
+	 * 영어도서관 (HAMS-S-TR-010)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -234,7 +234,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 평가 (HAMS-S-TR-010)
+	 * 평가 (HAMS-S-TR-011)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -249,7 +249,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 푼 평가지 (HAMS-S-TR-011)
+	 * 푼 평가지 (HAMS-S-TR-012)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -264,7 +264,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 오답노트 (HAMS-S-TR-012)
+	 * 오답노트 (HAMS-S-TR-013)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -279,7 +279,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 학생 - 다중지능 검사 (HAMS-S-TR-013)
+	 * 학생 - 다중지능 검사 (HAMS-S-TR-014)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -294,7 +294,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-014)
+	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-015)
 	 * @param params
 	 * @param req
 	 * @param res
