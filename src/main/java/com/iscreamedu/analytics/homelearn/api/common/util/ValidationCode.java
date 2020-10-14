@@ -26,6 +26,7 @@ public enum ValidationCode {
 	RANGE("1340", "숫자범위 오류"),	
 	SUBJNM("1350", "과목명 오류(subjNm) 체크 – 국어, 수학, 사회, 과학, 영어, 통합"),
 	NO_DATA("2000", "데이터 없음"),
+	EX_API_ERROR("9000", "외부API 호출오류"),
 	SYSTEM_ERROR("9999", "시스템 오류,기타 오류");
    
     private String code;
