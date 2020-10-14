@@ -73,7 +73,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	//헤더에 memId 세팅
 	        	HttpHeaders headers = new HttpHeaders();
 	        	headers.setContentType(MediaType.APPLICATION_JSON);
-	            headers.set("memId", paramMap.get("stuId").toString());
+	            headers.set("memId", paramMap.get("memId").toString());
 	            
 	            /* 필요 파라미터
 	            "fromDate":시작일(YYYY-MM-DD),
