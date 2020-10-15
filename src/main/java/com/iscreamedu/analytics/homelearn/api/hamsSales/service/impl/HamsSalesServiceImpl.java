@@ -251,18 +251,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> lrnPtn = new HashMap<>();
 		
 		Map<String, Object> lrnPtnData = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnPtn"); 
-		lrnPtn.put("totalLrnSec", lrnPtnData.get("totalLrnSec"));
+		if(lrnPtnData != null) {
+			lrnPtn.put("totalLrnSec", lrnPtnData.get("totalLrnSec"));
+		}
+		
 		
 		List<Map> timeline = new ArrayList<>();
 		Map<String, Object> timelineMap = new HashMap<>();
 		List<Map> timeLineMapData = commonMapper.getList(paramMap, "HamsSales.selectLrnPtnTmln");
 		
-		for(int i = 0; i < timeLineMapData.size(); i++) {
-			timeline.add(timeLineMapData.get(i));
+		if(timeLineMapData.size() != 0) {
+			for(int i = 0; i < timeLineMapData.size(); i++) {
+				timeline.add(timeLineMapData.get(i));
+			}
+			
+			lrnPtn.put("timeline", timeline);
+			data.put("lrnPtn", lrnPtn);
 		}
-		
-		lrnPtn.put("timeline", timeline);
-		data.put("lrnPtn", lrnPtn);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
