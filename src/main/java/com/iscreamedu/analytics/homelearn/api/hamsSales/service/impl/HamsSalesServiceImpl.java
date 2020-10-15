@@ -292,7 +292,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> lrnTmln = new HashMap<>();
 		
-		data.put("lrnTmln", lrnTmln);
+		List<Map> lrnTimelineList = commonMapper.getList(paramMap, "HamsSales.selectLrnTmln");
+		
+		if(lrnTimelineList.size() != 0) {
+			data.put("lrnTmln", lrnTimelineList);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

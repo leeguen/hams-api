@@ -75,4 +75,52 @@
 			AND STUD_ID = #{studId}
 	</select>
 	
+	<select id="selectLrnTmln" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnTmln : 3일 리포트 학습 패턴 - 타임라인 상세*/
+		SELECT 
+			SUBJ_CD,
+		    EX_TM,
+		    LRN_NM,
+		    LRN_SEC,
+		    STD_LRN_SEC,
+		    EX_TYPE,
+		    DATE_FORMAT(PLAN_DT, '%Y.%m.%d' ) AS PLAN_DT
+		FROM (
+			SELECT 
+				SUBJ_CD,
+				CONCAT(DATE_FORMAT(IFNULL(LRN_START_DTTM,''), '%H:%i'), ' ~ ', DATE_FORMAT(IFNULL(LRN_END_DTTM,''), '%H:%i'))AS EX_TM,
+				CTGR AS LRN_NM,
+				LRN_SEC,
+				600 AS STD_LRN_SEC,
+				EX_TYPE_CD AS EX_TYPE,
+				PLAN_DT
+			FROM DAY_LRN_TMLN
+			WHERE DT = #{dt}
+				AND STUD_ID = #{studId}
+			UNION ALL
+			SELECT 
+				NULL AS SUBJ_CD,
+				NULL AS EX_TM,
+				CTGR AS LRN_NM,
+				NULL AS LRN_SEC,
+				600 AS STD_LRN_SEC,
+				2 AS EX_TYPE,
+				PLAN_DT
+			FROM DAY_PLAN_U_EX_STT
+			WHERE DT = #{dt}
+				AND STUD_ID = #{studId}
+				AND LRN_EX_YN = 'N'
+		)A
+		<if test="ordNm != null and ordNm != ''">
+			<choose>
+				<when test="ordNm == 'planDt'">
+					ORDER BY EX_TYPE
+				</when>
+				<otherwise>
+					ORDER BY IFNULL(EX_TM,'23:59 ~ 24:00')
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
 </mapper>

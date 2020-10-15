@@ -161,6 +161,21 @@ public class HamsSalesController {
 	}
 	
 	/**
+	 * 학습 타임라인 상세 (HAMS-S-TR-005)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getLrnTmln")
+	public ResponseEntity getLrnTmln(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getLrnTmln(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * 학습 수행 결과 (HAMS-S-TR-006)
 	 * @param params
 	 * @param req
