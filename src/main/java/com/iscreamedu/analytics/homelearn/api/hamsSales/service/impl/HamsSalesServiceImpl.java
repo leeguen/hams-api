@@ -249,28 +249,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> lrnPtn = new HashMap<>();
-		lrnPtn.put("totalLrnSec", 12840);
+		
+		Map<String, Object> lrnPtnData = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnPtn"); 
+		lrnPtn.put("totalLrnSec", lrnPtnData.get("totalLrnSec"));
 		
 		List<Map> timeline = new ArrayList<>();
 		Map<String, Object> timelineMap = new HashMap<>();
-		timelineMap.put("dt", "2020.04.07");
-		timelineMap.put("expDay", 3);
+		List<Map> timeLineMapData = commonMapper.getList(paramMap, "HamsSales.selectLrnPtnTmln");
 		
-		List<Map> timelineDetailList = new ArrayList<>();
-		Map<String, Object> timelineDetailMap = new HashMap<>();
-		timelineDetailMap.put("subjCd", "C01");
-		timelineDetailMap.put("exTm", "12:03 ~ 12:17");
-		timelineDetailMap.put("lrnNm", "예복습 > 3학년 1학기 > 국어 > 2단원 문단의 짜임 > 5장 중심 문장과 뒷받침 문장 알기");
-		timelineDetailMap.put("lrnSec", 841);
-		timelineDetailMap.put("stdLrnSec", 578);
-		timelineDetailMap.put("exType", 1);
-		timelineDetailMap.put("planDt", "2020.04.07");
-		
-		timelineDetailList.add(timelineDetailMap);
-		
-		timelineMap.put("timelineDetailList", timelineDetailList);
-		
-		timeline.add(timelineMap);
+		for(int i = 0; i < timeLineMapData.size(); i++) {
+			timeline.add(timeLineMapData.get(i));
+		}
 		
 		lrnPtn.put("timeline", timeline);
 		data.put("lrnPtn", lrnPtn);

@@ -55,4 +55,24 @@
 		ORDER BY ORD DESC
 		LIMIT 10
 	</select>
+	
+	<select id="selectLrnPtn" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnPtn : 3일 리포트 학습 패턴*/
+		SELECT 
+			TOTAL_LRN_SEC
+		FROM LRN_EX_DETAIL
+		WHERE DT = #{dt}
+			AND STUD_ID = #{studId};
+	</select>
+	
+	<select id="selectLrnPtnTmln" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnPtnTmln : 3일 리포트 학습 패턴 - 타임라인*/
+		SELECT 
+			DATE_FORMAT(DT, '%Y.%m.%d') AS DT,
+		    TIMESTAMPDIFF(DAY, START_DT, DT) + 1 AS EXP_DAY
+		FROM STUD 
+		WHERE DT BETWEEN #{dt} - INTERVAL 2 DAY  AND #{dt}
+			AND STUD_ID = #{studId};
+	</select>
+	
 </mapper>
