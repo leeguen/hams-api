@@ -333,16 +333,25 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> lrnExSttData = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnExStt"); 
 		
 		if(lrnExSttData != null) {
-			String[] subjData = lrnExSttData.get("lrnSubjCdSp").toString().split(","); 
-			
-			for(int i = 0; i < subjData.length; i++) {
-				subjList.add(subjData[i]);
+			if(lrnExSttData.get("lrnSubjCdSp") != null) {
+				String[] subjData = lrnExSttData.get("lrnSubjCdSp").toString().split(","); 
+				
+				for(int i = 0; i < subjData.length; i++) {
+					subjList.add(subjData[i]);
+				}
+				
+			}else {
+				subjList = null;
 			}
 			
 			String[] exCntData = lrnExSttData.get("lrnExCntSp").toString().split(","); 
 			
-			for(int i = 0; i < exCntData.length; i++) {
-				exCntList.add(Integer.valueOf(exCntData[i]));
+			if(Integer.valueOf(exCntData[0].toString()) != 0) {
+				for(int i = 0; i < exCntData.length; i++) {
+					exCntList.add(Integer.valueOf(exCntData[i]));
+				}
+			}else {
+				exCntList = null;
 			}
 			
 			lrnExCntTop3.put("subjCd", subjList);
@@ -424,16 +433,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> aLrnExSttData = (Map) commonMapper.get(paramMap, "HamsSales.selectALrnStt"); 
 		
 		if(aLrnExSttData != null) {
-			String[] subjData = aLrnExSttData.get("aLrnSubjCdSp").toString().split(","); 
-			
-			for(int i = 0; i < subjData.length; i++) {
-				subjCd.add(subjData[i]);
+			if(aLrnExSttData.get("aLrnSubjCdSp") != null) {
+				String[] subjData = aLrnExSttData.get("aLrnSubjCdSp").toString().split(","); 
+				
+				for(int i = 0; i < subjData.length; i++) {
+					subjCd.add(subjData[i]);
+				}
+			}else {
+				subjCd = null;
 			}
 			
 			String[] exCntData = aLrnExSttData.get("aLrnExCntSp").toString().split(","); 
-			
-			for(int i = 0; i < exCntData.length; i++) {
-				exCnt.add(Integer.valueOf(exCntData[i]));
+			if(Integer.valueOf(exCntData[0].toString()) != 0 ) {
+				for(int i = 0; i < exCntData.length; i++) {
+					exCnt.add(Integer.valueOf(exCntData[i]));
+				}
+			}else {
+				exCnt = null;
 			}
 			
 			lrnExCntTop3.put("subjCd", subjCd);
