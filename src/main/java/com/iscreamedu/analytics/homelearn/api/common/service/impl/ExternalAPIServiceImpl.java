@@ -32,6 +32,7 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
  *  수정일      		   수정자		수정내용
  *  ----------  --------    --------------------------
  *  2020.10.13	 hy		           초기생성 
+ *  2020.10.16   shoshu      영어도서관 반영
  *  </pre>
  */
 @Service
@@ -99,10 +100,31 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        	
-	    	//영어도서관
-	        }else if("engList".equals(apiName)) {
+		    	//영어도서관
+	        }else if("studyHistory".equals(apiName)) {
+	        	String url = ENGLIB_API + apiName;
 	        	
-	        	LOGGER.debug("영어도서관  API 호출 : " + apiName);
+	        	//파라미터 세팅
+	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+	        	for( String key : paramMap.keySet() ){ 
+	        		builder.queryParam(key, paramMap.get(key)); 
+	        	}
+	        	URI apiUri = builder.build().encode().toUri();  
+	        	
+	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+	        	
+	        	LOGGER.debug("result : " + responseData.get("result"));
+	        	LOGGER.debug("message : " + responseData.get("message"));
+	        	LOGGER.debug("data : " + responseData.get("data"));
+	        	
+	        	if("true".equals(responseData.get("result").toString())) {
+	        		setResult(dataKey, responseData.get("data"));
+	        	}else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		setResult(msgKey, msgMap);
+	        	}
 	        	
 	    	//HL post일때
 	        }else if("english-study/change-english-skip".equals(apiName) 
