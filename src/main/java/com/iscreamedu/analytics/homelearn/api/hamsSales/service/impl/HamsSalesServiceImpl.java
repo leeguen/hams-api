@@ -55,11 +55,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		List<Map<String, Object>> subjCodeInfo = new ArrayList();
 		List<Map<String,Object>> subjCodeInfoList = (List) commonMapper.getList(paramMap, "HamsSales.subjCodeInfo");
 		
-		for (Map<String,Object> item : subjCodeInfoList) {
-			subjCodeInfo.add(item);
+		if(subjCodeInfoList.size() > 0) {
+			for (Map<String,Object> item : subjCodeInfoList) {
+				subjCodeInfo.add(item);
+			}
+			
+			data.put("subjCodeInfo", subjCodeInfo);
 		}
-		
-		data.put("subjCodeInfo", subjCodeInfo);
 		
 		setResult(dataKey, data);
 		
@@ -80,7 +82,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> data = new HashMap<>();
 		Map<String,Object> studInfoList = (Map) commonMapper.get(paramMap, "HamsSales.selectStudInfo");
 		
-		data.put("studInfo", studInfoList);
+		if(studInfoList != null) {
+			data.put("studInfo", studInfoList);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -114,35 +118,37 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		int i =0;
 		
-		for (Map<String,Object> item : commWkDtList) {
-			Map<String, Object> dailyLrnSttMap = new HashMap<>();
-			String dt = (String)item.get("dt");
-			paramMap.put("dt", dt);
-			
-			dailyLrnSttMap.put("dt", dt);
-			i+=1;
-			if(i%2 == 0) {
-				dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
-			} else {
-				dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
-				dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
-			}
-			
-			List<String> loginLogList = new ArrayList<String>();
-			
-			for(Map<String,Object> dayAttLogItem : dayAttLogList) {
-				if(dayAttLogItem.get("dt").equals(dt)) {
-					loginLogList.add((String)dayAttLogItem.get("loginDttm"));
+		if(dayAttLogList.size() > 0 ) {
+			for (Map<String,Object> item : commWkDtList) {
+				Map<String, Object> dailyLrnSttMap = new HashMap<>();
+				String dt = (String)item.get("dt");
+				paramMap.put("dt", dt);
+				
+				dailyLrnSttMap.put("dt", dt);
+				i+=1;
+				if(i%2 == 0) {
+					dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
+					dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
+				} else {
+					dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
+					dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
 				}
+				
+				List<String> loginLogList = new ArrayList<String>();
+				
+				for(Map<String,Object> dayAttLogItem : dayAttLogList) {
+					if(dayAttLogItem.get("dt").equals(dt)) {
+						loginLogList.add((String)dayAttLogItem.get("loginDttm"));
+					}
+				}
+				
+				dailyLrnSttMap.put("loginLogList", loginLogList);
+			
+				dailyLrnStt.add(dailyLrnSttMap);
 			}
 			
-			dailyLrnSttMap.put("loginLogList", loginLogList);
-		
-			dailyLrnStt.add(dailyLrnSttMap);
+			data.put("dailyLrnStt", dailyLrnStt);
 		}
-		
-		data.put("dailyLrnStt", dailyLrnStt);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -318,28 +324,36 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> lrnExCntTop3 = new HashMap<>();
-		Map<String, Object> grpAvg = new HashMap<>();
-		List<String> subjList = new ArrayList<String>();
+		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> lrnExCntTop3 = new LinkedHashMap<>();
+		Map<String, Object> grpAvg = new LinkedHashMap<>();
+		ArrayList<String> subjList = new ArrayList<String>();
 		List<Integer> exCntList = new ArrayList<Integer>();
 		
-		subjList.add("C01");
-		subjList.add("C02");
-		subjList.add("C03");
+		Map<String, Object> lrnExSttData = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnExStt"); 
 		
-		exCntList.add(7);
-		exCntList.add(6);
-		exCntList.add(5);
-		
-		lrnExCntTop3.put("subjCd", subjList);
-		lrnExCntTop3.put("exCnt", exCntList);
-		
-		grpAvg.put("exCnt", 12);
-		grpAvg.put("grpAvgExCnt", 15);
-		
-		data.put("lrnExCntTop3", lrnExCntTop3);
-		data.put("grpAvg", grpAvg);
+		if(lrnExSttData != null) {
+			String[] subjData = lrnExSttData.get("lrnSubjCdSp").toString().split(","); 
+			
+			for(int i = 0; i < subjData.length; i++) {
+				subjList.add(subjData[i]);
+			}
+			
+			String[] exCntData = lrnExSttData.get("lrnExCntSp").toString().split(","); 
+			
+			for(int i = 0; i < exCntData.length; i++) {
+				exCntList.add(Integer.valueOf(exCntData[i]));
+			}
+			
+			lrnExCntTop3.put("subjCd", subjList);
+			lrnExCntTop3.put("exCnt", exCntList);
+			
+			grpAvg.put("exCnt", lrnExSttData.get("totalLrnExCnt"));
+			grpAvg.put("grpAvgExCnt", lrnExSttData.get("grpLrnExCnt"));
+			
+			data.put("lrnExCntTop3", lrnExCntTop3);
+			data.put("grpAvg", grpAvg);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -361,20 +375,24 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> lrnEx = new HashMap<>();
-		Map<String, Object> grpAvgEx = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> lrnEx = new LinkedHashMap<>();
+		Map<String, Object> grpAvgEx = new LinkedHashMap<>();
 		
-		lrnEx.put("exRt", 95);
-		lrnEx.put("planCnt", 12);
-		lrnEx.put("exCnt", 10);
+		Map<String, Object> lrnExSttData = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnPlanStt"); 
 		
-		grpAvgEx.put("grpAvgExRt", 95);
-		grpAvgEx.put("grpAvgPlanCnt", 15);
-		grpAvgEx.put("grpAvgExCnt", 12);
-		
-		data.put("lrnEx", lrnEx);
-		data.put("grpAvgEx", grpAvgEx);
+		if(lrnExSttData != null) {
+			lrnEx.put("exRt", lrnExSttData.get("exRt"));
+			lrnEx.put("planCnt", lrnExSttData.get("planCnt"));
+			lrnEx.put("exCnt", lrnExSttData.get("exCnt"));
+			
+			grpAvgEx.put("grpAvgExRt", lrnExSttData.get("grpAvgExRt"));
+			grpAvgEx.put("grpAvgPlanCnt", lrnExSttData.get("grpAvgPlanCnt"));
+			grpAvgEx.put("grpAvgExCnt", lrnExSttData.get("grpAvgExCnt"));
+			
+			data.put("lrnEx", lrnEx);
+			data.put("grpAvgEx", grpAvgEx);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -396,28 +414,37 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> lrnExCntTop3 = new HashMap<>();
-		Map<String, Object> grpAvg = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> lrnExCntTop3 = new LinkedHashMap<>();
+		Map<String, Object> grpAvg = new LinkedHashMap<>();
 		
 		List<String> subjCd = new ArrayList<String>();
 		List<Integer> exCnt = new ArrayList<Integer>();
-		subjCd.add("C01");
-		subjCd.add("C02");
-		subjCd.add("C03");
 		
-		exCnt.add(7);
-		exCnt.add(6);
-		exCnt.add(5);
+		Map<String, Object> aLrnExSttData = (Map) commonMapper.get(paramMap, "HamsSales.selectALrnStt"); 
 		
-		lrnExCntTop3.put("subjCd", subjCd);
-		lrnExCntTop3.put("exCnt", exCnt);
-		
-		grpAvg.put("exCnt", 12);
-		grpAvg.put("grpAvgExCnt", 15);
-		
-		data.put("lrnExCntTop3", lrnExCntTop3);
-		data.put("grpAvg", grpAvg);
+		if(aLrnExSttData != null) {
+			String[] subjData = aLrnExSttData.get("aLrnSubjCdSp").toString().split(","); 
+			
+			for(int i = 0; i < subjData.length; i++) {
+				subjCd.add(subjData[i]);
+			}
+			
+			String[] exCntData = aLrnExSttData.get("aLrnExCntSp").toString().split(","); 
+			
+			for(int i = 0; i < exCntData.length; i++) {
+				exCnt.add(Integer.valueOf(exCntData[i]));
+			}
+			
+			lrnExCntTop3.put("subjCd", subjCd);
+			lrnExCntTop3.put("exCnt", exCnt);
+			
+			grpAvg.put("exCnt", aLrnExSttData.get("aLrnExCnt"));
+			grpAvg.put("grpAvgExCnt", aLrnExSttData.get("grpLrnExCnt"));
+			
+			data.put("lrnExCntTop3", lrnExCntTop3);
+			data.put("grpAvg", grpAvg);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

@@ -123,4 +123,86 @@
 		</if>
 	</select>
 	
+	<select id="selectLrnExStt" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnExStt : 3일 리포트 학습 수행 결과*/
+		SELECT
+			LRN_SUBJ_CD_SP,
+			LRN_EX_CNT_SP,
+			TOTAL_LRN_EX_CNT,
+			GRP_LRN_EX_CNT
+		FROM (
+			SELECT 
+				B.LRN_SUBJ_CD_SP,
+			    B.LRN_EX_CNT_SP,
+			    B.TOTAL_LRN_EX_CNT,
+			    CASE
+			    	WHEN B.LRN_SUBJ_CD_SP IS NULL THEN NULL
+			    	ELSE C.TOTAL_LRN_EX_CNT
+			    END AS GRP_LRN_EX_CNT
+			FROM STUD A
+			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE A.DT = #{dt}
+				AND A.STUD_ID = #{studId}
+		) A
+	</select>
+	
+	<select id="selectLrnPlanStt" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnPlanStt : 3일 리포트 학습 수행 결과*/
+		SELECT
+			EX_RT,
+			PLAN_CNT,
+			EX_CNT,
+		    GRP_AVG_EX_RT,
+		    GRP_AVG_PLAN_CNT,
+		    GRP_AVG_EX_CNT
+		FROM (
+			SELECT 
+				B.PLAN_EX_RT AS EX_RT,
+		        B.PLAN_CNT,
+		        B.PLAN_EX_CNT AS EX_CNT,
+		        CASE
+					WHEN B.PLAN_CNT IS NULL THEN NULL
+					ELSE C.PLAN_EX_RT
+				END AS GRP_AVG_EX_RT,
+		        CASE
+					WHEN B.PLAN_CNT IS NULL THEN NULL
+					ELSE C.PLAN_CNT
+				END AS GRP_AVG_PLAN_CNT,
+		        CASE
+					WHEN B.PLAN_CNT IS NULL THEN NULL
+					ELSE C.PLAN_EX_CNT
+				END AS GRP_AVG_EX_CNT
+			FROM STUD A
+			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE A.DT = #{dt}
+				AND A.STUD_ID = #{studId}
+		) A
+	</select>
+	
+	<select id="selectALrnStt" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectALrnStt : 3일 리포트 학습 수행 결과*/
+		SELECT
+			A_LRN_SUBJ_CD_SP,
+			A_LRN_EX_CNT_SP,
+			A_LRN_EX_CNT,
+			GRP_LRN_EX_CNT
+		FROM (
+			SELECT 
+				B.A_LRN_SUBJ_CD_SP,
+				B.A_LRN_EX_CNT_SP,
+				B.A_LRN_EX_CNT,
+				CASE
+					WHEN B.LRN_SUBJ_CD_SP IS NULL THEN NULL
+					ELSE C.A_LRN_EX_CNT
+				END AS GRP_LRN_EX_CNT
+			FROM STUD A
+			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE A.DT = #{dt}
+				AND A.STUD_ID = #{studId}
+		) A
+	</select>
+	
 </mapper>
