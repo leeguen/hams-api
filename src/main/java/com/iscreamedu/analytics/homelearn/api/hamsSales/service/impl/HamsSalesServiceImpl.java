@@ -1,5 +1,8 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -74,11 +77,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
-		//2.dt 날짜형 체크
-		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		LocalDate dt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
+		dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+		paramMap.put("studId", paramMap.get("p"));
+		paramMap.put("dt", dt);
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String,Object> studInfoList = (Map) commonMapper.get(paramMap, "HamsSales.selectStudInfo");
