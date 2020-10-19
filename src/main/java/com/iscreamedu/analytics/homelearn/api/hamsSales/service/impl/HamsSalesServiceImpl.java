@@ -650,6 +650,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(explData.size() > 0) {
 			for(int i = 0; i < explData.size(); i++) {
 				
+				explMap.put("examCd", explData.get(i).get("examCd"));
+				explMap.put("smtId", explData.get(i).get("smtId"));
+				explMap.put("stuId", explData.get(i).get("stuId"));
 				explMap.put("subjNm", explData.get(i).get("subjCd"));
 				explMap.put("smtDttm", explData.get(i).get("smtDttm"));
 				explMap.put("type", explData.get(i).get("examType"));

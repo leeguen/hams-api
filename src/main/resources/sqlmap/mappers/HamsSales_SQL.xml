@@ -317,6 +317,9 @@
 	<select id="selectExpl" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectExpl : 3일 리포트 평가 목록*/
 		SELECT
+			A.EXAM_CD,
+		    A.SMT_ID,
+		    A.STU_ID,
 			B.CD_NM AS SUBJ_CD,
 		    A.SMT_DTTM,
 		    A.EXAM_TYPE,
@@ -340,6 +343,9 @@
 	<select id="selectIncrtNote" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectIncrtNote : 3일 리포트 평가 오답노트 목록*/
 		SELECT
+			B.EXAM_CD,
+			B.SMT_ID,
+		    B.STU_ID,
 			B.GRADE_TERM,
 		    C.CD_NM AS SUBJ_NM,
 		    B.UNIT_NM,
