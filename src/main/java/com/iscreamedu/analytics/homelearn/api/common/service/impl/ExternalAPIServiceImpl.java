@@ -53,10 +53,10 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	String ENGLIB_API; //영어도서관 기본API 주소
 
 	/*********************** 
-	 * 샘플 id - 송주임
-	 * loginId dobby1
-	 * stuId 1571427
-	 * stuNo 686541
+	 * sample ID Info.
+	 * loginId: dobby1
+	 * studId : 1571427
+	 * stuNo  : 686541
 	 ***********************/
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -76,12 +76,6 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	headers.setContentType(MediaType.APPLICATION_JSON);
 	            headers.set("memId", paramMap.get("memId").toString());
 	            
-	            /* 필요 파라미터
-	            "fromDate":시작일(YYYY-MM-DD),
-	            "toDate":완료일(YYYY-MM-DD),
-	            "page":현재 페이지번호,
-	            "size":한페이지에 보여지는 개수
-	             */
 	            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
 	
 	            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(url, entity, LinkedHashMap.class);
@@ -93,15 +87,15 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	if("200".equals(responseData.get("code").toString())) {
 	        		setResult(dataKey, responseData.get("result"));
-	        	}else {
+	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
 	        		setResult(msgKey, msgMap);
 	        	}
 	        	
-		    	//영어도서관
-	        }else if("studyHistory".equals(apiName)) {
+		    //영어도서관
+	        } else if("studyHistory".equals(apiName)) {
 	        	String url = ENGLIB_API + apiName;
 	        	
 	        	//파라미터 세팅
@@ -119,15 +113,15 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	if("true".equals(responseData.get("result").toString())) {
 	        		setResult(dataKey, responseData.get("data"));
-	        	}else {
+	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
 	        		setResult(msgKey, msgMap);
 	        	}
 	        	
-	    	//HL post일때
-	        }else if("english-study/change-english-skip".equals(apiName) 
+	    	//HL POST
+	        } else if("english-study/change-english-skip".equals(apiName) 
 	        		|| apiName.indexOf("student-study-course-plan/reset-village/") == 0) {
 	        	
 	        	String url = HL_API + apiName + ".json";
@@ -147,8 +141,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        	
-	    	//HL get일때
-	        }else {
+	    	//HL GET
+	        } else {
 	        	
 	        	String url = HL_API + apiName + ".json";
 	        	
@@ -167,7 +161,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	if("200".equals(responseData.get("code").toString())) {
 	        		setResult(dataKey, responseData.get("data"));
-	        	}else {
+	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));

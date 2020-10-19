@@ -205,4 +205,15 @@
 		) A
 	</select>
 	
+	<update id="updateFeedback" parameterType="hashMap">
+		UPDATE EXP_REPORT_FEEDBACK SET 
+			GUIDE_MSG = #{guideMsg},
+			RECOMMEND_JOB = #{recommendJob},
+			STT_MSG = #{sttMsg},
+			POSITIVE_MSG = #{positiveMsg},
+			NEGATIVE_MSG = #{negativeMsg},
+			EXP_TCHR_CHA_NM = #{expTchrChaNm},
+			EXP_TCHR_CHA_CELL = #{expTchrChaCell}
+		WHERE STUD_ID = #{studId}
+	</update>
 </mapper>

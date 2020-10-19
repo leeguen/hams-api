@@ -1188,6 +1188,20 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
+	
+	@Override
+	public Map updateFeedback(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		setResult(dataKey, commonMapper.update(paramMap, "updateFeedback"));
+		
+		return result;
+	}
 
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
