@@ -878,38 +878,28 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//2.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		List<Map> subjLrnPtn = new ArrayList<>();
-		Map<String, Object> subjLrnPtnMap = new HashMap<>();
-		List<String> subSubjCd = new ArrayList<>();
-		List<Integer> subSubjLrnSec = new ArrayList<>();
-		List<Integer> subSubjExCnt = new ArrayList<>();
+		Map<String, Object> data = new LinkedHashMap();
+		Map<String, Object> subjLrnPtn = new LinkedHashMap();
+		Map<String, Object> subjLrnPtnListMap = new LinkedHashMap();
+		List<Map<String,Object>> subjLrnPtnResultList = (List) commonMapper.getList(paramMap, "HamsSales.selectSubjLrnPtn");
+		List<Map<String,Object>> subjLrnPtnList = new ArrayList<>();
 		
-		subjLrnPtnMap.put("subjCd", "C01");
-		subjLrnPtnMap.put("totalLrnSec", 248);
+		for (Map<String,Object> item : subjLrnPtnResultList) {
+			subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
+			subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
+			
+			String[] subSubjCd = item.get("subSubjNmSp").toString().split(",");
+			String[] subSubjLrnSec = item.get("subSubjLrnSecSp").toString().split(",");
+			String[] subSubjExCnt = item.get("subSubjLrnExCntSp").toString().split(",");
+			
+			subjLrnPtnListMap.put("subSubjCd", subSubjCd);
+			subjLrnPtnListMap.put("subSubjLrnSec", subSubjLrnSec);
+			subjLrnPtnListMap.put("subSubjExCnt", subSubjExCnt);
+			
+			subjLrnPtnList.add(subjLrnPtnListMap);
+		}
 		
-		subSubjCd.add("C01_01");
-		subSubjCd.add("C01_02");
-		subSubjCd.add("C01_03");
-		subSubjCd.add("C01_04");
-		
-		subSubjLrnSec.add(88);
-		subSubjLrnSec.add(90);
-		subSubjLrnSec.add(70);
-		subSubjLrnSec.add(82);
-		
-		subSubjExCnt.add(3);
-		subSubjExCnt.add(4);
-		subSubjExCnt.add(3);
-		subSubjExCnt.add(1);
-		
-		subjLrnPtnMap.put("subSubjCd", subSubjCd);
-		subjLrnPtnMap.put("subSubjLrnSec", subSubjLrnSec);
-		subjLrnPtnMap.put("subSubjExCnt", subSubjExCnt);
-		
-		subjLrnPtn.add(subjLrnPtnMap);
-		
-		data.put("subjLrnPtn", subjLrnPtn);
+		data.put("subjLrnPtn", subjLrnPtnList);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

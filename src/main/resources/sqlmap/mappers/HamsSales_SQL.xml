@@ -463,7 +463,20 @@
 			WHERE 
 				STUD_ID = #{studId}
 		) AS STUD
-		ON FEEDBACK.STUD_ID = STUD.STUD_ID;
+		ON FEEDBACK.STUD_ID = STUD.STUD_ID
+	</select>
+	
+	<select id="selectSubjLrnPtn" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectSubjLrnPtn : 체험 리포트 과목별 학습 패턴 */
+		SELECT
+			SUBJ_CD,
+			SUBJ_TOTAL_LRN_SEC AS TOTAL_LRN_SEC,
+			SUB_SUBJ_NM_SP,
+			SUB_SUBJ_LRN_SEC_SP,
+			SUB_SUBJ_LRN_EX_CNT_SP
+		FROM EXP_REPORT_SUBJ_LRN_EX_STT
+		WHERE 
+			STUD_ID = #{studId}
 	</select>
 	
 	<select id="selectLrnHabitStt" parameterType="hashMap" resultType="resultMap">
