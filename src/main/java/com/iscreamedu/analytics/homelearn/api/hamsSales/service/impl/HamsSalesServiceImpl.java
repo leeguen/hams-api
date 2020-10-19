@@ -855,16 +855,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//2.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> feedback = new HashMap<>();
-		
-		feedback.put("title", "짜파게티 요리사");
-		feedback.put("studNm", "양예슬");
-		feedback.put("expDt", "2020.04.06~2020.04.16");
-		feedback.put("linkUrl", "http://gw.i-screamedu.co.kr/");
-		feedback.put("msg", "안녕하세요...");
-		feedback.put("tchrNm", "양예슬");
-		feedback.put("tchrCell", "010-1234-1234");
+		Map<String, Object> data = new LinkedHashMap();
+		Map<String, Object> feedback = (Map) commonMapper.get(paramMap, "HamsSales.selectFeedback");
 		
 		data.put("feedback", feedback);
 		

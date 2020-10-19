@@ -427,8 +427,47 @@
 		ORDER BY B.SMT_DTTM
 	</select>
 	
+	<select id="selectFeedback" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectFeedback : 체험 리포트 피드백 */
+		SELECT
+			FEEDBACK.RECOMMEND_JOB AS TITLE,
+			STUD.STUD_NM,
+		    CONCAT(STUD.START_DT, '~', STUD.END_DT) AS EXP_DT,
+			FEEDBACK.GUIDE_MSG,
+			FEEDBACK.STT_MSG,
+			FEEDBACK.POSITIVE_MSG,
+			FEEDBACK.NEGATIVE_MSG,
+			FEEDBACK.EXP_TCHR_CHA_NM AS TCHR_NM,
+			FEEDBACK.EXP_TCHR_CHA_CELL AS TCHR_CELL
+		FROM (
+			SELECT 
+				STUD_ID,
+				GUIDE_MSG,
+				RECOMMEND_JOB,
+				STT_MSG,
+				POSITIVE_MSG,
+				NEGATIVE_MSG,
+				EXP_TCHR_CHA_NM,
+				EXP_TCHR_CHA_CELL
+			FROM EXP_REPORT_FEEDBACK
+			WHERE STUD_ID = #{studId}
+		) AS FEEDBACK
+		JOIN (
+			SELECT 
+				MAX(DT) AS DT,
+				STUD_ID, 
+				STUD_NM, 
+				START_DT, 
+				END_DT
+			FROM STUD
+			WHERE 
+				STUD_ID = #{studId}
+		) AS STUD
+		ON FEEDBACK.STUD_ID = STUD.STUD_ID;
+	</select>
+	
 	<select id="selectLrnHabitStt" parameterType="hashMap" resultType="resultMap">
-	/* HamsSales.selectLrnHabitStt */
+	/* HamsSales.selectLrnHabitStt : 바른 학습 습관 현황 */
 		SELECT 
 			STUD_ID,
 			ATT_HABIT_SCORE,
@@ -464,7 +503,7 @@
 	</select>
 	
 	<select id="selectExamRstIncrtNTLog" parameterType="hashMap" resultType="resultMap">
-	/* HamsSales.selectIncrtNTLog */
+	/* HamsSales.selectIncrtNTLog : 오답노트 확인 습관 목록 */
 		SELECT
 			REG_DT,
 			SUBJ_NM,
@@ -477,7 +516,7 @@
 	</select>
 	
 	<select id="selectConcnHabitTmln" parameterType="hashMap" resultType="resultMap">
-	/* HamsSales.selectConcnHabitTmln */
+	/* HamsSales.selectConcnHabitTmln : 체험 리포트  집중하는 습관 타임라인 */
 		SELECT 
 			SUBJ_CD,
 		    CONCAT(IFNULL(LRN_START_DTTM, ''), '~', IFNULL(SUBSTR(LRN_END_DTTM, -8), '')) AS TMLN,
