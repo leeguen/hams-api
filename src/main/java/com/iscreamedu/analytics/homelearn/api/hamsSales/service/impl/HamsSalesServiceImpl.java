@@ -562,47 +562,64 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> exam = new HashMap<>();
+		Map<String, Object> exam = new LinkedHashMap<>();
 		
-		exam.put("crtRt", 84);
-		exam.put("explCnt", 33);
-		exam.put("ansQuesCnt", 21);
-		exam.put("crtQuesCnt", 19);
+		Map<String, Object> examData = (Map) commonMapper.get(paramMap, "HamsSales.selectExam");
 		
-		List<String> subjCdList = new ArrayList<String>();
-		subjCdList.add("C01");
-		subjCdList.add("C02");
-		subjCdList.add("C03");
-		subjCdList.add("C04");
-		subjCdList.add("C05");
-		subjCdList.add("C06");
-		exam.put("subjCdList", subjCdList);
-		
-		List<Integer> crtRtList = new ArrayList<Integer>();
-		crtRtList.add(98);
-		crtRtList.add(75);
-		crtRtList.add(84);
-		crtRtList.add(82);
-		crtRtList.add(null);
-		crtRtList.add(null);
-		exam.put("crtRtList", crtRtList);
-		
-		List<Integer> explCntList = new ArrayList<Integer>();
-		explCntList.add(8);
-		explCntList.add(10);
-		explCntList.add(8);
-		explCntList.add(7);
-		explCntList.add(null);
-		explCntList.add(null);
-		exam.put("explCntList", explCntList);
-		
-		exam.put("incrtNoteNcCnt", 11);
-		exam.put("imprvSlvHabitCnt", 40);
-		exam.put("skipQuesCnt", 10);
-		exam.put("guessQuesCnt", 20);
-		exam.put("cursoryQuesCnt", 10);
-		
-		data.put("exam", exam);
+		if(examData != null) {
+			
+			exam.put("crtRt", examData.get("crtRt"));
+			exam.put("explCnt", examData.get("explCnt"));
+			exam.put("ansQuesCnt", examData.get("ansQuesCnt"));
+			exam.put("crtQuesCnt", examData.get("crtQuesCnt"));
+			
+			List<String> subjCdList = new ArrayList<String>();
+			
+			String[] subjCdData = examData.get("subjCdSp").toString().split(","); 
+			
+			for(String item : subjCdData) {
+				subjCdList.add(item);
+			}
+			
+			exam.put("subjCdList", subjCdList);
+			
+			String[] crtRtData = examData.get("crtRtSp").toString().split(","); 
+			
+			List<Integer> crtRtList = new ArrayList<Integer>();
+			
+			for(String item : crtRtData) {
+				if(Integer.valueOf(item) == 0) {
+					crtRtList.add(null);
+				}else {
+					crtRtList.add(Integer.valueOf(item));
+				}
+			}
+			
+			exam.put("crtRtList", crtRtList);
+			
+			String[] explCntData = examData.get("explCntSp").toString().split(","); 
+			
+			List<Integer> explCntList = new ArrayList<Integer>();
+			
+			for(String item : explCntData) {
+				if(Integer.valueOf(item) == 0) {
+					explCntList.add(null);
+				}else {
+					explCntList.add(Integer.valueOf(item));
+				}
+			}
+			
+			exam.put("explCntList", explCntList);
+			
+			
+			exam.put("incrtNoteNcCnt", examData.get("incrtNtNcCnt"));
+			exam.put("imprvSlvHabitCnt", examData.get("imprvSlvHabitCnt"));
+			exam.put("skipQuesCnt", examData.get("skipQuesCnt"));
+			exam.put("guessQuesCnt", examData.get("guessQuesCnt"));
+			exam.put("cursoryQuesCnt", examData.get("cursoryQuesCnt"));
+			
+			data.put("exam", exam);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -626,38 +643,94 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> data = new HashMap<>();
 		List<Map> expl = new ArrayList<>();
-		Map<String, Object> explMap = new HashMap<>();
+		Map<String, Object> explMap = new LinkedHashMap<>();
 		
-		explMap.put("subjNm", "사회");
-		explMap.put("smtDttm", "2020-05-29 10:33:38");
-		explMap.put("type", "실력평가");
-		explMap.put("examNm", "[3-1] 22장. 교통수단의 발달로 달라질 미래의 생활 모습 예상하기");
-		explMap.put("round", "1차");
-		explMap.put("crtRt", 80);
-		explMap.put("crtQuesCnt", 4);
-		explMap.put("quesCnt", 5);
+		List<Map<String,Object>> explData = (List) commonMapper.getList(paramMap, "HamsSales.selectExpl");
 		
-		List<Integer> crtQues = new ArrayList<Integer>();
-		List<Integer> guessQues = new ArrayList<Integer>();
-		List<Integer> skipQues = new ArrayList<Integer>();
-		List<Integer> cursoryQues = new ArrayList<Integer>();
-		List<Integer> incrtQues = new ArrayList<Integer>();
-		
-		crtQues.add(1);
-		crtQues.add(3);
-		crtQues.add(5);
-		
-		guessQues.add(4);
-		
-		explMap.put("crtQues", crtQues);
-		explMap.put("guessQues", guessQues);
-		explMap.put("skipQues", skipQues);
-		explMap.put("cursoryQues", cursoryQues);
-		explMap.put("incrtQues", incrtQues);
-		
-		expl.add(explMap);
-		
-		data.put("expl", expl);
+		if(explData.size() > 0) {
+			for(int i = 0; i < explData.size(); i++) {
+				
+				explMap.put("subjNm", explData.get(i).get("subjCd"));
+				explMap.put("smtDttm", explData.get(i).get("smtDttm"));
+				explMap.put("type", explData.get(i).get("examType"));
+				explMap.put("examNm", explData.get(i).get("examNm"));
+				explMap.put("round", explData.get(i).get("round"));
+				explMap.put("crtRt", explData.get(i).get("crtRt"));
+				explMap.put("crtQuesCnt", explData.get(i).get("crtQuesCnt"));
+				explMap.put("quesCnt", explData.get(i).get("quesCnt"));
+				
+				List<Integer> crtQues = new ArrayList<Integer>();
+				List<Integer> guessCrtQues = new ArrayList<Integer>();
+				List<Integer> guessIncrtQues = new ArrayList<Integer>();
+				List<Integer> skipQues = new ArrayList<Integer>();
+				List<Integer> cursoryQues = new ArrayList<Integer>();
+				List<Integer> incrtQues = new ArrayList<Integer>();
+				
+				if(explData.get(i).get("crtQuesSp") != null) {
+					String[] crtQuesData = explData.get(i).get("crtQuesSp").toString().split(",");
+					for(String item : crtQuesData) {
+						crtQues.add(Integer.valueOf(item));
+					}
+				}else {
+					crtQues = null;
+				}
+					
+				if(explData.get(i).get("guesscrtQuesSp") != null) {
+					String[] guessCrtQuesData = explData.get(i).get("guesscrtQuesSp").toString().split(",");
+					for(String item : guessCrtQuesData) {
+						guessCrtQues.add(Integer.valueOf(item));
+					}
+				}else {
+					guessCrtQues = null;
+				}
+				
+				if(explData.get(i).get("guessIncrtQuesSp") != null) {
+					String[] guessIncrtQuesData = explData.get(i).get("guessIncrtQuesSp").toString().split(",");
+					for(String item : guessIncrtQuesData) {
+						guessIncrtQues.add(Integer.valueOf(item));
+					}
+				}else {
+					guessIncrtQues = null;
+				}
+				
+				if(explData.get(i).get("skipQuesSp") != null) {
+					String[] skipQuesData = explData.get(i).get("skipQuesSp").toString().split(",");
+					for(String item : skipQuesData) {
+						skipQues.add(Integer.valueOf(item));
+					}
+				}else {
+					skipQues = null;
+				}
+				
+				if(explData.get(i).get("cursoryQuesSp") != null) {
+					String[] cursoryQuesData = explData.get(i).get("cursoryQuesSp").toString().split(",");
+					for(String item : cursoryQuesData) {
+						cursoryQues.add(Integer.valueOf(item));
+					}
+				}else {
+					cursoryQues = null;
+				}
+				
+				if(explData.get(i).get("incrtQuesSp") != null) {
+					String[] incrtQuesData = explData.get(i).get("incrtQuesSp").toString().split(",");
+					for(String item : incrtQuesData) {
+						incrtQues.add(Integer.valueOf(item));
+					}
+				}else {
+					incrtQues = null;
+				}
+				
+				explMap.put("crtQues", crtQues);
+				explMap.put("guessCrtQues", guessCrtQues);
+				explMap.put("guessIncrtQues", guessIncrtQues);
+				explMap.put("skipQues", skipQues);
+				explMap.put("cursoryQues", cursoryQues);
+				explMap.put("incrtQues", incrtQues);
+				
+				expl.add(explMap);
+			}
+			data.put("expl", expl);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -683,20 +756,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		List<Map> incrtNote = new ArrayList<>();
 		Map<String, Object> incrtNoteMap = new HashMap<>();
 		
-		incrtNoteMap.put("gradeTerm", "6-1");
-		incrtNoteMap.put("subjNm", "사회(2015개정)");
-		incrtNoteMap.put("unitNm", "27장.다른 나라와의 경제 교류 사례 알아보기(일반)");
-		incrtNoteMap.put("type", "실력평가");
-		incrtNoteMap.put("lrnStt", "학습완료");
-		incrtNoteMap.put("quesCnt", 2);
-		incrtNoteMap.put("crtQuesCnt", 2);
-		incrtNoteMap.put("remainQuesCnt", 0);
-		incrtNoteMap.put("incrtNoteRegDt", "2020-06-23");
-		incrtNoteMap.put("smtDttm", "2020-06-23 07:41:09");
+		List<Map<String,Object>> incrtNoteData = (List) commonMapper.getList(paramMap, "HamsSales.selectIncrtNote");
 		
-		incrtNote.add(incrtNoteMap);
-		
-		data.put("incrtNote", incrtNote);
+		if(incrtNoteData.size() > 0) {
+			data.put("incrtNote", incrtNoteData);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
