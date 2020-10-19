@@ -501,6 +501,68 @@
 		ORDER BY B.SMT_DTTM
 	</select>
 	
+	<select id="selectLrnHabitStt" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectLrnHabitStt */
+		SELECT 
+			STUD_ID,
+			ATT_HABIT_SCORE,
+			ATT_RT,
+			PLAN_DAY_CNT,
+			ATT_DAY_CNT,
+			DT_SP,
+			PLAN_DT_SP,
+			ATT_DT_SP,
+			PLAN_HABIT_SCORE,
+			EX_RT,
+			PLAN_CNT,
+			EX_CNT,
+			B_LRN_EX_CNT,
+			LRN_EX_CNT,
+			D_LRN_EX_CNT,
+			U_LRN_EX_CNT,
+			INCRT_NT_HABIT_SCORE,
+			INCRT_NT_NC_CNT,
+			A_LRN_HABIT_SCORE,
+			A_LRN_EX_CNT,
+			SUBJ_CD_SP,
+			SUBJ_EX_CNT_SP,
+			CONCN_HABIT_SCORE,
+			LOW_CONCN_CNT,
+			SLV_HABIT_SCORE,
+			IMPRV_SLV_HABIT_CNT,
+			SKIP_QUES_CNT,
+			GUESS_QUES_CNT,
+			CURSORY_QUES_CNT
+		FROM EXP_REPORT_LRN_HABIT_STT
+		WHERE STUD_ID = #{studId}
+	</select>
+	
+	<select id="selectExamRstIncrtNTLog" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectIncrtNTLog */
+		SELECT
+			REG_DT,
+			SUBJ_NM,
+			EXAM_NM AS UNIT_NM
+		FROM EXP_REPORT_EXAM_RST_INCRT_NT
+		WHERE 
+			STUD_ID = #{studId}
+		ORDER BY REG_DT DESC
+		LIMIT 3
+	</select>
+	
+	<select id="selectConcnHabitTmln" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectConcnHabitTmln */
+		SELECT 
+			SUBJ_CD,
+		    CONCAT(IFNULL(LRN_START_DTTM, ''), '~', IFNULL(SUBSTR(LRN_END_DTTM, -8), '')) AS TMLN,
+			CTGR
+		FROM EXP_REPORT_CONCN_HABIT_LRN_TMLN AS TMLN
+		WHERE 
+			STUD_ID = #{studId}
+		ORDER BY ORD
+		LIMIT 3
+	</select>
+	
 	<select id="selectExamStt" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectExamStt : 체험 리포트 평가 분석 */
 		SELECT 

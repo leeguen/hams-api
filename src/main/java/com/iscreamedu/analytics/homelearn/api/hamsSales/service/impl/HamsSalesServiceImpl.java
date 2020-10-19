@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -927,127 +928,83 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//2.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> lrnHabits = new HashMap<>();
-		Map<String, Object> planHabit = new HashMap<>();
-		Map<String, Object> incrtNoteHabit = new HashMap<>();
-		Map<String, Object> aLrnHabit = new HashMap<>();
-		Map<String, Object> concnHabit = new HashMap<>();
-		Map<String, Object> slvHabit = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> lrnHabits = new LinkedHashMap<>();
+		Map<String, Object> attHabit = new LinkedHashMap<>();
+		Map<String, Object> planHabit = new LinkedHashMap<>();
+		Map<String, Object> incrtNoteHabit = new LinkedHashMap<>();
+		Map<String, Object> aLrnHabit = new LinkedHashMap<>();
+		Map<String, Object> concnHabit = new LinkedHashMap<>();
+		Map<String, Object> slvHabit = new LinkedHashMap<>();
 		
-		Map<String, Object> attHabit = new HashMap<>();
-		List<String> dtList = new ArrayList<String>();
-		List<String> planDtList = new ArrayList<String>();
-		List<String> attDtList = new ArrayList<String>();
+		Map<String, Object> lrnHabitsResult = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnHabitStt");
 		
-		attHabit.put("score", 4);
-		attHabit.put("attRt", 96);
-		attHabit.put("planDayCnt", 8);
-		attHabit.put("attDayCnt", 9);
+		attHabit.put("score", lrnHabitsResult.get("attHabitScore"));
+		attHabit.put("attRt", lrnHabitsResult.get("attRt"));
+		attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
+		attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
 		
-		dtList.add("2020-08-30");
-		dtList.add("2020-08-31");
-		dtList.add("2020-09-01");
-		
-		planDtList.add("2020-08-31");
-		planDtList.add("2020-09-01");
-		
-		attDtList.add("2020-08-31");
+		String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",");
+		String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
+		String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
 		
 		attHabit.put("dtList", dtList);
 		attHabit.put("planDtList", planDtList);
 		attHabit.put("attDtList", attDtList);
 		
+		planHabit.put("score", lrnHabitsResult.get("planHabitScore"));
+		planHabit.put("exRt", lrnHabitsResult.get("exRt"));
+		planHabit.put("planCnt", lrnHabitsResult.get("planCnt"));
+		planHabit.put("exCnt", lrnHabitsResult.get("exCnt"));
+		planHabit.put("bLrnExCnt", lrnHabitsResult.get("bLrnExCnt"));
+		planHabit.put("lrnExCnt", lrnHabitsResult.get("lrnExCnt"));
+		planHabit.put("dLrnExCnt", lrnHabitsResult.get("dLrnExCnt"));
+		planHabit.put("uLrnExCnt", lrnHabitsResult.get("uLrnExCnt"));
+		
+		incrtNoteHabit.put("score", lrnHabitsResult.get("incrtNtHabitScore"));
+		incrtNoteHabit.put("incrtNtNcCnt", lrnHabitsResult.get("incrtNtNcCnt"));
+		
+		List<Map<String,Object>> incrtNoteHabitList = (List) commonMapper.getList(paramMap, "HamsSales.selectExamRstIncrtNTLog");
+		
+		if(incrtNoteHabitList.size() > 0) {
+			incrtNoteHabit.put("list", incrtNoteHabitList);
+		} else {
+			incrtNoteHabit.put("list", new ArrayList<>());
+		}
+		
+		aLrnHabit.put("score", lrnHabitsResult.get("aLrnHabitScore"));
+		aLrnHabit.put("aLrnExCnt", lrnHabitsResult.get("aLrnExCnt"));
+		
+		String[] subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
+		int[] subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
+		
+		aLrnHabit.put("subjCd", subjCd);		
+		aLrnHabit.put("subjExCnt", subjExCnt);		
+		
+		concnHabit.put("score", lrnHabitsResult.get("concnHabitScore"));
+		concnHabit.put("lowConcnCnt", lrnHabitsResult.get("lowConcnCnt"));
+		
+		List<Map<String,Object>> concnHabitTmlnList = (List) commonMapper.getList(paramMap, "HamsSales.selectConcnHabitTmln");
+		
+		if(concnHabitTmlnList.size() > 0) {
+			concnHabit.put("list", concnHabitTmlnList);
+		} else {
+			concnHabit.put("list", new ArrayList<>());
+		}
+		slvHabit.put("score", lrnHabitsResult.get("slvHabitScore"));
+		slvHabit.put("imprvSlvHabitCnt", lrnHabitsResult.get("imprvSlvHabitCnt"));
+		slvHabit.put("skipQuesCnt", lrnHabitsResult.get("skipQuesCnt"));
+		slvHabit.put("guessQuesCnt", lrnHabitsResult.get("guessQuesCnt"));
+		slvHabit.put("cursoryQuesCnt", lrnHabitsResult.get("cursoryQuesCnt"));
+		
 		lrnHabits.put("attHabit", attHabit);
-		
-		planHabit.put("score", 4);
-		planHabit.put("exRt", 100);
-		planHabit.put("planCnt", 34);
-		planHabit.put("exCnt", 34);
-		planHabit.put("bLrnExCnt", 1);
-		planHabit.put("lrnExCnt", 1);
-		planHabit.put("dLrnExCnt", 1);
-		planHabit.put("nLrnExCnt", 1);
-		
-		List<Map> incrtNoteHabitList = new ArrayList<Map>();
-		Map<String, Object> incrtNoteHabitListMap1 = new HashMap<>();
-		Map<String, Object> incrtNoteHabitListMap2 = new HashMap<>();
-		Map<String, Object> incrtNoteHabitListMap3 = new HashMap<>();
-		
-		incrtNoteHabit.put("score", 4);
-		incrtNoteHabit.put("incrtNoteNcCnt", 1);
-		
-		incrtNoteHabitListMap1.put("regDt", "2020-09-08");
-		incrtNoteHabitListMap1.put("subjNm", "과학(2015개정)");
-		incrtNoteHabitListMap1.put("unitNm", "8장.날아다니는 동물에는 어떤 것이 있을까요(일반)");
-		
-		incrtNoteHabitList.add(incrtNoteHabitListMap1);
-		System.out.println(incrtNoteHabitList);
-		
-		incrtNoteHabitListMap2.put("regDt", "2020-09-08");
-		incrtNoteHabitListMap2.put("subjNm", "과학(2015개정)");
-		incrtNoteHabitListMap2.put("unitNm", "3단원.자신의 경험을 글로 써요(일반)");
-		
-		incrtNoteHabitList.add(incrtNoteHabitListMap2);
-		System.out.println(incrtNoteHabitList);
-		
-		incrtNoteHabitListMap3.put("regDt", "2020-09-08");
-		incrtNoteHabitListMap3.put("subjNm", "과학(2015개정)");
-		incrtNoteHabitListMap3.put("unitNm", "2단원.중심 생각을 찾아요(일반)");
-		
-		incrtNoteHabitList.add(incrtNoteHabitListMap3);
-		System.out.println(incrtNoteHabitList);
-		
-		incrtNoteHabit.put("list", incrtNoteHabitList);
-		
-		aLrnHabit.put("score", 4);
-		aLrnHabit.put("aLrnExCnt", 43);
-		
-		List<String> subjCd = new ArrayList<String>();
-		List<Integer> subjExCnt = new ArrayList<Integer>();
-		
-		subjCd.add("C01");
-		subjCd.add("C02");
-		subjCd.add("C03");
-		subjCd.add("C04");
-		subjCd.add("C05");
-		subjCd.add("C06");
-		
-		aLrnHabit.put("subjCd", subjCd);
-		
-		subjExCnt.add(9);
-		subjExCnt.add(8);
-		subjExCnt.add(7);
-		subjExCnt.add(6);
-		subjExCnt.add(5);
-		subjExCnt.add(4);
-		
-		aLrnHabit.put("subjExCnt", subjExCnt);
-		
-		aLrnHabit.put("subjCd", subjCd);
-		
-		concnHabit.put("score", 4);
-		concnHabit.put("lowConcnCnt", 5);
-		
-		List<String> concnHabitList = new ArrayList<String>();
-		concnHabitList.add("20.08.24 11:03~11:06 수학>실력다지기>각뿔을 알아볼까요(2)");
-		concnHabitList.add("20.08.24 11:03~11:06 사회>예복습>세계 여러 나라 사람들의 생…");
-		concnHabitList.add("20.08.24 11:03~11:06 사회>예복습>세계 여러 나라 사람들의 생…");
-		
-		concnHabit.put("list", concnHabitList);
-		
-		slvHabit.put("score", 4);
-		slvHabit.put("imprvSlvHabitCnt", 7);
-		slvHabit.put("skipQuesCnt", 0);
-		slvHabit.put("guessQuesCnt", 0);
-		slvHabit.put("cursoryQuesCnt", 7);
+		lrnHabits.put("planHabit", planHabit);
+		lrnHabits.put("incrtNoteHabit", incrtNoteHabit);
+		lrnHabits.put("aLrnHabit", aLrnHabit);
+		lrnHabits.put("concnHabit", concnHabit);
+		lrnHabits.put("slvHabit", slvHabit);
 		
 		data.put("lrnHabits", lrnHabits);
-		data.put("planHabit", planHabit);
-		data.put("incrtNoteHabit", incrtNoteHabit);
-		data.put("aLrnHabit", aLrnHabit);
-		data.put("concnHabit", concnHabit);
-		data.put("slvHabit", slvHabit);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
