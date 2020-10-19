@@ -641,13 +641,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> expl = new ArrayList<>();
 		Map<String, Object> explMap = new LinkedHashMap<>();
+		Map<String, Object> explMapData = new LinkedHashMap<>();
 		
 		List<Map<String,Object>> explData = (List) commonMapper.getList(paramMap, "HamsSales.selectExpl");
 		
 		if(explData.size() > 0) {
+			
+			Map<String, Object> explPageData = (Map) commonMapper.get(paramMap, "HamsSales.selectExplCnt");
+			
 			for(int i = 0; i < explData.size(); i++) {
 				
 				explMap.put("examCd", explData.get(i).get("examCd"));
@@ -721,7 +725,10 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				
 				expl.add(explMap);
 			}
-			data.put("expl", expl);
+			explMapData.put("totalCnt", explPageData.get("totalCnt"));
+			explMapData.put("list", expl);
+			
+			data.put("expl", explMapData);
 		}
 		
 		if(vu.isValid()) {
@@ -744,14 +751,20 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
+		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> incrtNote = new ArrayList<>();
-		Map<String, Object> incrtNoteMap = new HashMap<>();
+		Map<String, Object> incrtNoteMap = new LinkedHashMap<>();
 		
 		List<Map<String,Object>> incrtNoteData = (List) commonMapper.getList(paramMap, "HamsSales.selectIncrtNote");
 		
 		if(incrtNoteData.size() > 0) {
-			data.put("incrtNote", incrtNoteData);
+			
+			Map<String, Object> IncrtNotePageData = (Map) commonMapper.get(paramMap, "HamsSales.selectIncrtNoteCnt");
+			
+			
+			incrtNoteMap.put("totalCnt", IncrtNotePageData.get("totalCnt"));
+			incrtNoteMap.put("list", incrtNoteData);
+			data.put("incrtNote", incrtNoteMap);
 		}
 		
 		if(vu.isValid()) {
