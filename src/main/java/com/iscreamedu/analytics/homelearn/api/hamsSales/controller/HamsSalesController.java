@@ -344,37 +344,22 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 인트로 (HAMS-S-ER-001)
+	 * 피드백 (HAMS-S-ER-001)
 	 * @param params
 	 * @param req
 	 * @param res
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping("/getExpReportIntro")
-	public ResponseEntity getExpReportIntro(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getExpReportIntro(params);
+	@RequestMapping("/getFeedback")
+	public ResponseEntity getFeedback(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getFeedback(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	/**
-	 * 선생님 피드백 (HAMS-S-ER-002)
-	 * @param params
-	 * @param req
-	 * @param res
-	 * @return
-	 * @throws Exception
-	 */
-	@RequestMapping("/getTchrFeedback")
-	public ResponseEntity getTchrFeedback(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getTchrFeedback(params);
-		
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-	
-	/**
-	 * 과목별 학습 패턴 (HAMS-S-ER-003)
+	 * 과목별 학습 패턴 (HAMS-S-ER-002)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -389,7 +374,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 바른 학습 습관 (HAMS-S-ER-004)
+	 * 바른 학습 습관 (HAMS-S-ER-003)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -404,7 +389,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 평가 분석 (HAMS-S-ER-005)
+	 * 평가 분석 (HAMS-S-ER-004)
 	 * @param params
 	 * @param req
 	 * @param res
@@ -419,7 +404,7 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 콘텐츠 추천 (HAMS-S-ER-006)
+	 * 콘텐츠 추천 (HAMS-S-ER-005)
 	 * @param params
 	 * @param req
 	 * @param res
