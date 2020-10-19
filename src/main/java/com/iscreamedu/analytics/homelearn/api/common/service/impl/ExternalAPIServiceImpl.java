@@ -112,7 +112,11 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	LOGGER.debug("data : " + responseData.get("data"));
 	        	
 	        	if("true".equals(responseData.get("result").toString())) {
-	        		setResult(dataKey, responseData.get("data"));
+	        		LinkedHashMap dataMap = new LinkedHashMap<String, Object>();
+	        		dataMap.put("total", responseData.get("total"));
+	        		dataMap.put("list", responseData.get("data"));
+	        		
+	        		setResult(dataKey, dataMap);
 	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
