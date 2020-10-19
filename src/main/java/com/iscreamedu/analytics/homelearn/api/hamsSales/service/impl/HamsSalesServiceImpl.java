@@ -132,12 +132,21 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				
 				dailyLrnSttMap.put("dt", dt);
 				i+=1;
-				if(i%2 == 0) {
-					dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
-					dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
+				
+				LocalDate currDt = LocalDate.now(ZoneId.of("Asia/Seoul"));
+				currDt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				
+				if(LocalDate.parse(dt, DateTimeFormatter.ISO_DATE).isBefore(currDt)) {
+					if(i%2 == 0) {
+						dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
+						dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
+					} else {
+						dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
+						dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
+					}
 				} else {
-					dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
-					dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
+					dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
+					dailyLrnSttMap.put("lrnStt", 0); //HL API output으로 교체 필요
 				}
 				
 				List<String> loginLogList = new ArrayList<String>();
