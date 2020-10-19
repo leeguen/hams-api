@@ -824,7 +824,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	}
 	
 	@Override
-	public Map getExpReportIntro(Map<String, Object> paramMap) throws Exception {
+	public Map getFeedback(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -833,41 +833,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> expReportIntro = new HashMap<>();
+		Map<String, Object> feedback = new HashMap<>();
 		
-		expReportIntro.put("title", "짜파게티 요리사");
-		expReportIntro.put("studNm", "양예슬");
-		expReportIntro.put("expDt", "2020.04.06~2020.04.16");
-		expReportIntro.put("linkUrl", "http://gw.i-screamedu.co.kr/");
+		feedback.put("title", "짜파게티 요리사");
+		feedback.put("studNm", "양예슬");
+		feedback.put("expDt", "2020.04.06~2020.04.16");
+		feedback.put("linkUrl", "http://gw.i-screamedu.co.kr/");
+		feedback.put("msg", "안녕하세요...");
+		feedback.put("tchrNm", "양예슬");
+		feedback.put("tchrCell", "010-1234-1234");
 		
-		data.put("expReportIntro", expReportIntro);
-		
-		if(vu.isValid()) {
-			setResult(dataKey, data);
-		}else {
-			setResult(msgKey, vu.getResult());
-		}
-		
-		return result;
-	}
-	
-	@Override
-	public Map getTchrFeedback(Map<String, Object> paramMap) throws Exception {
-		//Validation
-		ValidationUtil vu = new ValidationUtil();
-		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
-		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> tchrFeedback = new HashMap<>();
-		
-		tchrFeedback.put("msg", "안녕하세요...");
-		tchrFeedback.put("tchrNm", "양예슬");
-		tchrFeedback.put("tchrCell", "010-1234-1234");
-		
-		data.put("tchrFeedback", tchrFeedback);
+		data.put("feedback", feedback);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -1079,106 +1055,59 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> examRst = new HashMap<>();
-		Map<String, Object> maxSubj = new HashMap<>();
-		Map<String, Object> minSubj = new HashMap<>();
 		
-		examRst.put("studNm", "양예슬");
-		examRst.put("crtRt", 85);
-		examRst.put("top10AvgScore", 90);
-		examRst.put("explCnt", 14);
-		examRst.put("ansQuesCnt", 96);
-		examRst.put("crtQuesCnt", 82);
+		Map<String, Object> examStt = new LinkedHashMap<>();
+		Map<String, Object> examRst = new LinkedHashMap<>();
+		Map<String, Object> maxSubj = new LinkedHashMap<>();
+		Map<String, Object> minSubj = new LinkedHashMap<>();
 		
-		List<String> maxActFieldNm = new ArrayList<String>();
-		List<Integer> maxActFieldCrtRt = new ArrayList<Integer>();
-		List<String> maxContFieldNm = new ArrayList<String>();
-		List<Integer> maxContFieldCrtRt = new ArrayList<Integer>();
+		Map<String, Object> examRstResult = (Map) commonMapper.get(paramMap, "HamsSales.selectExamStt");
 		
-		maxSubj.put("studNm", "양예슬");
-		maxSubj.put("maxSubjNm", "수학");
-		maxSubj.put("maxSubjcrtRt", 90);
-		maxSubj.put("top10AvgScore", 90);
-		maxSubj.put("explCnt", 3);
-		maxSubj.put("ansQuesCnt", 21);
-		maxSubj.put("crtQuesCnt", 19);
+		examRst.put("crtRt", examRstResult.get("crtRt"));
+		examRst.put("top10AvgScore", examRstResult.get("top10AvgScore"));
+		examRst.put("explCnt", examRstResult.get("explCnt"));
+		examRst.put("ansQuesCnt", examRstResult.get("ansQuesCnt"));
+		examRst.put("crtQuesCnt", examRstResult.get("crtQuesCnt"));
 		
-		maxActFieldNm.add("계산력");
-		maxActFieldNm.add("문제해결력");
-		maxActFieldNm.add("이해력");
-		maxActFieldNm.add("추론력");
+		maxSubj.put("maxSubjNm", examRstResult.get("maxSubjNm"));
+		maxSubj.put("maxSubjCrtRt", examRstResult.get("maxSubjCrtRt"));
+		maxSubj.put("maxSubjTop10AvgScore", examRstResult.get("maxSubjTop10AvgScore"));
+		maxSubj.put("maxSubjExplCnt", examRstResult.get("maxSubjExplCnt"));
+		maxSubj.put("maxSubjAnsQuesCnt", examRstResult.get("maxSubjAnsQuesCnt"));
+		maxSubj.put("maxSubjCrtQuesCnt", examRstResult.get("maxSubjCrtQuesCnt"));
 		
-		maxActFieldCrtRt.add(60);
-		maxActFieldCrtRt.add(67);
-		maxActFieldCrtRt.add(100);
-		maxActFieldCrtRt.add(25);
+		String[] maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
+		String[] maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(","); 
+		String[] maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(","); 
+		String[] maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(","); 
+				
+		maxSubj.put("maxSubjActFieldNmSp", maxSubjActFieldNmSpList);
+		maxSubj.put("maxSubjActFieldCrtRtSp", maxSubjActFieldCrtRtSpList);
+		maxSubj.put("maxSubjContFieldNmSp", maxSubjContFieldNmSpList);
+		maxSubj.put("maxSubjContFieldCrtRtSp", maxSubjContFieldCrtRtSpList);
 		
-		maxContFieldNm.add("규칙성");
-		maxContFieldNm.add("도형");
-		maxContFieldNm.add("수와 연산");
-		maxContFieldNm.add("측정");
-		maxContFieldNm.add("확률과 통계");
+		minSubj.put("minSubjNm", examRstResult.get("minSubjNm"));
+		minSubj.put("minSubjCrtRt", examRstResult.get("minSubjCrtRt"));
+		minSubj.put("minSubjTop10AvgScore", examRstResult.get("minSubjTop10AvgScore"));
+		minSubj.put("minSubjExplCnt", examRstResult.get("minSubjExplCnt"));
+		minSubj.put("minSubjAnsQuesCnt", examRstResult.get("minSubjAnsQuesCnt"));
+		minSubj.put("minSubjCrtQuesCnt", examRstResult.get("minSubjCrtQuesCnt"));
 		
-		maxContFieldCrtRt.add(0);
-		maxContFieldCrtRt.add(0);
-		maxContFieldCrtRt.add(80);
-		maxContFieldCrtRt.add(80);
-		maxContFieldCrtRt.add(0);
+		String[] minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
+		String[] minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(","); 
+		String[] minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(","); 
+		String[] minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(","); 
 		
-		maxSubj.put("actFieldNm", maxActFieldNm);
-		maxSubj.put("actFieldCrtRt", maxActFieldCrtRt);
-		maxSubj.put("contFieldNm", maxContFieldNm);
-		maxSubj.put("contFieldCrtRt", maxContFieldCrtRt);
+		minSubj.put("minSubjActFieldNmSp", minSubjActFieldNmSpList);
+		minSubj.put("minSubjActFieldCrtRtSp", minSubjActFieldCrtRtSpList);
+		minSubj.put("minSubjContFieldNmSp", minSubjContFieldNmSpList);
+		minSubj.put("minSubjContFieldCrtRtSp", minSubjContFieldCrtRtSpList);
 		
-		List<String> minActFieldNm = new ArrayList<String>();
-		List<Integer> minActFieldCrtRt = new ArrayList<Integer>();
-		List<String> minContFieldNm = new ArrayList<String>();
-		List<Integer> minContFieldCrtRt = new ArrayList<Integer>();
+		examStt.put("examRst", examRst);
+		examStt.put("maxSubj", maxSubj);
+		examStt.put("minSubj", minSubj);
 		
-		minSubj.put("studNm", "양예슬");
-		minSubj.put("minSubjNm", "과학");
-		minSubj.put("minSubjcrtRt", 83);
-		minSubj.put("top10AvgScore", 96);
-		minSubj.put("explCnt", 5);
-		minSubj.put("ansQuesCnt", 40);
-		minSubj.put("crtQuesCnt", 33);
-		
-		minActFieldNm.add("결론도출");
-		minActFieldNm.add("관찰측정");
-		minActFieldNm.add("자료수집");
-		minActFieldNm.add("자료해석력");
-		minActFieldNm.add("적용력");
-		minActFieldNm.add("지식/이해력");
-		minActFieldNm.add("탐구력");
-		
-		minActFieldCrtRt.add(0);
-		minActFieldCrtRt.add(0);
-		minActFieldCrtRt.add(0);
-		minActFieldCrtRt.add(0);
-		minActFieldCrtRt.add(0);
-		minActFieldCrtRt.add(100);
-		minActFieldCrtRt.add(0);
-		
-		minContFieldNm.add("물질");
-		minContFieldNm.add("생명");
-		minContFieldNm.add("운동과 에너지");
-		minContFieldNm.add("지구와 우주");
-		minContFieldNm.add("탐구");
-		
-		minContFieldCrtRt.add(0);
-		minContFieldCrtRt.add(0);
-		minContFieldCrtRt.add(0);
-		minContFieldCrtRt.add(95);
-		minContFieldCrtRt.add(100);
-		
-		minSubj.put("actFieldNm", minActFieldNm);
-		minSubj.put("actFieldCrtRt", minActFieldCrtRt);
-		minSubj.put("contFieldNm", minContFieldNm);
-		minSubj.put("contFieldCrtRt", minContFieldCrtRt);		
-		
-		data.put("examRst", examRst);
-		data.put("maxSubj", maxSubj);
-		data.put("minSubj", minSubj);
+		data.put("examStt", examStt);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);

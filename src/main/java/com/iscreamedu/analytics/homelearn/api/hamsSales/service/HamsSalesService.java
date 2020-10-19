@@ -163,23 +163,15 @@ public interface HamsSalesService {
 	public Map getParentingTest (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 인트로 (HAMS-S-ER-001)
+	 * 피드백 (HAMS-S-ER-001)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
 	 */
-	public Map getExpReportIntro (Map<String, Object> paramMap) throws Exception;
+	public Map getFeedback (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 선생님 피드백 (HAMS-S-ER-002)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map getTchrFeedback (Map<String, Object> paramMap) throws Exception;
-	
-	/**
-	 * 과목별 학습 패턴 (HAMS-S-ER-003)
+	 * 과목별 학습 패턴 (HAMS-S-ER-002)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -187,7 +179,7 @@ public interface HamsSalesService {
 	public Map getSubjLrnPtn (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 바른 학습 습관 (HAMS-S-ER-004)
+	 * 바른 학습 습관 (HAMS-S-ER-003)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -195,7 +187,7 @@ public interface HamsSalesService {
 	public Map getLrnHabits (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 평가 분석 (HAMS-S-ER-005)
+	 * 평가 분석 (HAMS-S-ER-004)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -203,7 +195,7 @@ public interface HamsSalesService {
 	public Map getExamStt (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 콘텐츠 추천 (HAMS-S-ER-006)
+	 * 콘텐츠 추천 (HAMS-S-ER-005)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
