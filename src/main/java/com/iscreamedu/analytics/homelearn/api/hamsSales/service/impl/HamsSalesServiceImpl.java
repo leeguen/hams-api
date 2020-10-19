@@ -660,8 +660,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				explMap.put("quesCnt", explData.get(i).get("quesCnt"));
 				
 				List<Integer> crtQues = new ArrayList<Integer>();
-				List<Integer> guessCrtQues = new ArrayList<Integer>();
-				List<Integer> guessIncrtQues = new ArrayList<Integer>();
+				List<Integer> guessQues = new ArrayList<Integer>();
 				List<Integer> skipQues = new ArrayList<Integer>();
 				List<Integer> cursoryQues = new ArrayList<Integer>();
 				List<Integer> incrtQues = new ArrayList<Integer>();
@@ -675,22 +674,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 					crtQues = null;
 				}
 					
-				if(explData.get(i).get("guesscrtQuesSp") != null) {
-					String[] guessCrtQuesData = explData.get(i).get("guesscrtQuesSp").toString().split(",");
+				if(explData.get(i).get("guessQuesSp") != null) {
+					String[] guessCrtQuesData = explData.get(i).get("guessQuesSp").toString().split(",");
 					for(String item : guessCrtQuesData) {
-						guessCrtQues.add(Integer.valueOf(item));
+						guessQues.add(Integer.valueOf(item));
 					}
 				}else {
-					guessCrtQues = null;
-				}
-				
-				if(explData.get(i).get("guessIncrtQuesSp") != null) {
-					String[] guessIncrtQuesData = explData.get(i).get("guessIncrtQuesSp").toString().split(",");
-					for(String item : guessIncrtQuesData) {
-						guessIncrtQues.add(Integer.valueOf(item));
-					}
-				}else {
-					guessIncrtQues = null;
+					guessQues = null;
 				}
 				
 				if(explData.get(i).get("skipQuesSp") != null) {
@@ -721,8 +711,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				}
 				
 				explMap.put("crtQues", crtQues);
-				explMap.put("guessCrtQues", guessCrtQues);
-				explMap.put("guessIncrtQues", guessIncrtQues);
+				explMap.put("guessQues", guessQues);
 				explMap.put("skipQues", skipQues);
 				explMap.put("cursoryQues", cursoryQues);
 				explMap.put("incrtQues", incrtQues);
@@ -1249,6 +1238,20 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		}else {
 			setResult(msgKey, vu.getResult());
 		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map updateFeedback(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		//2.id 숫자형 체크
+		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		setResult(dataKey, commonMapper.update(paramMap, "updateFeedback"));
 		
 		return result;
 	}

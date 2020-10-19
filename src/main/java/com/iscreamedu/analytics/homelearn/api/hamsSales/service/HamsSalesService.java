@@ -209,4 +209,12 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getRecommendedContents (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 피드백 수정 (HAMS-S-ER-007)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map updateFeedback (Map<String, Object> paramMap) throws Exception;
 }

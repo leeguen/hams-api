@@ -326,8 +326,7 @@
 		    A.CRT_CNT AS CRT_QUES_CNT,
 		    A.QUES_CNT,
 		    REPLACE(A.CRT_QUES_SP,'|',',') AS CRT_QUES_SP,
-			REPLACE(A.GUESS_CRT_QUES_SP,'|',',')AS GUESS_CRT_QUES_SP,
-			REPLACE(A.GUESS_INCRT_QUES_SP,'|',',')AS GUESS_INCRT_QUES_SP,
+			REPLACE(A.GUESS_CRT_QUES_SP,'|',',')AS GUESS_QUES_SP,
 			REPLACE(A.SKIP_QUES_SP,'|',',')AS SKIP_QUES_SP,
 			REPLACE(A.CURSORY_QUES_SP,'|',',')AS CURSORY_QUES_SP,
 			REPLACE(A.INCRT_QUES_SP,'|',',') AS INCRT_QUES_SP
@@ -359,5 +358,17 @@
 			AND A.STUD_ID = #{studId}
 		ORDER BY B.SMT_DTTM
 	</select>
+	
+	<update id="updateFeedback" parameterType="hashMap">
+		UPDATE EXP_REPORT_FEEDBACK SET 
+			GUIDE_MSG = #{guideMsg},
+			RECOMMEND_JOB = #{recommendJob},
+			STT_MSG = #{sttMsg},
+			POSITIVE_MSG = #{positiveMsg},
+			NEGATIVE_MSG = #{negativeMsg},
+			EXP_TCHR_CHA_NM = #{expTchrChaNm},
+			EXP_TCHR_CHA_CELL = #{expTchrChaCell}
+		WHERE STUD_ID = #{studId}
+	</update>
 	
 </mapper>

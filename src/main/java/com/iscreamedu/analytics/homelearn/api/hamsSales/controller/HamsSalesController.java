@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -428,6 +429,21 @@ public class HamsSalesController {
 	@RequestMapping("/getRecommendedContents")
 	public ResponseEntity getRecommendedContents(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.getRecommendedContents(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 피드백 수정 (HAMS-S-ER-007)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@PostMapping("/updateFeedback")
+	public ResponseEntity updateFeedback(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.updateFeedback(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
