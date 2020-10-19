@@ -642,6 +642,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
+		paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> expl = new ArrayList<>();
 		Map<String, Object> explMap = new LinkedHashMap<>();
@@ -751,6 +753,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> incrtNote = new ArrayList<>();

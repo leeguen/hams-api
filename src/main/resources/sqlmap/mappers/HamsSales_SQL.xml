@@ -320,76 +320,36 @@
 			A.EXAM_CD,
 		    A.SMT_ID,
 		    A.STU_ID,
-		    A.SUBJ_CD,
+			B.CD_NM AS SUBJ_CD,
 		    A.SMT_DTTM,
 		    A.EXAM_TYPE,
 		    A.EXAM_NM,
-		    A.ROUND,
+		    '1차' AS ROUND,
 		    A.CRT_RT,
-		    A.CRT_QUES_CNT,
+		    A.CRT_CNT AS CRT_QUES_CNT,
 		    A.QUES_CNT,
-		    A.CRT_QUES_SP,
-		    A.GUESS_QUES_SP,
-		    A.SKIP_QUES_SP,
-		    A.CURSORY_QUES_SP,
-		    A.INCRT_QUES_SP
-		FROM (
-			SELECT 
-				A.EXAM_CD,
-				A.SMT_ID,
-				A.STU_ID,
-				A.SUBJ_CD,
-				A.SMT_DTTM,
-				A.EXAM_TYPE,
-				A.EXAM_NM,
-				A.ROUND,
-				A.CRT_RT,
-				A.CRT_QUES_CNT,
-				A.QUES_CNT,
-				A.CRT_QUES_SP,
-				A.GUESS_QUES_SP,
-				A.SKIP_QUES_SP,
-				A.CURSORY_QUES_SP,
-				A.INCRT_QUES_SP,
-				@ROWNUM:=@ROWNUM+1 AS ORD
-			FROM (
-				SELECT
-					A.EXAM_CD,
-				    A.SMT_ID,
-				    A.STU_ID,
-					B.CD_NM AS SUBJ_CD,
-				    A.SMT_DTTM,
-				    A.EXAM_TYPE,
-				    A.EXAM_NM,
-				    '1차' AS ROUND,
-				    A.CRT_RT,
-				    A.CRT_CNT AS CRT_QUES_CNT,
-				    A.QUES_CNT,
-				    REPLACE(A.CRT_QUES_SP,'|',',') AS CRT_QUES_SP,
-					REPLACE(A.GUESS_CRT_QUES_SP,'|',',')AS GUESS_QUES_SP,
-					REPLACE(A.SKIP_QUES_SP,'|',',')AS SKIP_QUES_SP,
-					REPLACE(A.CURSORY_QUES_SP,'|',',')AS CURSORY_QUES_SP,
-					REPLACE(A.INCRT_QUES_SP,'|',',') AS INCRT_QUES_SP
-				FROM EXAM_RST A
-				JOIN COMM_CD B ON A.SUBJ_CD = B.CD AND B.GRP = 'SUBJ'
-				WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
-					AND A.STUD_ID = #{studId}
-				<if test='type != null and type != ""'>
-					AND A.EXAM_TYPE = #{type}
-				</if>
-				ORDER BY A.SMT_DTTM DESC
-				) A,
-			(SELECT @ROWNUM:=0 FROM DUAL) B
-		) A
+		    REPLACE(A.CRT_QUES_SP,'|',',') AS CRT_QUES_SP,
+			REPLACE(A.GUESS_CRT_QUES_SP,'|',',')AS GUESS_QUES_SP,
+			REPLACE(A.SKIP_QUES_SP,'|',',')AS SKIP_QUES_SP,
+			REPLACE(A.CURSORY_QUES_SP,'|',',')AS CURSORY_QUES_SP,
+			REPLACE(A.INCRT_QUES_SP,'|',',') AS INCRT_QUES_SP
+		FROM EXAM_RST A
+		JOIN COMM_CD B ON A.SUBJ_CD = B.CD AND B.GRP = 'SUBJ'
+		WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
+			AND A.STUD_ID = #{studId}
+		<if test='type != null and type != ""'>
+			AND A.EXAM_TYPE = #{type}
+		</if>
+		ORDER BY A.SMT_DTTM DESC
 		<choose>
 			<when test="startIdx == null or startIdx == ''">
-				WHERE ORD BETWEEN 1 AND 3
+				LIMIT 0, 3
 			</when>
 			<when test="pageSize == null or pageSize == ''">
-				WHERE ORD BETWEEN ${startIdx} AND (${startIdx} <![CDATA[+2]]>)
+				LIMIT ${idx}, 3
 			</when>
 			<otherwise>
-				WHERE ORD BETWEEN ${startIdx} AND (${startIdx} + ${pageSize} <![CDATA[-1]]>)
+				LIMIT ${idx},  ${pageSize}
 			</otherwise>
 		</choose>
 	</select>
@@ -415,70 +375,36 @@
 	
 	<select id="selectIncrtNote" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectIncrtNote : 3일 리포트 평가 오답노트 목록*/
-		SELECT 
-			A.EXAM_CD,
-		    A.SMT_ID,
-		    A.STU_ID,
-		    A.GRADE_TERM,
-		    A.SUBJ_NM,
-		    A.UNIT_NM,
-		    A.TYPE,
-		    A.LRN_STT,
-		    A.QUES_CNT,
-		    A.CRT_QUES_CNT,
-		    A.REMAIN_QUES_CNT,
-		    A.INCRT_NOTE_REG_DT,
-		    A.SMT_DTTM
-		FROM (
-			SELECT
-				A.EXAM_CD,
-				A.SMT_ID,
-				A.STU_ID,
-				A.GRADE_TERM,
-				A.SUBJ_NM,
-				A.UNIT_NM,
-				A.TYPE,
-				A.LRN_STT,
-				A.QUES_CNT,
-				A.CRT_QUES_CNT,
-				A.REMAIN_QUES_CNT,
-				A.INCRT_NOTE_REG_DT,
-				A.SMT_DTTM,
-				@ROWNUM:=@ROWNUM+1 AS ORD
-			FROM (
-				SELECT
-					B.EXAM_CD,
-					B.SMT_ID,
-				    B.STU_ID,
-					B.GRADE_TERM,
-				    C.CD_NM AS SUBJ_NM,
-				    B.UNIT_NM,
-				    B.EXAM_TYPE AS TYPE,
-				    D.CD_NM AS LRN_STT,
-				    B.QUES_CNT,
-				    B.CRT_QUES_CNT,
-				    B.INCRT_CNT AS REMAIN_QUES_CNT,
-				    DATE_FORMAT(B.REG_DT, '%Y-%m-%d') AS INCRT_NOTE_REG_DT,
-					DATE_FORMAT(B.SMT_DTTM, '%Y-%m-%d %H:%i:%s') AS SMT_DTTM
-				FROM EXAM_RST A
-				JOIN EXAM_RST_INCRT_NT B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
-				JOIN COMM_CD C ON B.SUBJ_CD = C.CD AND C.GRP = 'SUBJ'
-				JOIN COMM_CD D ON B.LRN_STT = D.CD AND D.GRP = 'LRN_INFO'
-				WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
-					AND A.STUD_ID = #{studId}
-				ORDER BY B.SMT_DTTM
-			) A,
-			(SELECT @ROWNUM:='' FROM DUAL) B
-		) A
+		SELECT
+			B.EXAM_CD,
+			B.SMT_ID,
+		    B.STU_ID,
+			B.GRADE_TERM,
+		    C.CD_NM AS SUBJ_NM,
+		    B.UNIT_NM,
+		    B.EXAM_TYPE AS TYPE,
+		    D.CD_NM AS LRN_STT,
+		    B.QUES_CNT,
+		    B.CRT_QUES_CNT,
+		    B.INCRT_CNT AS REMAIN_QUES_CNT,
+		    DATE_FORMAT(B.REG_DT, '%Y-%m-%d') AS INCRT_NOTE_REG_DT,
+			DATE_FORMAT(B.SMT_DTTM, '%Y-%m-%d %H:%i:%s') AS SMT_DTTM
+		FROM EXAM_RST A
+		JOIN EXAM_RST_INCRT_NT B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
+		JOIN COMM_CD C ON B.SUBJ_CD = C.CD AND C.GRP = 'SUBJ'
+		JOIN COMM_CD D ON B.LRN_STT = D.CD AND D.GRP = 'LRN_INFO'
+		WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
+			AND A.STUD_ID = #{studId}
+		ORDER BY B.SMT_DTTM
 		<choose>
 			<when test="startIdx == null or startIdx == ''">
-				WHERE ORD BETWEEN 1 AND 3
+				LIMIT 0, 3
 			</when>
 			<when test="pageSize == null or pageSize == ''">
-				WHERE ORD BETWEEN ${startIdx} AND (${startIdx} <![CDATA[+2]]>)
+				LIMIT ${idx}, 3
 			</when>
 			<otherwise>
-				WHERE ORD BETWEEN ${startIdx} AND (${startIdx} + ${pageSize} <![CDATA[-1]]>)
+				LIMIT ${idx},  ${pageSize}
 			</otherwise>
 		</choose>
 	</select>
