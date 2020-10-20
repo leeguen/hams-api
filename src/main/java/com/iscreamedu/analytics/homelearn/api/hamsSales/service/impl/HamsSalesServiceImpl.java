@@ -897,7 +897,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
 			subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
 			
-			String[] subSubjCd = item.get("subSubjNmSp").toString().split(",");
+			String[] subSubjCd = item.get("subSubjCdSp").toString().split(",");
 			String[] subSubjLrnSec = item.get("subSubjLrnSecSp").toString().split(",");
 			String[] subSubjExCnt = item.get("subSubjLrnExCntSp").toString().split(",");
 			
