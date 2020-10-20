@@ -577,7 +577,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+		if(paramMap.get("startIdx") == null || "".equals(paramMap.get("startIdx"))) {
+			paramMap.put("idx", 0);
+		}else {
+			paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+		}
+		
+		if(paramMap.get("type") != null || !"".equals(paramMap.get("type"))) {
+			String[] typeList = paramMap.get("type").toString().split(",");
+			paramMap.put("listSize", typeList.length);
+			paramMap.put("examType", typeList);
+		}
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> expl = new ArrayList<>();
@@ -689,7 +699,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+		if(paramMap.get("startIdx") == null || "".equals(paramMap.get("startIdx"))) {
+			paramMap.put("idx", 0);
+		}else {
+			paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+		}
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> incrtNote = new ArrayList<>();
