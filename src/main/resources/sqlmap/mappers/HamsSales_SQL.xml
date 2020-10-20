@@ -88,7 +88,7 @@
 		FROM (
 			SELECT 
 				SUBJ_CD,
-				CONCAT(DATE_FORMAT(IFNULL(LRN_START_DTTM,''), '%H:%i'), ' ~ ', DATE_FORMAT(IFNULL(LRN_END_DTTM,''), '%H:%i'))AS EX_TM,
+				CONCAT(IFNULL(DATE_FORMAT(LRN_START_DTTM, '%H:%i'),''), ' ~ ', IFNULL(DATE_FORMAT(LRN_END_DTTM, '%H:%i'),''))AS EX_TM,
 				CTGR AS LRN_NM,
 				LRN_SEC,
 				STD_LRN_TM_CD,
@@ -114,7 +114,7 @@
 		<if test="ordNm != null and ordNm != ''">
 			<choose>
 				<when test="ordNm == 'planDt'">
-					ORDER BY EX_TYPE
+					ORDER BY PLAN_DT DESC, EX_TYPE
 				</when>
 				<otherwise>
 					ORDER BY IFNULL(EX_TM,'23:59 ~ 24:00')
