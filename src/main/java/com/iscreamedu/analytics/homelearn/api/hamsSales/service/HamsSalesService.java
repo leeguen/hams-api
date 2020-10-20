@@ -83,7 +83,7 @@ public interface HamsSalesService {
 	public Map getLrnTmln (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 학습 수행 결과 (HAMS-S-TR-006)
+	 * 학습 수행 결과 (HAMS-S-TR-007)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -91,7 +91,7 @@ public interface HamsSalesService {
 	public Map getLrnExStt (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 계획 (HAMS-S-TR-007)
+	 * 계획 (HAMS-S-TR-008)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -99,7 +99,7 @@ public interface HamsSalesService {
 	public Map getLrnPlanStt (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 스스로 학습 (HAMS-S-TR-008)
+	 * 스스로 학습 (HAMS-S-TR-009)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -107,23 +107,7 @@ public interface HamsSalesService {
 	public Map getALrnStt (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 홈런북카페 (HAMS-S-TR-009)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map getHLBookCafe (Map<String, Object> paramMap) throws Exception;
-	
-	/**
-	 * 영어도서관 (HAMS-S-TR-010)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map getEngLibrary (Map<String, Object> paramMap) throws Exception;
-	
-	/**
-	 * 평가 (HAMS-S-TR-011)
+	 * 평가 (HAMS-S-TR-012)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -131,7 +115,7 @@ public interface HamsSalesService {
 	public Map getExam (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 푼 평가지 (HAMS-S-TR-012)
+	 * 푼 평가지 (HAMS-S-TR-013)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
@@ -139,28 +123,12 @@ public interface HamsSalesService {
 	public Map getExpl (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 오답노트 (HAMS-S-TR-013)
+	 * 오답노트 (HAMS-S-TR-014)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
 	 */
 	public Map getIncrtNote (Map<String, Object> paramMap) throws Exception;
-	
-	/**
-	 * 학생 - 다중지능 검사 (HAMS-S-TR-014)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map getMultipleIntelligenceTest (Map<String, Object> paramMap) throws Exception;
-	
-	/**
-	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-015)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
-	public Map getParentingTest (Map<String, Object> paramMap) throws Exception;
 	
 	/**
 	 * 피드백 (HAMS-S-ER-001)

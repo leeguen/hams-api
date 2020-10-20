@@ -222,36 +222,6 @@ public class HamsSalesController {
 	}
 	
 	/**
-	 * 홈런북카페 (HAMS-S-TR-009)
-	 * @param params
-	 * @param req
-	 * @param res
-	 * @return
-	 * @throws Exception
-	 */
-	@RequestMapping("/getHLBookCafe")
-	public ResponseEntity getHLBookCafe(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getHLBookCafe(params);
-		
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-	
-	/**
-	 * 영어도서관 (HAMS-S-TR-010)
-	 * @param params
-	 * @param req
-	 * @param res
-	 * @return
-	 * @throws Exception
-	 */
-	@RequestMapping("/getEngLibrary")
-	public ResponseEntity getEngLibrary(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getEngLibrary(params);
-		
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-	
-	/**
 	 * 평가 (HAMS-S-TR-011)
 	 * @param params
 	 * @param req
@@ -292,36 +262,6 @@ public class HamsSalesController {
 	@RequestMapping("/getIncrtNote")
 	public ResponseEntity getIncrtNote(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.getIncrtNote(params);
-		
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-	
-	/**
-	 * 학생 - 다중지능 검사 (HAMS-S-TR-014)
-	 * @param params
-	 * @param req
-	 * @param res
-	 * @return
-	 * @throws Exception
-	 */
-	@RequestMapping("/getMultipleIntelligenceTest")
-	public ResponseEntity getMultipleIntelligenceTest(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getMultipleIntelligenceTest(params);
-		
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-	
-	/**
-	 * 학부모 - 양육태도,학습지원활동 검사 (HAMS-S-TR-015)
-	 * @param params
-	 * @param req
-	 * @param res
-	 * @return
-	 * @throws Exception
-	 */
-	@RequestMapping("/getParentingTest")
-	public ResponseEntity getParentingTest(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getParentingTest(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
