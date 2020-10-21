@@ -339,7 +339,17 @@
 		WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
 			AND A.STUD_ID = #{studId}
 		<if test='type != null and type != ""'>
-			AND A.EXAM_TYPE = #{type}
+			<choose>
+				<when test="listSize == 1">
+					AND A.EXAM_TYPE = #{type}
+				</when>
+				<otherwise>
+					AND A.EXAM_TYPE IN
+					<foreach collection="examType" item="type" index="index" open="(" separator="," close=")">
+			       		 #{type}
+			       </foreach>
+		       </otherwise>
+	       </choose>  
 		</if>
 		ORDER BY A.SMT_DTTM DESC
 		<choose>
@@ -358,19 +368,22 @@
 	<select id="selectExplCnt" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectExplCnt : 3일 리포트 평가 목록 페이지 수*/
 		SELECT
-			<choose>
-				<when test="pageSize == null or pageSize == ''">
-					CEIL(COUNT(STUD_ID) / 3) AS TOTAL_CNT
-				</when>
-				<otherwise>
-					CEIL(COUNT(STUD_ID) / ${pageSize}) TOTAL_CNT
-				</otherwise>
-			</choose>
+			COUNT(STUD_ID) AS TOTAL_CNT
 		FROM EXAM_RST
 		WHERE DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
 			AND STUD_ID = #{studId}
 			<if test='type != null and type != ""'>
-				AND EXAM_TYPE = #{type}
+				<choose>
+					<when test="listSize == 1">
+						AND EXAM_TYPE = #{type}
+					</when>
+					<otherwise>
+						AND EXAM_TYPE IN
+						<foreach collection="examType" item="type" index="index" open="(" separator="," close=")">
+				       		 #{type}
+				       </foreach>
+			       </otherwise>
+		       </choose>  
 			</if>
 	</select>
 	
@@ -413,14 +426,7 @@
 	<select id="selectIncrtNoteCnt" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectIncrtNoteCnt : 3일 리포트 평가 오답노트 목록*/
 		SELECT
-			<choose>
-				<when test="pageSize == null or pageSize == ''">
-					CEIL(COUNT(B.STUD_ID) / 3) TOTAL_CNT
-				</when>
-				<otherwise>
-					CEIL(COUNT(B.STUD_ID) / ${pageSize}) TOTAL_CNT
-				</otherwise>
-			</choose>
+			COUNT(A.STUD_ID) AS TOTAL_CNT
 		FROM EXAM_RST A
 		JOIN EXAM_RST_INCRT_NT B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
 		WHERE A.DT BETWEEN (#{dt} - INTERVAL 2 DAY) AND #{dt}
