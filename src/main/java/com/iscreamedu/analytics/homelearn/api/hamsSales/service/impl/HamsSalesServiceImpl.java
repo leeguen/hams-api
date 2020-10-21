@@ -742,7 +742,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> data = new LinkedHashMap();
 		Map<String, Object> feedback = (Map) commonMapper.get(paramMap, "HamsSales.selectFeedback");
 		
-		data.put("feedback", feedback);
+		if(feedback != null) {
+			data.put("feedback", feedback);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -768,22 +770,24 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		List<Map<String,Object>> subjLrnPtnResultList = (List) commonMapper.getList(paramMap, "HamsSales.selectSubjLrnPtn");
 		List<Map<String,Object>> subjLrnPtnList = new ArrayList<>();
 		
-		for (Map<String,Object> item : subjLrnPtnResultList) {
-			subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
-			subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
-			
-			String[] subSubjCd = item.get("subSubjCdSp").toString().split(",");
-			String[] subSubjLrnSec = item.get("subSubjLrnSecSp").toString().split(",");
-			String[] subSubjExCnt = item.get("subSubjLrnExCntSp").toString().split(",");
-			
-			subjLrnPtnListMap.put("subSubjCd", subSubjCd);
-			subjLrnPtnListMap.put("subSubjLrnSec", subSubjLrnSec);
-			subjLrnPtnListMap.put("subSubjExCnt", subSubjExCnt);
-			
-			subjLrnPtnList.add(subjLrnPtnListMap);
-		}
+		if(subjLrnPtnResultList.size() > 0) {
+			for (Map<String,Object> item : subjLrnPtnResultList) {
+				subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
+				subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
+				
+				String[] subSubjCd = item.get("subSubjCdSp").toString().split(",");
+				String[] subSubjLrnSec = item.get("subSubjLrnSecSp").toString().split(",");
+				String[] subSubjExCnt = item.get("subSubjLrnExCntSp").toString().split(",");
+				
+				subjLrnPtnListMap.put("subSubjCd", subSubjCd);
+				subjLrnPtnListMap.put("subSubjLrnSec", subSubjLrnSec);
+				subjLrnPtnListMap.put("subSubjExCnt", subSubjExCnt);
+				
+				subjLrnPtnList.add(subjLrnPtnListMap);
+			}
 		
-		data.put("subjLrnPtn", subjLrnPtnList);
+			data.put("subjLrnPtn", subjLrnPtnList);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -814,72 +818,74 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> lrnHabitsResult = (Map) commonMapper.get(paramMap, "HamsSales.selectLrnHabitStt");
 		
-		attHabit.put("score", lrnHabitsResult.get("attHabitScore"));
-		attHabit.put("attRt", lrnHabitsResult.get("attRt"));
-		attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
-		attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
+		if(lrnHabitsResult != null) {
+			attHabit.put("score", lrnHabitsResult.get("attHabitScore"));
+			attHabit.put("attRt", lrnHabitsResult.get("attRt"));
+			attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
+			attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
+			
+			String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",");
+			String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
+			String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
+			
+			attHabit.put("dtList", dtList);
+			attHabit.put("planDtList", planDtList);
+			attHabit.put("attDtList", attDtList);
+			
+			planHabit.put("score", lrnHabitsResult.get("planHabitScore"));
+			planHabit.put("exRt", lrnHabitsResult.get("exRt"));
+			planHabit.put("planCnt", lrnHabitsResult.get("planCnt"));
+			planHabit.put("exCnt", lrnHabitsResult.get("exCnt"));
+			planHabit.put("bLrnExCnt", lrnHabitsResult.get("bLrnExCnt"));
+			planHabit.put("lrnExCnt", lrnHabitsResult.get("lrnExCnt"));
+			planHabit.put("dLrnExCnt", lrnHabitsResult.get("dLrnExCnt"));
+			planHabit.put("uLrnExCnt", lrnHabitsResult.get("uLrnExCnt"));
+			
+			incrtNoteHabit.put("score", lrnHabitsResult.get("incrtNtHabitScore"));
+			incrtNoteHabit.put("incrtNtNcCnt", lrnHabitsResult.get("incrtNtNcCnt"));
 		
-		String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",");
-		String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
-		String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
-		
-		attHabit.put("dtList", dtList);
-		attHabit.put("planDtList", planDtList);
-		attHabit.put("attDtList", attDtList);
-		
-		planHabit.put("score", lrnHabitsResult.get("planHabitScore"));
-		planHabit.put("exRt", lrnHabitsResult.get("exRt"));
-		planHabit.put("planCnt", lrnHabitsResult.get("planCnt"));
-		planHabit.put("exCnt", lrnHabitsResult.get("exCnt"));
-		planHabit.put("bLrnExCnt", lrnHabitsResult.get("bLrnExCnt"));
-		planHabit.put("lrnExCnt", lrnHabitsResult.get("lrnExCnt"));
-		planHabit.put("dLrnExCnt", lrnHabitsResult.get("dLrnExCnt"));
-		planHabit.put("uLrnExCnt", lrnHabitsResult.get("uLrnExCnt"));
-		
-		incrtNoteHabit.put("score", lrnHabitsResult.get("incrtNtHabitScore"));
-		incrtNoteHabit.put("incrtNtNcCnt", lrnHabitsResult.get("incrtNtNcCnt"));
-		
-		List<Map<String,Object>> incrtNoteHabitList = (List) commonMapper.getList(paramMap, "HamsSales.selectExamRstIncrtNTLog");
-		
-		if(incrtNoteHabitList.size() > 0) {
-			incrtNoteHabit.put("list", incrtNoteHabitList);
-		} else {
-			incrtNoteHabit.put("list", new ArrayList<>());
+			List<Map<String,Object>> incrtNoteHabitList = (List) commonMapper.getList(paramMap, "HamsSales.selectExamRstIncrtNTLog");
+			
+			if(incrtNoteHabitList.size() > 0) {
+				incrtNoteHabit.put("list", incrtNoteHabitList);
+			} else {
+				incrtNoteHabit.put("list", new ArrayList<>());
+			}
+			
+			aLrnHabit.put("score", lrnHabitsResult.get("aLrnHabitScore"));
+			aLrnHabit.put("aLrnExCnt", lrnHabitsResult.get("aLrnExCnt"));
+			
+			String[] subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
+			int[] subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
+			
+			aLrnHabit.put("subjCd", subjCd);		
+			aLrnHabit.put("subjExCnt", subjExCnt);		
+			
+			concnHabit.put("score", lrnHabitsResult.get("concnHabitScore"));
+			concnHabit.put("lowConcnCnt", lrnHabitsResult.get("lowConcnCnt"));
+			
+			List<Map<String,Object>> concnHabitTmlnList = (List) commonMapper.getList(paramMap, "HamsSales.selectConcnHabitTmln");
+			
+			if(concnHabitTmlnList.size() > 0) {
+				concnHabit.put("list", concnHabitTmlnList);
+			} else {
+				concnHabit.put("list", new ArrayList<>());
+			}
+			slvHabit.put("score", lrnHabitsResult.get("slvHabitScore"));
+			slvHabit.put("imprvSlvHabitCnt", lrnHabitsResult.get("imprvSlvHabitCnt"));
+			slvHabit.put("skipQuesCnt", lrnHabitsResult.get("skipQuesCnt"));
+			slvHabit.put("guessQuesCnt", lrnHabitsResult.get("guessQuesCnt"));
+			slvHabit.put("cursoryQuesCnt", lrnHabitsResult.get("cursoryQuesCnt"));
+			
+			lrnHabits.put("attHabit", attHabit);
+			lrnHabits.put("planHabit", planHabit);
+			lrnHabits.put("incrtNoteHabit", incrtNoteHabit);
+			lrnHabits.put("aLrnHabit", aLrnHabit);
+			lrnHabits.put("concnHabit", concnHabit);
+			lrnHabits.put("slvHabit", slvHabit);
+			
+			data.put("lrnHabits", lrnHabits);
 		}
-		
-		aLrnHabit.put("score", lrnHabitsResult.get("aLrnHabitScore"));
-		aLrnHabit.put("aLrnExCnt", lrnHabitsResult.get("aLrnExCnt"));
-		
-		String[] subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
-		int[] subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
-		
-		aLrnHabit.put("subjCd", subjCd);		
-		aLrnHabit.put("subjExCnt", subjExCnt);		
-		
-		concnHabit.put("score", lrnHabitsResult.get("concnHabitScore"));
-		concnHabit.put("lowConcnCnt", lrnHabitsResult.get("lowConcnCnt"));
-		
-		List<Map<String,Object>> concnHabitTmlnList = (List) commonMapper.getList(paramMap, "HamsSales.selectConcnHabitTmln");
-		
-		if(concnHabitTmlnList.size() > 0) {
-			concnHabit.put("list", concnHabitTmlnList);
-		} else {
-			concnHabit.put("list", new ArrayList<>());
-		}
-		slvHabit.put("score", lrnHabitsResult.get("slvHabitScore"));
-		slvHabit.put("imprvSlvHabitCnt", lrnHabitsResult.get("imprvSlvHabitCnt"));
-		slvHabit.put("skipQuesCnt", lrnHabitsResult.get("skipQuesCnt"));
-		slvHabit.put("guessQuesCnt", lrnHabitsResult.get("guessQuesCnt"));
-		slvHabit.put("cursoryQuesCnt", lrnHabitsResult.get("cursoryQuesCnt"));
-		
-		lrnHabits.put("attHabit", attHabit);
-		lrnHabits.put("planHabit", planHabit);
-		lrnHabits.put("incrtNoteHabit", incrtNoteHabit);
-		lrnHabits.put("aLrnHabit", aLrnHabit);
-		lrnHabits.put("concnHabit", concnHabit);
-		lrnHabits.put("slvHabit", slvHabit);
-		
-		data.put("lrnHabits", lrnHabits);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -908,51 +914,53 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> examRstResult = (Map) commonMapper.get(paramMap, "HamsSales.selectExamStt");
 		
-		examRst.put("crtRt", examRstResult.get("crtRt"));
-		examRst.put("top10AvgScore", examRstResult.get("top10AvgScore"));
-		examRst.put("explCnt", examRstResult.get("explCnt"));
-		examRst.put("ansQuesCnt", examRstResult.get("ansQuesCnt"));
-		examRst.put("crtQuesCnt", examRstResult.get("crtQuesCnt"));
+		if(examRstResult != null) {
+			examRst.put("crtRt", examRstResult.get("crtRt"));
+			examRst.put("top10AvgScore", examRstResult.get("top10AvgScore"));
+			examRst.put("explCnt", examRstResult.get("explCnt"));
+			examRst.put("ansQuesCnt", examRstResult.get("ansQuesCnt"));
+			examRst.put("crtQuesCnt", examRstResult.get("crtQuesCnt"));
+			
+			maxSubj.put("maxSubjNm", examRstResult.get("maxSubjNm"));
+			maxSubj.put("maxSubjCrtRt", examRstResult.get("maxSubjCrtRt"));
+			maxSubj.put("maxSubjTop10AvgScore", examRstResult.get("maxSubjTop10AvgScore"));
+			maxSubj.put("maxSubjExplCnt", examRstResult.get("maxSubjExplCnt"));
+			maxSubj.put("maxSubjAnsQuesCnt", examRstResult.get("maxSubjAnsQuesCnt"));
+			maxSubj.put("maxSubjCrtQuesCnt", examRstResult.get("maxSubjCrtQuesCnt"));
+			
+			String[] maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
+			String[] maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(","); 
+			String[] maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(","); 
+			String[] maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(","); 
+					
+			maxSubj.put("maxSubjActFieldNmSp", maxSubjActFieldNmSpList);
+			maxSubj.put("maxSubjActFieldCrtRtSp", maxSubjActFieldCrtRtSpList);
+			maxSubj.put("maxSubjContFieldNmSp", maxSubjContFieldNmSpList);
+			maxSubj.put("maxSubjContFieldCrtRtSp", maxSubjContFieldCrtRtSpList);
+			
+			minSubj.put("minSubjNm", examRstResult.get("minSubjNm"));
+			minSubj.put("minSubjCrtRt", examRstResult.get("minSubjCrtRt"));
+			minSubj.put("minSubjTop10AvgScore", examRstResult.get("minSubjTop10AvgScore"));
+			minSubj.put("minSubjExplCnt", examRstResult.get("minSubjExplCnt"));
+			minSubj.put("minSubjAnsQuesCnt", examRstResult.get("minSubjAnsQuesCnt"));
+			minSubj.put("minSubjCrtQuesCnt", examRstResult.get("minSubjCrtQuesCnt"));
+			
+			String[] minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
+			String[] minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(","); 
+			String[] minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(","); 
+			String[] minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(",");
+			
+			minSubj.put("minSubjActFieldNmSp", minSubjActFieldNmSpList);
+			minSubj.put("minSubjActFieldCrtRtSp", minSubjActFieldCrtRtSpList);
+			minSubj.put("minSubjContFieldNmSp", minSubjContFieldNmSpList);
+			minSubj.put("minSubjContFieldCrtRtSp", minSubjContFieldCrtRtSpList);
 		
-		maxSubj.put("maxSubjNm", examRstResult.get("maxSubjNm"));
-		maxSubj.put("maxSubjCrtRt", examRstResult.get("maxSubjCrtRt"));
-		maxSubj.put("maxSubjTop10AvgScore", examRstResult.get("maxSubjTop10AvgScore"));
-		maxSubj.put("maxSubjExplCnt", examRstResult.get("maxSubjExplCnt"));
-		maxSubj.put("maxSubjAnsQuesCnt", examRstResult.get("maxSubjAnsQuesCnt"));
-		maxSubj.put("maxSubjCrtQuesCnt", examRstResult.get("maxSubjCrtQuesCnt"));
-		
-		String[] maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
-		String[] maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(","); 
-		String[] maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(","); 
-		String[] maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(","); 
-				
-		maxSubj.put("maxSubjActFieldNmSp", maxSubjActFieldNmSpList);
-		maxSubj.put("maxSubjActFieldCrtRtSp", maxSubjActFieldCrtRtSpList);
-		maxSubj.put("maxSubjContFieldNmSp", maxSubjContFieldNmSpList);
-		maxSubj.put("maxSubjContFieldCrtRtSp", maxSubjContFieldCrtRtSpList);
-		
-		minSubj.put("minSubjNm", examRstResult.get("minSubjNm"));
-		minSubj.put("minSubjCrtRt", examRstResult.get("minSubjCrtRt"));
-		minSubj.put("minSubjTop10AvgScore", examRstResult.get("minSubjTop10AvgScore"));
-		minSubj.put("minSubjExplCnt", examRstResult.get("minSubjExplCnt"));
-		minSubj.put("minSubjAnsQuesCnt", examRstResult.get("minSubjAnsQuesCnt"));
-		minSubj.put("minSubjCrtQuesCnt", examRstResult.get("minSubjCrtQuesCnt"));
-		
-		String[] minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
-		String[] minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(","); 
-		String[] minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(","); 
-		String[] minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(","); 
-		
-		minSubj.put("minSubjActFieldNmSp", minSubjActFieldNmSpList);
-		minSubj.put("minSubjActFieldCrtRtSp", minSubjActFieldCrtRtSpList);
-		minSubj.put("minSubjContFieldNmSp", minSubjContFieldNmSpList);
-		minSubj.put("minSubjContFieldCrtRtSp", minSubjContFieldCrtRtSpList);
-		
-		examStt.put("examRst", examRst);
-		examStt.put("maxSubj", maxSubj);
-		examStt.put("minSubj", minSubj);
-		
-		data.put("examStt", examStt);
+			examStt.put("examRst", examRst);
+			examStt.put("maxSubj", maxSubj);
+			examStt.put("minSubj", minSubj);
+			
+			data.put("examStt", examStt);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -973,42 +981,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new HashMap<>();
-		List<Map> recommendedContents = new ArrayList<Map>();
-		Map<String, Object> recommendedContentsMap1 = new HashMap<>();
-		Map<String, Object> recommendedContentsMap2 = new HashMap<>();
-		Map<String, Object> recommendedContentsMap3 = new HashMap<>();
-		Map<String, Object> recommendedContentsMap4 = new HashMap<>();
+		List<Map> recommendedContents = commonMapper.getList(paramMap, "HamsSales.selectRecommendedContents");
 		
-		recommendedContentsMap1.put("type", "학교공부");
-		recommendedContentsMap1.put("subjNm", "수학완성");
-		recommendedContentsMap1.put("ctgr", "홈런연산 테마파크 > 곱셉나눗셈 어드벤처");
-		recommendedContentsMap1.put("cont", "나만의 맞춤 시험지를 놀이공원에서 놀듯이 풀며 연산 실력을 쑥쑥 늘려갑니다!");
-		recommendedContentsMap1.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
-		
-		recommendedContentsMap2.put("type", "학교공부");
-		recommendedContentsMap2.put("subjNm", "수학완성");
-		recommendedContentsMap2.put("ctgr", "홈런연산 테마파크 > 곱셉나눗셈 어드벤처");
-		recommendedContentsMap2.put("cont", "나만의 맞춤 시험지를 놀이공원에서 놀듯이 풀며 연산 실력을 쑥쑥 늘려갑니다!");
-		recommendedContentsMap2.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
-		
-		recommendedContentsMap3.put("type", "특별학습");
-		recommendedContentsMap3.put("subjNm", "글로벌리더십");
-		recommendedContentsMap3.put("ctgr", "진로 > 미래 직업 속으로");
-		recommendedContentsMap3.put("cont", "초콜릿의 연금술사 쇼콜라티에");
-		recommendedContentsMap3.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
-		
-		recommendedContentsMap4.put("type", "특별학습");
-		recommendedContentsMap4.put("subjNm", "글로벌리더십");
-		recommendedContentsMap4.put("ctgr", "과학 > 위기탈출 넘버원");
-		recommendedContentsMap4.put("cont", "올바른 안전벨트 착용법");
-		recommendedContentsMap4.put("thum", "https://xcdn.home-learn.com/data/thumbnail_img/2013/12/03/2131203j362178.jpg");
-		
-		recommendedContents.add(recommendedContentsMap1);
-		recommendedContents.add(recommendedContentsMap2);
-		recommendedContents.add(recommendedContentsMap3);
-		recommendedContents.add(recommendedContentsMap4);
-		
-		data.put("recommendedContents", recommendedContents);
+		if(recommendedContents.size() > 0) {
+			data.put("recommendedContents", recommendedContents);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
