@@ -1,10 +1,13 @@
 package com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapper;
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.hamsSales.service.HamsSalesService;
@@ -42,6 +46,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Autowired
 	CommonMapper commonMapper;
+	
+	@Autowired
+	ExternalAPIService externalAPIservice;
 	
 	private LinkedHashMap<String, Object> result;
 	private String msgKey = "msg";
@@ -217,37 +224,189 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//3.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> threeDayLrn = new HashMap<>();
+		
+		
+		Map<String, Object> data = new LinkedHashMap<>();
+		Map<String, Object> threeDayLrn = new LinkedHashMap<>();
 		Map<String, Object> consultingMsg = new HashMap<>();
-		threeDayLrn.put("complimentCnt", 5);
 		
-		List<String> complimentList = new ArrayList<>();
-		complimentList.add("3일 연속 수행률이 100%에요");
-		complimentList.add("홈런도서관 읽은 책 1권");
-		complimentList.add("최대 몇 줄까지 표시될까요?");
-		complimentList.add("다섯 줄입니다");
-		complimentList.add("포인트는 최대 5개까지 노출됩니다");
-		
-		threeDayLrn.put("complimentList", complimentList);
-		
-		threeDayLrn.put("prescriptionCnt", 5);
-		
-		List<String> prescriptionList = new ArrayList<>();
-		prescriptionList.add("스스로 학습 수행 0개");
-		prescriptionList.add("타학년 학습 수행 4개");
-		prescriptionList.add("오답노트 미완료 6개");
-		prescriptionList.add("포인트는 최대 5개까지 노출됩니다");
-		prescriptionList.add("포인트는 최대 5개까지 노출됩니다");
-		
-		threeDayLrn.put("prescriptionList", prescriptionList);
-		
-		consultingMsg.put("lrnExCnt", 20);
-		consultingMsg.put("msg", "3일 동안 총 학습한 개수가 20개 입니다.");
-		
-		data.put("threeDayLrn", threeDayLrn);
-		data.put("consultingMsg", consultingMsg);
-		
+		Map<String, Object> threeDayLrnData = (Map) commonMapper.get(paramMap, "HamsSales.selectThreeDayLrn");
+		if(threeDayLrnData != null) {
+			Map<String, Object> paramData = new HashMap<>();
+			Map<String, Object> apiMap = new HashMap<>();
+			Map<String, Object> positiveMsgMap = new HashMap<>();
+			Map<String, Object> negativeMsgMap = new HashMap<>();
+			Map<String, Object> summaryMap = new HashMap<>();
+			
+			int bookCnt;
+			
+			String toDate = paramMap.get("dt").toString();
+			
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd");
+			
+			Date date = format.parse(toDate);
+			Calendar calendar = Calendar.getInstance();
+			
+			calendar.setTime(date);
+			calendar.add(Calendar.DATE, -2);
+			String fromDate = format.format(calendar.getTime());
+			
+			paramData.put("memId", paramMap.get("studId"));
+			paramData.put("fromData", fromDate);
+			paramData.put("toDate", paramMap.get("dt"));
+			paramData.put("apiName", "read.complete");
+			
+			apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString());
+			
+			/*칭찬 메시지 / 칭찬 메시지 수*/
+			
+			int positiveMsgCnt = Integer.valueOf(threeDayLrnData.get("positiveMsgCnt").toString());
+			
+			List<String> complimentList = new ArrayList<>();
+			List<String> complimentMsg = new ArrayList<>();
+			String[] complimentListData = threeDayLrnData.get("positiveMsgCdSp").toString().split(",");
+			
+			for(String msg : complimentListData) {
+				if(msg.indexOf("|") > 0) {
+					complimentMsg.add(msg.substring(0, msg.indexOf("|")));
+				}else {
+					complimentMsg.add(msg);
+				}
+			}
+			
+			if(positiveMsgCnt == 0 && bookCnt > 1 ) {
+				complimentMsg.clear();
+				complimentMsg.add("D10.80000000");
+				
+				threeDayLrn.put("complimentCnt", 1);
+			}else if(positiveMsgCnt < 5 && bookCnt > 1){
+				complimentMsg.add("D10.80000000");
+				
+				threeDayLrn.put("complimentCnt", positiveMsgCnt + 1);
+			}else {
+				threeDayLrn.put("complimentCnt", threeDayLrnData.get("positiveMsgCnt"));
+			}
+			
+			positiveMsgMap.put("msgCd", complimentMsg);
+			
+			
+			List<Map<String,Object>> complimentMsgList = commonMapper.getList(positiveMsgMap, "HamsSales.selectThreeDayLrnMsg");
+			
+			for(int i = 0; i < complimentMsgList.size(); i++) {
+				String msg = complimentMsgList.get(i).get("cdNm").toString();
+				
+				if(i < positiveMsgCnt) {
+					String msgCd = complimentListData[i].toString();
+					
+					if(msg.contains("{1}")) {
+						if(msg.contains("{2}")) {
+							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1, msgCd.lastIndexOf("|")));
+							msg = msg.replace("{2}", msgCd.substring(msgCd.lastIndexOf("|")+1));
+						}else {
+							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
+						}
+					}
+					
+				}
+				
+				if(complimentMsg.get(i).toString() == "D10.80000000") {
+					msg = msg.replace("{1}", String.valueOf(bookCnt));
+				}
+				
+				complimentList.add(msg);
+			}
+			
+			threeDayLrn.put("complimentList", complimentList);
+			/*칭찬 메시지 / 칭찬 메시지 수*/
+			
+			/*처방 메시지 / 처방 메시지 수*/
+			threeDayLrn.put("prescriptionCnt", threeDayLrnData.get("negativeMsgCnt"));
+			
+			List<String> prescriptionList = new ArrayList<>();
+			List<String> prescriptionMsg = new ArrayList<>();
+			
+			String[] prescriptionListData = threeDayLrnData.get("negativeMsgCdSp").toString().split(",");
+			
+			for(String msg : prescriptionListData) {
+				if(msg.indexOf("|") > 0) {
+					prescriptionMsg.add(msg.substring(0, msg.indexOf("|")));
+				}else {
+					prescriptionMsg.add(msg);
+				}
+			}
+			
+			negativeMsgMap.put("msgCd", prescriptionMsg);
+			
+			List<Map<String,Object>> prescriptionMsgList = commonMapper.getList(negativeMsgMap, "HamsSales.selectThreeDayLrnMsg");
+			
+			for(int i = 0; i < prescriptionMsgList.size(); i++) {
+				String msg = prescriptionMsgList.get(i).get("cdNm").toString();
+				
+				if(i <= prescriptionListData.length) {
+					String msgCd = prescriptionListData[i].toString();
+					
+					if(msg.contains("{1}")) {
+						msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
+					}
+				}
+				prescriptionList.add(msg);
+			}
+			
+			threeDayLrn.put("prescriptionList", prescriptionList);
+			/*처방 메시지 / 처방 메시지 수*/
+			
+			/*상담 메시지 / 상담 메시지 수*/
+			List<String> consultMsgData = new ArrayList<>();
+			
+			String[] consultingListData = threeDayLrnData.get("summaryMsgCd").toString().split(",");
+			
+			for(String msg : consultingListData) {
+				if(msg.indexOf("|") > 0) {
+					consultMsgData.add(msg.substring(0, msg.indexOf("|")));
+				}else {
+					consultMsgData.add(msg);
+				}
+			}
+			
+			if(consultMsgData.size() > 3) {
+				if("D31.11311000".equals(consultMsgData.get(1)) || "D31.11400000".equals(consultMsgData.get(1))) {
+					if(bookCnt > 0) {
+						consultMsgData.remove(1);
+					}else {
+						consultMsgData.remove(2);
+					}
+				}
+			}
+			
+			summaryMap.put("msgCd", consultMsgData);
+			
+			List<Map<String,Object>> consultingMsgList = commonMapper.getList(summaryMap, "HamsSales.selectThreeDayLrnMsg");
+			
+			String consultMsg = null;
+			
+			for(int i = 0; i < consultingMsgList.size(); i++) {
+				String msg = consultingMsgList.get(i).get("cdNm").toString();
+				String msgCd = consultingListData[i].toString();
+				
+				if(msg.contains("{1}")) {
+					msg =  msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
+				}
+				
+				if(i == 0) {
+					consultMsg = msg;
+				}else {
+					consultMsg = consultMsg + msg;
+				}
+			}
+					
+			consultingMsg.put("lrnExCnt", threeDayLrnData.get("lrnExCnt"));
+			consultingMsg.put("msg", consultMsg);
+			/*상담 메시지 / 상담 메시지 수*/
+			
+			data.put("threeDayLrn", threeDayLrn);
+			data.put("consultingMsg", consultingMsg);
+		}
 		if(vu.isValid()) {
 			setResult(dataKey, data);
 		}else {

@@ -66,6 +66,36 @@
 			AND STUD_ID = #{studId}
 	</select>
 	
+	<select id="selectThreeDayLrn" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectThreeDayLrn : 3일 리포트 학습 요약*/
+		SELECT
+			POSITIVE_MSG_CNT, 
+			NEGATIVE_MSG_CNT, 
+			POSITIVE_MSG_CD_SP, 
+			NEGATIVE_MSG_CD_SP, 
+			LRN_EX_CNT, 
+			SUMMARY_MSG_CD
+		FROM DAY_LRN_SUMMARY
+		WHERE DT = #{dt}
+			AND STUD_ID = #{studId} 
+	</select>
+	
+	<select id="selectThreeDayLrnMsg" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectThreeDayLrnMsg : 3일 리포트 학습 요약 - 메시지*/
+		SELECT
+			CD_NM
+		FROM COMM_CD
+		WHERE 	
+			CD IN
+				<foreach collection="msgCd" item="msgCd" index="index" open="(" separator="," close=")">
+					#{msgCd}
+				</foreach>
+			AND GRP = 'MSG'
+		    AND GRADE = 6
+		    AND LANG_CD = 'ko'
+		    AND CD_TYPE = 'D'
+	</select>
+	
 	<select id="selectLrnPtnTmln" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectLrnPtnTmln : 3일 리포트 학습 패턴 - 타임라인*/
 		SELECT 
