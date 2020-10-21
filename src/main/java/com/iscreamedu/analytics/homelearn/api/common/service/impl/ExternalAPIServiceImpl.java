@@ -95,7 +95,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        	
 		    //영어도서관
-	        } else if("studyHistory".equals(apiName)) {
+	        } else if("studyHistoryGeneral".equals(apiName)) {
 	        	String url = ENGLIB_API + apiName;
 	        	
 	        	//파라미터 세팅

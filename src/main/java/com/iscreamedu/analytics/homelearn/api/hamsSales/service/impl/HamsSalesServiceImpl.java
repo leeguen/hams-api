@@ -774,15 +774,15 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			for (Map<String,Object> item : subjLrnPtnResultList) {
 				subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
 				subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
-			
+				
 				String[] subSubjCd = item.get("subSubjCdSp").toString().split(",");
 				String[] subSubjLrnSec = item.get("subSubjLrnSecSp").toString().split(",");
 				String[] subSubjExCnt = item.get("subSubjLrnExCntSp").toString().split(",");
-			
+				
 				subjLrnPtnListMap.put("subSubjCd", subSubjCd);
 				subjLrnPtnListMap.put("subSubjLrnSec", subSubjLrnSec);
 				subjLrnPtnListMap.put("subSubjExCnt", subSubjExCnt);
-			
+				
 				subjLrnPtnList.add(subjLrnPtnListMap);
 			}
 		
@@ -823,15 +823,15 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			attHabit.put("attRt", lrnHabitsResult.get("attRt"));
 			attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
 			attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
-		
+			
 			String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",");
 			String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
 			String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
-		
+			
 			attHabit.put("dtList", dtList);
 			attHabit.put("planDtList", planDtList);
 			attHabit.put("attDtList", attDtList);
-		
+			
 			planHabit.put("score", lrnHabitsResult.get("planHabitScore"));
 			planHabit.put("exRt", lrnHabitsResult.get("exRt"));
 			planHabit.put("planCnt", lrnHabitsResult.get("planCnt"));
@@ -840,12 +840,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			planHabit.put("lrnExCnt", lrnHabitsResult.get("lrnExCnt"));
 			planHabit.put("dLrnExCnt", lrnHabitsResult.get("dLrnExCnt"));
 			planHabit.put("uLrnExCnt", lrnHabitsResult.get("uLrnExCnt"));
-		
+			
 			incrtNoteHabit.put("score", lrnHabitsResult.get("incrtNtHabitScore"));
 			incrtNoteHabit.put("incrtNtNcCnt", lrnHabitsResult.get("incrtNtNcCnt"));
 		
 			List<Map<String,Object>> incrtNoteHabitList = (List) commonMapper.getList(paramMap, "HamsSales.selectExamRstIncrtNTLog");
-		
+			
 			if(incrtNoteHabitList.size() > 0) {
 				incrtNoteHabit.put("list", incrtNoteHabitList);
 			} else {
@@ -920,36 +920,36 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			examRst.put("explCnt", examRstResult.get("explCnt"));
 			examRst.put("ansQuesCnt", examRstResult.get("ansQuesCnt"));
 			examRst.put("crtQuesCnt", examRstResult.get("crtQuesCnt"));
-		
+			
 			maxSubj.put("maxSubjNm", examRstResult.get("maxSubjNm"));
 			maxSubj.put("maxSubjCrtRt", examRstResult.get("maxSubjCrtRt"));
 			maxSubj.put("maxSubjTop10AvgScore", examRstResult.get("maxSubjTop10AvgScore"));
 			maxSubj.put("maxSubjExplCnt", examRstResult.get("maxSubjExplCnt"));
 			maxSubj.put("maxSubjAnsQuesCnt", examRstResult.get("maxSubjAnsQuesCnt"));
 			maxSubj.put("maxSubjCrtQuesCnt", examRstResult.get("maxSubjCrtQuesCnt"));
-		
+			
 			String[] maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
 			String[] maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(","); 
 			String[] maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(","); 
 			String[] maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(","); 
-				
+					
 			maxSubj.put("maxSubjActFieldNmSp", maxSubjActFieldNmSpList);
 			maxSubj.put("maxSubjActFieldCrtRtSp", maxSubjActFieldCrtRtSpList);
 			maxSubj.put("maxSubjContFieldNmSp", maxSubjContFieldNmSpList);
 			maxSubj.put("maxSubjContFieldCrtRtSp", maxSubjContFieldCrtRtSpList);
-		
+			
 			minSubj.put("minSubjNm", examRstResult.get("minSubjNm"));
 			minSubj.put("minSubjCrtRt", examRstResult.get("minSubjCrtRt"));
 			minSubj.put("minSubjTop10AvgScore", examRstResult.get("minSubjTop10AvgScore"));
 			minSubj.put("minSubjExplCnt", examRstResult.get("minSubjExplCnt"));
 			minSubj.put("minSubjAnsQuesCnt", examRstResult.get("minSubjAnsQuesCnt"));
 			minSubj.put("minSubjCrtQuesCnt", examRstResult.get("minSubjCrtQuesCnt"));
-		
+			
 			String[] minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
 			String[] minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(","); 
 			String[] minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(","); 
 			String[] minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(",");
-		
+			
 			minSubj.put("minSubjActFieldNmSp", minSubjActFieldNmSpList);
 			minSubj.put("minSubjActFieldCrtRtSp", minSubjActFieldCrtRtSpList);
 			minSubj.put("minSubjContFieldNmSp", minSubjContFieldNmSpList);
@@ -958,7 +958,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			examStt.put("examRst", examRst);
 			examStt.put("maxSubj", maxSubj);
 			examStt.put("minSubj", minSubj);
-		
+			
 			data.put("examStt", examStt);
 		}
 		
