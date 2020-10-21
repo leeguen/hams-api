@@ -581,6 +581,21 @@
 		WHERE STUD_ID = #{studId}
 	</select>
 	
+	<select id="selectRecommendedContents" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectRecommendedContents : 체험 리포트 콘텐츠 추천 */
+		SELECT 
+			STUD_ID,
+			ORD,
+			TYPE,
+			SUBJ,
+			SUBJ_DETAIL,
+			EXPLANATION,
+			THUM
+		FROM EXP_REPORT_CONT_RECOMMEND
+		WHERE 
+			STUD_ID = #{studId}
+	</select>
+	
 	<update id="updateFeedback" parameterType="hashMap">
 		UPDATE EXP_REPORT_FEEDBACK SET 
 			GUIDE_MSG = #{guideMsg},
