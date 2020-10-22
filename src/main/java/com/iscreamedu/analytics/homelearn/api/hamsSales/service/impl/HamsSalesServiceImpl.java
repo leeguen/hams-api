@@ -943,12 +943,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> data = new LinkedHashMap();
 		Map<String, Object> subjLrnPtn = new LinkedHashMap();
-		Map<String, Object> subjLrnPtnListMap = new LinkedHashMap();
 		List<Map<String,Object>> subjLrnPtnResultList = (List) commonMapper.getList(paramMap, "HamsSales.selectSubjLrnPtn");
 		List<Map<String,Object>> subjLrnPtnList = new ArrayList<>();
 		
 		if(subjLrnPtnResultList.size() > 0) {
 			for (Map<String,Object> item : subjLrnPtnResultList) {
+				Map<String, Object> subjLrnPtnListMap = new LinkedHashMap();
 				subjLrnPtnListMap.put("subjCd", item.get("subjCd"));
 				subjLrnPtnListMap.put("totalLrnSec", item.get("totalLrnSec"));
 				
@@ -962,7 +962,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				
 				subjLrnPtnList.add(subjLrnPtnListMap);
 			}
-		
+			
 			data.put("subjLrnPtn", subjLrnPtnList);
 		}
 		
