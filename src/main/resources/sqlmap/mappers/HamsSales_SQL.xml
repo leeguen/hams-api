@@ -109,6 +109,7 @@
 	<select id="selectLrnTmln" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectLrnTmln : 3일 리포트 학습 패턴 - 타임라인 상세*/
 		SELECT 
+			SERVICE_ID,
 			SUBJ_CD,
 		    EX_TM,
 		    LRN_NM,
@@ -118,6 +119,7 @@
 		    DATE_FORMAT(PLAN_DT, '%Y.%m.%d' ) AS PLAN_DT
 		FROM (
 			SELECT 
+				SERVICE_ID,
 				SUBJ_CD,
 				CONCAT(IFNULL(DATE_FORMAT(LRN_START_DTTM, '%H:%i'),''), ' ~ ', IFNULL(DATE_FORMAT(LRN_END_DTTM, '%H:%i'),''))AS EX_TM,
 				CTGR AS LRN_NM,
@@ -130,6 +132,7 @@
 				AND STUD_ID = #{studId}
 			UNION ALL
 			SELECT 
+				NULL AS SERVICE_ID,
 				NULL AS SUBJ_CD,
 				NULL AS EX_TM,
 				CTGR AS LRN_NM,
