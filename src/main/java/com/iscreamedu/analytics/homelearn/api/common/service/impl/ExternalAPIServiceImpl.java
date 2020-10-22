@@ -137,7 +137,11 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	LOGGER.debug("data : " + responseData.get("data"));
 	        	
 	        	if("200".equals(responseData.get("code").toString())) {
-	        		setResult(dataKey, responseData.get("data"));
+	        		if("english-study/change-english-skip".equals(apiName)) {
+	        			setResult(dataKey, "SUCCESS");
+	        		} else {
+	        			setResult(dataKey, responseData.get("data"));
+	        		}
 	        	}else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
