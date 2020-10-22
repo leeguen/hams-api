@@ -982,6 +982,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				}else {
 					intelNm = "RJ01E02";
 				}
+				
 				paramData.clear();
 				paramData.put("msgCd", intelNm);
 				paramData.put("grp", "RECOMMNAD_JOB");
@@ -1077,8 +1078,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			feedback.put("sttMsg", feedbackMsg.get(0));
 			feedback.put("positiveMsg", feedbackMsg.get(1));
 			feedback.put("negativeMsg", feedbackMsg.get(2));
-			feedback.put("expTchrChaNm", feedbackMap.get("tchrNm"));
-			feedback.put("expTchrChaCell", feedbackMap.get("tchrCell"));
+			feedback.put("expTchrChaNm", feedbackMap.get("expTchrChaNm"));
+			feedback.put("expTchrChaCell", feedbackMap.get("expTchrChaCell"));
 			
 			data.put("feedback", feedback);
 		}
