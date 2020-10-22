@@ -24,6 +24,7 @@ import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.hamsSales.service.HamsSalesService;
+import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 
 /**
  * HAMS Sales API ServiceImpl
@@ -88,7 +89,24 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		LocalDate dt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 		dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		/*
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		String decodedStr = "";
+		
+		CipherUtil cp = CipherUtil.getInstance();
+		
+		try {
+			decodedStr = cp.AES_Decode(encodedStr);
+			
+			String[] paramList = decodedStr.split("&");
+			studId = paramList[1];
+		} catch (Exception e) {
+			LOGGER.debug("HL Parameter Incorrect");
+		}
 
+		paramMap.put("studId", studId);
+		*/
 		paramMap.put("studId", paramMap.get("p"));
 		paramMap.put("dt", dt);
 		

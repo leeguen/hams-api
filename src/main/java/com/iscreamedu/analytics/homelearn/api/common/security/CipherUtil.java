@@ -88,10 +88,11 @@ public class CipherUtil {
 		
 	public static void main(String[] args) throws Exception{
 		CipherUtil cp = CipherUtil.getInstance();
-		String encodingTemp = cp.AES_Encode("1519449&00900100"); //TCHR_ID&STUD_ID
-		LOGGER.debug("***************** encodingTemp : " + encodingTemp);
+		String encodedStr = cp.AES_Encode("1542025&1843947"); //TCHR_ID&STUD_ID
+		LOGGER.debug("***************** encodingTemp : " + encodedStr);
+		System.out.println("encodedStr : " + encodedStr);		
 		
-		String decodingTemp = cp.AES_Decode(encodingTemp);
-		LOGGER.debug("***************** decodingTemp : " + decodingTemp);
+		String decodedStr = cp.AES_Decode(encodedStr); //W1joJrxqeJSTCbTfHLTQjA==
+		LOGGER.debug("***************** decodingTemp : " + decodedStr);
 	}
 }
