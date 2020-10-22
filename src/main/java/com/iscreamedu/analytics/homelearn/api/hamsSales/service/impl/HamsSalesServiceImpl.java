@@ -307,7 +307,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			}
 			
 			positiveMsgMap.put("msgCd", complimentMsg);
-			
+			positiveMsgMap.put("cdType", "D");
 			
 			List<Map<String,Object>> complimentMsgList = commonMapper.getList(positiveMsgMap, "HamsSales.selectThreeDayLrnMsg");
 			
@@ -355,6 +355,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			}
 			
 			negativeMsgMap.put("msgCd", prescriptionMsg);
+			negativeMsgMap.put("cdType", "D");
 			
 			List<Map<String,Object>> prescriptionMsgList = commonMapper.getList(negativeMsgMap, "HamsSales.selectThreeDayLrnMsg");
 			
@@ -398,6 +399,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			}
 			
 			summaryMap.put("msgCd", consultMsgData);
+			summaryMap.put("cdType", "D");
 			
 			List<Map<String,Object>> consultingMsgList = commonMapper.getList(summaryMap, "HamsSales.selectThreeDayLrnMsg");
 			
@@ -917,9 +919,167 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
 		Map<String, Object> data = new LinkedHashMap();
-		Map<String, Object> feedback = (Map) commonMapper.get(paramMap, "HamsSales.selectFeedback");
+		Map<String, Object> apiMap = new HashMap<>();
+		Map<String, Object> paramData = new HashMap<>();
+		Map<String, Object> feedbackMsgMap = new HashMap<>();
+		Map<String, Object> feedback = new LinkedHashMap();
+		Map<String, Object> feedbackMap = (Map) commonMapper.get(paramMap, "HamsSales.selectFeedback");
 		
-		if(feedback != null) {
+		if(feedbackMap != null) {
+			String recommendJob = null;
+			
+			if(feedbackMap.get("recommendJob") == null) {
+				paramData.put("stuId", paramMap.get("studId"));
+				paramData.put("apiName", "intel-inspecion-strength");
+				
+				//apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+				
+				String intelNm = null;
+				
+				if(apiMap != null) {
+					String intelStrength = "자연친화";
+					String maxSubjCd = null;
+					if(feedbackMap.get("maxSubjCd") != null) {
+						
+						if("N02".equals(feedbackMap.get("maxSubjCd").toString())) {
+							maxSubjCd = "E01";
+						}else {
+							maxSubjCd = feedbackMap.get("maxSubjCd").toString();
+						}
+						
+						switch (intelStrength) {
+						case "언어":
+							intelNm = "RJ01" + maxSubjCd;
+							break;
+						case "논리수학":
+							intelNm = "RJ02" + maxSubjCd;
+							break;
+						case "공간":
+							intelNm = "RJ03" + maxSubjCd;
+							break;
+						case "신체운동":
+							intelNm = "RJ04" + maxSubjCd;
+							break;
+						case "대인":
+							intelNm = "RJ05" + maxSubjCd;
+							break;
+						case "음악":
+							intelNm = "RJ06" + maxSubjCd;
+							break;
+						case "개인내적":
+							intelNm = "RJ07" + maxSubjCd;
+							break;
+						case "자연친화":
+							intelNm = "RJ08" + maxSubjCd;
+							break;
+						default:
+							intelNm = "RJ09" + maxSubjCd;
+							break;
+						}
+					}else {
+						intelNm = "RJ01E02";
+					}
+				}else {
+					intelNm = "RJ01E02";
+				}
+				paramData.clear();
+				paramData.put("msgCd", intelNm);
+				paramData.put("grp", "RECOMMNAD_JOB");
+				
+				Map<String, Object> recommandJobData = (Map) commonMapper.get(paramData, "HamsSales.selectFeedbackCd");
+				
+				recommendJob = recommandJobData.get("cdNm").toString();
+				
+				paramData.clear();
+				paramData.put("studId", paramMap.get("studId"));
+				paramData.put("recommendJob", recommendJob);
+				commonMapper.update(paramData, "updateFeedbackRecommendJob");
+			}else {
+				recommendJob = feedbackMap.get("recommendJob").toString();
+			}
+			
+			List<String> feedbackMsg = new ArrayList<>();
+			
+			String sttMsgCd = feedbackMap.get("sttMsg").toString();
+			String positiveMsgCd = feedbackMap.get("positiveMsg").toString();
+			String negativeMsgCd = feedbackMap.get("negativeMsg").toString();
+			
+			if(sttMsgCd.indexOf("|") > 0) {
+				feedbackMsg.add(sttMsgCd.substring(0, sttMsgCd.indexOf("|")));
+			}else {
+				feedbackMsg.add(sttMsgCd);
+			}
+			
+			if(positiveMsgCd.indexOf("|") > 0) {
+				feedbackMsg.add(positiveMsgCd.substring(0, positiveMsgCd.indexOf("|")));
+			}else {
+				feedbackMsg.add(positiveMsgCd);
+			}
+			
+			if(negativeMsgCd.indexOf("|") > 0) {
+				feedbackMsg.add(negativeMsgCd.substring(0, negativeMsgCd.indexOf("|")));
+			}else {
+				feedbackMsg.add(negativeMsgCd);
+			}
+			
+			feedbackMsgMap.put("msgCd", feedbackMsg);
+			feedbackMsgMap.put("cdType", "E");
+			List<Map<String,Object>> feedbackMsgList = commonMapper.getList(feedbackMsgMap, "HamsSales.selectThreeDayLrnMsg");
+			
+			feedbackMsg.clear();
+			
+			for(int i = 0; i < feedbackMsgList.size(); i++) {
+				String msg = feedbackMsgList.get(i).get("cdNm").toString(); 
+				if(msg.contains("{1}")) {
+					if(msg.contains("{2}")) { 
+						msg = msg.replace("{1}", recommendJob);
+						msg = msg.replace("{2}", feedbackMap.get("studNm").toString());
+					}
+					else {
+						String subjNm = null;
+						paramData.clear();
+						
+						if(i == 1) {
+							if(positiveMsgCd.indexOf("C") > 0 || positiveMsgCd.indexOf("N") > 0) {
+								paramData.put("msgCd", positiveMsgCd.substring(positiveMsgCd.indexOf("|")+1));
+								paramData.put("grp", "SUBJ");
+								
+								Map<String, Object> subjData = (Map) commonMapper.get(paramData, "HamsSales.selectFeedbackCd");
+								
+								subjNm = subjData.get("cdNm").toString();
+								
+								msg = msg.replace("{1}", subjNm);
+							}else {
+								msg = msg.replace("{1}", positiveMsgCd.substring(positiveMsgCd.indexOf("|")+1));
+							}
+						}else {
+							if(negativeMsgCd.indexOf("C") > 0 || negativeMsgCd.indexOf("N") > 0) {
+								paramData.put("msgCd", negativeMsgCd.substring(negativeMsgCd.indexOf("|")+1));
+								paramData.put("grp", "SUBJ");
+								Map<String, Object> subjData = (Map) commonMapper.get(paramData, "HamsSales.selectFeedbackCd");
+								subjNm = subjData.get("cdNm").toString();
+								
+								msg = msg.replace("{1}", subjNm);
+							}else {
+								msg = msg.replace("{1}", negativeMsgCd.substring(negativeMsgCd.indexOf("|")+1));
+							}
+						}
+					}
+				}
+				
+				feedbackMsg.add(msg);
+			}
+			  
+			feedback.put("recommendJob", recommendJob);
+			feedback.put("studNm", feedbackMap.get("studNm"));
+			feedback.put("expDt", feedbackMap.get("expDt"));
+			feedback.put("guideMsg", feedbackMap.get("guideMsg"));
+			feedback.put("sttMsg", feedbackMsg.get(0));
+			feedback.put("positiveMsg", feedbackMsg.get(1));
+			feedback.put("negativeMsg", feedbackMsg.get(2));
+			feedback.put("expTchrChaNm", feedbackMap.get("tchrNm"));
+			feedback.put("expTchrChaCell", feedbackMap.get("tchrCell"));
+			
 			data.put("feedback", feedback);
 		}
 		

@@ -93,7 +93,7 @@
 			AND GRP = 'MSG'
 		    AND GRADE = 6
 		    AND LANG_CD = 'ko'
-		    AND CD_TYPE = 'D'
+		    AND CD_TYPE = #{cdType}
 	</select>
 	
 	<select id="selectLrnPtnTmln" parameterType="hashMap" resultType="resultMap">
@@ -470,7 +470,7 @@
 	<select id="selectFeedback" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectFeedback : 체험 리포트 피드백 */
 		SELECT
-			FEEDBACK.RECOMMEND_JOB AS TITLE,
+			FEEDBACK.RECOMMEND_JOB AS RECOMMEND_JOB,
 			STUD.STUD_NM,
 		    CONCAT(STUD.START_DT, '~', STUD.END_DT) AS EXP_DT,
 			FEEDBACK.GUIDE_MSG,
@@ -478,7 +478,8 @@
 			FEEDBACK.POSITIVE_MSG,
 			FEEDBACK.NEGATIVE_MSG,
 			FEEDBACK.EXP_TCHR_CHA_NM AS TCHR_NM,
-			FEEDBACK.EXP_TCHR_CHA_CELL AS TCHR_CELL
+			FEEDBACK.EXP_TCHR_CHA_CELL AS TCHR_CELL,
+			FEEDBACK.MAX_SUBJ_CD
 		FROM (
 			SELECT 
 				STUD_ID,
@@ -488,7 +489,8 @@
 				POSITIVE_MSG,
 				NEGATIVE_MSG,
 				EXP_TCHR_CHA_NM,
-				EXP_TCHR_CHA_CELL
+				EXP_TCHR_CHA_CELL,
+				MAX_SUBJ_CD
 			FROM EXP_REPORT_FEEDBACK
 			WHERE STUD_ID = #{studId}
 		) AS FEEDBACK
@@ -505,6 +507,25 @@
 		) AS STUD
 		ON FEEDBACK.STUD_ID = STUD.STUD_ID
 	</select>
+	
+	<select id="selectFeedbackCd" parameterType="hashMap" resultType="resultMap">
+	/* HamsSales.selectFeedbackCd : 체험리포트 코드 조회*/
+		SELECT
+			CD_NM
+		FROM COMM_CD
+		WHERE 	
+			CD = #{msgCd}
+			AND GRP = #{grp}
+		    AND GRADE = 6
+		    AND LANG_CD = 'ko'
+		    AND CD_TYPE = 'G'
+	</select>
+	
+	<update id="updateFeedbackRecommendJob" parameterType="hashMap">
+		UPDATE EXP_REPORT_FEEDBACK SET 
+			RECOMMEND_JOB = #{recommendJob}
+		WHERE STUD_ID = #{studId}
+	</update>
 	
 	<select id="selectSubjLrnPtn" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectSubjLrnPtn : 체험 리포트 과목별 학습 패턴 */
