@@ -15,8 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
@@ -367,7 +369,8 @@ public class HamsSalesController {
 	 * @throws Exception
 	 */
 	@PostMapping("/updateFeedback")
-	public ResponseEntity updateFeedback(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+	@ResponseBody
+	public ResponseEntity updateFeedback(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)hamsSalesService.updateFeedback(params);
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
