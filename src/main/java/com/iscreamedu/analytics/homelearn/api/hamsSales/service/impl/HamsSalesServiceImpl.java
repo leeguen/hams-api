@@ -1343,7 +1343,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//2.id 숫자형 체크
 		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
-		setResult(dataKey, commonMapper.update(paramMap, "updateFeedback"));
+		if(vu.isValid()) {
+			setResult(dataKey, commonMapper.update(paramMap, "updateFeedback"));
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
 		
 		return result;
 	}
