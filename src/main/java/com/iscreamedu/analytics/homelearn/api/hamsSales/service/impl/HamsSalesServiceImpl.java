@@ -932,7 +932,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			//msgCd 수정 여부 체크
 			boolean sttMsgCheck = Pattern.matches("^E01[.][0-9]{6}", feedbackMap.get("sttMsg").toString());
 			
-			if(!sttMsgCheck) {
+			if(sttMsgCheck) {
 				if(feedbackMap.get("recommendJob") == null) {
 					paramData.put("stuId", paramMap.get("studId"));
 					paramData.put("apiName", "intel-inspecion-strength");
@@ -990,7 +990,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 					
 					paramData.clear();
 					paramData.put("msgCd", intelNm);
-					paramData.put("grp", "RECOMMNAD_JOB");
+					paramData.put("grp", "RECOMMEND_JOB");
 					
 					Map<String, Object> recommandJobData = (Map) commonMapper.get(paramData, "HamsSales.selectFeedbackCd");
 					
@@ -1086,7 +1086,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				feedback.put("expTchrChaNm", feedbackMap.get("expTchrChaNm"));
 				feedback.put("expTchrChaCell", feedbackMap.get("expTchrChaCell"));
 			}else {
-				feedback.put("recommendJob", recommendJob);
+				feedback.put("recommendJob", feedbackMap.get("recommendJob"));
 				feedback.put("studNm", feedbackMap.get("studNm"));
 				feedback.put("expDt", feedbackMap.get("expDt"));
 				feedback.put("guideMsg", feedbackMap.get("guideMsg"));
