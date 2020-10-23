@@ -1178,7 +1178,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
 			attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
 			
-			String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",");
+			String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",", 35);
 			String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
 			String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
 			
