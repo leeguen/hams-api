@@ -152,28 +152,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		if(dayAttLogList.size() > 0 ) {
 			for (Map<String,Object> item : commWkDtList) {
-				Map<String, Object> dailyLrnSttMap = new HashMap<>();
+				Map<String, Object> dailyLrnSttMap = new LinkedHashMap<>();
+				Map<String, Object> externalApiMap = new HashMap<>();
+				Map<String, Object> externalApiParamMap = new HashMap<>();
+				
 				String dt = (String)item.get("dt");
 				paramMap.put("dt", dt);
 				
 				dailyLrnSttMap.put("dt", dt);
-				i+=1;
 				
-				LocalDate currDt = LocalDate.now(ZoneId.of("Asia/Seoul"));
-				currDt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				externalApiParamMap.put("stuId", paramMap.get("studId"));
+				externalApiParamMap.put("targetDate", dt);
+				externalApiParamMap.put("apiName", "daily-status");
 				
-				if(LocalDate.parse(dt, DateTimeFormatter.ISO_DATE).isBefore(currDt)) {
-					if(i%2 == 0) {
-						dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
-						dailyLrnSttMap.put("lrnStt", 3); //HL API output으로 교체 필요				
-					} else {
-						dailyLrnSttMap.put("attYn", true); //HL API output으로 교체 필요
-						dailyLrnSttMap.put("lrnStt", new Random().nextInt(2)+1); //HL API output으로 교체 필요
-					}
-				} else {
-					dailyLrnSttMap.put("attYn", false); //HL API output으로 교체 필요
-					dailyLrnSttMap.put("lrnStt", 0); //HL API output으로 교체 필요
-				}
+				externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(externalApiParamMap).get("data");
+				
+				dailyLrnSttMap.put("attYn", externalApiMap.get("attended"));
+				dailyLrnSttMap.put("lrnStt", externalApiMap.get("status"));
 				
 				List<String> loginLogList = new ArrayList<String>();
 				
