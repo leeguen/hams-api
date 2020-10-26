@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -90,25 +89,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		LocalDate dt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 		dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		/*
+		
 		String studId = "";
 		String encodedStr = paramMap.get("p").toString();
-		String decodedStr = "";
 		
-		CipherUtil cp = CipherUtil.getInstance();
-		
-		try {
-			decodedStr = cp.AES_Decode(encodedStr);
-			
-			String[] paramList = decodedStr.split("&");
-			studId = paramList[1];
-		} catch (Exception e) {
-			LOGGER.debug("HL Parameter Incorrect");
-		}
-
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
 		paramMap.put("studId", studId);
-		*/
-		paramMap.put("studId", paramMap.get("p"));
 		paramMap.put("dt", dt);
 		
 		Map<String, Object> data = new HashMap<>();
@@ -135,11 +122,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		List<Map<String,Object>> commWkDtList = (List) commonMapper.getList(paramMap, "Common.selectCommWkDt");
 		
@@ -200,11 +192,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> settleInfoPrediction = new HashMap<>();
@@ -232,13 +229,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
 		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
 		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);		
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> threeDayLrn = new LinkedHashMap<>();
@@ -437,11 +437,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);	
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> lrnPtn = new HashMap<>();
@@ -479,11 +484,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);	
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> lrnTmln = new HashMap<>();
@@ -508,11 +518,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> lrnExCntTop3 = new LinkedHashMap<>();
@@ -568,11 +583,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> lrnEx = new LinkedHashMap<>();
@@ -607,11 +627,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> lrnExCntTop3 = new LinkedHashMap<>();
@@ -666,11 +691,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> exam = new LinkedHashMap<>();
@@ -746,11 +776,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		if(paramMap.get("startIdx") == null || "".equals(paramMap.get("startIdx"))) {
 			paramMap.put("idx", 0);
@@ -868,11 +903,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "studId"}, paramMap);
+		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
 		//2.dt 날짜형 체크
 		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
-		//3.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		if(paramMap.get("startIdx") == null && "".equals(paramMap.get("startIdx"))) {
 			paramMap.put("idx", 0);
@@ -910,9 +950,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap();
 		Map<String, Object> apiMap = new HashMap<>();
@@ -1109,9 +1154,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap();
 		Map<String, Object> subjLrnPtn = new LinkedHashMap();
@@ -1152,9 +1202,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> lrnHabits = new LinkedHashMap<>();
@@ -1250,9 +1305,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new HashMap<>();
 		
@@ -1325,9 +1385,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new HashMap<>();
 		List<Map> recommendedContents = commonMapper.getList(paramMap, "HamsSales.selectRecommendedContents");
@@ -1389,5 +1454,28 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		} else {
 			result.put(msgKey, data); //validation 걸린 메시지, 데이터 없음
 		}
+	}
+	
+	/**
+	 * encoded parameter decode 
+	 * @param key
+	 * @param data
+	 */
+	public String[] getDecodedParam(String encodedParam) throws Exception {
+		String[] decodedParamList = null;
+		
+		String studId = "";
+		String decodedStr = "";
+		
+		CipherUtil cp = CipherUtil.getInstance();
+		
+		try {
+			decodedStr = cp.AES_Decode(encodedParam);
+			decodedParamList = decodedStr.split("&");
+		} catch (Exception e) {
+			LOGGER.debug("HL Parameter Incorrect");
+		}
+		
+		return decodedParamList;
 	}
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
+import com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl.HamsSalesServiceImpl;
 
 /**
  * HAMS External API ServiceImpl
@@ -38,6 +40,9 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 @Service
 public class ExternalAPIServiceImpl implements ExternalAPIService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalAPIServiceImpl.class);
+	
+	@Autowired
+	HamsSalesServiceImpl hamsSalesServiceImpl;
 	
 	private LinkedHashMap<String, Object> result;
 	private String msgKey = "msg";
@@ -71,10 +76,18 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	String url = HLBOOK_API + apiName;
 	        	
+	    		String studId = "";
+	    		String encodedStr = paramMap.get("p").toString();
+	    		
+	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+	    		studId = paramList[1];
+	    		
+	    		paramMap.remove("p");
+	        	
 	        	//헤더에 memId 세팅
 	        	HttpHeaders headers = new HttpHeaders();
 	        	headers.setContentType(MediaType.APPLICATION_JSON);
-	            headers.set("memId", paramMap.get("memId").toString());
+	            headers.set("memId", studId);
 	            
 	            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
 	
@@ -98,12 +111,23 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        } else if("studyHistoryGeneral".equals(apiName)) {
 	        	String url = ENGLIB_API + apiName;
 	        	
+	    		String studId = "";
+	    		String encodedStr = paramMap.get("p").toString();
+	    		
+	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+	    		studId = paramList[1];
+	    		
+	    		paramMap.remove("p");
+	        	
 	        	//파라미터 세팅
 	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 	        	for( String key : paramMap.keySet() ){ 
 	        		builder.queryParam(key, paramMap.get(key)); 
 	        	}
-	        	URI apiUri = builder.build().encode().toUri();  
+	        	
+	        	builder.queryParam("member_idx", studId);
+	        		        	
+	        	URI apiUri = builder.build().encode().toUri();
 	        	
 	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
 	        	
@@ -130,6 +154,15 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	String url = HL_API + apiName + ".json";
 	        	
+	    		String studId = "";
+	    		String encodedStr = paramMap.get("p").toString();
+	    		
+	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+	    		studId = paramList[1];
+	    		paramMap.put("stuId", studId);
+	    		
+	    		paramMap.remove("p");
+	        	
 	        	LinkedHashMap responseData = restTemplate.postForObject(url, paramMap, LinkedHashMap.class);
 	        	
 	        	LOGGER.debug("code : " + responseData.get("code"));
@@ -154,10 +187,19 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	        	String url = HL_API + apiName + ".json";
 	        	
+	    		String studId = "";
+	    		String encodedStr = paramMap.get("p").toString();
+	    		
+	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+	    		studId = paramList[1];
+	    		paramMap.put("stuId", studId);
+	    		
+	    		paramMap.remove("p");
+	        	
 	        	//파라미터 세팅
 	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 	        	for( String key : paramMap.keySet() ){ 
-	        		builder.queryParam(key, paramMap.get(key)); 
+	        		builder.queryParam(key, paramMap.get(key));
 	        	}
 	        	URI apiUri = builder.build().encode().toUri();  
 	        	
