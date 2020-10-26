@@ -153,7 +153,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				
 				dailyLrnSttMap.put("dt", dt);
 				
-				externalApiParamMap.put("stuId", paramMap.get("studId"));
+				externalApiParamMap.put("p", encodedStr);
 				externalApiParamMap.put("targetDate", dt);
 				externalApiParamMap.put("apiName", "daily-status");
 				
