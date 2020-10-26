@@ -386,8 +386,11 @@
 		</if>
 		ORDER BY A.SMT_DTTM DESC
 		<choose>
-			<when test="startIdx == null or startIdx == ''">
+			<when test="( startIdx == null or startIdx == '') and (pageSize == null or pageSize == '')">
 				LIMIT 0, 3
+			</when>
+			<when test="startIdx == null or startIdx == ''">
+				LIMIT 0, ${pageSize}
 			</when>
 			<when test="pageSize == null or pageSize == ''">
 				LIMIT ${idx}, 3
@@ -444,8 +447,11 @@
 			AND A.STUD_ID = #{studId}
 		ORDER BY B.SMT_DTTM
 		<choose>
-			<when test="startIdx == null or startIdx == ''">
+			<when test="( startIdx == null or startIdx == '') and (pageSize == null or pageSize == '')">
 				LIMIT 0, 3
+			</when>
+			<when test="startIdx == null or startIdx == ''">
+				LIMIT 0, ${pageSize}
 			</when>
 			<when test="pageSize == null or pageSize == ''">
 				LIMIT ${idx}, 3

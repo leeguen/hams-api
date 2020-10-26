@@ -787,11 +787,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		
-		if(paramMap.get("startIdx") == null || "".equals(paramMap.get("startIdx"))) {
-			paramMap.put("idx", 0);
-		}else {
-			paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
-		}
+		if(paramMap.get("startIdx") != null && !"".equals(paramMap.get("startIdx"))) {
+            paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+        }
 		
 		if(paramMap.get("type") != null && !"".equals(paramMap.get("type"))) {
 			String[] typeList = paramMap.get("type").toString().split(",");
@@ -914,11 +912,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		
-		if(paramMap.get("startIdx") == null && "".equals(paramMap.get("startIdx"))) {
-			paramMap.put("idx", 0);
-		}else {
-			paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
-		}
+		if(paramMap.get("startIdx") != null && !"".equals(paramMap.get("startIdx"))) {
+            paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+        }
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> incrtNote = new ArrayList<>();
