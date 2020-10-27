@@ -159,7 +159,6 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	    		
 	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
 	    		studId = paramList[1];
-	    		
 	    		paramMap.put("stuId", studId);
 	    		
 	    		paramMap.remove("p");
@@ -201,8 +200,6 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	    		}
 	    		
 	    		paramMap.remove("p");
-	    		
-	    		
 	        	
 	        	//파라미터 세팅
 	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
