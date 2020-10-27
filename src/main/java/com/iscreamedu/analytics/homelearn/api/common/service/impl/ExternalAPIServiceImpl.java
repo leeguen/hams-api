@@ -206,19 +206,21 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        } else {
 	        	String url = HL_API + apiName + ".json";
 	        	
-	    		String studId = "";
-	    		String encodedStr = paramMap.get("p").toString();
-	    		
-	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-	    		studId = paramList[1];
-	    		
-	    		if(apiName.equals("multi-intel-inspection") || apiName.equals("parent-nurture-attitude-inspection")) {
-	    			paramMap.put("userId", studId);
-	    		} else {
-	    			paramMap.put("stuId", studId);
-	    		}
-	    		
-	    		paramMap.remove("p");
+	        	if(!apiName.equals("step-list/study-goal-text")) {
+		    		String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
+		    		
+		    		if(apiName.equals("multi-intel-inspection") || apiName.equals("parent-nurture-attitude-inspection")) {
+		    			paramMap.put("userId", studId);
+		    		} else {
+		    			paramMap.put("stuId", studId);
+		    		}
+		    		
+		    		paramMap.remove("p");
+	        	}
 		    		
 	        	//파라미터 세팅
 	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
