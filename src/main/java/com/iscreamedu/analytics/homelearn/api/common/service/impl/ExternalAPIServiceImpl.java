@@ -183,8 +183,27 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        	
 	    	//HL GET
-	        } else {
+	        } else if(apiName.equals("step-code-list") || apiName.equals("set-code-list")){
+	        	String url = HL_API + apiName + ".json";
+	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 	        	
+	        	URI apiUri = builder.build().encode().toUri();  
+	        	
+	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+	        	
+	        	LOGGER.debug("code : " + responseData.get("code"));
+	        	LOGGER.debug("message : " + responseData.get("message"));
+	        	LOGGER.debug("data : " + responseData.get("data"));
+	        	
+	        	if("200".equals(responseData.get("code").toString())) {
+	        		setResult(dataKey, responseData.get("data"));
+	        	} else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else {
 	        	String url = HL_API + apiName + ".json";
 	        	
 	    		String studId = "";
@@ -200,12 +219,13 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	    		}
 	    		
 	    		paramMap.remove("p");
-	        	
+		    		
 	        	//파라미터 세팅
 	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 	        	for( String key : paramMap.keySet() ){ 
 	        		builder.queryParam(key, paramMap.get(key));
 	        	}
+	        	
 	        	URI apiUri = builder.build().encode().toUri();  
 	        	
 	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
