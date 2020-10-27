@@ -193,7 +193,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
 	    		studId = paramList[1];
 	    		
-	    		if(apiName.equals("multi-intel-inspection")) {
+	    		if(apiName.equals("multi-intel-inspection") || apiName.equals("parent-nurture-attitude-inspection")) {
 	    			paramMap.put("userId", studId);
 	    		} else {
 	    			paramMap.put("stuId", studId);
