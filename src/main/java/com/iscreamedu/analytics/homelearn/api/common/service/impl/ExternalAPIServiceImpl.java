@@ -150,7 +150,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	
 	    	//HL POST
 	        } else if("english-study/change-english-skip".equals(apiName) 
-	        		|| apiName.indexOf("student-study-course-plan/reset-village/") == 0) {
+	        		|| apiName.indexOf("student-study-course-plan/reset-village") == 0) {
 	        	
 	        	String url = HL_API + apiName + ".json";
 	        	
@@ -162,6 +162,10 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	    		paramMap.put("stuId", studId);
 	    		
 	    		paramMap.remove("p");
+	    		
+	    		if("student-study-course-plan/reset-village".equals(apiName)) {
+	    			url = HL_API + "student-study-course-plan/" + studId + "/reset-village.json";
+	    		}
 	        	
 	        	LinkedHashMap responseData = restTemplate.postForObject(url, paramMap, LinkedHashMap.class);
 	        	
