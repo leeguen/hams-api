@@ -412,7 +412,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				if(i == 0) {
 					consultMsg = msg;
 				}else {
-					consultMsg = consultMsg + msg;
+					consultMsg = consultMsg + "|" + msg;
 				}
 			}
 					
