@@ -611,7 +611,6 @@
 	<select id="selectExamStt" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectExamStt : 체험 리포트 평가 분석 */
 		SELECT 
-			STUD_ID,
 			CRT_RT,
 			TOP10_AVG_SCORE,
 			EXPL_CNT,
