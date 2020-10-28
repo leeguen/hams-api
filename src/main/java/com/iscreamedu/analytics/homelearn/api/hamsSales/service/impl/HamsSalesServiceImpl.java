@@ -265,7 +265,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			calendar.add(Calendar.DATE, -2);
 			String fromDate = format.format(calendar.getTime());
 			
-			paramData.put("memId", paramMap.get("studId"));
+			paramData.put("p", paramMap.get("p").toString());
 			paramData.put("fromData", fromDate);
 			paramData.put("toDate", paramMap.get("dt"));
 			paramData.put("apiName", "read.complete");
