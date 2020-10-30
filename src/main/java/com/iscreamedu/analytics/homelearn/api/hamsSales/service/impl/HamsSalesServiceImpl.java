@@ -807,7 +807,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		List<Map> expl = new ArrayList<>();
-		Map<String, Object> explMap = new LinkedHashMap<>();
 		Map<String, Object> explMapData = new LinkedHashMap<>();
 		
 		List<Map<String,Object>> explData = (List) commonMapper.getList(paramMap, "HamsSales.selectExpl");
@@ -817,6 +816,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			Map<String, Object> explPageData = (Map) commonMapper.get(paramMap, "HamsSales.selectExplCnt");
 			
 			for(int i = 0; i < explData.size(); i++) {
+				Map<String, Object> explMap = new LinkedHashMap<>();
 				
 				explMap.put("examCd", explData.get(i).get("examCd"));
 				explMap.put("smtId", explData.get(i).get("smtId"));
@@ -941,7 +941,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		if(incrtNoteData.size() > 0) {
 			
 			Map<String, Object> IncrtNotePageData = (Map) commonMapper.get(paramMap, "HamsSales.selectIncrtNoteCnt");
-			
 			
 			incrtNoteMap.put("totalCnt", IncrtNotePageData.get("totalCnt"));
 			incrtNoteMap.put("list", incrtNoteData);
