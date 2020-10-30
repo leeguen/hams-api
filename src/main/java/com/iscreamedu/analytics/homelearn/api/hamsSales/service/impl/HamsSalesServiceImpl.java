@@ -787,8 +787,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		
+		int idx = 3;
+		
 		if(paramMap.get("startIdx") != null && !"".equals(paramMap.get("startIdx"))) {
-            paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+			if(paramMap.get("pageSize") != null && !"".equals(paramMap.get("pageSize"))) {
+				idx = (Integer.parseInt(paramMap.get("startIdx").toString()) - 1) * Integer.parseInt(paramMap.get("pageSize").toString());
+				paramMap.put("idx", idx);
+			} else {
+				idx = (Integer.parseInt(paramMap.get("startIdx").toString()) - 1) * 3;
+				paramMap.put("idx", idx);
+			}
         }
 		
 		if(paramMap.get("type") != null && !"".equals(paramMap.get("type"))) {
@@ -912,8 +920,16 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		
+		int idx = 3;
+		
 		if(paramMap.get("startIdx") != null && !"".equals(paramMap.get("startIdx"))) {
-            paramMap.put("idx", Integer.valueOf(paramMap.get("startIdx").toString()) - 1);
+			if(paramMap.get("pageSize") != null && !"".equals(paramMap.get("pageSize"))) {
+				idx = (Integer.parseInt(paramMap.get("startIdx").toString()) - 1) * Integer.parseInt(paramMap.get("pageSize").toString());
+				paramMap.put("idx", idx);
+			} else {
+				idx = (Integer.parseInt(paramMap.get("startIdx").toString()) - 1) * 3;
+				paramMap.put("idx", idx);
+			}
         }
 		
 		Map<String, Object> data = new LinkedHashMap<>();
