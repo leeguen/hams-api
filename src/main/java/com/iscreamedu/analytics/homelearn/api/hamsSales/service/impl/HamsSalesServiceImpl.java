@@ -1244,13 +1244,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			String[] planDtList = new String[] {};
 			String[] attDtList = new String[] {};
 			
-			if(lrnHabitsResult.get("dtSp") != null && lrnHabitsResult.get("dtSp").equals("")) {
+			if(lrnHabitsResult.get("dtSp") != null && !lrnHabitsResult.get("dtSp").equals("")) {
 				dtList = lrnHabitsResult.get("dtSp").toString().split(",", 35);
 			}
-			if(lrnHabitsResult.get("planDtSp") != null && lrnHabitsResult.get("planDtSp").equals("")) {
+			if(lrnHabitsResult.get("planDtSp") != null && !lrnHabitsResult.get("planDtSp").equals("")) {
 				planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
 			}
-			if(lrnHabitsResult.get("attDtSp") != null && lrnHabitsResult.get("attDtSp").equals("")) {
+			if(lrnHabitsResult.get("attDtSp") != null && !lrnHabitsResult.get("attDtSp").equals("")) {
 				attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
 			}
 			
@@ -1282,12 +1282,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			aLrnHabit.put("aLrnExCnt", lrnHabitsResult.get("aLrnExCnt"));
 			
 			String[] subjCd = new String[] {};
-			if(lrnHabitsResult.get("subjCdSp") != null && lrnHabitsResult.get("subjCdSp").equals("")) {
+			if(lrnHabitsResult.get("subjCdSp") != null && !lrnHabitsResult.get("subjCdSp").equals("")) {
 				subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
 			}
 			
 			int[] subjExCnt = new int[] {};
-			if(lrnHabitsResult.get("subjExCntSp") != null && lrnHabitsResult.get("subjExCntSp").equals("")) {
+			if(lrnHabitsResult.get("subjExCntSp") != null && !lrnHabitsResult.get("subjExCntSp").equals("")) {
 				subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
 			}
 			
