@@ -1240,9 +1240,19 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			attHabit.put("planDayCnt", lrnHabitsResult.get("planDayCnt"));
 			attHabit.put("attDayCnt", lrnHabitsResult.get("attDayCnt"));
 			
-			String[] dtList = lrnHabitsResult.get("dtSp").toString().split(",", 35);
-			String[] planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
-			String[] attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
+			String[] dtList = new String[] {};
+			String[] planDtList = new String[] {};
+			String[] attDtList = new String[] {};
+			
+			if(lrnHabitsResult.get("dtSp") != null && lrnHabitsResult.get("dtSp").equals("")) {
+				dtList = lrnHabitsResult.get("dtSp").toString().split(",", 35);
+			}
+			if(lrnHabitsResult.get("planDtSp") != null && lrnHabitsResult.get("planDtSp").equals("")) {
+				planDtList = lrnHabitsResult.get("planDtSp").toString().split(",");
+			}
+			if(lrnHabitsResult.get("attDtSp") != null && lrnHabitsResult.get("attDtSp").equals("")) {
+				attDtList = lrnHabitsResult.get("attDtSp").toString().split(",");
+			}
 			
 			attHabit.put("dtList", dtList);
 			attHabit.put("planDtList", planDtList);
@@ -1271,8 +1281,15 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			aLrnHabit.put("score", lrnHabitsResult.get("aLrnHabitScore"));
 			aLrnHabit.put("aLrnExCnt", lrnHabitsResult.get("aLrnExCnt"));
 			
-			String[] subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
-			int[] subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
+			String[] subjCd = new String[] {};
+			if(lrnHabitsResult.get("subjCdSp") != null && lrnHabitsResult.get("subjCdSp").equals("")) {
+				subjCd = lrnHabitsResult.get("subjCdSp").toString().split(",");
+			}
+			
+			int[] subjExCnt = new int[] {};
+			if(lrnHabitsResult.get("subjExCntSp") != null && lrnHabitsResult.get("subjExCntSp").equals("")) {
+				subjExCnt = Arrays.asList(lrnHabitsResult.get("subjExCntSp").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray();
+			}
 			
 			aLrnHabit.put("subjCd", subjCd);		
 			aLrnHabit.put("subjExCnt", subjExCnt);		
@@ -1349,10 +1366,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			maxSubj.put("maxSubjAnsQuesCnt", examRstResult.get("maxSubjAnsQuesCnt"));
 			maxSubj.put("maxSubjCrtQuesCnt", examRstResult.get("maxSubjCrtQuesCnt"));
 			
-			String[] maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
-			String[] maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(","); 
-			String[] maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(","); 
-			String[] maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(","); 
+			String[] maxSubjActFieldNmSpList = new String[] {};
+			String[] maxSubjActFieldCrtRtSpList = new String[] {};
+			String[] maxSubjContFieldNmSpList = new String[] {};
+			String[] maxSubjContFieldCrtRtSpList = new String[] {};
+			
+			if(examRstResult.get("maxSubjActFieldNmSp") != null && !examRstResult.get("maxSubjActFieldNmSp").equals("")) {
+				maxSubjActFieldNmSpList = examRstResult.get("maxSubjActFieldNmSp").toString().split(","); 
+			}
+			if(examRstResult.get("maxSubjActFieldNmSp") != null && !examRstResult.get("maxSubjActFieldCrtRtSp").equals("")) {
+				maxSubjActFieldCrtRtSpList = examRstResult.get("maxSubjActFieldCrtRtSp").toString().split(",");
+			}
+			if(examRstResult.get("maxSubjContFieldNmSp") != null && !examRstResult.get("maxSubjContFieldNmSp").equals("")) {
+				maxSubjContFieldNmSpList = examRstResult.get("maxSubjContFieldNmSp").toString().split(",");
+			}
+			if(examRstResult.get("maxSubjContFieldCrtRtSp") != null && !examRstResult.get("maxSubjContFieldCrtRtSp").equals("")) {
+				maxSubjContFieldCrtRtSpList = examRstResult.get("maxSubjContFieldCrtRtSp").toString().split(",");
+			}
 					
 			maxSubj.put("maxSubjActFieldNmSp", maxSubjActFieldNmSpList);
 			maxSubj.put("maxSubjActFieldCrtRtSp", maxSubjActFieldCrtRtSpList);
@@ -1366,10 +1396,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			minSubj.put("minSubjAnsQuesCnt", examRstResult.get("minSubjAnsQuesCnt"));
 			minSubj.put("minSubjCrtQuesCnt", examRstResult.get("minSubjCrtQuesCnt"));
 			
-			String[] minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
-			String[] minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(","); 
-			String[] minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(","); 
-			String[] minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(",");
+			String[] minSubjActFieldNmSpList = new String[] {};
+			String[] minSubjActFieldCrtRtSpList = new String[] {};
+			String[] minSubjContFieldNmSpList = new String[] {};
+			String[] minSubjContFieldCrtRtSpList = new String[] {};
+			
+			if(examRstResult.get("minSubjActFieldNmSp") != null && !examRstResult.get("minSubjActFieldNmSp").equals("")) {
+				minSubjActFieldNmSpList = examRstResult.get("minSubjActFieldNmSp").toString().split(","); 
+			}
+			if(examRstResult.get("minSubjActFieldCrtRtSp") != null && !examRstResult.get("minSubjActFieldCrtRtSp").equals("")) {
+				minSubjActFieldCrtRtSpList = examRstResult.get("minSubjActFieldCrtRtSp").toString().split(",");
+			}
+			if(examRstResult.get("minSubjContFieldNmSp") != null && !examRstResult.get("minSubjContFieldNmSp").equals("")) {
+				minSubjContFieldNmSpList = examRstResult.get("minSubjContFieldNmSp").toString().split(",");
+			}
+			if(examRstResult.get("minSubjContFieldCrtRtSp") != null && !examRstResult.get("minSubjContFieldCrtRtSp").equals("")) {
+				minSubjContFieldCrtRtSpList = examRstResult.get("minSubjContFieldCrtRtSp").toString().split(",");
+			}
 			
 			minSubj.put("minSubjActFieldNmSp", minSubjActFieldNmSpList);
 			minSubj.put("minSubjActFieldCrtRtSp", minSubjActFieldCrtRtSpList);
