@@ -1469,9 +1469,14 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId"}, paramMap);
-		//2.id 숫자형 체크
-		if(vu.isValid()) vu.isNumeric("studId", String.valueOf(paramMap.get("studId")));
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
 		
 		if(vu.isValid()) {
 			setResult(dataKey, commonMapper.update(paramMap, "updateFeedback"));
