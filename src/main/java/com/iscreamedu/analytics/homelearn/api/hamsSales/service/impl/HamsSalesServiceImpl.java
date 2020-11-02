@@ -387,9 +387,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			if(consultMsgData.size() > 3) {
 				if("D31.11311000".equals(consultMsgData.get(1)) || "D31.11400000".equals(consultMsgData.get(1))) {
 					if(bookCnt > 0) {
-						consultMsgData.remove(1);
-					}else {
 						consultMsgData.remove(2);
+					}else {
+						consultMsgData.remove(1);
 					}
 				}
 			}
@@ -404,6 +404,10 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			for(int i = 0; i < consultingMsgList.size(); i++) {
 				String msg = consultingMsgList.get(i).get("cdNm").toString();
 				String msgCd = consultingListData[i].toString();
+				
+				if("D31.11311000".equals(msgCd) || "D31.11400000".equals(msgCd)) {
+					msg =  msg.replace("{1}", String.valueOf(bookCnt));
+				}
 				
 				if(msg.contains("{1}")) {
 					msg =  msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
@@ -1120,8 +1124,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 								}else {
 									msg = msg.replace("{1}", negativeMsgCd.substring(negativeMsgCd.indexOf("|")+1));
 								}
+								
 							}
 						}
+					}
+					
+					if(msg.contains("{3}")){
+						msg = msg.replace("{3}", feedbackMap.get("studNm").toString());
 					}
 					
 					feedbackMsg.add(msg);
