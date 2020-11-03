@@ -75,6 +75,7 @@ public class CipherUtil {
 														InvalidKeyException, InvalidAlgorithmParameterException,
 														IllegalBlockSizeException, BadPaddingException {
 		if(str != null && !str.equals("")){
+			str = str.replace("%2F", "/").replace("%2B", "+").replace("%3D", "=");
 			byte[] keyData = secretKey.getBytes();
 			SecretKey secureKey = new SecretKeySpec(keyData, "AES");
 			Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -90,9 +91,10 @@ public class CipherUtil {
 		CipherUtil cp = CipherUtil.getInstance();
 		String encodedStr = cp.AES_Encode("1520026&1394270"); //TCHR_ID&STUD_ID
 		LOGGER.debug("***************** encodingTemp : " + encodedStr);
-		System.out.println("encodedStr : " + encodedStr);		
-		
-		String decodedStr = cp.AES_Decode(encodedStr);
+		//encodedStr = "+wPTk1dU0GlRUaZvmrhjcQ%3D%3D";
+		encodedStr = "%2FRQvHa9IKC6GIwoxQolz5Q%3D%3D";
+		String afterProcess = encodedStr.replace("%2F", "/").replace("%2B", "+").replace("%3D", "=");
+		String decodedStr = cp.AES_Decode(afterProcess);
 		LOGGER.debug("***************** decodingTemp : " + decodedStr);
 	}
 }
