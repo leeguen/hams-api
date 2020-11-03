@@ -40,9 +40,8 @@
 			DATE_FORMAT(END_DT, '%Y-%m-%d') AS EXP_END_DT
 		FROM STUD
 		WHERE 
-			STUD_ID = #{studId}
-		ORDER BY DT DESC
-		LIMIT 1
+			DT = (SELECT MAX(DT) FROM STUD WHERE STUD_ID = #{studId})
+			AND STUD_ID = #{studId}
 	</select>
 	
 	<select id="selectLoginLogList" parameterType="hashMap" resultType="resultMap">
