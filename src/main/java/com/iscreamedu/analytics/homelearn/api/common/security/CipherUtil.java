@@ -81,7 +81,6 @@ public class CipherUtil {
 			Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
 			c.init(Cipher.DECRYPT_MODE, secureKey, new IvParameterSpec(IV.getBytes("UTF-8")));
 			byte[] byteStr = Base64.decodeBase64(str.getBytes());
-			System.out.println("return ======== " + new String(c.doFinal(byteStr), "UTF-8"));
 			return new String(c.doFinal(byteStr), "UTF-8");
 		}
 		
