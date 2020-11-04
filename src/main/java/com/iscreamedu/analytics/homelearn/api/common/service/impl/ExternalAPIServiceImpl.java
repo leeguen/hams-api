@@ -91,32 +91,34 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	            headers.set("memId", studId);
 	            
 	            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
-	
-	            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(url, entity, LinkedHashMap.class);
-	            LinkedHashMap responseData = response.getBody();
 	            
-	            LOGGER.debug("code : " + responseData.get("code"));
-	        	LOGGER.debug("message : " + responseData.get("message"));
-	        	LOGGER.debug("data : " + responseData.get("result"));
-	        	
-	        	if("200".equals(responseData.get("code").toString())) {
-	        		setResult(dataKey, responseData.get("result"));
-	        	} else {
-	        		
-	        		/* 2020-11-04 hy - 임시적용 : 홈런북카페 운영배포가 안되어 호출불가시 대체 */
+	            try {
+	
+		            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(url, entity, LinkedHashMap.class);
+		            LinkedHashMap responseData = response.getBody();
+		            
+		            LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("result"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("result"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+		        	
+	            } catch(Exception e) {
+	            	/* 2020-11-04 hy - 임시적용 : 홈런북카페 운영배포가 안되어 호출불가시 대체 */
 	        		LinkedHashMap temp = new LinkedHashMap<String, Object>();
 	        		temp.put("content", new ArrayList());
 	        		temp.put("totalPages", 0);
 	        		temp.put("totalElements", 0);
 	        		temp.put("numberOfElements", 0);
 	        		setResult(dataKey, temp);
-	        		/*
-	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-	        		setResult(msgKey, msgMap);
-	        		*/
-	        	}
+	            }
 	        	
 		    //영어도서관
 	        } else if("studyHistoryGeneral".equals(apiName)) {
