@@ -109,7 +109,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		temp.put("totalPages", 0);
 	        		temp.put("totalElements", 0);
 	        		temp.put("numberOfElements", 0);
-	        		setResult(dataKey, temp.get("result"));
+	        		setResult(dataKey, temp);
 	        		/*
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
