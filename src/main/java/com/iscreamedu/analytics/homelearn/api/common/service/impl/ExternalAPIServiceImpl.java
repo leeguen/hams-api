@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.common.service.impl;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,10 +102,20 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	if("200".equals(responseData.get("code").toString())) {
 	        		setResult(dataKey, responseData.get("result"));
 	        	} else {
+	        		
+	        		/* 2020-11-04 hy - 임시적용 : 홈런북카페 운영배포가 안되어 호출불가시 대체 */
+	        		LinkedHashMap temp = new LinkedHashMap<String, Object>();
+	        		temp.put("content", new ArrayList());
+	        		temp.put("totalPages", 0);
+	        		temp.put("totalElements", 0);
+	        		temp.put("numberOfElements", 0);
+	        		setResult(dataKey, temp.get("result"));
+	        		/*
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
 	        		setResult(msgKey, msgMap);
+	        		*/
 	        	}
 	        	
 		    //영어도서관
