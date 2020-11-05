@@ -450,8 +450,8 @@
 			WHERE A.DT = #{dt}
 				AND A.STUD_ID = #{studId}
 		) A
-		WHERE
 		<if test='type != null and type != ""'>
+		WHERE
 			<choose>
 				<when test="listSize == 1">
 					A.EXAM_TYPE = #{type}
