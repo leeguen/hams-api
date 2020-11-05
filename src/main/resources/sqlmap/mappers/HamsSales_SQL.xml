@@ -375,7 +375,7 @@
 		    STU_ID,
 		    SUBJ_CD,
 		    SMT_DTTM,
-		    EXAM_TYPE,
+		    (SELECT CD_NM FROM COMM_CD WHERE GRP = 'EXAM' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.EXAM_TYPE) AS EXAM_TYPE,
 		    EXAM_NM,
 		    ROUND,
 		    CRT_RT,
@@ -393,7 +393,7 @@
 				A.STU_ID,
 				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'SUBJ' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.SUBJ_CD) AS SUBJ_CD,
 				A.SMT_DTTM,
-				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'EXAM' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.EXAM_TYPE) AS EXAM_TYPE,
+				A.EXAM_TYPE,
 				A.EXAM_NM,
 				'1차' AS ROUND,
 				A.CRT_RT,
@@ -414,7 +414,7 @@
 				A.STU_ID,
 				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'SUBJ' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.SUBJ_CD) AS SUBJ_CD,
 				A.SMT_DTTM,
-				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'EXAM' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.EXAM_TYPE) AS EXAM_TYPE,
+				A.EXAM_TYPE,
 				A.EXAM_NM,
 				'1차' AS ROUND,
 				A.CRT_RT,
@@ -435,7 +435,7 @@
 				A.STU_ID,
 				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'SUBJ' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.SUBJ_CD) AS SUBJ_CD,
 				A.SMT_DTTM,
-				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'EXAM' AND GRADE = '6' AND LANG_CD = 'ko' AND CD = A.EXAM_TYPE) AS EXAM_TYPE,
+				A.EXAM_TYPE,
 				A.EXAM_NM,
 				'1차' AS ROUND,
 				A.CRT_RT,
@@ -450,13 +450,14 @@
 			WHERE A.DT = #{dt}
 				AND A.STUD_ID = #{studId}
 		) A
+		WHERE
 		<if test='type != null and type != ""'>
 			<choose>
 				<when test="listSize == 1">
-					AND A.EXAM_TYPE = #{type}
+					A.EXAM_TYPE = #{type}
 				</when>
 				<otherwise>
-					AND A.EXAM_TYPE IN
+					A.EXAM_TYPE IN
 					<foreach collection="examType" item="type" index="index" open="(" separator="," close=")">
 			       		 #{type}
 			       </foreach>
