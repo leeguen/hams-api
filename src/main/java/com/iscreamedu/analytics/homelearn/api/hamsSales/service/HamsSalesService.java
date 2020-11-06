@@ -179,7 +179,7 @@ public interface HamsSalesService {
 	public Map updateFeedback (Map<String, Object> paramMap) throws Exception;
 	
 	/**
-	 * 전환예측 결과 (HAMS-S-SP-001
+	 * 전환예측 결과 (HAMS-S-SP-001)
 	 * @param paramMap
 	 * @return
 	 * @throws Exception
