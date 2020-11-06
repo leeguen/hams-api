@@ -20,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
+import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl.HamsSalesServiceImpl;
 
 /**
@@ -36,6 +37,7 @@ import com.iscreamedu.analytics.homelearn.api.hamsSales.service.impl.HamsSalesSe
  *  ----------  --------    --------------------------
  *  2020.10.13	 hy		           초기생성 
  *  2020.10.16   shoshu      영어도서관 반영
+ *  2020.11.06   shoshu      예외 처리 추가
  *  </pre>
  */
 @Service
@@ -57,13 +59,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	
 	@Value("${extapi.englib.url}")
 	String ENGLIB_API; //영어도서관 기본API 주소
-
-	/*********************** 
-	 * sample ID Info.
-	 * loginId: dobby1
-	 * studId : 1571427
-	 * stuNo  : 686541
-	 ***********************/
+	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
 
@@ -74,191 +70,265 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        
 	        //홈런도서관
 	        if("read/complete".equals(apiName)) {
-	        	
-	        	String url = HLBOOK_API + apiName;
-	        	
-	    		String studId = "";
-	    		String encodedStr = paramMap.get("p").toString();
+	    		//Validation
+	    		ValidationUtil vu = new ValidationUtil();
+	    		//1.필수값 체크
+	    		vu.checkRequired(new String[] {"p"}, paramMap);
+	    		vu.checkRequired(new String[] {"fromDate"}, paramMap);
+	    		vu.checkRequired(new String[] {"toDate"}, paramMap);
+	    		vu.checkRequired(new String[] {"page"}, paramMap);
+	    		vu.checkRequired(new String[] {"size"}, paramMap);
 	    		
-	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-	    		studId = paramList[1];
-	    		
-	    		paramMap.remove("p");
-	        	
-	        	//헤더에 memId 세팅
-	        	HttpHeaders headers = new HttpHeaders();
-	        	headers.setContentType(MediaType.APPLICATION_JSON);
-	            headers.set("memId", studId);
-	            
-	            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
-	            
-	            try {
-	
-		            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(url, entity, LinkedHashMap.class);
-		            LinkedHashMap responseData = response.getBody();
-		            
-		            LOGGER.debug("code : " + responseData.get("code"));
-		        	LOGGER.debug("message : " + responseData.get("message"));
-		        	LOGGER.debug("data : " + responseData.get("result"));
+	    		if(vu.isValid()) {
+		        	String url = HLBOOK_API + apiName;
 		        	
-		        	if("200".equals(responseData.get("code").toString())) {
-		        		setResult(dataKey, responseData.get("result"));
-		        	} else {
-		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-		        		setResult(msgKey, msgMap);
-		        	}
-		        	
-	            } catch(Exception e) {
-	            	/* 2020-11-04 hy - 임시적용 : 홈런북카페 운영배포가 안되어 호출불가시 대체 */
-	        		LinkedHashMap temp = new LinkedHashMap<String, Object>();
-	        		temp.put("content", new ArrayList());
-	        		temp.put("totalPages", 0);
-	        		temp.put("totalElements", 0);
-	        		temp.put("numberOfElements", 0);
-	        		setResult(dataKey, temp);
-	            }
-	        	
-		    //영어도서관
-	        } else if("studyHistoryGeneral".equals(apiName)) {
-	        	String url = ENGLIB_API + apiName;
-	        	
-	    		String studId = "";
-	    		String encodedStr = paramMap.get("p").toString();
-	    		
-	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-	    		studId = paramList[1];
-	    		
-	    		paramMap.remove("p");
-	        	
-	        	//파라미터 세팅
-	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-	        	for( String key : paramMap.keySet() ){ 
-	        		builder.queryParam(key, paramMap.get(key)); 
-	        	}
-	        	
-	        	builder.queryParam("member_idx", studId);
-	        		        	
-	        	URI apiUri = builder.build().encode().toUri();
-	        	
-	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-	        	
-	        	LOGGER.debug("result : " + responseData.get("result"));
-	        	LOGGER.debug("message : " + responseData.get("message"));
-	        	LOGGER.debug("data : " + responseData.get("data"));
-	        	
-	        	if("true".equals(responseData.get("result").toString())) {
-	        		LinkedHashMap dataMap = new LinkedHashMap<String, Object>();
-	        		dataMap.put("total", responseData.get("total"));
-	        		dataMap.put("list", responseData.get("data"));
-	        		
-	        		setResult(dataKey, dataMap);
-	        	} else {
-	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-	        		setResult(msgKey, msgMap);
-	        	}
-	        	
-	    	//HL POST
-	        } else if("english-study/change-english-skip".equals(apiName) 
-	        		|| apiName.indexOf("student-study-course-plan/reset-village") == 0) {
-	        	
-	        	String url = HL_API + apiName + ".json";
-	        	
-	    		String studId = "";
-	    		String encodedStr = paramMap.get("p").toString();
-	    		
-	    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-	    		studId = paramList[1];
-	    		paramMap.put("stuId", studId);
-	    		
-	    		paramMap.remove("p");
-	    		
-	    		if("student-study-course-plan/reset-village".equals(apiName)) {
-	    			url = HL_API + "student-study-course-plan/" + studId + "/reset-village.json";
-	    		}
-	        	
-	        	LinkedHashMap responseData = restTemplate.postForObject(url, paramMap, LinkedHashMap.class);
-	        	
-	        	LOGGER.debug("code : " + responseData.get("code"));
-	        	LOGGER.debug("message : " + responseData.get("message"));
-	        	LOGGER.debug("data : " + responseData.get("data"));
-	        	
-	        	if("200".equals(responseData.get("code").toString())) {
-	        		if("english-study/change-english-skip".equals(apiName)) {
-	        			setResult(dataKey, "SUCCESS");
-	        		} else {
-	        			setResult(dataKey, responseData.get("data"));
-	        		}
-	        	}else {
-	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-	        		setResult(msgKey, msgMap);
-	        	}
-	        	
-	    	//HL GET
-	        } else if(apiName.equals("step-code-list") || apiName.equals("set-code-list")){
-	        	String url = HL_API + apiName + ".json";
-	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-	        	
-	        	URI apiUri = builder.build().encode().toUri();  
-	        	
-	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-	        	
-	        	LOGGER.debug("code : " + responseData.get("code"));
-	        	LOGGER.debug("message : " + responseData.get("message"));
-	        	LOGGER.debug("data : " + responseData.get("data"));
-	        	
-	        	if("200".equals(responseData.get("code").toString())) {
-	        		setResult(dataKey, responseData.get("data"));
-	        	} else {
-	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-	        		setResult(msgKey, msgMap);
-	        	}
-	        } else {
-	        	String url = HL_API + apiName + ".json";
-	        	
-	        	if(!apiName.equals("step-list/study-goal-text")) {
 		    		String studId = "";
 		    		String encodedStr = paramMap.get("p").toString();
 		    		
 		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
 		    		studId = paramList[1];
 		    		
-		    		if(apiName.equals("multi-intel-inspection") || apiName.equals("parent-nurture-attitude-inspection")) {
-		    			paramMap.put("userId", studId);
-		    		} else {
-		    			paramMap.put("stuId", studId);
-		    		}
+		    		paramMap.remove("p");
+		        	
+		        	//헤더에 memId 세팅
+		        	HttpHeaders headers = new HttpHeaders();
+		        	headers.setContentType(MediaType.APPLICATION_JSON);
+		            headers.set("memId", studId);
+		            
+		            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
+		            
+		            try {
+		
+			            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(url, entity, LinkedHashMap.class);
+			            LinkedHashMap responseData = response.getBody();
+			            
+			            LOGGER.debug("code : " + responseData.get("code"));
+			        	LOGGER.debug("message : " + responseData.get("message"));
+			        	LOGGER.debug("data : " + responseData.get("result"));
+			        	
+			        	if("200".equals(responseData.get("code").toString())) {
+			        		setResult(dataKey, responseData.get("result"));
+			        	} else {
+			        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+			        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+			        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+			        		setResult(msgKey, msgMap);
+			        	}
+			        	
+		            } catch(Exception e) {
+		            	LOGGER.error("code : " + ValidationCode.EX_API_ERROR.getCode());
+			        	LOGGER.error("message : " + "HomeLearn Book Cafe API Error");
+		            	
+		        		LinkedHashMap temp = new LinkedHashMap<String, Object>();
+		        		temp.put("content", new ArrayList());
+		        		temp.put("totalPages", 0);
+		        		temp.put("totalElements", 0);
+		        		temp.put("numberOfElements", 0);
+		        		
+		        		setResult(dataKey, temp);
+		            }
+	    		}else {
+	    			setResult(msgKey, vu.getResult());
+	    		}
+	        	
+		    //영어도서관
+	        } else if("studyHistoryGeneral".equals(apiName)) {
+	    		//Validation
+	    		ValidationUtil vu = new ValidationUtil();
+	    		//1.필수값 체크
+	    		vu.checkRequired(new String[] {"p"}, paramMap);
+	    		vu.checkRequired(new String[] {"sd"}, paramMap);
+	    		vu.checkRequired(new String[] {"ed"}, paramMap);
+	    		vu.checkRequired(new String[] {"page"}, paramMap);
+	    		vu.checkRequired(new String[] {"rpp"}, paramMap);
+	    		
+	    		if(vu.isValid()) {
+		        	String url = ENGLIB_API + apiName;
+		        	
+		    		String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
 		    		
 		    		paramMap.remove("p");
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	for( String key : paramMap.keySet() ){ 
+		        		builder.queryParam(key, paramMap.get(key)); 
+		        	}
+		        	
+		        	builder.queryParam("member_idx", studId);
+		        		        	
+		        	URI apiUri = builder.build().encode().toUri();
+		        	
+		        	try {
+			        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+			        	
+			        	LOGGER.debug("result : " + responseData.get("result"));
+			        	LOGGER.debug("message : " + responseData.get("message"));
+			        	LOGGER.debug("data : " + responseData.get("data"));
+			        	
+			        	if("true".equals(responseData.get("result").toString())) {
+			        		LinkedHashMap dataMap = new LinkedHashMap<String, Object>();
+			        		dataMap.put("total", responseData.get("total"));
+			        		dataMap.put("list", responseData.get("data"));
+			        		
+			        		setResult(dataKey, dataMap);
+			        	} else {
+			        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+			        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+			        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+			        		setResult(msgKey, msgMap);
+			        	}
+		        	} catch (Exception e) {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "Homelearn English Library API Error");
+		        		setResult(msgKey, msgMap);
+		        	}
+	    		}else {
+	    			setResult(msgKey, vu.getResult());
+	    		}
+	        	
+	    	//HL POST
+	        } else if("english-study/change-english-skip".equals(apiName) 
+	        		|| apiName.indexOf("student-study-course-plan/reset-village") == 0) {
+	    		//Validation
+	    		ValidationUtil vu = new ValidationUtil();
+	    		
+	        	if("english-study/change-english-skip".equals(apiName)) {
+		    		//1.필수값 체크
+		    		vu.checkRequired(new String[] {"p"}, paramMap);
+		    		vu.checkRequired(new String[] {"skipYn"}, paramMap);
 	        	}
-		    		
-	        	//파라미터 세팅
-	        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-	        	for( String key : paramMap.keySet() ){ 
-	        		builder.queryParam(key, paramMap.get(key));
+	        	
+	        	if(apiName.indexOf("student-study-course-plan/reset-village") == 0) {
+		    		//1.필수값 체크
+		    		vu.checkRequired(new String[] {"p"}, paramMap);
+		    		vu.checkRequired(new String[] {"villageCd"}, paramMap);
 	        	}
 	        	
-	        	URI apiUri = builder.build().encode().toUri();  
+	        	if(vu.isValid()) {
+	        		try {
+			        	String url = HL_API + apiName + ".json";
+			        	
+			    		String studId = "";
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		paramMap.put("stuId", studId);
+			    		
+			    		paramMap.remove("p");
+			    		
+			    		if("student-study-course-plan/reset-village".equals(apiName)) {
+			    			url = HL_API + "student-study-course-plan/" + studId + "/reset-village.json";
+			    		}
+			        	
+			        	LinkedHashMap responseData = restTemplate.postForObject(url, paramMap, LinkedHashMap.class);
+			        	
+			        	LOGGER.debug("code : " + responseData.get("code"));
+			        	LOGGER.debug("message : " + responseData.get("message"));
+			        	LOGGER.debug("data : " + responseData.get("data"));
+			        	
+			        	if("200".equals(responseData.get("code").toString())) {
+			        		if("english-study/change-english-skip".equals(apiName)) {
+			        			setResult(dataKey, "SUCCESS");
+			        		} else {
+			        			setResult(dataKey, responseData.get("data"));
+			        		}
+			        	}else {
+			        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+			        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+			        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+			        		setResult(msgKey, msgMap);
+			        	}
+	        		} catch(Exception e) {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "External API Error");
+		        		setResult(msgKey, msgMap);
+	        		}
+	    		}else {
+	    			setResult(msgKey, vu.getResult());
+	    		}
 	        	
-	        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-	        	
-	        	LOGGER.debug("code : " + responseData.get("code"));
-	        	LOGGER.debug("message : " + responseData.get("message"));
-	        	LOGGER.debug("data : " + responseData.get("data"));
-	        	
-	        	if("200".equals(responseData.get("code").toString())) {
-	        		setResult(dataKey, responseData.get("data"));
-	        	} else {
+	    	//HL GET
+	        } else if(apiName.equals("step-code-list") || apiName.equals("set-code-list")){
+	        	try {
+		        	String url = HL_API + apiName + ".json";
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else {
+	        	try {
+		        	String url = HL_API + apiName + ".json";
+		        	
+		        	if(!apiName.equals("step-list/study-goal-text")) {
+			    		String studId = "";
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		
+			    		if(apiName.equals("multi-intel-inspection") || apiName.equals("parent-nurture-attitude-inspection")) {
+			    			paramMap.put("userId", studId);
+			    		} else {
+			    			paramMap.put("stuId", studId);
+			    		}
+			    		
+			    		paramMap.remove("p");
+		        	}
+			    		
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	for( String key : paramMap.keySet() ){ 
+		        		builder.queryParam(key, paramMap.get(key));
+		        	}
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
 	        		setResult(msgKey, msgMap);
 	        	}
 	        }
