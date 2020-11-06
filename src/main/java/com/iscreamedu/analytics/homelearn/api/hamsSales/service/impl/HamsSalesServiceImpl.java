@@ -205,84 +205,84 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> settleInfoPrediction = new LinkedHashMap<>();
 		Map<String, Object> settleInfoPredictionData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPrediction");
 		if(settleInfoPredictionData != null) {
-			
-			paramMap.put("expDay", settleInfoPredictionData.get("expDay"));
-			paramMap.put("paymentProbabilityType", settleInfoPredictionData.get("paymentProbabilityType"));
-			
-			settleInfoPrediction.put("signal", settleInfoPredictionData.get("paymentProbabilityCd"));
-			
-			List<String> focusPointList = new ArrayList<>();
-			
-			Map<String, Object> settleInfoPredictionOriginData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionOrigin");
-			if(settleInfoPredictionOriginData != null) {
+			if(settleInfoPredictionData.get("paymentProbabilityCd") != null) {
+				paramMap.put("expDay", settleInfoPredictionData.get("expDay"));
+				paramMap.put("paymentProbabilityType", settleInfoPredictionData.get("paymentProbabilityType"));
 				
-				int listCnt = 0;
+				settleInfoPrediction.put("signal", settleInfoPredictionData.get("paymentProbabilityCd"));
 				
-				for(String key : settleInfoPredictionOriginData.keySet()) {
+				List<String> focusPointList = new ArrayList<>();
+				
+				Map<String, Object> settleInfoPredictionOriginData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionOrigin");
+				if(settleInfoPredictionOriginData != null) {
 					
-					if(key.contains("Sec")) {
-						int settleInfo = Integer.valueOf(settleInfoPredictionData.get(key).toString());
-						int settleInfoOrigin = Integer.valueOf(settleInfoPredictionOriginData.get(key).toString());
+					int listCnt = 0;
+					
+					for(String key : settleInfoPredictionOriginData.keySet()) {
 						
-						if(settleInfo < settleInfoOrigin) {
-							if("planLrnExSec".equals(key)) {
-								focusPointList.add("계획된 학습 학습시간");
-								listCnt++;
-							}else {
-								focusPointList.add("스스로학습 학습시간");
-								listCnt++;
+						if(key.contains("Sec")) {
+							int settleInfo = Integer.valueOf(settleInfoPredictionData.get(key).toString());
+							int settleInfoOrigin = Integer.valueOf(settleInfoPredictionOriginData.get(key).toString());
+							
+							if(settleInfo < settleInfoOrigin) {
+								if("planLrnExSec".equals(key)) {
+									focusPointList.add("계획된 학습 학습시간");
+									listCnt++;
+								}else {
+									focusPointList.add("스스로학습 학습시간");
+									listCnt++;
+								}
+							}
+						}else {
+							Float settleInfo = Float.valueOf(settleInfoPredictionData.get(key).toString());
+							Float settleInfoOrigin = Float.valueOf(settleInfoPredictionOriginData.get(key).toString());
+							
+							if(settleInfo < settleInfoOrigin) {
+								switch (key) {
+								case "exRt":
+									focusPointList.add("수행률");
+									listCnt++;
+									break;
+								case "planLrnExCnt":
+									focusPointList.add("계획된 학습 수행 수");
+									listCnt++;
+									break;
+								case "planLrnCnt":
+									focusPointList.add("계획 수");
+									listCnt++;
+									break;
+								case "attRt":
+									focusPointList.add("출석률");
+									listCnt++;
+									break;
+								case "talkCnt":
+									focusPointList.add("홈런톡 횟수");
+									listCnt++;
+									break;
+								case "crtQuesCnt":
+									focusPointList.add("정답을 맞힌 문제 수");
+									listCnt++;
+									break;
+								default:
+									focusPointList.add("푼 문제 수");
+									listCnt++;
+									break;
+								}
 							}
 						}
-					}else {
-						Float settleInfo = Float.valueOf(settleInfoPredictionData.get(key).toString());
-						Float settleInfoOrigin = Float.valueOf(settleInfoPredictionOriginData.get(key).toString());
 						
-						if(settleInfo < settleInfoOrigin) {
-							switch (key) {
-							case "exRt":
-								focusPointList.add("수행률");
-								listCnt++;
-								break;
-							case "planLrnExCnt":
-								focusPointList.add("계획된 학습 수행 수");
-								listCnt++;
-								break;
-							case "planLrnCnt":
-								focusPointList.add("계획 수");
-								listCnt++;
-								break;
-							case "attRt":
-								focusPointList.add("출석률");
-								listCnt++;
-								break;
-							case "talkCnt":
-								focusPointList.add("홈런톡 횟수");
-								listCnt++;
-								break;
-							case "crtQuesCnt":
-								focusPointList.add("정답을 맞힌 문제 수");
-								listCnt++;
-								break;
-							default:
-								focusPointList.add("푼 문제 수");
-								listCnt++;
-								break;
-							}
+						if(listCnt == 3) {
+							break;
 						}
 					}
 					
-					if(listCnt == 3) {
-						break;
+					if(listCnt == 0) {
+						focusPointList.add("개선할 점이 없어요.");
 					}
 				}
-				
-				if(listCnt == 0) {
-					focusPointList.add("개선할 점이 없어요.");
-				}
+				settleInfoPrediction.put("focusPointList", focusPointList);
+				data.put("settleInfoPrediction", settleInfoPrediction);
 			}
-			
-			settleInfoPrediction.put("focusPointList", focusPointList);
-			data.put("settleInfoPrediction", settleInfoPrediction);
 		}
 		
 		if(vu.isValid()) {
@@ -1584,7 +1584,9 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String,Object> settleInfoPredictionRst = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionRst");
 		
 		if(settleInfoPredictionRst != null) {
-			data.put("settleInfoPredictionRst", settleInfoPredictionRst);
+			if(settleInfoPredictionRst.get("settleInfoPredictionRst") != null) {
+				data.put("settleInfoPredictionRst", settleInfoPredictionRst);
+			}
 		}
 		
 		if(vu.isValid()) {
