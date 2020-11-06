@@ -177,4 +177,28 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map updateFeedback (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 전환예측 결과 (HAMS-S-SP-001
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSettleInfoPredictionRst (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 전환예측 통계 (HAMS-S-SP-002)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSettleInfoPredictionStt (Map<String, Object> paramMap) throws Exception;
+	
+	/**
+	 * 전환예측 학생 목록	(HAMS-S-SP-003)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getSettleInfoPredictionStudList (Map<String, Object> paramMap) throws Exception;
 }

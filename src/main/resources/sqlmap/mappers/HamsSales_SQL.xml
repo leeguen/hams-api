@@ -57,6 +57,50 @@
 		LIMIT 10
 	</select>
 	
+    <select id="selectSettleInfoPrediction" parameterType="hashMap" resultType="resultMap">
+    /* HamsSales.selectSettleInfoPrediction : 전환예측 통계*/
+       SELECT 
+            STUD_ID,
+            CASE
+                WHEN EXP_DAY_CNT <![CDATA[>]]> 7 THEN 7
+                ELSE EXP_DAY_CNT
+            END AS EXP_DAY,
+            CASE
+                WHEN PAYMENT_PROBABILITY  <![CDATA[>=]]> 60 THEN 70
+                WHEN PAYMENT_PROBABILITY  <![CDATA[>=]]> 40 AND PAYMENT_PROBABILITY  <![CDATA[<]]> 60 THEN 50
+                ELSE 40
+            END AS PAYMENT_PROBABILITY_TYPE,
+            (SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = PAYMENT_PROBABILITY_CD) AS PAYMENT_PROBABILITY_CD,
+            EX_RT,
+			PLAN_LRN_EX_SEC,
+		    A_LRN_EX_SEC,
+		    PLAN_LRN_EX_CNT,
+		    PLAN_LRN_CNT,
+		    ATT_RT,
+		    TALK_CNT,
+		    CRT_QUES_CNT,
+		    ANS_QUES_CNT
+        FROM SETTLEMENT_PREDICTION
+        WHERE STUD_ID = #{studId}
+    </select>
+    
+    <select id="selectSettleInfoPredictionOrigin" parameterType="hashMap" resultType="resultMap">
+    /* HamsSales.selectSettleInfoPredictionOrigin : 전환예측 통계 기준*/
+       SELECT 
+       	EX_RT,
+		PLAN_LRN_EX_SEC,
+	    A_LRN_EX_SEC,
+	    PLAN_LRN_EX_CNT,
+	    PLAN_LRN_CNT,
+	    ATT_RT,
+	    TALK_CNT,
+	    CRT_QUES_CNT,
+	    ANS_QUES_CNT
+	FROM SETTLEMENT_PREDICTION_ORIGIN
+	WHERE EXP_DAY_CNT = #{expDay}
+		AND PAYMENT_PROBABILITY = #{paymentProbabilityType}
+    </select>
+	
 	<select id="selectLrnPtn" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectLrnPtn : 3일 리포트 학습 패턴*/
 		SELECT 
@@ -731,7 +775,7 @@
 	/* HamsSales.selectConcnHabitTmln : 체험 리포트  집중하는 습관 타임라인 */
 		SELECT 
 			SUBJ_CD,
-		    CONCAT(IFNULL(LRN_START_DTTM, ''), '~', IFNULL(SUBSTR(LRN_END_DTTM, -8), '')) AS TMLN,
+		    CONCAT(IFNULL(DATE_FORMAT(LRN_START_DTTM, '%y.%m.%d %H:%i:%s'), ''), '~', IFNULL(SUBSTR(LRN_END_DTTM, -8), '')) AS TMLN,
 			CTGR
 		FROM EXP_REPORT_CONCN_HABIT_LRN_TMLN AS TMLN
 		WHERE 
@@ -833,4 +877,36 @@
 		WHERE STUD_ID = #{studId}
 	</update>
 	
+    <select id="selectSettleInfoPredictionRst" parameterType="hashMap" resultType="resultMap">
+    /* HamsSales.selectSettleInfoPredictionRst : 전환예측 결과*/
+        SELECT 
+            A.STUD_ID,
+            (SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = A.PAYMENT_PROBABILITY_CD) AS SETTLE_INFO_PREDICTION_RST
+        FROM hams_dashboard.SETTLEMENT_PREDICTION A
+        WHERE STUD_ID = #{studId};
+    </select>
+    
+    <select id="selectSettleInfoPredictionStt" parameterType="hashMap" resultType="resultMap">
+    /* HamsSales.selectSettleInfoPredictionStt : 전환예측 통계*/
+        SELECT 
+            CASE
+                WHEN PAYMENT_PROBABILITY_CD = 1 THEN 'good'
+                WHEN PAYMENT_PROBABILITY_CD = 2 THEN 'maintaining'
+                ELSE 'encouragement'
+            END AS CD_NM,
+            COUNT(STUD_ID) AS STUD_CNT
+        FROM SETTLEMENT_PREDICTION
+        WHERE PAYMENT_PROBABILITY_CD > 0
+        GROUP BY PAYMENT_PROBABILITY_CD
+        ORDER BY PAYMENT_PROBABILITY_CD
+    </select>
+    
+    <select id="selectSettleInfoPredictionStudList" parameterType="hashMap" resultType="resultMap">
+    /* HamsSales.selectSettleInfoPredictionStudList : 전환예측 학생 목록*/
+        SELECT 
+            A.STUD_ID,
+            (SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = A.PAYMENT_PROBABILITY_CD) AS SETTLE_INFO_PREDICTION
+        FROM hams_dashboard.SETTLEMENT_PREDICTION A;
+    </select>
+    
 </mapper>

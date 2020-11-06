@@ -375,4 +375,49 @@ public class HamsSalesController {
 		
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+	 * 전환예측 결과 (HAMS-S-SP-001)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getSettleInfoPredictionRst")
+	public ResponseEntity getSettleInfoPredictionRst(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getSettleInfoPredictionRst(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 전환예측 통계 (HAMS-S-SP-002)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getSettleInfoPredictionStt")
+	public ResponseEntity getSettleInfoPredictionStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getSettleInfoPredictionStt(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * 전환예측 학생 목록	(HAMS-S-SP-003)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping("/getSettleInfoPredictionStudList")
+	public ResponseEntity getSettleInfoPredictionStudList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)hamsSalesService.getSettleInfoPredictionStudList(params);
+		
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }

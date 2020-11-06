@@ -192,9 +192,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"dt", "p"}, paramMap);
-		//2.dt 날짜형 체크
-		if(vu.isValid()) vu.isDate("dt", (String)paramMap.get("dt"));
+		vu.checkRequired(new String[] {"p"}, paramMap);
 
 		String studId = "";
 		String encodedStr = paramMap.get("p").toString();
@@ -204,16 +202,88 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		paramMap.put("studId", studId);
 		
 		Map<String, Object> data = new HashMap<>();
-		Map<String, Object> settleInfoPrediction = new HashMap<>();
-		settleInfoPrediction.put("signal", 1);
-		
-		List<String> focusPointList = new ArrayList<>();
-		focusPointList.add("수행률");
-		focusPointList.add("계획된 학습 학습시간");
-		focusPointList.add("정답을 맞힌 문제 수");
-		
-		settleInfoPrediction.put("focusPointList", focusPointList);
-		data.put("settleInfoPrediction", settleInfoPrediction);
+		Map<String, Object> settleInfoPrediction = new LinkedHashMap<>();
+		Map<String, Object> settleInfoPredictionData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPrediction");
+		if(settleInfoPredictionData != null) {
+			
+			paramMap.put("expDay", settleInfoPredictionData.get("expDay"));
+			paramMap.put("paymentProbabilityType", settleInfoPredictionData.get("paymentProbabilityType"));
+			
+			settleInfoPrediction.put("signal", settleInfoPredictionData.get("paymentProbabilityCd"));
+			
+			List<String> focusPointList = new ArrayList<>();
+			
+			Map<String, Object> settleInfoPredictionOriginData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionOrigin");
+			if(settleInfoPredictionOriginData != null) {
+				
+				int listCnt = 0;
+				
+				for(String key : settleInfoPredictionOriginData.keySet()) {
+					
+					if(key.contains("Sec")) {
+						int settleInfo = Integer.valueOf(settleInfoPredictionData.get(key).toString());
+						int settleInfoOrigin = Integer.valueOf(settleInfoPredictionOriginData.get(key).toString());
+						
+						if(settleInfo < settleInfoOrigin) {
+							if("planLrnExSec".equals(key)) {
+								focusPointList.add("계획된 학습 학습시간");
+								listCnt++;
+							}else {
+								focusPointList.add("스스로학습 학습시간");
+								listCnt++;
+							}
+						}
+					}else {
+						Float settleInfo = Float.valueOf(settleInfoPredictionData.get(key).toString());
+						Float settleInfoOrigin = Float.valueOf(settleInfoPredictionOriginData.get(key).toString());
+						
+						if(settleInfo < settleInfoOrigin) {
+							switch (key) {
+							case "exRt":
+								focusPointList.add("수행률");
+								listCnt++;
+								break;
+							case "planLrnExCnt":
+								focusPointList.add("계획된 학습 수행 수");
+								listCnt++;
+								break;
+							case "planLrnCnt":
+								focusPointList.add("계획 수");
+								listCnt++;
+								break;
+							case "attRt":
+								focusPointList.add("출석률");
+								listCnt++;
+								break;
+							case "talkCnt":
+								focusPointList.add("홈런톡 횟수");
+								listCnt++;
+								break;
+							case "crtQuesCnt":
+								focusPointList.add("정답을 맞힌 문제 수");
+								listCnt++;
+								break;
+							default:
+								focusPointList.add("푼 문제 수");
+								listCnt++;
+								break;
+							}
+						}
+					}
+					
+					if(listCnt == 3) {
+						break;
+					}
+				}
+				
+				if(listCnt == 0) {
+					focusPointList.add("개선할 점이 없어요.");
+				}
+			}
+			
+			settleInfoPrediction.put("focusPointList", focusPointList);
+			data.put("settleInfoPrediction", settleInfoPrediction);
+		}
 		
 		if(vu.isValid()) {
 			setResult(dataKey, data);
@@ -1492,6 +1562,71 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		}else {
 			setResult(msgKey, vu.getResult());
 		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getSettleInfoPredictionRst(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		String studId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		studId = paramList[1];
+		paramMap.put("studId", studId);
+		
+		Map<String, Object> data = new HashMap<>();
+		Map<String,Object> settleInfoPredictionRst = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionRst");
+		
+		if(settleInfoPredictionRst != null) {
+			data.put("settleInfoPredictionRst", settleInfoPredictionRst);
+		}
+		
+		if(vu.isValid()) {
+			setResult(dataKey, data);
+		}else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public Map getSettleInfoPredictionStt(Map<String, Object> paramMap) throws Exception {
+		
+		Map<String, Object> data = new HashMap<>();
+		List<Map> settleInfoPredictionSttList = commonMapper.getList(paramMap, "HamsSales.selectSettleInfoPredictionStt");
+		
+		if(settleInfoPredictionSttList != null) {
+			Map<String, Object> settleInfoPredictionSttData = new LinkedHashMap<>();
+			
+			for(int i = 0; i < settleInfoPredictionSttList.size(); i++) {
+				settleInfoPredictionSttData.put(settleInfoPredictionSttList.get(i).get("cdNm").toString(), settleInfoPredictionSttList.get(i).get("studCnt"));
+			}
+			
+			data.put("settleInfoPredictionStt", settleInfoPredictionSttData);
+		}
+		
+		setResult(dataKey, data);
+		
+		return result;
+	}
+	
+	@Override
+	public Map getSettleInfoPredictionStudList(Map<String, Object> paramMap) throws Exception {
+		Map<String, Object> data = new HashMap<>();
+		List<Map> settleInfoPredictionStudList = commonMapper.getList(paramMap, "HamsSales.selectSettleInfoPredictionStudList");
+		
+		if(settleInfoPredictionStudList.size() > 0) {
+			data.put("list", settleInfoPredictionStudList);
+		}
+		
+		setResult(dataKey, data);
 		
 		return result;
 	}
