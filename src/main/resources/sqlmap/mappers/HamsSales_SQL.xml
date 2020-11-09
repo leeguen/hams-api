@@ -829,7 +829,11 @@
 		FROM (
 			SELECT 
 				STUD_ID,
-				ORD,
+				CASE
+					WHEN ORD = 2 THEN ORD + 1
+					WHEN ORD = 3 THEN ORD - 1
+		            ELSE ORD
+		        END AS ORD,
 				TYPE,
 				SUBJ,
 				SUBJ_DETAIL,
@@ -863,6 +867,7 @@
 				AND CD_TYPE = 'G'
 		) AS SUB_CD
 		ON CONT.SUBJ_DETAIL = SUB_CD.CD
+		ORDER BY ORD
 	</select>
 	
 	<update id="updateFeedback" parameterType="hashMap">
