@@ -46,15 +46,110 @@
 	
 	<select id="selectLoginLogList" parameterType="hashMap" resultType="resultMap">
 	/* HamsSales.selectLoginLogList : 일별 출석 로그 전체*/
-		SELECT
-			DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
-			DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
-		FROM DAY_ATT_LOG
-		WHERE
-			DT BETWEEN #{startDt} AND #{endDt}
-		    AND STUD_ID = #{studId}
-		ORDER BY ORD DESC
-		LIMIT 10
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt}
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A
+		UNION ALL 
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt} + INTERVAL 1 DAY
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A1
+		UNION ALL
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt} + INTERVAL 2 DAY
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A2
+		UNION ALL 
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt} + INTERVAL 3 DAY
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A3
+		UNION ALL 
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt} + INTERVAL 4 DAY
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A4
+		UNION ALL
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{startDt} + INTERVAL 5 DAY
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A5
+		UNION ALL 
+		SELECT 
+			DT,
+		    LOGIN_DTTM
+		FROM (
+			SELECT
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_DTTM
+			FROM DAY_ATT_LOG
+			WHERE
+				DT = #{endDt}
+				AND STUD_ID = #{studId}
+			ORDER BY ORD DESC
+			LIMIT 10
+		) A6
 	</select>
 	
     <select id="selectSettleInfoPrediction" parameterType="hashMap" resultType="resultMap">
