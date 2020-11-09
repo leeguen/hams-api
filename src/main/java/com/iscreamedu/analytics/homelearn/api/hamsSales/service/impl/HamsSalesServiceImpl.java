@@ -336,9 +336,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			String fromDate = format.format(calendar.getTime());
 			
 			paramData.put("p", paramMap.get("p").toString());
-			paramData.put("fromData", fromDate);
+			paramData.put("fromDate", fromDate);
 			paramData.put("toDate", paramMap.get("dt"));
 			paramData.put("apiName", "read.complete");
+			paramData.put("page", "1");
+			paramData.put("size", "3");
 			
 			apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
 			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString());
