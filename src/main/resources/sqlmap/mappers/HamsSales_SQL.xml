@@ -292,16 +292,29 @@
 			SELECT 
 				NULL AS SERVICE_ID,
 				NULL AS SUBJ_CD,
-				NULL AS EX_TM,
-				CTGR AS LRN_NM,
-				NULL AS LRN_SEC,
-				NULL AS STD_LRN_TM_CD,
-				2 AS EX_TYPE,
-				PLAN_DT
-			FROM DAY_PLAN_U_EX_STT
-			WHERE DT = #{dt}
-				AND STUD_ID = #{studId}
-				AND LRN_EX_YN = 'N'
+				CASE
+					WHEN A.LRN_EX_YN = 'N' THEN NULL
+					ELSE DATE_FORMAT(UPD_DTTM, '%Y-%m-%d')
+				END AS EX_TM,
+				A.CTGR AS LRN_NM,
+				CASE
+					WHEN B.LRN_SEC IS NULL THEN NULL
+			        ELSE B.LRN_SEC
+			    END AS LRN_SEC,
+				CASE
+					WHEN B.STD_LRN_TM_CD IS NULL THEN NULL
+			        ELSE B.STD_LRN_TM_CD
+			    END AS STD_LRN_TM_CD,
+				CASE
+					WHEN A.LRN_EX_YN = 'N' THEN 2
+					ELSE 1
+				END AS EX_TYPE,
+				DATE_FORMAT(A.PLAN_DT, '%Y.%m.%d' ) AS PLAN_DT
+			FROM DAY_PLAN_U_EX_STT A 
+			LEFT OUTER JOIN DAY_LRN_TMLN B ON DATE_FORMAT(A.UPD_DTTM, '%Y-%m-%d') = B.DT AND A.PLAN_DT = B.PLAN_DT AND A.STUD_ID = B.STUD_ID AND A.SERVICE_ID = B.SERVICE_ID AND B.EX_TYPE_CD = 1
+			WHERE A.DT = #{dt}
+				AND A.STUD_ID = #{studId}
+
 		)A
 		<if test="ordNm != null and ordNm != ''">
 			<choose>
@@ -309,7 +322,7 @@
 					ORDER BY PLAN_DT DESC, EX_TYPE
 				</when>
 				<otherwise>
-					ORDER BY IFNULL(EX_TM,'23:59 ~ 24:00')
+					ORDER BY IF(INSTR(EX_TM, '-') > 0,'23:59 ~ 24:00',IFNULL(EX_TM,'23:59 ~ 24:00'))
 				</otherwise>
 			</choose>
 		</if>
@@ -982,31 +995,39 @@
         SELECT 
             A.STUD_ID,
             (SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = A.PAYMENT_PROBABILITY_CD) AS SETTLE_INFO_PREDICTION_RST
-        FROM hams_dashboard.SETTLEMENT_PREDICTION A
+        FROM SETTLEMENT_PREDICTION A
         WHERE STUD_ID = #{studId};
     </select>
     
     <select id="selectSettleInfoPredictionStt" parameterType="hashMap" resultType="resultMap">
     /* HamsSales.selectSettleInfoPredictionStt : 전환예측 통계*/
         SELECT 
-            CASE
-                WHEN PAYMENT_PROBABILITY_CD = 1 THEN 'good'
-                WHEN PAYMENT_PROBABILITY_CD = 2 THEN 'maintaining'
-                ELSE 'encouragement'
-            END AS CD_NM,
-            COUNT(STUD_ID) AS STUD_CNT
-        FROM SETTLEMENT_PREDICTION
-        WHERE PAYMENT_PROBABILITY_CD > 0
-        GROUP BY PAYMENT_PROBABILITY_CD
-        ORDER BY PAYMENT_PROBABILITY_CD
+			CASE
+				WHEN PAYMENT_PROBABILITY_CD = 1 THEN 'good'
+				WHEN PAYMENT_PROBABILITY_CD = 2 THEN 'maintaining'
+				ELSE 'encouragement'
+			END AS CD_NM,
+			COUNT(A.STUD_ID) AS STUD_CNT
+		FROM SETTLEMENT_PREDICTION A
+		JOIN STUD B ON A.STUD_ID = B.STUD_ID 
+		JOIN TCHR C ON B.DT = C.DT AND B.TCHR_CHA_ID = C.TCHR_ID
+		WHERE A.PAYMENT_PROBABILITY_CD > 0
+			AND B.DT = #{dt}
+		    AND C.TCHR_ID = #{tchrId}
+		GROUP BY PAYMENT_PROBABILITY_CD
+		ORDER BY PAYMENT_PROBABILITY_CD
     </select>
     
     <select id="selectSettleInfoPredictionStudList" parameterType="hashMap" resultType="resultMap">
     /* HamsSales.selectSettleInfoPredictionStudList : 전환예측 학생 목록*/
         SELECT 
-            A.STUD_ID,
-            (SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = A.PAYMENT_PROBABILITY_CD) AS SETTLE_INFO_PREDICTION
-        FROM hams_dashboard.SETTLEMENT_PREDICTION A;
+			A.STUD_ID,
+			(SELECT CD_NM FROM COMM_CD WHERE GRP = 'PAY' AND GRADE = 6 AND LANG_CD = 'ko' AND CD = A.PAYMENT_PROBABILITY_CD) AS SETTLE_INFO_PREDICTION
+		FROM SETTLEMENT_PREDICTION A
+		JOIN STUD B ON A.STUD_ID = B.STUD_ID 
+		JOIN TCHR C ON B.DT = C.DT AND B.TCHR_CHA_ID = C.TCHR_ID
+		WHERE B.DT = #{dt}
+		    AND C.TCHR_ID = #{tchrId};
     </select>
     
 </mapper>

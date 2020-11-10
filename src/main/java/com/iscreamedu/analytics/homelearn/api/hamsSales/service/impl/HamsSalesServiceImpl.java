@@ -1602,6 +1602,21 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Override
 	public Map getSettleInfoPredictionStt(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		LocalDate dt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
+		dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
+		String tchrId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		tchrId = paramList[0];
+		paramMap.put("tchrId", tchrId);
+		paramMap.put("dt", dt);
 		
 		Map<String, Object> data = new HashMap<>();
 		List<Map> settleInfoPredictionSttList = commonMapper.getList(paramMap, "HamsSales.selectSettleInfoPredictionStt");
@@ -1623,6 +1638,22 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Override
 	public Map getSettleInfoPredictionStudList(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"p"}, paramMap);
+		
+		LocalDate dt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
+		dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		
+		String tchrId = "";
+		String encodedStr = paramMap.get("p").toString();
+		
+		String[] paramList = getDecodedParam(encodedStr);
+		tchrId = paramList[0];
+		paramMap.put("tchrId", tchrId);
+		paramMap.put("dt", dt);
+		
 		Map<String, Object> data = new HashMap<>();
 		List<Map> settleInfoPredictionStudList = commonMapper.getList(paramMap, "HamsSales.selectSettleInfoPredictionStudList");
 		
