@@ -38,10 +38,8 @@
 			STU_NO AS STUDENT_NO,
 			DATE_FORMAT(START_DT, '%Y-%m-%d') AS EXP_START_DT,
 			DATE_FORMAT(END_DT, '%Y-%m-%d') AS EXP_END_DT
-		FROM STUD
-		WHERE 
-			DT = (SELECT MAX(DT) FROM STUD WHERE STUD_ID = #{studId})
-			AND STUD_ID = #{studId}
+		FROM STUD_TEMP
+		WHERE STUD_ID = #{studId}
 	</select>
 	
 	<select id="selectLoginLogList" parameterType="hashMap" resultType="resultMap">
@@ -239,29 +237,26 @@
 	/* HamsSales.selectLrnPtnTmln : 3일 리포트 학습 패턴 - 타임라인*/
 		SELECT
 			DT,
-		    EXP_DAY
+			EXP_DAY
 		FROM (
 			SELECT 
-				DATE_FORMAT(DT, '%Y.%m.%d') AS DT,
-				TIMESTAMPDIFF(DAY, START_DT, DT) + 1 AS EXP_DAY
-			FROM STUD 
-			WHERE DT = #{dt} - INTERVAL 2 DAY
-				AND STUD_ID = #{studId}
+				DATE_FORMAT(#{dt} - INTERVAL 2 DAY, '%Y.%m.%d')  AS DT,
+				TIMESTAMPDIFF(DAY, START_DT, #{dt} - INTERVAL 2 DAY) + 1 AS EXP_DAY
+			FROM STUD_TEMP
+			WHERE STUD_ID = #{studId}
 			UNION ALL
 			SELECT 
-				DATE_FORMAT(DT, '%Y.%m.%d') AS DT,
-				TIMESTAMPDIFF(DAY, START_DT, DT) + 1 AS EXP_DAY
-			FROM STUD 
-			WHERE DT = #{dt} - INTERVAL 1 DAY
-				AND STUD_ID = #{studId}
+				DATE_FORMAT(#{dt} - INTERVAL 1 DAY, '%Y.%m.%d')  AS DT,
+				TIMESTAMPDIFF(DAY, START_DT, #{dt} - INTERVAL 1 DAY) + 1 AS EXP_DAY
+			FROM STUD_TEMP 
+			WHERE STUD_ID = #{studId}
 			UNION ALL
 			SELECT 
-				DATE_FORMAT(DT, '%Y.%m.%d') AS DT,
-				TIMESTAMPDIFF(DAY, START_DT, DT) + 1 AS EXP_DAY
-			FROM STUD 
-			WHERE DT = #{dt}
-				AND STUD_ID = #{studId}
-		) A 
+				DATE_FORMAT(#{dt}, '%Y.%m.%d') AS DT,
+				TIMESTAMPDIFF(DAY, START_DT, #{dt}) + 1 AS EXP_DAY
+			FROM STUD_TEMP 
+			WHERE STUD_ID = #{studId}
+		) A
 	</select>
 	
 	<select id="selectLrnTmln" parameterType="hashMap" resultType="resultMap">
@@ -344,10 +339,10 @@
 			    	WHEN B.LRN_SUBJ_CD_SP IS NULL AND B.TOTAL_LRN_EX_CNT IS NULL THEN NULL
 			    	ELSE C.TOTAL_LRN_EX_CNT
 			    END AS GRP_LRN_EX_CNT
-			FROM STUD A
-			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
-			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
-			WHERE A.DT = #{dt}
+			FROM STUD_TEMP A
+			JOIN LRN_EX_DETAIL B ON A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON B.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE B.DT = #{dt}
 				AND A.STUD_ID = #{studId}
 		) A
 	</select>
@@ -378,10 +373,10 @@
 					WHEN B.PLAN_CNT IS NULL THEN NULL
 					ELSE C.PLAN_EX_CNT
 				END AS GRP_AVG_EX_CNT
-			FROM STUD A
-			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
-			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
-			WHERE A.DT = #{dt}
+			FROM STUD_TEMP A
+			JOIN LRN_EX_DETAIL B ON A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON B.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE B.DT = #{dt}
 				AND A.STUD_ID = #{studId}
 		) A
 	</select>
@@ -402,10 +397,10 @@
 					WHEN B.LRN_SUBJ_CD_SP IS NULL AND B.TOTAL_LRN_EX_CNT IS NULL THEN NULL
 					ELSE C.A_LRN_EX_CNT
 				END AS GRP_LRN_EX_CNT
-			FROM STUD A
-			JOIN LRN_EX_DETAIL B ON A.DT = B.DT AND A.STUD_ID = B.STUD_ID
-			JOIN LRN_EX_DETAIL_GRP C ON A.DT = C.DT AND A.GRADE = C.GRADE
-			WHERE A.DT = #{dt}
+			FROM STUD_TEMP A
+			JOIN LRN_EX_DETAIL B ON A.STUD_ID = B.STUD_ID
+			JOIN LRN_EX_DETAIL_GRP C ON B.DT = C.DT AND A.GRADE = C.GRADE
+			WHERE B.DT = #{dt}
 				AND A.STUD_ID = #{studId}
 		) A
 	</select>
@@ -497,10 +492,9 @@
 				SELECT 
 					STUD_ID,
 					CD AS SUBJ_CD
-				FROM STUD A
+				FROM STUD_TEMP A
 				JOIN COMM_CD B ON B.CD LIKE 'C%' AND B.GRP = 'SUBJ'
-				WHERE DT = #{dt}
-					AND STUD_ID = #{studId}
+				WHERE STUD_ID = #{studId}
 				) A 
 			LEFT OUTER JOIN (
 				SELECT 
@@ -786,14 +780,11 @@
 		) AS FEEDBACK
 		JOIN (
 			SELECT 
-				DT,
 				STUD_ID, 
 				STUD_NM, 
-				CONCAT(STUD.START_DT, '~', STUD.END_DT) AS EXP_DT
-			FROM STUD
-			WHERE 
-				DT = (SELECT MAX(DT) FROM STUD WHERE STUD_ID = #{studId})
-					AND STUD_ID = #{studId}
+				CONCAT(START_DT, '~', END_DT) AS EXP_DT
+			FROM STUD_TEMP
+			WHERE STUD_ID = #{studId}
 		) AS STUD
 		ON FEEDBACK.STUD_ID = STUD.STUD_ID
 	</select>
