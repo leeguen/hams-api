@@ -907,7 +907,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				explMap.put("quesCnt", explData.get(i).get("quesCnt"));
 				
 				List<Integer> crtQues = new ArrayList<Integer>();
-				List<Integer> guessQues = new ArrayList<Integer>();
+				List<Integer> guessCrtQues = new ArrayList<Integer>();
+				List<Integer> guessIncrtQues = new ArrayList<Integer>();
 				List<Integer> skipQues = new ArrayList<Integer>();
 				List<Integer> cursoryQues = new ArrayList<Integer>();
 				List<Integer> incrtQues = new ArrayList<Integer>();
@@ -921,13 +922,22 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 					crtQues = null;
 				}
 					
-				if(explData.get(i).get("guessQuesSp") != null) {
-					String[] guessCrtQuesData = explData.get(i).get("guessQuesSp").toString().split(",");
+				if(explData.get(i).get("guessCrtQuesSp") != null) {
+					String[] guessCrtQuesData = explData.get(i).get("guessCrtQuesSp").toString().split(",");
 					for(String item : guessCrtQuesData) {
-						guessQues.add(Integer.valueOf(item));
+						guessCrtQues.add(Integer.valueOf(item));
 					}
 				}else {
-					guessQues = null;
+					guessCrtQues = null;
+				}
+				
+				if(explData.get(i).get("guessIncrtQuesSp") != null) {
+					String[] guessIncrtQuesData = explData.get(i).get("guessIncrtQuesSp").toString().split(",");
+					for(String item : guessIncrtQuesData) {
+						guessIncrtQues.add(Integer.valueOf(item));
+					}
+				}else {
+					guessIncrtQues = null;
 				}
 				
 				if(explData.get(i).get("skipQuesSp") != null) {
@@ -958,7 +968,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				}
 				
 				explMap.put("crtQues", crtQues);
-				explMap.put("guessQues", guessQues);
+				explMap.put("guessCrtQues", guessCrtQues);
+				explMap.put("guessIncrtQues", guessIncrtQues);
 				explMap.put("skipQues", skipQues);
 				explMap.put("cursoryQues", cursoryQues);
 				explMap.put("incrtQues", incrtQues);
