@@ -1009,6 +1009,7 @@
 		WHERE A.PAYMENT_PROBABILITY_CD > 0
 			AND C.DT = #{dt}
 		    AND C.TCHR_ID = #{tchrId}
+		    AND B.END_DT <![CDATA[>=]]> #{dt}
 		GROUP BY PAYMENT_PROBABILITY_CD
 		ORDER BY PAYMENT_PROBABILITY_CD
     </select>
@@ -1022,7 +1023,8 @@
 		JOIN STUD B ON A.STUD_ID = B.STUD_ID 
 		JOIN TCHR C ON B.TCHR_CHA_ID = C.TCHR_ID
 		WHERE C.DT = #{dt}
-		    AND C.TCHR_ID = #{tchrId};
+		    AND C.TCHR_ID = #{tchrId}
+		    AND B.END_DT <![CDATA[>=]]> #{dt};
     </select>
     
 </mapper>
