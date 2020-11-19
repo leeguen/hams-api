@@ -60,6 +60,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	@Value("${extapi.englib.url}")
 	String ENGLIB_API; //영어도서관 기본API 주소
 	
+	@Value("${extapi.hllogin.url}")
+	String HLLOGIN_API; //일일 로그인 기록 기본API 주소
+	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
 
@@ -260,6 +263,48 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        // 일일 로그인 기록
+	        } else if(apiName.equals("connect-log-list")) { 
+	        	try {
+		        	String url = HLLOGIN_API + apiName + ".json";
+		        	
+		        	String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
+		    		paramMap.put("stuId", studId);
+		    		
+		    		paramMap.remove("p");
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	for( String key : paramMap.keySet() ){ 
+		        		builder.queryParam(key, paramMap.get(key));
+		        	}
 		        	
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
