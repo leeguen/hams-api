@@ -147,6 +147,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				Map<String, Object> dailyLrnSttMap = new LinkedHashMap<>();
 				Map<String, Object> externalApiMap = new HashMap<>();
 				Map<String, Object> externalApiParamMap = new HashMap<>();
+				Map<String, Object> externalLoginApiMap = new HashMap<>();
+				Map<String, Object> externalLoginApiParamMap = new HashMap<>();
 				
 				String dt = (String)item.get("dt");
 				paramMap.put("dt", dt);
@@ -164,10 +166,28 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				
 				List<String> loginLogList = new ArrayList<String>();
 				
+				LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+				today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				String todayCheck  = today.toString();
+				
 				for(Map<String,Object> dayAttLogItem : dayAttLogList) {
 					if(dayAttLogItem.get("dt").equals(dt)) {
 						loginLogList.add((String)dayAttLogItem.get("loginDttm"));
 					}
+				}
+				
+				if(todayCheck.equals(dt)) {
+					externalLoginApiParamMap.put("p", encodedStr);
+					externalLoginApiParamMap.put("date", todayCheck);
+					externalLoginApiParamMap.put("apiName", "connect-log-list");
+					
+					externalLoginApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(externalLoginApiParamMap).get("data");
+					
+					List<String> todayLoginList = (List<String>) externalLoginApiMap.get("history");
+					if(todayLoginList.size() > 0) {
+						loginLogList.addAll(todayLoginList);
+					}
+					
 				}
 				
 				dailyLrnSttMap.put("loginLogList", loginLogList);
