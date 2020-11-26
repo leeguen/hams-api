@@ -1092,15 +1092,20 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			
 			if(sttMsgCheck) {
 				if(feedbackMap.get("recommendJob") == null) {
-					paramData.put("stuId", paramMap.get("studId"));
+					paramData.put("p", paramMap.get("p"));
 					paramData.put("apiName", "intel-inspecion-strength");
 					
-					//apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+					apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
 					
 					String intelNm = null;
+					List <Map> intelNmList = new ArrayList<>();
+					if(apiMap != null) {
+						intelNmList = (List<Map>) apiMap.get("items");
+						intelNm = intelNmList.get(0).get("intel_nm").toString().replace("지능", "");
+					}
 					
 					if(apiMap != null) {
-						String intelStrength = "자연친화";
+						String intelStrength = intelNm;
 						String maxSubjCd = null;
 						if(feedbackMap.get("maxSubjCd") != null) {
 							
@@ -1143,7 +1148,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 							intelNm = "RJ01E02";
 						}
 					}else {
-						intelNm = "RJ01E02";
+						if(feedbackMap.get("maxSubjCd") != null) {
+							intelNm = "RJ09" + feedbackMap.get("maxSubjCd");
+						}else {
+							intelNm = "RJ01E02";
+						}
 					}
 					
 					paramData.clear();
