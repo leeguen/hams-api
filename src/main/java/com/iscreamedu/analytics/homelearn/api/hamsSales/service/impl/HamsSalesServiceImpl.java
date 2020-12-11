@@ -1149,7 +1149,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 						}
 					}else {
 						if(feedbackMap.get("maxSubjCd") != null) {
-							intelNm = "RJ09" + feedbackMap.get("maxSubjCd");
+							if("N02".equals(feedbackMap.get("maxSubjCd").toString())) {
+								intelNm = "RJ01E02";
+							}else {
+								intelNm = "RJ09" + feedbackMap.get("maxSubjCd");
+							}
 						}else {
 							intelNm = "RJ01E02";
 						}
