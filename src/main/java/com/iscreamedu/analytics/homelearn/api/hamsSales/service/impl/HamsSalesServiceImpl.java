@@ -1393,6 +1393,15 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			
 			incrtNoteHabit.put("score", lrnHabitsResult.get("incrtNtHabitScore"));
 			incrtNoteHabit.put("incrtNtNcCnt", lrnHabitsResult.get("incrtNtNcCnt"));
+			
+			Map<String, Object> examRstResult = (Map) commonMapper.get(paramMap, "HamsSales.selectExamStt");
+			if(examRstResult != null) {
+				incrtNoteHabit.put("explCnt", examRstResult.get("explCnt"));
+				incrtNoteHabit.put("crtRt", examRstResult.get("crtRt"));
+			}else {
+				incrtNoteHabit.put("explCnt", "");
+				incrtNoteHabit.put("crtRt", "");
+			}
 		
 			List<Map<String,Object>> incrtNoteHabitList = (List) commonMapper.getList(paramMap, "HamsSales.selectExamRstIncrtNTLog");
 			
