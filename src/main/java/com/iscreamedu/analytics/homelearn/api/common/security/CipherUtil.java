@@ -75,7 +75,7 @@ public class CipherUtil {
 														InvalidKeyException, InvalidAlgorithmParameterException,
 														IllegalBlockSizeException, BadPaddingException {
 		if(str != null && !str.equals("")){
-			str = str.replace("%2F", "/").replace("%2B", "+").replace("%3D", "=").replace(" ", "+");
+			str = str.replace("%2F", "/").replace("%2B", "+").replace("%3D", "=").replace(" ", "+").replace("%20", "+");
 			byte[] keyData = secretKey.getBytes();
 			SecretKey secureKey = new SecretKeySpec(keyData, "AES");
 			Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
