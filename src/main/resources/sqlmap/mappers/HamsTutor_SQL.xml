@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HamsTutor">
+    <select id="getLrnExStt" parameterType="hashMap" resultType="resultMap">
+        SELECT
+        SUM(LRN_SEC) AS lrn_tm,
+        COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100 OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[>]]> 1500 THEN LRN_SEC END) AS long_lrn_tm,
+        COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100  OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[<]]> 300 THEN LRN_SEC END) AS short_lrn_tm,
+        (
+        SELECT COUNT(A.SUB_SUBJ_CD) AS LRN_TM_CHECK FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS A,
+        (
+        SELECT DT,CTGR,MAX(END_DTTM) AS SORT_END_DTTM FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
+        Where STUD_ID = #{studId}
+        AND DT between #{startDt} AND #{endDt}
+        AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 11)
+        AND END_DTTM IS NOT NULL
+        AND PLAN_DT IS NOT NULL
+        AND FNSH_YN = 'Y'
+        GROUP BY DT,CTGR
+        HAVING COUNT(DT) <![CDATA[>]]> 1
+        ) AS B
+        Where A.STUD_ID = #{studId}
+        AND A.DT between #{startDt} AND #{endDt}
+        AND (CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 11)
+        AND A.END_DTTM IS NOT NULL
+        AND A.PLAN_DT IS NOT NULL
+        AND A.FNSH_YN = 'Y'
+        AND A.DT = B.DT
+        AND A.CTGR = B.CTGR
+        AND A.END_DTTM = B.SORT_END_DTTM
+        AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
+        ORDER BY A.END_DTTM,A.SUBJ_CD
+        ) AS lrn_tm_check,
+        CASE WHEN C.PLAN_CNT > 0 THEN ROUND((((C.D_LRN_EX_CNT + C.LRN_EX_CNT + C.B_LRN_EX_CNT) / C.PLAN_CNT) * 100)) ELSE NULL END AS EX_RT,
+        C.PLAN_CNT AS PLAN_CNT,
+        C.D_LRN_EX_CNT AS D_LRN_EX_CNT,
+        C.LRN_EX_CNT AS LRN_EX_CNT,
+        C.B_LRN_EX_CNT AS B_LRN_EX_CNT
+        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS OG
+        LEFT JOIN
+        (
+        SELECT
+        STUD_ID,
+        COUNT(*) PLAN_CNT,
+        COUNT(CASE WHEN FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN END_DTTM END) D_LRN_EX_CNT,
+        COUNT(CASE WHEN FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN END_DTTM END) LRN_EX_CNT,
+        COUNT(CASE WHEN FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN END_DTTM END) B_LRN_EX_CNT
+        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
+        Where STUD_ID = #{studId}
+        AND PLAN_DT IS NOT NULL
+        AND PLAN_DT between #{startDt} AND #{endDt}
+        ) AS C ON C.STUD_ID = OG.STUD_ID
+        WHERE OG.STUD_ID = #{studId}
+        AND DT between #{startDt} AND #{endDt}
+        GROUP BY
+        C.PLAN_CNT,
+        C.D_LRN_EX_CNT,
+        C.LRN_EX_CNT,
+        C.B_LRN_EX_CNT
+
+
+    </select>
+
+</mapper>

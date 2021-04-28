@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapper;
@@ -57,6 +58,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Override
 	public Map healthCheck(Map<String, Object> paramMap) throws Exception {
+		System.out.println("-----------------------------");
+		System.out.print(paramMap);
 		setResult(dataKey, commonMapper.getList(paramMap, "Common.healthCheck"));
 		return result;
 	}
@@ -65,7 +68,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	public Map getSubjCodeInfo(Map<String, Object> paramMap) throws Exception {
 		Map<String, Object> data = new HashMap<>();
 		List<Map<String, Object>> subjCodeInfo = new ArrayList();
-		List<Map<String,Object>> subjCodeInfoList = (List) commonMapper.getList(paramMap, "HamsSales.subjCodeInfo");
+		List<Map<String,Object>> subjCodeInfoList = (List) commonMapper.getList(paramMap, "HamsSales.subjCodeInfo"); //!!
 		
 		if(subjCodeInfoList.size() > 0) {
 			for (Map<String,Object> item : subjCodeInfoList) {
@@ -97,7 +100,8 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		paramMap.put("dt", dt);
-		
+		System.out.println("-----------------------------------------");
+		System.out.println(paramMap);
 		Map<String, Object> data = new HashMap<>();
 		Map<String,Object> studInfoList = (Map) commonMapper.get(paramMap, "HamsSales.selectStudInfo");
 		
@@ -134,7 +138,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		paramMap.put("studId", studId);
 		
 		List<Map<String,Object>> commWkDtList = (List) commonMapper.getList(paramMap, "Common.selectCommWkDt");
-		
 		paramMap.put("startDt", commWkDtList.get(0).get("dt").toString());
 		paramMap.put("endDt", commWkDtList.get(commWkDtList.size() - 1).get("dt").toString());
 		
@@ -216,11 +219,11 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 
 		String studId = "";
 		String encodedStr = paramMap.get("p").toString();
-		
+
 		String[] paramList = getDecodedParam(encodedStr);
 		studId = paramList[1];
 		paramMap.put("studId", studId);
-		
+
 		Map<String, Object> data = new HashMap<>();
 		Map<String, Object> settleInfoPrediction = new LinkedHashMap<>();
 		Map<String, Object> settleInfoPredictionData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPrediction");
@@ -228,22 +231,22 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			if(settleInfoPredictionData.get("paymentProbabilityCd") != null) {
 				paramMap.put("expDay", settleInfoPredictionData.get("expDay"));
 				paramMap.put("paymentProbabilityType", settleInfoPredictionData.get("paymentProbabilityType"));
-				
+
 				settleInfoPrediction.put("signal", settleInfoPredictionData.get("paymentProbabilityCd"));
-				
+
 				List<String> focusPointList = new ArrayList<>();
-				
+
 				Map<String, Object> settleInfoPredictionOriginData = (Map) commonMapper.get(paramMap, "HamsSales.selectSettleInfoPredictionOrigin");
 				if(settleInfoPredictionOriginData != null) {
-					
+
 					int listCnt = 0;
-					
+
 					for(String key : settleInfoPredictionOriginData.keySet()) {
-						
+
 						if(key.contains("Sec")) {
 							int settleInfo = Integer.valueOf(settleInfoPredictionData.get(key).toString());
 							int settleInfoOrigin = Integer.valueOf(settleInfoPredictionOriginData.get(key).toString());
-							
+
 							if(settleInfo < settleInfoOrigin) {
 								if("planLrnExSec".equals(key)) {
 									focusPointList.add("계획된 학습 학습시간");
@@ -256,7 +259,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 						}else {
 							Float settleInfo = Float.valueOf(settleInfoPredictionData.get(key).toString());
 							Float settleInfoOrigin = Float.valueOf(settleInfoPredictionOriginData.get(key).toString());
-							
+
 							if(settleInfo < settleInfoOrigin) {
 								switch (key) {
 								case "exRt":
@@ -290,12 +293,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 								}
 							}
 						}
-						
+
 						if(listCnt == 3) {
 							break;
 						}
 					}
-					
+
 					if(listCnt == 0) {
 						focusPointList.add("개선할 점이 없어요.");
 					}
@@ -304,13 +307,13 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 				data.put("settleInfoPrediction", settleInfoPrediction);
 			}
 		}
-		
+
 		if(vu.isValid()) {
 			setResult(dataKey, data);
 		}else {
-			setResult(msgKey, vu.getResult()); 
+			setResult(msgKey, vu.getResult());
 		}
-		
+
 		return result;
 	}
 	
@@ -325,15 +328,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		String studId = "";
 		String encodedStr = paramMap.get("p").toString();
-		
 		String[] paramList = getDecodedParam(encodedStr);
+		System.out.println("---------------------------------");
+		System.out.println(paramMap.get("p"));
+		System.out.println(paramMap);
+		System.out.println(paramList);
 		studId = paramList[1];
 		paramMap.put("studId", studId);		
 		
 		Map<String, Object> data = new LinkedHashMap<>();
 		Map<String, Object> threeDayLrn = new LinkedHashMap<>();
 		Map<String, Object> consultingMsg = new HashMap<>();
-		
 		Map<String, Object> threeDayLrnData = (Map) commonMapper.get(paramMap, "HamsSales.selectThreeDayLrn");
 		if(threeDayLrnData != null) {
 			Map<String, Object> paramData = new HashMap<>();
@@ -363,7 +368,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			paramData.put("size", "3");
 			
 			apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
-			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString());
+			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
 			
 			/*칭찬 메시지 / 칭찬 메시지 수*/
 			
@@ -398,19 +403,23 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			positiveMsgMap.put("cdType", "D");
 			
 			List<Map<String,Object>> complimentMsgList = commonMapper.getList(positiveMsgMap, "HamsSales.selectThreeDayLrnMsg");
-			
+			System.out.println("-------------------------------");
+			System.out.println(complimentMsgList);
+			System.out.println(positiveMsgCnt);
 			for(int i = 0; i < complimentMsgList.size(); i++) {
 				String msg = complimentMsgList.get(i).get("cdNm").toString();
 				
 				if(i < positiveMsgCnt) {
 					String msgCd = complimentListData[i].toString();
-					
+					System.out.println(msgCd);
 					if(msg.contains("{1}")) {
 						if(msg.contains("{2}")) {
 							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1, msgCd.lastIndexOf("|")));
 							msg = msg.replace("{2}", msgCd.substring(msgCd.lastIndexOf("|")+1));
+							System.out.println(msg);
 						}else {
 							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
+							System.out.println(msg);
 						}
 					}
 					
@@ -781,7 +790,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
-	
+
 	@Override
 	public Map getExam(Map<String, Object> paramMap) throws Exception {
 		//Validation
@@ -1083,7 +1092,7 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		Map<String, Object> feedbackMsgMap = new HashMap<>();
 		Map<String, Object> feedback = new LinkedHashMap();
 		Map<String, Object> feedbackMap = (Map) commonMapper.get(paramMap, "HamsSales.selectFeedback");
-		
+
 		if(feedbackMap != null) {
 			String recommendJob = null;
 			
@@ -1718,7 +1727,12 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		
 		return result;
 	}
-
+	@Override
+	public Map getTest(Map<String, Object> paramMap) throws  Exception {
+		LinkedHashMap<String ,Object> a  = new LinkedHashMap<>();
+//		List<Map> testList = commonMapper.getList(paramMap,);
+		return a;
+	}
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
 	 * @param key
