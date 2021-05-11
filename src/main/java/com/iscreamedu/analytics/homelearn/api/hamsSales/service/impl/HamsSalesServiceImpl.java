@@ -58,8 +58,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 	
 	@Override
 	public Map healthCheck(Map<String, Object> paramMap) throws Exception {
-		System.out.println("-----------------------------");
-		System.out.print(paramMap);
 		setResult(dataKey, commonMapper.getList(paramMap, "Common.healthCheck"));
 		return result;
 	}
@@ -100,8 +98,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		studId = paramList[1];
 		paramMap.put("studId", studId);
 		paramMap.put("dt", dt);
-		System.out.println("-----------------------------------------");
-		System.out.println(paramMap);
 		Map<String, Object> data = new HashMap<>();
 		Map<String,Object> studInfoList = (Map) commonMapper.get(paramMap, "HamsSales.selectStudInfo");
 		
@@ -329,10 +325,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		String studId = "";
 		String encodedStr = paramMap.get("p").toString();
 		String[] paramList = getDecodedParam(encodedStr);
-		System.out.println("---------------------------------");
-		System.out.println(paramMap.get("p"));
-		System.out.println(paramMap);
-		System.out.println(paramList);
 		studId = paramList[1];
 		paramMap.put("studId", studId);		
 		
@@ -403,23 +395,17 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 			positiveMsgMap.put("cdType", "D");
 			
 			List<Map<String,Object>> complimentMsgList = commonMapper.getList(positiveMsgMap, "HamsSales.selectThreeDayLrnMsg");
-			System.out.println("-------------------------------");
-			System.out.println(complimentMsgList);
-			System.out.println(positiveMsgCnt);
 			for(int i = 0; i < complimentMsgList.size(); i++) {
 				String msg = complimentMsgList.get(i).get("cdNm").toString();
 				
 				if(i < positiveMsgCnt) {
 					String msgCd = complimentListData[i].toString();
-					System.out.println(msgCd);
 					if(msg.contains("{1}")) {
 						if(msg.contains("{2}")) {
 							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1, msgCd.lastIndexOf("|")));
 							msg = msg.replace("{2}", msgCd.substring(msgCd.lastIndexOf("|")+1));
-							System.out.println(msg);
 						}else {
 							msg = msg.replace("{1}", msgCd.substring(msgCd.indexOf("|")+1));
-							System.out.println(msg);
 						}
 					}
 					
@@ -1726,12 +1712,6 @@ public class HamsSalesServiceImpl implements HamsSalesService {
 		setResult(dataKey, data);
 		
 		return result;
-	}
-	@Override
-	public Map getTest(Map<String, Object> paramMap) throws  Exception {
-		LinkedHashMap<String ,Object> a  = new LinkedHashMap<>();
-//		List<Map> testList = commonMapper.getList(paramMap,);
-		return a;
 	}
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

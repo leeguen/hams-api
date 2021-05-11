@@ -420,10 +420,4 @@ public class HamsSalesController {
 
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
-
-	@RequestMapping("/getTest")
-	public ResponseEntity getTest(@RequestParam Map<String, Object> params) throws Exception {
-		body = (LinkedHashMap)hamsSalesService.getTest(params);
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
 }

@@ -201,6 +201,4 @@ public interface HamsSalesService {
 	 * @throws Exception
 	 */
 	public Map getSettleInfoPredictionStudList (Map<String, Object> paramMap) throws Exception;
-
-	public Map getTest (Map<String, Object> paramMap) throws Exception;
 }
