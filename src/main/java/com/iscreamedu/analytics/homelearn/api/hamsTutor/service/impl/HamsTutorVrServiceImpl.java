@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 @Service
 public class HamsTutorVrServiceImpl implements HamsTutorVrService {
@@ -46,9 +47,61 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         LinkedHashMap<String,Object> visionBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
+        LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
-
-        visionBasicInfo.put("msg",msg);
+        
+        if(msg != null) {
+        	Map<String, Object> msgMap = msg.get(0);
+        	
+        	for(Entry<String, Object> item : msgMap.entrySet()) {
+        		String key = item.getKey();
+        		String value = item.getValue().toString();
+        		if(value != null) {
+        			if(value.indexOf("studNm") > 0) {
+        				value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        			}
+        			
+        			if(value.indexOf("exRt") > 0) {
+        				value = value.replace("{exRt}", msgInfo.get("exRt").toString());
+        			}
+        			
+        			if(value.indexOf("attRt") > 0) {
+        				value = value.replace("{attRt}", msgInfo.get("attRt").toString());
+        			}
+        			
+        			if(value.indexOf("subjCd") > 0) {
+        				value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
+        			}
+        			
+        			if(value.indexOf("maxCrtRt") > 0) {
+        				value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
+        			}
+        			
+        			if(value.indexOf("minCrtRt") > 0) {
+        				value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
+        			}
+        			
+        			if(value.indexOf("spSubjCd") > 0) {
+        				value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
+        			}
+        			
+        			if(value.indexOf("spCnt") > 0) {
+        				value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
+        			}
+        			
+        			if(value.indexOf("fnshSubjCd") > 0) {
+        				value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
+        			}
+        			
+        			msgMap.put(key, value);
+        		}
+        	}
+        	
+        	msg.clear();
+        	msg.add(msgMap);
+        }
+        
+        visionBasicInfo.put("msg",msg.get(0));
 
         data.put("visionBasicInfo",visionBasicInfo);
         setResult(dataKey,data);
@@ -339,20 +392,67 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,false);
 
         //DB 조회
-        LinkedHashMap<String,Object> visionPrintBasicInfo = new LinkedHashMap<>();
+        LinkedHashMap<String,Object> visionBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
+        LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
+        ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
+        
+        if(msg != null) {
+        	Map<String, Object> msgMap = msg.get(0);
+        	
+        	for(Entry<String, Object> item : msgMap.entrySet()) {
+        		String key = item.getKey();
+        		String value = item.getValue().toString();
+        		if(value != null) {
+        			if(value.indexOf("studNm") > 0) {
+        				value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        			}
+        			
+        			if(value.indexOf("exRt") > 0) {
+        				value = value.replace("{exRt}", msgInfo.get("exRt").toString());
+        			}
+        			
+        			if(value.indexOf("attRt") > 0) {
+        				value = value.replace("{attRt}", msgInfo.get("attRt").toString());
+        			}
+        			
+        			if(value.indexOf("subjCd") > 0) {
+        				value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
+        			}
+        			
+        			if(value.indexOf("maxCrtRt") > 0) {
+        				value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
+        			}
+        			
+        			if(value.indexOf("minCrtRt") > 0) {
+        				value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
+        			}
+        			
+        			if(value.indexOf("spSubjCd") > 0) {
+        				value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
+        			}
+        			
+        			if(value.indexOf("spCnt") > 0) {
+        				value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
+        			}
+        			
+        			if(value.indexOf("fnshSubjCd") > 0) {
+        				value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
+        			}
+        			
+        			msgMap.put(key, value);
+        		}
+        	}
+        	
+        	msg.clear();
+        	msg.add(msgMap);
+        }
+        
+//        visionPrintBasicInfo.put("title","미래 우주 과학자");
+//        visionPrintBasicInfo.put("positiveMsg",new String[] {"칭찬 메시지1","칭찬 메시지2","칭찬 메시지3","칭찬 메시지4","칭찬 메시지5"});
+//        visionPrintBasicInfo.put("negativeMsg",new String[] {"처방 메시지1","처방 메시지2"});
+        visionBasicInfo.put("msg",msg.get(0));
+        data.put("visionBasicInfo",visionBasicInfo);
 
-        visionPrintBasicInfo.put("title","미래 우주 과학자");
-        visionPrintBasicInfo.put("studNm","김홈런");
-        visionPrintBasicInfo.put("dt","2020-01-01 ~ 2020-06-30");
-        visionPrintBasicInfo.put("msg",new String[] {
-                "미래 우주 과학자, 기특한 우리 홈런이가 칭찬과 격려를 들으며 홈런과 함께 성장한 기록입니다.",
-                "홈런이는 그 동안 243개 단원 중 47개 단원을 마스터 했고, 26개 단원은 복습이 필요한 상태입니다. 진도는 국어, 수학 2과목의 경우 또래 상위 10%보다 앞서있지만, 과학,사회,한자 세 과목 진도는 권장지도 보다 늦어있습니다.",
-                "홈런 선생님과 상담을 통해 우리 아이 약점을 보완할 수 있는 자세한 학습습관 처방을 받아보세요. 홈런이가 더 바른 습관, 더 다양한 재미, 더 높은 집중력으로 No.1이 될 수 있도록 홈런이 함께하겠습니다."
-        });
-        visionPrintBasicInfo.put("positiveMsg",new String[] {"칭찬 메시지1","칭찬 메시지2","칭찬 메시지3","칭찬 메시지4","칭찬 메시지5"});
-        visionPrintBasicInfo.put("negativeMsg",new String[] {"처방 메시지1","처방 메시지2"});
-
-        data.put("visionPrintBasicInfo",visionPrintBasicInfo);
         setResult(dataKey,data);
 
         return result;
