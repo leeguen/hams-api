@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 @Service
 public class HamsTutorVrServiceImpl implements HamsTutorVrService {
@@ -579,25 +578,6 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Integer> lrnStt = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintLrnStt");
         LinkedHashMap<String,Integer> examStt = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintExamStt");
         LinkedHashMap<String,Integer> imprvSlvHabitDetail = new LinkedHashMap<>();
-
-//        lrnStt.put("planDtCnt",689);
-//        lrnStt.put("attDtCnt",548);
-//        lrnStt.put("lrnSec",45750);
-//        lrnStt.put("planCnt",2600);
-//        lrnStt.put("exCnt",2548);
-//        lrnStt.put("incrtNoteCnt",398);
-//        lrnStt.put("incrtNtFnshCnt",348);
-//
-//        imprvSlvHabitDetail.put("incrtNtNtCnt",298);
-//        imprvSlvHabitDetail.put("skipQuesCnt",98);
-//        imprvSlvHabitDetail.put("cursoryQuesCnt",28);
-//        imprvSlvHabitDetail.put("guessQuesCnt",58);
-//        imprvSlvHabitDetail.put("mistakenQuesCnt",31);
-//
-//        examStt.put("ansQuesCnt",1483);
-//        examStt.put("crtQuesCnt",1254);
-//        examStt.put("imprvSlvHabitCnt",483);
-//        examStt.put("imprvSlvHabitDetail",imprvSlvHabitDetail);
 
         visionPrintLrnStt.put("lrnStt",lrnStt);
         visionPrintLrnStt.put("examStt",examStt);

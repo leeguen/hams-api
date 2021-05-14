@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.hamsTutor.controller;
 
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorExService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorVrService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl.HamsTutorServiceImpl;
@@ -24,6 +25,9 @@ public class HamsTutorController {
 
     @Autowired
     private HamsTutorVrService hamsTutorVrService;
+    
+    @Autowired
+    private HamsTutorExService hamsTutorExService;
 
     private HttpHeaders headers;
     private LinkedHashMap body;
@@ -43,7 +47,7 @@ public class HamsTutorController {
      */
     @GetMapping("/getSettleInfoPredictionStt")
     public ResponseEntity getSettleInfoPredictionStt(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) hamsTutorService.getSettleInfoPredictionStt(params);
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getSettleInfoPredictionStt(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -55,7 +59,7 @@ public class HamsTutorController {
      */
     @GetMapping("/getAiDiagnosisRst")
     public ResponseEntity getAiDiagnosisRst(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) hamsTutorService.getAiDiagnosisRst(params);
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiDiagnosisRst(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -67,7 +71,7 @@ public class HamsTutorController {
      */
     @GetMapping("/getAiWeakChapterGuide")
     public ResponseEntity getAiWeakChapterGuide(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) hamsTutorService.getAiWeakChapterGuide(params);
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiWeakChapterGuide(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -79,7 +83,7 @@ public class HamsTutorController {
      */
     @GetMapping("/getAiRecommendQuestion")
     public ResponseEntity getAiRecommendQuestion(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) hamsTutorService.getAiRecommendQuestion(params);
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiRecommendQuestion(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -358,7 +362,19 @@ public class HamsTutorController {
         body = (LinkedHashMap<String, Object>) hamsTutorVrService.getVisionPrintAiRecommendLrn(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
-
+    
+    /**
+	 * 비전리포트 출력 피드백 수정 (HAMS-T-VR-015)
+	 * @param params
+	 * @return
+	 * @throws Exception
+	 */
+	@PostMapping("/getVisionPrintFeedbackUpdatePopup")
+	@ResponseBody
+	public ResponseEntity getVisionPrintFeedbackUpdatePopup(@RequestBody Map<String, Object> params) throws Exception {
+		body = (LinkedHashMap<String, Object>)hamsTutorVrService.getVisionPrintFeedbackUpdatePopup(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 
 
 

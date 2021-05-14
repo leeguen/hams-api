@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HamsTutorEx">
+	
+	<select id="selectAiDiagnosisRst" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			MSG_TYPE,
+		    COUNT(*) AS CNT
+		FROM DAY_7_CONSULTING_POINT_MSG
+		WHERE DT = #{endDt}
+			AND STUD_ID = #{studId}
+		GROUP BY MSG_TYPE;
+
+    </select>
+    
+    <select id="selectAiDiagnosisRstList" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			MSG_TYPE,
+		    MSG_CD,
+			(SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CMSG.MSG_CD) AS MSG
+		FROM DAY_7_CONSULTING_POINT_MSG CMSG
+		WHERE DT = #{endDt}
+			AND STUD_ID = #{studId}
+		UNION ALL
+		SELECT 
+			'G' AS MSG_TYPE,
+		    MSG_CD,
+			MSG 
+		FROM COMM_MSG_CD WHERE MSG_CD = 'CPG0012'
+		UNION ALL
+		SELECT 
+			'G' AS MSG_TYPE,
+		    MSG_CD,
+			MSG 
+		FROM COMM_MSG_CD WHERE MSG_CD = 'CPG0013';
+    </select>
+    
+    <select id="selectAiDiagnosisRstMsg" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			ES.EXPL_CNT,
+		    ES.PS_EXPL_CNT,
+		    ROUND(ES.CRT_CNT / ES.QUES_CNT * 100) AS CRT_RT,
+		    ES.INCRT_NT_CNT,
+		    IFNULL(ES.SKP_QUES_CNT,0) AS SKP_QUES_CNT,
+		    IFNULL(ES.CUR_QUES_CNT,0) AS CUR_QUES_CNT,
+		    IFNULL(ES.GUC_QUES_CNT,0) AS GUC_QUES_CNT,
+		    ROUND(LE.PLAN_LRN_EX_CNT / LE.PLAN_CNT * 100) AS EX_RT,
+		    (LE.PLAN_CNT - LE.PLAN_LRN_EX_CNT) AS N_LRN_EX_CNT,
+		    ALRN.A_LRN_EX_CNT,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUB_SUBJ_CD) AS A_LRN_SUBJ_CD,
+		    TM.BELOW_5_MIN_LRN_CNT,
+		    TM.OVER_25_MIN_LRN_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN DAY_7_EXAM_STT ES ON ST.STUD_ID = ES.STUD_ID AND ES.DT = #{endDt}
+		LEFT OUTER JOIN DAY_7_LRN_EX_STT LE ON ST.STUD_ID = LE.STUD_ID AND LE.DT = #{endDt}
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        SUM(BELOW_5_MIN_LRN_CNT) AS BELOW_5_MIN_LRN_CNT,
+		        SUM(OVER_25_MIN_LRN_CNT) AS OVER_25_MIN_LRN_CNT
+			FROM DAY_SUBJ_LRN_TM
+		    WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+		) TM ON ST.STUD_ID = TM.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				SUB_SUBJ_CD,
+				SUM(A_LRN_EX_CNT) AS A_LRN_EX_CNT
+			FROM DAY_SUBJ_A_LRN_EX_STT
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD, SUB_SUBJ_CD
+			ORDER BY SUM(A_LRN_EX_CNT) DESC
+			LIMIT 1
+		) ALRN ON ST.STUD_ID = ALRN.STUD_ID
+		WHERE ST.STUD_ID = #{studId};
+    </select>
+	
+</mapper>
