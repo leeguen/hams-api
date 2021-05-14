@@ -2,6 +2,7 @@ package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorVrService;
@@ -12,12 +13,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 @Service
 public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 	
 	@Autowired
 	CommonMapperTutor commonMapperTutor;
+	
+	@Autowired
+	ExternalAPIService externalAPIservice;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HamsTutorVrServiceImpl.class);
 
@@ -32,7 +37,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,true);
 
         //DB 조회
-        LinkedHashMap<String,Integer> visionReportPublishedInfo = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionReportPublishedInfo");
+        ArrayList<Map<String,Object>> visionReportPublishedInfo = (ArrayList<Map<String,Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionReportPublishedInfo");
 
         data.put("visionReportPublishedInfo",visionReportPublishedInfo);
         setResult(dataKey,data);
@@ -118,7 +123,6 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         ArrayList<Map<String,Object>> visionGrowthStt = new ArrayList<>();
         ArrayList<Map<String,Object>> growStt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionGrowthStt");
         ArrayList<Map<String,Object>> subjCrtRt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionGrowthSubjStt");
-        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
         
         for(Map<String, Object> item : growStt) {
         	ArrayList<Map<String,Object>> subjCrtRtList = new ArrayList<>();
@@ -146,7 +150,20 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         //DB 조회
         LinkedHashMap<String,Integer> visionExamStt = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamStt");
 
-        data.put("visionExamStt",visionExamStt);
+        
+        if(visionExamStt == null) {
+        	LinkedHashMap<String, Integer> visionExamSttMap = new LinkedHashMap<>();
+        	
+        	visionExamSttMap.put("ansQuesCnt", null);
+        	visionExamSttMap.put("crtQuesCnt", null);
+        	visionExamSttMap.put("incrtNtCnt", null);
+        	visionExamSttMap.put("incrtNtFnshCnt", null);
+        	
+        	data.put("visionExamStt",visionExamSttMap);
+        }else {
+        	data.put("visionExamStt",visionExamStt);
+        }
+        
         setResult(dataKey,data);
 
         return result;
@@ -170,11 +187,13 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	LinkedHashMap<String,Object> chapterListMap = new LinkedHashMap<>();
         	ArrayList chapternmList = new ArrayList();
             ArrayList chapterScoreList = new ArrayList();
+            ArrayList chapterCdList = new ArrayList();
             
         	for(Map<String, Object> chapterItem : visionExamChapterList) {
         		if(item.get("unitNo").equals(chapterItem.get("unitNo"))) {
         			chapternmList.add(chapterItem.get("unitNm").toString());
         			chapterScoreList.add(chapterItem.get("score").toString());
+        			chapterCdList.add(chapterItem.get("unitCd"));
         		}
         	}
         	
@@ -183,6 +202,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	chapterListMap.put("chapter", item.get("unitNo"));
         	chapterListMap.put("chapterNm", chapternmList);
         	chapterListMap.put("understandingLv", chapterScoreList);
+        	chapterListMap.put("chapterCd", chapterCdList);
         	
         	chapterList.add(chapterListMap);
         }
@@ -392,9 +412,13 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,false);
 
         //DB 조회
-        LinkedHashMap<String,Object> visionBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
+        LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
+        ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsg");
+        
+        ArrayList positiveMsgList = new ArrayList();
+        ArrayList negativeMsgList = new ArrayList();
         
         if(msg != null) {
         	Map<String, Object> msgMap = msg.get(0);
@@ -447,11 +471,98 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	msg.add(msgMap);
         }
         
-//        visionPrintBasicInfo.put("title","미래 우주 과학자");
-//        visionPrintBasicInfo.put("positiveMsg",new String[] {"칭찬 메시지1","칭찬 메시지2","칭찬 메시지3","칭찬 메시지4","칭찬 메시지5"});
-//        visionPrintBasicInfo.put("negativeMsg",new String[] {"처방 메시지1","처방 메시지2"});
-        visionBasicInfo.put("msg",msg.get(0));
-        data.put("visionBasicInfo",visionBasicInfo);
+        for(Map<String, Object> msgItem : consultinMsg) {
+        	if("G".equals(msgItem.get("msgType"))) {
+        		positiveMsgList.add(msgItem.get("msg"));
+        	}else {
+        		negativeMsgList.add(msgItem.get("msg"));
+        	}
+        }
+        
+        String recommendJob = null;
+        Map<String, Object> apiMap = new HashMap<>();
+        Map<String, Object> paramData = new HashMap<>();
+        
+        paramData.put("p", paramMap.get("p"));
+        paramData.put("apiName", "intel-inspecion-strength");
+        
+        apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+        
+        String intelNm = null;
+        List <Map> intelNmList = new ArrayList<>();
+        if(apiMap != null) {
+        	intelNmList = (List<Map>) apiMap.get("items");
+        	intelNm = intelNmList.get(0).get("intel_nm").toString().replace("지능", "");
+        }
+        
+        if(apiMap != null) {
+        	String intelStrength = intelNm;
+        	String maxSubjCd = null;
+        	if(msgInfo.get("maxLrnSubjCd")!= null) {
+        		
+        		if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
+        			maxSubjCd = "E01";
+        		}else {
+        			maxSubjCd = msgInfo.get("maxLrnSubjCd").toString();
+        		}
+        		
+        		switch (intelStrength) {
+        		case "언어":
+        			intelNm = "RJ01" + maxSubjCd;
+        			break;
+        		case "논리수학":
+        			intelNm = "RJ02" + maxSubjCd;
+        			break;
+        		case "공간":
+        			intelNm = "RJ03" + maxSubjCd;
+        			break;
+        		case "신체운동":
+        			intelNm = "RJ04" + maxSubjCd;
+        			break;
+        		case "대인":
+        			intelNm = "RJ05" + maxSubjCd;
+        			break;
+        		case "음악":
+        			intelNm = "RJ06" + maxSubjCd;
+        			break;
+        		case "개인내적":
+        			intelNm = "RJ07" + maxSubjCd;
+        			break;
+        		case "자연친화":
+        			intelNm = "RJ08" + maxSubjCd;
+        			break;
+        		default:
+        			intelNm = "RJ09" + maxSubjCd;
+        			break;
+        		}
+        	}else {
+        		intelNm = "RJ01E02";
+        	}
+        }else {
+        	if(msgInfo.get("maxLrnSubjCd") != null) {
+        		if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
+        			intelNm = "RJ09E01";
+        		}else {
+        			intelNm = "RJ09" + msgInfo.get("maxLrnSubjCd");
+        		}
+        	}else {
+        		intelNm = "RJ01E02";
+        	}
+        }
+        
+        paramData.clear();
+        paramData.put("msgCd", intelNm);
+        paramData.put("grp", "RECOMMEND_JOB");
+        
+        Map<String, Object> recommandJobData = (Map) commonMapperTutor.get(paramData, "HamsTutorVr.selectRecommendJob");
+        
+        recommendJob = recommandJobData.get("cdNm").toString();
+        
+        visionPrintBasicInfo.put("title",recommendJob);
+        visionPrintBasicInfo.put("msg",msg.get(0));
+        visionPrintBasicInfo.put("positiveMsg",positiveMsgList);
+        visionPrintBasicInfo.put("negativeMsg",negativeMsgList);
+        data.put("visionPrintBasicInfo",visionPrintBasicInfo);
 
         setResult(dataKey,data);
 
@@ -547,6 +658,17 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         data.put("visionPrintAiRecommendLrn",visionPrintAiRecommendLrn);
         setResult(dataKey,data);
+
+        return result;
+    }
+    
+    @Override
+    public Map getVisionPrintFeedbackUpdatePopup(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        checkRequired(paramMap,false);
+
+        //DB 조회
+        setResult(dataKey, commonMapperTutor.update(paramMap, "updateVisionPrintFeedback"));
 
         return result;
     }
