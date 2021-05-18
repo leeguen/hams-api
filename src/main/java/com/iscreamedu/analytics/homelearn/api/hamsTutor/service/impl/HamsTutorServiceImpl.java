@@ -159,22 +159,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                 checkRequiredWithDt(paramMap);
 
                 //DB 조회
-                LinkedHashMap<String,Object> lrnBasicInfo = new LinkedHashMap<>();
-                LinkedHashMap<String,Object> msg = new LinkedHashMap<>();
-
-                lrnBasicInfo.put("studId",194909);
-                lrnBasicInfo.put("gender","M");
-                lrnBasicInfo.put("studNm","김홈런");
-                lrnBasicInfo.put("loginId","test01");
-                lrnBasicInfo.put("schlNm","홈런초등학교");
-                lrnBasicInfo.put("grade",5);
-
-                msg.put("positiveLrnMsg","칭찬-학습태도 메시지");
-                msg.put("positiveExamMsg","칭찬-평가 메시지");
-                msg.put("negativeLrnMsg","처방-학습태도 메시지");
-                msg.put("negativeExamMsg","처방-평가 메시지");
-
-                lrnBasicInfo.put("msg",msg);
+            LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
 
                 data.put("lrnBasicInfo",lrnBasicInfo);
                 setResult(dataKey,data);
@@ -191,15 +176,25 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             ArrayList<Map<String,Object>> lrnGrowthStt = new ArrayList<>();
-            ArrayList<Map<String,Object>> subjCrtRt = new ArrayList<>();
-            LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-
-
 
             for(int i = 0; i<4; i++) {
                 if(i != 0) {
-                    String paramDate = subDate((String) paramMap.get("endDt"),-7);
-                    paramMap.put("endDt",paramDate);
+                    //월별일때와 주별일때를 나눠서 구한다.
+                    // 주별일땐 STARTDT 와 ENDDT를 각각 7씩 빼고, 월별일땐 한달씩 빼서 계산한다.
+                    String endDate;
+                    String startDate;
+                    if(paramMap.get("isWM").equals("W")) {
+                        endDate = subDate((String) paramMap.get("endDt"),-7,true,false);
+                        startDate = subDate((String) paramMap.get("startDt"),-7,true,false);
+                        paramMap.put("endDt",endDate);
+                        paramMap.put("startDt",startDate);
+                    }
+                    else {
+                        endDate = subDate((String) paramMap.get("endDt"),-1,false,true);
+                        startDate = subDate((String) paramMap.get("startDt"),-1,false,false);
+                        paramMap.put("endDt",endDate);
+                        paramMap.put("startDt",startDate);
+                    }
                     Map<String,Object> item = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnGrowthStt");
                     lrnGrowthStt.add(item);
                 }
@@ -207,30 +202,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                     Map<String,Object> item = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnGrowthStt");
                     lrnGrowthStt.add(item);
                 }
-                System.out.println("index :::" + i);
-                System.out.println("endDt :::" + paramMap.get("endDt"));
             }
-
-
-//            subjCrtRt.add(createSubjCrtRtMap("C01",85));
-//            subjCrtRt.add(createSubjCrtRtMap("C02",80));
-//            subjCrtRt.add(createSubjCrtRtMap("C03",90));
-//            subjCrtRt.add(createSubjCrtRtMap("C04",95));
-//            subjCrtRt.add(createSubjCrtRtMap("C05",70));
-//            subjCrtRt.add(createSubjCrtRtMap("C06",75));
-//
-//            dummyMap.put("yymm",202012);
-//            dummyMap.put("wk",2);
-//            dummyMap.put("exRt",90);
-//            dummyMap.put("crtRt",95);
-//            dummyMap.put("subjCrtRt",subjCrtRt);
-//            dummyMap.put("top10AvgExRt",80);
-//            dummyMap.put("top10AvgCrtRt",90);
-//            dummyMap.put("grpAvgExRt",80);
-//            dummyMap.put("grpAvgCrtRt",90);
-//
-//            lrnGrowthStt.add(dummyMap);
-
             data.put("lrnGrowthStt",lrnGrowthStt);
             setResult(dataKey,data);
 
@@ -273,67 +245,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             lrnExChart.put("dayLrnTmMsgList",dayLrnTmMsgList);
             lrnExChart.put("subjLrnTmList",subjLrnTmList);
             lrnExChart.put("subjLrnTmMsgList",subjLrnTmMsgList);
-//            LinkedHashMap<String,Object> dummyDayMap = new LinkedHashMap<>();
-//            LinkedHashMap<String,Object> dummySubjMap = new LinkedHashMap<>();
-//
-//            ArrayList<Map<String,Object>> day = new ArrayList<>();
-//            ArrayList<Map<String,Object>> subj = new ArrayList<>();
-//
-//            ArrayList<Map<String,Object>> dayLrnTmList = new ArrayList<>();
-//            ArrayList<Map<String,Object>> subjLrnTmList = new ArrayList<>();
-//
-//            dummyDayMap.put("dt","2020-12-1");
-//            dummyDayMap.put("totalLrnTm",1140);
-//
-//            dayLrnTmList.add(createDaySubjMap(
-//                    "C01",
-//                    200,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    true));
-//            dayLrnTmList.add(createDaySubjMap(
-//                    "C02",
-//                    270,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    true));
-//            dayLrnTmList.add(createDaySubjMap(
-//                    "C03",
-//                    300,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    true));
-//            dayLrnTmList.add(createDaySubjMap(
-//                    "N01",
-//                    370,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    true));
-//
-//            dummyDayMap.put("subjLrnTm",dayLrnTmList);
-//            day.add(dummyDayMap);
-//
-//            dummySubjMap.put("subjCd","C01");
-//            dummySubjMap.put("totalLrnTm",1320);
-//
-//            subjLrnTmList.add(createDaySubjMap(
-//                    "C0101",
-//                    570,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    false));
-//            subjLrnTmList.add(createDaySubjMap(
-//                    "C0102",
-//                    650,
-//                    "[과학(2015개정)][과학 3-2 학교공부예복습]",
-//                    "2장. 탐구를 실행해 볼까요, 탐구 결과를 발표해 볼까요, 새로운 탐구를 시작해 볼까요",
-//                    false));
-//
-//            dummySubjMap.put("subjLrnTm",subjLrnTmList);
-//            subj.add(dummySubjMap);
-//
-//            lrnExChart.put("day",day);
-//            lrnExChart.put("subj",subj);
 
             data.put("lrnExChart",lrnExChart);
             setResult(dataKey,data);
@@ -350,19 +261,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             checkRequiredWithDt(paramMap);
 
             //DB 조회
-            ArrayList<Map<String,Object>> lrnTmList = new ArrayList<>();
-            LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-
-            dummyMap.put("serviceId",43837);
-            dummyMap.put("subjCd","C01");
-            dummyMap.put("exDttm","2020.05.05(화) 12:03 ~ 12:17");
-            dummyMap.put("category","예복습 > 5학년 1학기 > 국어 > 2단원 문단의 짜임 > 5장 문장 만들기");
-            dummyMap.put("lrnSec",3412);
-            dummyMap.put("stdLrnTmCd",1);
-            dummyMap.put("exType","계획");
-            dummyMap.put("planDt","2020.05.05(화)");
-
-            lrnTmList.add(dummyMap);
+            List<Map<String,Object>> lrnTmList = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getLrnTimeLineList");
 
             data.put("lrnTmList",lrnTmList);
             setResult(dataKey,data);
@@ -377,18 +276,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
-//            examStt.put("crtRt",80);
-//            examStt.put("top10AvgCrtRt",92);
-//            examStt.put("grpAvgCrtRt",75);
-//            examStt.put("incrtNoteNcCnt",0);
-//            examStt.put("explCnt",10);
-//            examStt.put("ansQuesCnt",83);
-//            examStt.put("crtQuesCnt",62);
-//            examStt.put("imprvSlvHabitCnt",12);
-//            examStt.put("skipQuesCnt",4);
-//            examStt.put("cursoryQuesCnt",4);
-//            examStt.put("guessQuesCnt",4);
-//            examStt.put("mistakenQuesCnt",4);
 
             data.put("examStt",examStt);
             setResult(dataKey,data);
@@ -402,48 +289,10 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             checkRequiredWithDt(paramMap);
 
             //DB 조회
-            LinkedHashMap<String,Object> examChart = new LinkedHashMap<>();
-            List<Map<String,Object>> chartData = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getExamChart");
-            //ArrayList<Map<String,Object>> chartData = new ArrayList<>();
-            //LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-            //LinkedHashMap<String,Object> dummyMapTwo = new LinkedHashMap<>();
-
-//            examChart.put("maxSubjCd","C02");
-//            examChart.put("minSubjCd","C05");
-//
-//            dummyMap.put("subjCd","C01");
-//            dummyMap.put("crtRt",80);
-//            dummyMap.put("top10AvgCrtRt",90);
-//            dummyMap.put("grpAvgCrtRt",85);
-//            dummyMap.put("explCnt",10);
-//            dummyMap.put("ansQuesCnt",83);
-//            dummyMap.put("crtQuesCnt",62);
-//            dummyMap.put("incrtNoteNcCnt",0);
-//            dummyMap.put("skipQuesCnt",4);
-//            dummyMap.put("cursoryQuesCnt",4);
-//            dummyMap.put("guessQuesCnt",4);
-//            dummyMap.put("mistakenQuesCnt",4);
-//
-//            dummyMapTwo.put("subjCd","C02");
-//            dummyMapTwo.put("crtRt",85);
-//            dummyMapTwo.put("top10AvgCrtRt",92);
-//            dummyMapTwo.put("grpAvgCrtRt",80);
-//            dummyMapTwo.put("explCnt",13);
-//            dummyMapTwo.put("ansQuesCnt",90);
-//            dummyMapTwo.put("crtQuesCnt",77);
-//            dummyMapTwo.put("incrtNoteNcCnt",2);
-//            dummyMapTwo.put("skipQuesCnt",1);
-//            dummyMapTwo.put("cursoryQuesCnt",2);
-//            dummyMapTwo.put("guessQuesCnt",3);
-//            dummyMapTwo.put("mistakenQuesCnt",4);
-//
-//            chartData.add(dummyMap);
-//            chartData.add(dummyMapTwo);
-            examChart.put("chartData",chartData);
+            List<Map<String,Object>> examChart = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getExamChart");
 
             data.put("examChart",examChart);
             setResult(dataKey,data);
-
         return result;
     }
 
@@ -451,37 +300,15 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     public Map getExamList(Map<String, Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
             checkRequiredWithDt(paramMap);
+            paramMap.put("types",paramMap.get("types").toString().split(","));
 
             //DB 조회
-            ArrayList<Map<String,Object>> examList = new ArrayList<>();
-            LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+            LinkedHashMap<String,Object> examList = new LinkedHashMap<>();
+            Map<String,Object> totalCnt = (Map)mapper.get(paramMap,TUTOR_NAMESPACE + ".getExamListCnt");
+            List<Map<String,Object>> list = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getExamList");
 
-            LinkedHashMap<String,Object> answer = new LinkedHashMap<>();
-            LinkedHashMap<String,Object> wrongAnswer = new LinkedHashMap<>();
-
-            dummyMap.put("examCd",9977);
-            dummyMap.put("smtId", 83050805);
-            dummyMap.put("stuId", 4958);
-            dummyMap.put("subjCd","C01");
-            dummyMap.put("smtDttm","2020-05-29 10:33:38");
-            dummyMap.put("type","A");
-            dummyMap.put("examNm","[3-1] 22장. 교통수단의 발달");
-            dummyMap.put("crtRt",80);
-            dummyMap.put("crtQuesCnt",4);
-            dummyMap.put("quesCnt",5);
-
-            answer.put("crtQues","1,3,5");
-            answer.put("guessQues","4");
-
-            wrongAnswer.put("skipQues",null);
-            wrongAnswer.put("guessQues","1,2");
-            wrongAnswer.put("cursoryQues","2");
-            wrongAnswer.put("incrtQues","3");
-            wrongAnswer.put("mistakenQues","1");
-
-            dummyMap.put("answer",answer);
-            dummyMap.put("wrongAnswer",wrongAnswer);
-            examList.add(dummyMap);
+            examList.put("totalCnt",totalCnt.get("totalCnt"));
+            examList.put("list",list);
 
             data.put("examList",examList);
             setResult(dataKey,data);
@@ -496,28 +323,9 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             LinkedHashMap<String,Object> attStt = new LinkedHashMap<>();
-            LinkedHashMap<String,Object> attPtnAnalysis = new LinkedHashMap<>();
+            LinkedHashMap<String,Object> attPtnAnalysis = (LinkedHashMap<String, Object>)mapper.get(paramMap,TUTOR_NAMESPACE + ".getAttSttAnalysis");
+            List<Map<String,Object>> attPtnChart = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getAttSttChart");
 
-            ArrayList<Map<String,Object>> attPtnChart = new ArrayList<>();
-            LinkedHashMap<String,Object> attPtnChartDummyMap = new LinkedHashMap<>();
-            LinkedHashMap<String,Object> attPtnChartDummyMapTwo = new LinkedHashMap<>();
-
-            attPtnAnalysis.put("attRt",83);
-            attPtnAnalysis.put("attRtMsg","주간 출석률이 높아요.");
-            attPtnAnalysis.put("lrnPlanDtCnt",5);
-            attPtnAnalysis.put("attDtCnt",4);
-            attPtnAnalysis.put("loginPtn","규칙적");
-
-            attPtnChartDummyMap.put("dt","2020-12-01");
-            attPtnChartDummyMap.put("loginTm","09:32");
-            attPtnChartDummyMap.put("planYn","Y");
-
-            attPtnChartDummyMapTwo.put("dt","2020-12-02");
-            attPtnChartDummyMapTwo.put("loginTm","09:12");
-            attPtnChartDummyMapTwo.put("planYn","N");
-
-            attPtnChart.add(attPtnChartDummyMap);
-            attPtnChart.add(attPtnChartDummyMapTwo);
 
             attStt.put("attPtnAnalysis",attPtnAnalysis);
             attStt.put("attPtnChart",attPtnChart);
@@ -557,36 +365,27 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         //DB params
         params.put("studId",encodedStudId);
     }
-    // getLrnGrowthStt의 subjCrtRt dummy map을 만드는 메서드
-    private Map createSubjCrtRtMap(String subj,int score) {
-            LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
-            resultMap.put("subjCd",subj);
-            resultMap.put("crtRt",score);
-            return  resultMap;
-    }
-    //getLrnExChart의 day,subj dummy map을 만드는 메서드
-    private Map createDaySubjMap(String subj,int lrnTm, String ctgr,String msg,boolean day) {
-            LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-            if(day) {
-                dummyMap.put("subjCd",subj);
-            }
-            else {
-                dummyMap.put("subSubjCd",subj);
-            }
-            dummyMap.put("lrnTm",lrnTm);
-            dummyMap.put("ctgr",ctgr);
-            dummyMap.put("msg",msg);
-            return dummyMap;
 
-    }
-
-    private String subDate(String paramDt,int day) throws ParseException {
+    private String subDate(String paramDt,int day,boolean isW,boolean isWEnd) throws ParseException {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat form = new SimpleDateFormat("yyyy-MM-dd");
 
         Date dt = form.parse(paramDt);
         cal.setTime(dt);
-        cal.add(Calendar.DATE,day);
+
+        if(isW) {
+            cal.add(Calendar.DATE,day);
+        }
+        else {
+            if(isWEnd) {
+                cal.add(Calendar.MONTH,day);
+                int dayOfMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+                cal.set(Calendar.DAY_OF_MONTH,dayOfMonth);
+            }
+            else {
+                cal.add(Calendar.MONTH,day);
+            }
+        }
         System.out.println("day:::" + day);
         System.out.println("getTime:::" + cal.getTime());
         System.out.println("format getTime:::" + form.format(cal.getTime()));
