@@ -11,5 +11,7 @@ public interface HamsTutorExService {
     public Map getAiWeakChapterGuide(Map<String, Object> paramMap) throws Exception;
 
     public Map getAiRecommendQuestion(Map<String, Object> paramMap) throws Exception;
+    
+    public Map getAiRecommendCourse(Map<String, Object> paramMap) throws Exception;
 
 }

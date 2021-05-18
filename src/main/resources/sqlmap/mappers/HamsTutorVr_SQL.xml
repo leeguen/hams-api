@@ -151,6 +151,98 @@
 	</choose>
     </select>
     
+    <select id="selectVisionBasicConsultingMsgCondition" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				ES.EXPL_CNT,
+				ES.PS_EXPL_CNT,
+				ROUND(ES.CRT_CNT / ES.QUES_CNT * 100) AS CRT_RT,
+				(ES.INCRT_NT_REG_CNT - INCRT_NT_FNSH_CNT ) INCRT_NT_CNT,
+				IFNULL(ES.SKIP_QUES_CNT,0) AS SKP_QUES_CNT,
+				IFNULL(ES.CURSORY_QUES_CNT,0) + IFNULL(ES.MISTAKE_QUES_CNT,0) AS CUR_QUES_CNT,
+				IFNULL(ES.GUESS_CRT_QUES_CNT,0) + IFNULL(ES.GUESS_INCRT_QUES_CNT,0) AS GUC_QUES_CNT,
+				ROUND(LE.PLAN_LRN_EX_CNT / LE.PLAN_CNT * 100) AS EX_RT,
+				(LE.PLAN_CNT - LE.PLAN_LRN_EX_CNT) AS N_LRN_EX_CNT,
+				ALRN.A_LRN_EX_CNT,
+				(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUB_SUBJ_CD) AS A_LRN_SUBJ_CD,
+				TM.BELOW_5_MIN_LRN_CNT,
+				TM.OVER_25_MIN_LRN_CNT
+			FROM FIRST_VS_REPORT_STUD ST
+			LEFT OUTER JOIN FIRST_VS_REPORT_EXAM_STT ES ON ST.STUD_ID = ES.STUD_ID
+			LEFT OUTER JOIN FIRST_VS_REPORT_LRN_EX_STT LE ON ST.STUD_ID = LE.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(BELOW_5_MIN_LRN_CNT) AS BELOW_5_MIN_LRN_CNT,
+					SUM(OVER_25_MIN_LRN_CNT) AS OVER_25_MIN_LRN_CNT
+				FROM FIRST_VS_REPORT_SUBJ_LRN_TM
+				WHERE STUD_ID = #{studId}
+			) TM ON ST.STUD_ID = TM.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUB_SUBJ_CD,
+					SUM(A_LRN_EX_CNT) AS A_LRN_EX_CNT
+				FROM FIRST_VS_REPORT_SUBJ_A_LRN_EX_STT
+				WHERE STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD, SUB_SUBJ_CD
+				ORDER BY SUM(A_LRN_EX_CNT) DESC
+				LIMIT 1
+			) ALRN ON ST.STUD_ID = ALRN.STUD_ID
+			WHERE ST.STUD_ID = #{studId};
+		</when>
+		<otherwise>
+			SELECT
+				ES.EXPL_CNT,
+				ES.PS_EXPL_CNT,
+				ROUND(ES.CRT_CNT / ES.QUES_CNT * 100) AS CRT_RT,
+				(ES.INCRT_NT_REG_CNT - INCRT_NT_FNSH_CNT ) INCRT_NT_CNT,
+				IFNULL(ES.SKIP_QUES_CNT,0) AS SKP_QUES_CNT,
+				IFNULL(ES.CURSORY_QUES_CNT,0) + IFNULL(ES.MISTAKE_QUES_CNT,0) AS CUR_QUES_CNT,
+				IFNULL(ES.GUESS_CRT_QUES_CNT,0) + IFNULL(ES.GUESS_INCRT_QUES_CNT,0) AS GUC_QUES_CNT,
+				ROUND(LE.PLAN_LRN_EX_CNT / LE.PLAN_CNT * 100) AS EX_RT,
+				(LE.PLAN_CNT - LE.PLAN_LRN_EX_CNT) AS N_LRN_EX_CNT,
+				ALRN.A_LRN_EX_CNT,
+				(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUB_SUBJ_CD) AS A_LRN_SUBJ_CD,
+				TM.BELOW_5_MIN_LRN_CNT,
+				TM.OVER_25_MIN_LRN_CNT
+			FROM VS_REPORT_STUD ST
+			LEFT OUTER JOIN VS_REPORT_EXAM_STT ES ON ST.YYMM = ES.YYMM AND ST.TERM = ES.TERM AND ST.STUD_ID = ES.STUD_ID
+			LEFT OUTER JOIN VS_REPORT_LRN_EX_STT LE ON ST.YYMM = LE.YYMM AND ST.TERM = LE.TERM AND ST.STUD_ID = LE.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+			        SUM(BELOW_5_MIN_LRN_CNT) AS BELOW_5_MIN_LRN_CNT,
+			        SUM(OVER_25_MIN_LRN_CNT) AS OVER_25_MIN_LRN_CNT
+				FROM VS_REPORT_SUBJ_LRN_TM
+				WHERE YYMM = #{yymm}
+					AND TERM = #{term}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) TM ON ST.STUD_ID = TM.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUB_SUBJ_CD,
+					SUM(A_LRN_EX_CNT) AS A_LRN_EX_CNT
+				FROM VS_REPORT_SUBJ_A_LRN_EX_STT
+				WHERE YYMM = #{yymm}
+					AND TERM = #{term}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD, SUB_SUBJ_CD
+				ORDER BY SUM(A_LRN_EX_CNT) DESC
+				LIMIT 1
+			) ALRN ON ST.STUD_ID = ALRN.STUD_ID
+			WHERE ST.YYMM = #{yymm}
+				AND ST.TERM = #{term}
+				AND ST.STUD_ID = #{studId};
+		</otherwise>
+	</choose>
+    </select>
+    
     <select id="selectRecommendJob" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			CD_NM
@@ -296,21 +388,19 @@
 			SELECT
 				DISTINCT SUBJ_CD
 			FROM FIRST_VS_REPORT_STUD FS
-			JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
+			JOIN FIRST_VS_REPORT_EXAM_UNIT_TEST_LOG FEU ON FS.STUD_ID = FEU.STUD_ID AND FEU.SUBJ_CD IN ('C01','C02','C03','C04')
 			WHERE FS.STUD_ID = #{studId}
-				AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
-			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD 
+			ORDER BY FEU.SUBJ_CD 
 		</when>
 		<otherwise>
 			SELECT
 				DISTINCT SUBJ_CD
 			FROM VS_REPORT_STUD VS
-			JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
+			JOIN VS_REPORT_EXAM_UNIT_TEST_LOG VEU ON VS.YYMM = VEU.YYMM AND VS.TERM = VEU.TERM AND VS.STUD_ID = VEU.STUD_ID AND VEU.SUBJ_CD IN ('C01','C02','C03','C04') 
 			WHERE VS.YYMM = #{yymm}
 				AND VS.TERM = #{term}
 			    AND VS.STUD_ID = #{studId}
-			    AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
-			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
+			ORDER BY VEU.SUBJ_CD
 		</otherwise>
 	</choose>
     </select>
@@ -326,7 +416,10 @@
 			FROM FIRST_VS_REPORT_STUD FS
 			JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
 			WHERE FS.STUD_ID = #{studId}
-				AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
+				AND UI.SUBJ_CD IN 
+				<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                </foreach>
 			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
 		</when>
 		<otherwise>
@@ -340,7 +433,10 @@
 			WHERE VS.YYMM = #{yymm}
 				AND VS.TERM = #{term}
 			    AND VS.STUD_ID = #{studId}
-			    AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
+			    AND UI.SUBJ_CD IN 
+				<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                </foreach>
 			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
 		</otherwise>
 	</choose>
@@ -372,11 +468,34 @@
 					UI.SUBJ_CD,
 					UI.EXAM_SUBJ_CD,
 					UI.UNIT_NM,
-					SUBSTRING(UI.UNIT_NO,1,1) AS UNIT_NO
+					CASE
+						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
+							CASE
+								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
+				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
+				                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
+				                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
+				            END 
+						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
+							CASE
+								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+				                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
+				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
+				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
+				                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
+				            END 
+				        ELSE SUBSTRING(UI.UNIT_NO,1,1)
+			    	END AS UNIT_NO
 				FROM FIRST_VS_REPORT_STUD FS
 				JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
 				WHERE FS.STUD_ID = #{studId}
-					AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
+					AND UI.SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                	</foreach>
 				ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
 			) UI_1
 			LEFT OUTER JOIN (
@@ -389,7 +508,10 @@
 					END AS CRT_RT
 				FROM FIRST_VS_REPORT_EXAM_UNIT_TEST_LOG
 				WHERE STUD_ID = #{studId}
-					AND SUBJ_CD IN ('C01','C02','C03','C04')
+					AND SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                	</foreach>
 			) VER ON UI_1.STUD_ID = VER.STUD_ID AND UI_1.UNIT_CD = VER.UNIT_CD
 			ORDER BY UI_1.UNIT_NO, UI_1.SUBJ_CD
 		</when>
@@ -417,13 +539,36 @@
 					UI.SUBJ_CD,
 					UI.EXAM_SUBJ_CD,
 					UI.UNIT_NM,
-					SUBSTRING(UI.UNIT_NO,1,1) AS UNIT_NO
+					CASE
+						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
+							CASE
+								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
+				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
+				                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
+				                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
+				            END 
+						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
+							CASE
+								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+				                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
+				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
+				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
+				                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
+				            END 
+				        ELSE SUBSTRING(UI.UNIT_NO,1,1)
+			    	END AS UNIT_NO
 				FROM VS_REPORT_STUD VS
 				JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
 				WHERE VS.YYMM = #{yymm}
 					AND VS.TERM = #{term}
 					AND VS.STUD_ID = #{studId}
-					AND UI.SUBJ_CD IN ('C01','C02','C03','C04')
+					AND UI.SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                	</foreach>
 				ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
 			) UI_1
 			LEFT OUTER JOIN (
@@ -438,7 +583,10 @@
 				WHERE YYMM = #{yymm}
 					AND TERM = #{term}
 					AND STUD_ID = #{studId}
-					AND SUBJ_CD IN ('C01','C02','C03','C04')
+					AND SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                	</foreach>
 			) VER ON UI_1.STUD_ID = VER.STUD_ID AND UI_1.UNIT_CD = VER.UNIT_CD
 			ORDER BY UI_1.UNIT_NO, UI_1.SUBJ_CD
 		</otherwise>
@@ -465,9 +613,9 @@
 					UT.UNIT_INFO,
 					UT.PRE_UNIT_INFO,
 					(SELECT DT AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = #{studId} AND EXAM_TYPE = 'B' AND EXAM_CD = UT.UNIT_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_B_DT,
-					(SELECT ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = 1471604 AND EXAM_TYPE = 'B' AND EXAM_CD = UT.UNIT_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_B_CRT_RT,
+					(SELECT ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = #{studId} AND EXAM_TYPE = 'B' AND EXAM_CD = UT.UNIT_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_B_CRT_RT,
 					(SELECT DT AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = #{studId} AND EXAM_TYPE = 'F' AND EXAM_CD = UT.TP_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_F_DT,
-					(SELECT ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = 1471604 AND EXAM_TYPE = 'F' AND EXAM_CD = UT.TP_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_F_CRT_RT,
+					(SELECT ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT FROM EXAM_MONTH_UNIT_TEST_RST WHERE STUD_ID = #{studId} AND EXAM_TYPE = 'F' AND EXAM_CD = UT.TP_EXAM_CD ORDER BY DT DESC LIMIT 1) AS PRE_F_CRT_RT,
 					UT.UNIT_EXAM_CD,
 					UT.TP_EXAM_CD,
 					UT.SUB_UNIT_INFO,
@@ -772,13 +920,13 @@
 				END AS CRT_RT,
 				CRT_CNT AS CRT_QUES_CNT,
 				QUES_CNT,
-				CRT_QUES_SP AS ANSWER_CRT_QUES,
-				GUESS_CRT_QUES_SP AS ANSWER_GUESS_QUES,
-				SKIP_QUES_SP AS WRONG_ANSWER_SKIP_QUES,
-				GUESS_INCRT_QUES_SP AS WRONG_ANSWER_GUESS_QUES,
-				CURSORY_QUES_SP AS WRONG_ANSWER_CURSORY_QUES,
-				INCRT_QUES_SP AS WRONG_ANSWER_INCRT_QUES,
-				MISTAKE_QUES_SP AS WRONG_ANSWER_MISTAKE_QUES
+				CRT_QUES_SP AS CRT_QUES,
+				GUESS_CRT_QUES_SP AS GUESS_QUES,
+				SKIP_QUES_SP AS SKIP_QUES,
+				GUESS_INCRT_QUES_SP AS GUESS_INC_QUES,
+				CURSORY_QUES_SP AS CURSORY_QUES,
+				INCRT_QUES_SP AS INCRT_QUES,
+				MISTAKE_QUES_SP AS MISTAKE_QUES
 			FROM EXAM_WEEK_RST
 			WHERE YYMM = #{item.yymm}
 				AND WK = #{item.wk}
@@ -801,13 +949,13 @@
 			    END AS CRT_RT,
 			    CRT_CNT AS CRT_QUES_CNT,
 			    QUES_CNT,
-			    CRT_QUES_SP AS ANSWER_CRT_QUES,
-			    GUESS_CRT_QUES_SP AS ANSWER_GUESS_QUES,
-			    SKIP_QUES_SP AS WRONG_ANSWER_SKIP_QUES,
-			    GUESS_INCRT_QUES_SP AS WRONG_ANSWER_GUESS_QUES,
-			    CURSORY_QUES_SP AS WRONG_ANSWER_CURSORY_QUES,
-			    INCRT_QUES_SP AS WRONG_ANSWER_INCRT_QUES,
-			    MISTAKE_QUES_SP AS WRONG_ANSWER_MISTAKE_QUES
+			    CRT_QUES_SP AS CRT_QUES,
+				GUESS_CRT_QUES_SP AS GUESS_QUES,
+				SKIP_QUES_SP AS SKIP_QUES,
+				GUESS_INCRT_QUES_SP AS GUESS_INC_QUES,
+				CURSORY_QUES_SP AS CURSORY_QUES,
+				INCRT_QUES_SP AS INCRT_QUES,
+				MISTAKE_QUES_SP AS MISTAKE_QUES
 			FROM EXAM_MONTH_RST
 			WHERE YYMM IN 
 				<foreach collection="yymms" item="item"  open="(" close=")" separator=",">
@@ -817,6 +965,89 @@
 			    AND SUBJ_CD = #{subjCd}
 		</otherwise>
 	</choose>
+	<choose>
+		<when test="( startIdx == null or startIdx == '') and (pageSize == null or pageSize == '')">
+			LIMIT 0, 10
+		</when>
+		<when test="startIdx == null or startIdx == ''">
+			LIMIT 0, ${pageSize}
+		</when>
+		<when test="pageSize == null or pageSize == ''">
+			LIMIT ${idx}, 10
+		</when>
+		<otherwise>
+			LIMIT ${idx},  ${pageSize}
+		</otherwise>
+	</choose>
+    </select>
+    
+    <select id="selectVisionExamCount" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			COUNT(EXAM_CD) AS TOTAL_COUNT
+		FROM (
+	<choose>
+		<when test="term == 0">
+		<foreach collection="yymms" item="item"  open="" close="" separator="UNION ALL">
+			SELECT
+				EXAM_CD,
+				SMT_ID,
+				STU_ID,
+				SUBJ_CD,
+				SMT_DTTM,
+				EXAM_TYPE AS TYPE,
+				EXAM_NM,
+				CASE
+					WHEN QUES_CNT <![CDATA[<]]> CRT_CNT THEN 100
+					ELSE ROUND(CRT_CNT / QUES_CNT * 100)
+				END AS CRT_RT,
+				CRT_CNT AS CRT_QUES_CNT,
+				QUES_CNT,
+				CRT_QUES_SP AS CRT_QUES,
+				GUESS_CRT_QUES_SP AS GUESS_QUES,
+				SKIP_QUES_SP AS SKIP_QUES,
+				GUESS_INCRT_QUES_SP AS GUESS_INC_QUES,
+				CURSORY_QUES_SP AS CURSORY_QUES,
+				INCRT_QUES_SP AS INCRT_QUES,
+				MISTAKE_QUES_SP AS MISTAKE_QUES
+			FROM EXAM_WEEK_RST
+			WHERE YYMM = #{item.yymm}
+				AND WK = #{item.wk}
+			    AND STUD_ID = #{item.studId}
+			    AND SUBJ_CD = #{item.subjCd}
+        </foreach>
+		</when>
+		<otherwise>
+			SELECT
+				EXAM_CD,
+			    SMT_ID,
+			    STU_ID,
+			    SUBJ_CD,
+			    SMT_DTTM,
+			    EXAM_TYPE AS TYPE,
+			    EXAM_NM,
+			    CASE
+					WHEN QUES_CNT <![CDATA[<]]> CRT_CNT THEN 100
+			        ELSE ROUND(CRT_CNT / QUES_CNT * 100)
+			    END AS CRT_RT,
+			    CRT_CNT AS CRT_QUES_CNT,
+			    QUES_CNT,
+			    CRT_QUES_SP AS CRT_QUES,
+				GUESS_CRT_QUES_SP AS GUESS_QUES,
+				SKIP_QUES_SP AS SKIP_QUES,
+				GUESS_INCRT_QUES_SP AS GUESS_INC_QUES,
+				CURSORY_QUES_SP AS CURSORY_QUES,
+				INCRT_QUES_SP AS INCRT_QUES,
+				MISTAKE_QUES_SP AS MISTAKE_QUES
+			FROM EXAM_MONTH_RST
+			WHERE YYMM IN 
+				<foreach collection="yymms" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+                </foreach>
+				AND STUD_ID = #{studId}
+			    AND SUBJ_CD = #{subjCd}
+		</otherwise>
+	</choose>
+		) EXAM
     </select>
     
 	<select id="selectVisionAttStt" parameterType="hashMap" resultType="resultMap">

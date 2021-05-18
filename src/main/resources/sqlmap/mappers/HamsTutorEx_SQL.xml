@@ -10,7 +10,6 @@
 		WHERE DT = #{endDt}
 			AND STUD_ID = #{studId}
 		GROUP BY MSG_TYPE;
-
     </select>
     
     <select id="selectAiDiagnosisRstList" parameterType="hashMap" resultType="resultMap">
@@ -78,4 +77,155 @@
 		WHERE ST.STUD_ID = #{studId};
     </select>
 	
+	
+	<select id="selectAiWeakChapterGuide" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = SUBJ.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
+			IFNULL(WEAK_UNIT_NM,'') AS TITLE,
+		    IFNULL(GUIDE_POINT,'') AS GUIDE_MSG_LIST
+		FROM DAY_7_EXAM_STT EX 
+		JOIN COMM_SUBJ_CD SUBJ ON SUBJ.SUBJ_CD LIKE 'C%' AND SUBJ.DEPTH = 1
+		LEFT OUTER JOIN DAY_7_WEAK_UNIT_GUIDE WU ON EX.DT = WU.DT AND EX.STUD_ID = WU.STUD_ID AND SUBJ.SUBJ_CD = WU.SUBJ_CD
+		WHERE EX.DT = #{endDt}
+			AND EX.STUD_ID = #{studId};
+    </select>
+    
+    <select id="selectAiRecommendQuestion" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ST.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
+			QUES.EXAM_CD,
+			QUES.QUES_CD,
+			QUES.SMT_ID,
+			QUES.STU_ID AS STU_NO,
+			QUES.EXAM_NM,
+			DATE_FORMAT(QUES.SMT_DTTM, '%Y-%m-%d %H:%i') AS SMT_DTTM,
+			(SELECT CD_NM FROM COMM_CD WHERE CD = QUES.EXAM_TYPE AND GRP = 'EXAM') AS EXAM_TYPE,
+			(SELECT CD_NM FROM COMM_CD WHERE CD = QUES.QUES_PTN AND GRP = 'QUES_PTN') AS RECOMMEND_TYPE
+		FROM (
+			SELECT
+				ST.STUD_ID,
+				SUBJ.SUBJ_CD,
+				WU.CRT_RT
+			FROM STUD ST
+			JOIN COMM_SUBJ_CD SUBJ ON SUBJ.SUBJ_CD LIKE 'C%' AND SUBJ.DEPTH = 1
+			LEFT OUTER JOIN DAY_7_WEAK_UNIT_GUIDE WU ON WU.DT = #{endDt} AND ST.STUD_ID = WU.STUD_ID AND SUBJ.SUBJ_CD = WU.SUBJ_CD
+			WHERE ST.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN(
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				EXAM_CD,
+				EXAM_TYPE,
+				QUES_CD,
+				SMT_ID,
+				STU_ID,
+				EXAM_NM,
+				SMT_DTTM,
+				QUES_PTN,
+		        ORD
+			FROM (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					EXAM_CD,
+					EXAM_TYPE,
+					QUES_CD,
+					SMT_ID,
+					STU_ID,
+					EXAM_NM,
+					SMT_DTTM,
+					QUES_PTN,
+					CASE
+						WHEN @STID = STUD_ID AND @SUBJCD = SUBJ_CD THEN @ROWNUM:=@ROWNUM+1
+						ELSE @ROWNUM:=1
+					END AS ORD,
+					@STID:=STUD_ID AS STID,
+					@SUBJCD:=SUBJ_CD AS SUBJCDS
+				FROM (
+					SELECT 
+						STUD_ID,
+						SUBJ_CD,
+						EXAM_CD,
+						EXAM_TYPE,
+						QUES_CD,
+						SMT_ID,
+						STU_ID,
+						EXAM_NM,
+						SMT_DTTM,
+						QUES_PTN,
+						RANK_1,
+						RANK_2
+					FROM(
+						SELECT
+							STUD_ID,
+							SUBJ_CD,
+							EXAM_CD,
+							EXAM_TYPE,
+							QUES_CD,
+							SMT_ID,
+							(SELECT EXAM_NM FROM EXAM_RST WHERE DT = ER.DT AND STUD_ID = ER.STUD_ID AND EXAM_TYPE = ER.EXAM_TYPE AND EXAM_CD = ER.EXAM_CD) AS EXAM_NM,
+							(SELECT STU_ID FROM EXAM_RST WHERE DT = ER.DT AND STUD_ID = ER.STUD_ID AND EXAM_TYPE = ER.EXAM_TYPE AND EXAM_CD = ER.EXAM_CD) AS STU_ID,
+							(SELECT SMT_DTTM FROM EXAM_RST WHERE DT = ER.DT AND STUD_ID = ER.STUD_ID AND EXAM_TYPE = ER.EXAM_TYPE AND EXAM_CD = ER.EXAM_CD) AS SMT_DTTM,
+							EXP_SEC,
+							IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN,
+							CASE
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'INC' THEN 1
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'MIS' THEN 2
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'GUI' THEN 3
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'GUC' THEN 3
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'CUR' THEN 4
+								WHEN IFNULL(QUES_PTN_IRT, QUES_PTN) = 'SKP' THEN 5
+							END AS RANK_1,
+							CASE
+								WHEN CRT_YN = 'N' OR CRT_YN = 'P' THEN 1
+								WHEN CRT_YN = 'Y' THEN 2
+							END AS RANK_2
+						FROM EXAM_RST_QUES_LOG ER
+						WHERE DT BETWEEN #{startDt} AND #{endDt}
+							AND STUD_ID = #{studId}
+		                    AND EXAM_TYPE NOT IN ('D', 'G', 'H')
+							AND IFNULL(QUES_PTN_IRT,QUES_PTN) NOT IN ('CRT')
+					) QPTN
+					ORDER BY STUD_ID, SUBJ_CD, RANK_1, RANK_2, EXP_SEC
+				) PTN,
+				(SELECT @STID:='', @SUBJCD:='', @ROWNUM:=0 FROM DUAL) R
+			) QPTN_1
+			WHERE ORD <![CDATA[<]]> 3
+		) QUES ON ST.STUD_ID = QUES.STUD_ID AND ST.SUBJ_CD = QUES.SUBJ_CD AND IF(ST.CRT_RT IS NULL, QUES.ORD <![CDATA[<]]> 3, QUES.ORD = 1);
+    </select>
+    
+    <select id="selectAiRecommendCourse" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			STUD_NM,
+		    CASE
+				WHEN ML.PLAN_CNT <![CDATA[<]]> ML.PLAN_LRN_EX_CNT THEN 100
+		        ELSE ROUND(ML.PLAN_LRN_EX_CNT / ML.PLAN_CNT * 100)
+		    END AS EX_RT,
+		    CASE
+				WHEN EM.QUES_CNT <![CDATA[<]]> EM.CRT_CNT THEN 100
+		        ELSE ROUND(EM.CRT_CNT / EM.QUES_CNT * 100)
+		    END AS CRT_RT
+		FROM STUD ST
+		LEFT OUTER JOIN MONTH_LRN_EX_STT ML ON ML.YYMM = #{exYymm} AND ST.STUD_ID = ML.STUD_ID
+		LEFT OUTER JOIN EXAM_MONTH_STT EM ON EM.YYMM = #{exYymm} AND ST.STUD_ID = EM.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="selectAiRecommendCourseList" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = RC.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
+		    COURSE_CTGR_01 AS COURSE_TITLE_1,
+		    COURSE_NM_01 AS COURSE_NM_1,
+		    COURSE_ID_01 AS COURSE_ID_1,
+		    COURSE_CTGR_02 AS COURSE_TITLE_2,
+		    COURSE_NM_02 AS COURSE_NM_2,
+		    COURSE_ID_02 AS COURSE_ID_2,
+		    COURSE_CTGR_03 AS COURSE_TITLE_3,
+		    COURSE_NM_03 AS COURSE_NM_3,
+		    COURSE_ID_03 AS COURSE_ID_3
+		FROM STUD_RECOMMEND_COURSE RC
+		WHERE YYMM = #{yymm} 
+			AND STUD_ID = #{studId};
+    </select>
 </mapper>
