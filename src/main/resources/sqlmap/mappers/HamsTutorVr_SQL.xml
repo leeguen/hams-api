@@ -19,8 +19,7 @@
 			FROM VS_REPORT_STUD
 			WHERE STUD_ID = #{studId}
 		) INFO
-		ORDER BY YYMM DESC, TERM DESC
-		LIMIT 1
+		ORDER BY YYMM DESC, TERM DESC;
     </select>
     
     <select id="selectVisionBasicInfo" parameterType="hashMap" resultType="resultMap">
@@ -96,6 +95,7 @@
 		<when test="term == 0">
 			SELECT
 				STUD_NM,
+				MAX_LRN_SUBJ_CD,
 				IFNULL(EX_RT,0) AS EX_RT,
 				IFNULL(EX_RT,0) AS ATT_RT,
 				IFNULL((SELECT IFNULL(SUBJ_NM,'') FROM COMM_SUBJ_CD WHERE SUBJ_CD = MSC.A_LRN_SUBJ_CD AND DEPTH = 1),'') AS SUBJ_CD,
@@ -110,6 +110,7 @@
 		<otherwise>
 			SELECT
 				STUD_NM,
+				MAX_LRN_SUBJ_CD,
 				IFNULL(EX_RT,0) AS EX_RT,
 				IFNULL(EX_RT,0) AS ATT_RT,
 				IFNULL((SELECT IFNULL(SUBJ_NM,'') FROM COMM_SUBJ_CD WHERE SUBJ_CD = MSC.A_LRN_SUBJ_CD AND DEPTH = 1),'') AS SUBJ_CD,
@@ -125,6 +126,41 @@
 		</otherwise>
 	</choose>
     </select>
+    
+    <select id="selectVisionBasicConsultingMsg" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+				MSG_TYPE
+			FROM FIRST_VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE STUD_ID = #{studId}
+				AND MSG_USE_YN = 'Y';
+		</when>
+		<otherwise>
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+				MSG_TYPE
+			FROM VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+    </select>
+    
+    <select id="selectRecommendJob" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			CD_NM
+		FROM COMM_CD
+		WHERE 	
+			CD = #{msgCd}
+			AND GRP = #{grp}
+		    AND LANG_CD = 'ko'
+		    AND CD_TYPE = 'G'
+	</select>
 	
 	<select id="selectVisionGrowthStt" parameterType="hashMap" resultType="resultMap">
 	<choose>
@@ -139,8 +175,8 @@
 					WHEN ME.QUES_CNT <![CDATA[<]]> ME.CRT_CNT THEN 100
 					ELSE ROUND(ME.CRT_CNT / ME.QUES_CNT * 100)
 				END AS CRT_RT,
-				MGL.TOP_10_EX_RT,
-				MGE.TOP_10_CRT_RT,
+				MGL.TOP_10_EX_RT AS TOP_10_AVG_EX_RT,
+				MGE.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
 				MGL.GRP_AVG_EX_RT,
 				MGE.GRP_AVG_CRT_RT
 			FROM FIRST_VS_REPORT_STUD FS
@@ -161,8 +197,8 @@
 					WHEN ME.QUES_CNT <![CDATA[<]]> ME.CRT_CNT THEN 100
 					ELSE ROUND(ME.CRT_CNT / ME.QUES_CNT * 100)
 				END AS CRT_RT,
-			    MGL.TOP_10_EX_RT,
-				MGE.TOP_10_CRT_RT,
+			    MGL.TOP_10_EX_RT AS TOP_10_AVG_EX_RT,
+				MGE.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
 				MGL.GRP_AVG_EX_RT,
 				MGE.GRP_AVG_CRT_RT
 			FROM VS_REPORT_STUD VS
@@ -315,6 +351,7 @@
 		<when test="term == 0">
 			SELECT
 				UI_1.UNIT_CD,
+				UI_1.SUBJ_CD,
 				UI_1.GRADE,
 				UI_1.TERM,
 				UI_1.UNIT_NO,
@@ -359,6 +396,7 @@
 		<otherwise>
 			SELECT
 				UI_1.UNIT_CD,
+				UI_1.SUBJ_CD,
 			    UI_1.GRADE,
 			    UI_1.TERM,
 			    UI_1.UNIT_NO,
@@ -966,5 +1004,44 @@
 		</otherwise>
 	</choose>
     </select>
+    
+    <update id="updateVisionPrintFeedback" parameterType="hashMap">
+    <choose>
+		<when test="term == 0">
+			UPDATE FIRST_VS_REPORT_MSG 
+			SET 
+				COMM_MSG_1 = #{firstCommonMsg},
+				LRN_EX_MSG = #{positiveLrnMsg},
+				EXAM_MSG_1 = #{positiveExamMaxSubjMsg},
+				EXAM_MSG_2 = #{positiveExamMinSubjMsg},
+				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
+				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
+				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
+			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
+			    COMM_MSG_2 = #{lastCommonMsg}
+			WHERE STUD_ID = #{studId}
+		</when>
+		<otherwise>
+			UPDATE VS_REPORT_MSG 
+			SET 
+				COMM_MSG_1 = #{firstCommonMsg},
+				LRN_EX_MSG = #{positiveLrnMsg},
+				EXAM_MSG_1 = #{positiveExamMaxSubjMsg},
+				EXAM_MSG_2 = #{positiveExamMinSubjMsg},
+				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
+				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
+				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
+			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
+			    COMM_MSG_2 = #{lastCommonMsg}
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+	</update>
 	
 </mapper>
