@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
+import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
@@ -176,51 +177,56 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         //DB 조회
         LinkedHashMap<String,Object> visionExamChapterStt = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterStt");
         ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterSubjList");
-        ArrayList paramsSubjList = new ArrayList();
-        if(subjList.size() > 0) {
-        	for(Map<String, Object> subjItem : subjList) {
-        		paramsSubjList.add(subjItem.get("subjCd"));
-        	}
-        }else {
-        	paramsSubjList = null;
-        }
         
-        paramMap.put("subjs", paramsSubjList);
-        
-        ArrayList<Map<String,Object>> chapterInfoList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterNmList");
-        ArrayList<Map<String,Object>> visionExamChapterList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterList");
-        
-        ArrayList<Map<String,Object>> chapterList = new ArrayList<>();
-        
-        
-        for(Map<String, Object> item : chapterInfoList) {
-        	LinkedHashMap<String,Object> chapterListMap = new LinkedHashMap<>();
-        	ArrayList chapternmList = new ArrayList();
-            ArrayList chapterScoreList = new ArrayList();
-            ArrayList chapterCdList = new ArrayList();
-            
-        	for(Map<String, Object> chapterItem : visionExamChapterList) {
-        		if(item.get("unitNo").equals(chapterItem.get("unitNo"))) {
-        			chapternmList.add(chapterItem.get("unitNm").toString());
-        			chapterScoreList.add(chapterItem.get("score").toString());
-        			chapterCdList.add(chapterItem.get("unitCd"));
+        if(visionExamChapterStt != null) {
+        	ArrayList paramsSubjList = new ArrayList();
+        	if(subjList.size() > 0) {
+        		for(Map<String, Object> subjItem : subjList) {
+        			paramsSubjList.add(subjItem.get("subjCd"));
         		}
+        	}else {
+        		paramsSubjList = null;
         	}
         	
-        	chapterListMap.put("grade", item.get("grade"));
-        	chapterListMap.put("term", item.get("term"));
-        	chapterListMap.put("chapter", item.get("unitNo"));
-        	chapterListMap.put("chapterNm", chapternmList);
-        	chapterListMap.put("understandingLv", chapterScoreList);
-        	chapterListMap.put("chapterCd", chapterCdList);
+        	paramMap.put("subjs", paramsSubjList);
         	
-        	chapterList.add(chapterListMap);
+        	ArrayList<Map<String,Object>> chapterInfoList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterNmList");
+        	ArrayList<Map<String,Object>> visionExamChapterList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterList");
+        	
+        	ArrayList<Map<String,Object>> chapterList = new ArrayList<>();
+        	
+        	
+        	for(Map<String, Object> item : chapterInfoList) {
+        		LinkedHashMap<String,Object> chapterListMap = new LinkedHashMap<>();
+        		ArrayList chapternmList = new ArrayList();
+        		ArrayList chapterScoreList = new ArrayList();
+        		ArrayList chapterCdList = new ArrayList();
+        		
+        		for(Map<String, Object> chapterItem : visionExamChapterList) {
+        			if(item.get("unitNo").equals(chapterItem.get("unitNo"))) {
+        				chapternmList.add(chapterItem.get("unitNm").toString());
+        				chapterScoreList.add(chapterItem.get("score").toString());
+        				chapterCdList.add(chapterItem.get("unitCd"));
+        			}
+        		}
+        		
+        		chapterListMap.put("grade", item.get("grade"));
+        		chapterListMap.put("term", item.get("term"));
+        		chapterListMap.put("chapter", item.get("unitNo"));
+        		chapterListMap.put("chapterNm", chapternmList);
+        		chapterListMap.put("understandingLv", chapterScoreList);
+        		chapterListMap.put("chapterCd", chapterCdList);
+        		
+        		chapterList.add(chapterListMap);
+        	}
+        	
+        	visionExamChapterStt.put("subjCd",subjList);
+        	visionExamChapterStt.put("chapterList",chapterList);
+        	
         }
         
-        visionExamChapterStt.put("subjCd",subjList);
-        visionExamChapterStt.put("chapterList",chapterList);
-
         data.put("visionExamChapterStt",visionExamChapterStt);
+
         setResult(dataKey,data);
 
         return result;
@@ -273,15 +279,16 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
             }else {
             	supplementaryLrnList.add(visionExamChapterLrn.get("spUnitInfo"));
             }
+        	
     	}
 
-        visionExamChapterLrn.put("priorLrn",priorLrn);
-        visionExamChapterLrn.put("currentLrn",currentLrn);
-        visionExamChapterLrn.put("followUpLrn",followUpLrnList);
-        visionExamChapterLrn.put("supplementaryLrn",supplementaryLrnList);
-
-        data.put("visionExamChapterLrn",visionExamChapterLrn);
-        setResult(dataKey,data);
+    	visionExamChapterLrn.put("priorLrn",priorLrn);
+    	visionExamChapterLrn.put("currentLrn",currentLrn);
+    	visionExamChapterLrn.put("followUpLrn",followUpLrnList);
+    	visionExamChapterLrn.put("supplementaryLrn",supplementaryLrnList);
+    	
+    	data.put("visionExamChapterLrn",visionExamChapterLrn);
+    	setResult(dataKey,data);
 
         return result;
     }
@@ -366,8 +373,14 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         //DB 조회
         LinkedHashMap<String,Object> visionAttPtn = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionAttStt");
         ArrayList<Map<String,Object>> loginMap = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionAttLog");
-
-        visionAttPtn.put("loginTm",loginMap);
+        
+        for(Map<String, Object> item : loginMap) {
+        	if(item.get("loginTm") == null) {
+        		item.put("loginTm", null);
+        	}
+        }
+        
+        visionAttPtn.put("attPtnChart",loginMap);
 
         data.put("visionAttPtn",visionAttPtn);
         setResult(dataKey,data);
@@ -764,23 +777,19 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
      * @param data
      */
     private void setResult(String key, Object data) {
+        LinkedHashMap message = new LinkedHashMap();
         result = new LinkedHashMap();
-
-        if(key.equals(dataKey)) {
-            LinkedHashMap message = new LinkedHashMap();
-            if(data == null
-                    || (data instanceof List && ((List)data).size() == 0)
-                    || (data instanceof Map && ((Map)data).isEmpty())) {
-                message.put("resultCode", ValidationCode.NO_DATA.getCode());
-                result.put(msgKey, message);
-            } else {
-                message.put("resultCode", ValidationCode.SUCCESS.getCode());
-                result.put(msgKey, message);
-
-                result.put(dataKey, data);
-            }
+        
+        if(data == null
+                || (data instanceof List && ((List)data).size() == 0)
+                || (data instanceof Map && ((Map)data).isEmpty())) {
+            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+        } else if(data instanceof Map && ((Map)data).values().toArray()[0] == null) {
+        	throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
         } else {
-            result.put(msgKey, data); //validation 걸린 메시지, 데이터 없음
+            message.put("resultCode", ValidationCode.SUCCESS.getCode());
+            result.put(msgKey, message);
+            result.put(dataKey, data);
         }
     }
 
