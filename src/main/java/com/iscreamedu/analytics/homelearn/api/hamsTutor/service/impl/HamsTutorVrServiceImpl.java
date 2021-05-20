@@ -395,23 +395,31 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         LinkedHashMap<String,Object> visionLrnPtn = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionLrnTm");
+        ArrayList<Map<String,Object>> subjLrnTmData = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionSubjLrnTm");
+
         ArrayList<Map<String,Object>> subjLrnTm = new ArrayList<>();
         
-        ArrayList<Map<String,Object>> subjLrnTmData = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionSubjLrnTm");
-        
-        LinkedHashMap<String,Object> subjLrnTmMap = new LinkedHashMap<>();
-        LinkedHashMap<String,Object> subjLrnTmMapTwo = new LinkedHashMap<>();
-        
-        String subjNm = null;
-        
         if(subjLrnTmData != null) {
+        	ArrayList subjNmList = new ArrayList<>();
+        	
         	for(Map<String, Object> item : subjLrnTmData) {
-        		if(subjNm == null) {
-        			subjNm = item.get("subjCd").toString();
-        			
-        			
+        		if(!subjNmList.contains(item.get("subjCd"))) {
+        			subjNmList.add(item.get("subjCd").toString());
         		}
         	}
+        	
+        	for(Object subjNmItem : subjNmList) {
+        		ArrayList<Map<String, Object>> subjLrnList = new ArrayList<>();
+        		for(Map<String, Object> item : subjLrnTmData) {
+        			if(subjNmItem.toString().equals(item.get("subjCd"))) {
+        				subjLrnList.add(createSubjLrnTmMap(item.get("subSubjCd").toString(), Integer.valueOf(item.get("lrnSec").toString())));
+        			}
+        		}
+        		
+        		subjLrnTm.add(createSubjLrnTm(subjNmItem.toString(), subjLrnList));
+        	}
+        	
+        	visionLrnPtn.put("subjLrnTm", subjLrnTm);
         }
         
         data.put("visionLrnPtn",visionLrnPtn);
@@ -768,6 +776,15 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         resultMap.put("subSubjCd",subSubjCd);
         resultMap.put("lrnTm",lrnTm);
+
+        return  resultMap;
+    }
+    
+    private LinkedHashMap<String, Object> createSubjLrnTm(String subjCd, List subjList) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+
+        resultMap.put("subjCd",subjCd);
+        resultMap.put("subSubjLrnTm",subjList);
 
         return  resultMap;
     }
