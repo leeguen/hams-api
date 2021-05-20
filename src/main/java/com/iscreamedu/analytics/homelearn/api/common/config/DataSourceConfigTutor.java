@@ -31,6 +31,7 @@ public class DataSourceConfigTutor {
 
         factoryBean.setDataSource(tutordbDataSource);
         factoryBean.setTypeAliasesPackage("com.iscreamedu.analytics.homelearn.api.common.mapper");
+        factoryBean.setConfigLocation(applicationContext.getResource("classpath:mybatis-config.xml"));
         factoryBean.setMapperLocations(applicationContext.getResources("classpath:/sqlmap/mappers/*.xml"));
         return factoryBean.getObject();
     }
