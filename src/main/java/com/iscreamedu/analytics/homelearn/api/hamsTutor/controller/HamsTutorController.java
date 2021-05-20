@@ -86,6 +86,18 @@ public class HamsTutorController {
         body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiRecommendQuestion(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * AI 추천 코스 (HAMS-T-EX-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getAiRecommendCourse")
+    public ResponseEntity getAiRecommendCourse(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiRecommendCourse(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 
     /**
      * 학습분석 기본정보 (HAMS-T-LA-001)

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -194,27 +196,21 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 checkRequiredWithDt(paramMap);
 
                 //DB 조회
-                ArrayList<Map<String,Object>> aiWeakChapterGuide = new ArrayList<>();
+                ArrayList<Map<String,Object>> aiWeakChapterGuide = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiWeakChapterGuide");
 
-                LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-                LinkedHashMap<String,Object> dummyMapTwo = new LinkedHashMap<>();
-                ArrayList<String> dummyGuideMsgList = new ArrayList<>();
-
-                dummyGuideMsgList.add("guideMessage1");
-                dummyGuideMsgList.add("guideMessage2");
-                dummyGuideMsgList.add("guideMessage3");
-                dummyGuideMsgList.add("guideMessage4");
-
-                dummyMap.put("subjCd","C01");
-                dummyMap.put("title","수학 3학년 1학기 2단원 평면도형");
-                dummyMap.put("guideMsgList",dummyGuideMsgList);
-
-                dummyMapTwo.put("subjCd","C02");
-                dummyMapTwo.put("title","국어 2학년 1학기 1단원 어휘");
-                dummyMapTwo.put("guideMsgList",dummyGuideMsgList);
-
-                aiWeakChapterGuide.add(dummyMap);
-                aiWeakChapterGuide.add(dummyMapTwo);
+                if(aiWeakChapterGuide != null || aiWeakChapterGuide.size() > 0) {
+                	for(Map<String, Object> item : aiWeakChapterGuide) {
+                		if("".equals(item.get("title"))) {
+                			item.put("title", null);
+                		}
+                		if("".equals(item.get("guideMsgList"))) {
+                			item.put("guideMsgList", null);
+                		}else {
+                			List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\n"));
+                			item.put("guideMsgList", msgList);
+                		}
+                	}
+                }
 
                 data.put("aiWeakChapterGuide",aiWeakChapterGuide);
                 setResult(dataKey,data);
@@ -228,33 +224,75 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 checkRequiredWithDt(paramMap);
 
                 //DB 조회
-                ArrayList<Map<String,Object>> aiRecommendQuestion = new ArrayList<>();
-                LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-                LinkedHashMap<String,Object> dummyMapTwo = new LinkedHashMap<>();
-
-                dummyMap.put("p","g4GeLOLo84wAaoI6uSHEuw==");
-                dummyMap.put("subjCd","C01");
-                dummyMap.put("recommendType","실수한 문제");
-                dummyMap.put("smtDttm","2020-11-26 19:10");
-                dummyMap.put("examType","실력평가");
-                dummyMap.put("examNm","[3-2] 9단원_26장_글");
-                dummyMap.put("examId",123456);
-
-                dummyMapTwo.put("p","g4GeLOLo84wAaoI6uSHEuw==");
-                dummyMapTwo.put("subjCd","C02");
-                dummyMapTwo.put("recommendType","실수한 문제");
-                dummyMapTwo.put("smtDttm","2020-11-26 19:10");
-                dummyMapTwo.put("examType","실력평가");
-                dummyMapTwo.put("examNm","[3-2] 9단원_26장_글");
-                dummyMapTwo.put("examId",98765);
-
-                aiRecommendQuestion.add(dummyMap);
-                aiRecommendQuestion.add(dummyMapTwo);
+                ArrayList<Map<String,Object>> aiRecommendQuestion = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestion");
+                for(Map<String, Object> item : aiRecommendQuestion) {
+                	
+                	if(item.get("examCd") == null) {
+                		item.put("examCd", null);
+                		item.put("quesCd", null);
+                		item.put("smtId", null);
+                		item.put("stuNo", null);
+                		item.put("examNm", null);
+                		item.put("smtDttm", null);
+                		item.put("recommendType", null);
+                	}
+                }
 
                 data.put("aiRecommendQuestion",aiRecommendQuestion);
                 setResult(dataKey,data);
 
             return result;
+        }
+        
+        @Override
+        public Map getAiRecommendCourse (Map<String,Object> paramMap) throws Exception {
+            Map<String,Object> data = new HashMap<>();
+            checkRequired(paramMap);
+            
+            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
+            LocalDate beforeDate = endDate.minusMonths(1);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+            int yymm = 0;
+            int beforeYymm = 0;
+            System.out.println(endDate.getMonthValue());
+            
+            if(endDate.getMonthValue() % 2 == 1) {
+            	yymm  = Integer.parseInt(endDate.format(formatter));
+            	beforeYymm = Integer.parseInt(beforeDate.format(formatter));
+            	
+            	paramMap.put("yymm", yymm);
+            	paramMap.put("exYymm", beforeYymm);
+            }else {
+            	beforeYymm = Integer.parseInt(beforeDate.format(formatter));
+            	
+            	paramMap.put("yymm", beforeYymm);
+            	paramMap.put("exYymm", beforeYymm);
+            }
+
+            //DB 조회
+            LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
+            ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+
+            //DB 데이터 주입
+            
+            if(aiRecmmendCourseMap != null) {
+            	if(aiRecmmendCourseMap.get("exRt") == null) {
+            		aiRecmmendCourseMap.put("exRt", null);
+            	}
+            	
+            	if(aiRecmmendCourseMap.get("crtRt") == null) {
+            		aiRecmmendCourseMap.put("crtRt", null);
+            	}
+            	
+            	aiRecmmendCourseMap.put("subjCourseList", aiRecommendCourseList);
+            }
+            
+            data.put("settleInfoPredictionStt",aiRecmmendCourseMap);
+            setResult(dataKey,data);
+
+            //리턴
+            return result;
+
         }
         
 
