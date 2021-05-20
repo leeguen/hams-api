@@ -235,23 +235,24 @@
                 F.WK,
             </when>
                <otherwise>
-                   C.YYMM,
+                   IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
                </otherwise>
         </choose>
+        ROUND((SUM(E.CRT_CNT)/SUM(E.QUES_CNT)) * 100) AS CRT_RT,
         CASE
         WHEN B.PLAN_CNT > 0 THEN ROUND((((B.D_LRN_EX_CNT + B.LRN_EX_CNT + B.B_LRN_EX_CNT) / B.PLAN_CNT) * 100))
         ELSE NULL
         END AS EX_RT,
-        C.TOP_10_EX_RT AS TOP_10_AVG_EX_RT,
-        C.GRP_AVG_EX_RT,
-        D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
-        D.GRP_AVG_CRT_RT,
         E.C01,
         E.C02,
         E.C03,
         E.C04,
         E.C05,
-        E.C06
+        E.C06,
+        D.GRP_AVG_CRT_RT,
+        C.GRP_AVG_EX_RT,
+        D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
+        C.TOP_10_EX_RT AS TOP_10_AVG_EX_RT
         FROM
         hams_tutor_dashboard.STUD AS A
         LEFT OUTER JOIN
@@ -320,7 +321,9 @@
         SUM(A.C03) AS C03,
         SUM(A.C04) AS C04,
         SUM(A.C05) AS C05,
-        SUM(A.C06) AS C06
+        SUM(A.C06) AS C06,
+        SUM(A.CRT_CNT) AS CRT_CNT,
+        SUM(A.QUES_CNT) AS QUES_CNT
         FROM
         (SELECT
         STUD_ID,
@@ -347,7 +350,9 @@
         CASE
         WHEN SUBJ_CD = 'C06' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
         ELSE NULL
-        END AS C06
+        END AS C06,
+        SUM(CRT_CNT) AS CRT_CNT,
+        SUM(QUES_CNT) AS QUES_CNT
         FROM
         hams_tutor_dashboard.EXAM_SUBJ_RST
         WHERE

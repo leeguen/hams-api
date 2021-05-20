@@ -300,7 +300,14 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     public Map getExamList(Map<String, Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
             checkRequiredWithDt(paramMap);
-            paramMap.put("types",paramMap.get("types").toString().split(","));
+            if(paramMap.get("types").toString().equals("")) {
+                String[] allTypes = {"A","B","C","D","E","F","G","H","I"};
+                paramMap.put("types",allTypes);
+            }
+            else {
+                paramMap.put("types",paramMap.get("types").toString().split(","));
+            }
+
 
             //DB 조회
             LinkedHashMap<String,Object> examList = new LinkedHashMap<>();
