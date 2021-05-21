@@ -26,7 +26,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(NoDataException.class)
-    public final ResponseEntity NoDataExceptionHandling(ParameterException ex, WebRequest request) {
+    public final ResponseEntity NoDataExceptionHandling(NoDataException ex, WebRequest request) {
         return new ResponseEntity(setMsgResult(ex.getDataArr()), HttpStatus.NO_CONTENT);
     }
 
