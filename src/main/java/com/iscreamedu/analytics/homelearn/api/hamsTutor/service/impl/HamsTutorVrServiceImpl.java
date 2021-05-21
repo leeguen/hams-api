@@ -300,7 +300,19 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         ArrayList<Map<String,Object>> visionExamFieldStt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamFieldStt");
-
+        ArrayList emptyList = new ArrayList<>();
+        
+        for(Map<String, Object> item : visionExamFieldStt) {
+        	
+        	for(Entry<String, Object> mapItem : item.entrySet()) {
+        		String key = mapItem.getKey();
+        		String value = (mapItem.getValue() != null) ? mapItem.getValue().toString() : null;
+        		if(!"subjCd".equals(key) && value == null) {
+        			mapItem.setValue(emptyList);
+        		}
+        	}
+        }
+        
         data.put("visionExamFieldStt",visionExamFieldStt);
         setResult(dataKey,data);
 
