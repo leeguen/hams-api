@@ -60,7 +60,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
         	for(Entry<String, Object> item : msgMap.entrySet()) {
         		String key = item.getKey();
-        		String value = item.getValue().toString();
+        		String value = (item.getValue() != null) ? item.getValue().toString() : null;
         		if(value != null) {
         			if(value.indexOf("studNm") > 0) {
         				value = value.replace("{studNm}", msgInfo.get("studNm").toString());
