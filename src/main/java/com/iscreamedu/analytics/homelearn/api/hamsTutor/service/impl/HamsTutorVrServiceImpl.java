@@ -135,8 +135,13 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
         	item.put("subjCrtRt", subjCrtRtList);
         }
-
-        data.put("visionGrowthStt",growStt);
+        
+        if(growStt.size() > 0) {
+        	data.put("visionGrowthStt",growStt);
+        }else {
+        	data.put("visionGrowthStt",null);
+        }
+        
         setResult(dataKey,data);
 
         return result;
@@ -366,6 +371,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         }
         
         //DB 조회
+		LinkedHashMap<String,Object> visionExamData = new LinkedHashMap<>();
         LinkedHashMap<String,Object> visionExamMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamCount");
         ArrayList<Map<String,Object>> visionExamList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamList");
         
@@ -374,8 +380,10 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	totalCount = Integer.parseInt(visionExamMap.get("totalCount").toString());
         }
         
-        data.put("totalCount", totalCount);
-        data.put("visionExamList",visionExamList);
+        visionExamData.put("totalCount", totalCount);
+        visionExamData.put("list",visionExamList);
+        
+        data.put("visionExamList",visionExamData);
         setResult(dataKey,data);
 
         return result;
