@@ -1220,6 +1220,32 @@
 		</otherwise>
 	</choose>
     </select>
+    
+    <select id="selectVisionPrintBasicConsultingMsg" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+			  	MSG_USE_YN AS ACTIVE,
+				MSG_TYPE
+			FROM FIRST_VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE STUD_ID = #{studId}
+				AND MSG_USE_YN = 'Y';
+		</when>
+		<otherwise>
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+				MSG_USE_YN AS ACTIVE,
+				MSG_TYPE
+			FROM VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+    </select>
 	
 	<select id="selectVisionPrintLrnStt" parameterType="hashMap" resultType="resultMap">
 	<choose>
@@ -1305,10 +1331,11 @@
 				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
 				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
 				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
-			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeSubjRecommendMsg},
 			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
 			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
-			    COMM_MSG_2 = #{lastCommonMsg}
+			    COMM_MSG_2 = #{lastCommonMsg},
+			    UPD_DTTM = NOW()
 			WHERE STUD_ID = #{studId}
 		</when>
 		<otherwise>
@@ -1321,13 +1348,39 @@
 				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
 				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
 				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
-			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeSubjRecommendMsg},
 			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
 			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
-			    COMM_MSG_2 = #{lastCommonMsg}
+			    COMM_MSG_2 = #{lastCommonMsg},
+			    UPD_DTTM = NOW()
 			WHERE YYMM = #{yymm}
 				AND TERM = #{term}
 			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+	</update>
+	
+	<update id="updateVisionPrintFeedbackConsultingMsg" parameterType="hashMap">
+    <choose>
+		<when test="term == 0">
+			UPDATE FIRST_VS_REPORT_CONSULTING_POINT_MSG 
+			SET 
+				MSG_USE_YN = #{active},
+				UPD_DTTM = NOW()
+			WHERE STUD_ID = #{studId}
+				AND MSG_CD = #{msgCd}
+				AND MSG_TYPE = #{msgType}
+		</when>
+		<otherwise>
+			UPDATE VS_REPORT_CONSULTING_POINT_MSG 
+			SET 
+				MSG_USE_YN = #{active},
+				UPD_DTTM = NOW()
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+			    AND MSG_CD = #{msgCd}
+				AND MSG_TYPE = #{msgType}
 		</otherwise>
 	</choose>
 	</update>

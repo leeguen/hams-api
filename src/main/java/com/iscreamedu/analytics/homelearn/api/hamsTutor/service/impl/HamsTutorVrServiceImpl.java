@@ -493,7 +493,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintBasicInfo");
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
-        ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsg");
+        ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionPrintBasicConsultingMsg");
         LinkedHashMap<String,Object> cpMsgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsgCondition");
         
         ArrayList positiveMsgList = new ArrayList();
@@ -564,7 +564,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         							.replace("{b}", cpMsgInfo.get("aLrnSubjCd").toString()));
         				}
         				
-        				positiveMsgList.add(msgItem.get("msg").toString());
+        				Boolean active = ("Y".equals(msgItem.get("active").toString())) ? true : false;
+        				
+        				positiveMsgList.add(createConsultingMsgMap(active, msgItem.get("msg").toString(), msgItem.get("msgCd").toString()));
         			}else {
         				if("CPB0004".equals(msgItem.get("msgCd")) ) {
         					msgItem.put("msg", msgItem.get("msg").toString()
@@ -598,7 +600,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         							.replace("{b}", cpMsgInfo.get("below5MinLrnCnt").toString()));
         				}
         				
-        				negativeMsgList.add(msgItem.get("msg").toString());
+        				Boolean active = ("Y".equals(msgItem.get("active").toString())) ? true : false;
+        				
+        				negativeMsgList.add(createConsultingMsgMap(active, msgItem.get("msg").toString(), msgItem.get("msgCd").toString()));
         			}
         		}
         	}
@@ -784,11 +788,76 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
     @Override
     public Map getVisionPrintFeedbackUpdatePopup(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new HashMap<>();
-        checkRequired(paramMap,false);
-
+        checkRequired(paramMap,true);
+        
+        ArrayList positiveMsgActive = new ArrayList<>();
+    	ArrayList positiveMsgCd = new ArrayList<>();
+    	ArrayList<Map<String,String>> positiveMsgList = new ArrayList<>();
+    	
+    	ArrayList negativeMsgActive = new ArrayList<>();
+    	ArrayList negativeMsgCd = new ArrayList<>();
+    	ArrayList<Map<String,String>> negativeMsgList = new ArrayList<>();
+    	
+    	
+    	int vrMsgUpdateCheck = 0;
+    	int positiveMsgUpdateCheck = 0;
+    	int negativeMsgUpdateCheck = 0;
+        
+        if(paramMap.get("positiveMsgActive") != null && paramMap.get("positiveMsgCd") != null) {
+        	positiveMsgActive = (ArrayList) paramMap.get("positiveMsgActive");
+        	positiveMsgCd = (ArrayList) paramMap.get("positiveMsgCd");
+        	
+        	for(int i = 0; i < positiveMsgActive.size(); i++) {
+        		String active = (boolean) (positiveMsgActive.get(i)) ? "Y" : "N";
+        		positiveMsgList.add(createConsultingMsgUpdateMap(active, "G", positiveMsgCd.get(i).toString()));
+        	}
+        	
+        }
+        
+        if(paramMap.get("negativeMsgActive") != null && paramMap.get("negativeMsgCd") != null) {
+        	negativeMsgActive = (ArrayList) paramMap.get("negativeMsgActive");
+            negativeMsgCd = (ArrayList) paramMap.get("negativeMsgCd");
+            
+            for(int i = 0; i < negativeMsgActive.size(); i++) {
+        		String active = (boolean) (negativeMsgActive.get(i)) ? "Y" : "N";
+        		negativeMsgList.add(createConsultingMsgUpdateMap(active, "B", negativeMsgCd.get(i).toString()));
+        	}
+            
+        }
+        
         //DB 조회
-        setResult(dataKey, commonMapperTutor.update(paramMap, "updateVisionPrintFeedback"));
-
+        vrMsgUpdateCheck = commonMapperTutor.update(paramMap, "updateVisionPrintFeedback");
+        
+        if(positiveMsgList.size() > 0) {
+        	for(Map<String, String> positiveItem : positiveMsgList) {
+        		Map<String,Object> positiveMap = new HashMap<>();
+        		positiveMap.put("studId", paramMap.get("studId"));
+        		positiveMap.put("yymm", paramMap.get("yymm"));
+        		positiveMap.put("term", paramMap.get("term"));
+        		positiveMap.put("active", positiveItem.get("active"));
+        		positiveMap.put("msgType", positiveItem.get("msgType"));
+        		positiveMap.put("msgCd", positiveItem.get("msgCd"));
+            	
+            	positiveMsgUpdateCheck = commonMapperTutor.update(positiveMap, "updateVisionPrintFeedbackConsultingMsg");
+        	}
+        }
+        
+        if(negativeMsgList.size() > 0) {
+        	for(Map<String, String> negativeItem : negativeMsgList) {
+        		Map<String,Object> negativeMap = new HashMap<>();
+        		negativeMap.put("studId", paramMap.get("studId"));
+            	negativeMap.put("yymm", paramMap.get("yymm"));
+            	negativeMap.put("term", paramMap.get("term"));
+            	negativeMap.put("active", negativeItem.get("active"));
+            	negativeMap.put("msgType", negativeItem.get("msgType"));
+            	negativeMap.put("msgCd", negativeItem.get("msgCd"));
+            	
+            	negativeMsgUpdateCheck = commonMapperTutor.update(negativeMap, "updateVisionPrintFeedbackConsultingMsg");
+        	}
+        }
+        
+        setResult(dataKey, vrMsgUpdateCheck);
+        
         return result;
     }
 
@@ -839,6 +908,22 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
         resultMap.put("subjCd",subj);
         resultMap.put("crtRt",score);
+        return  resultMap;
+    }
+    
+    private Map createConsultingMsgUpdateMap(String active, String msgType, String msgCd) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+        resultMap.put("active",active);
+        resultMap.put("msgType",msgType);
+        resultMap.put("msgCd",msgCd);
+        return  resultMap;
+    }
+    
+    private Map createConsultingMsgMap(Boolean active, String msg, String msgCd) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+        resultMap.put("active",active);
+        resultMap.put("msg",msg);
+        resultMap.put("msgCd",msgCd);
         return  resultMap;
     }
 
