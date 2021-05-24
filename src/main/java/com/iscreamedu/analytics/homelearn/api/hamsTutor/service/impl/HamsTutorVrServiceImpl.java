@@ -188,9 +188,11 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         
         if(visionExamChapterStt != null) {
         	ArrayList paramsSubjList = new ArrayList();
+        	ArrayList subjNmList = new ArrayList();
         	if(subjList.size() > 0) {
         		for(Map<String, Object> subjItem : subjList) {
         			paramsSubjList.add(subjItem.get("subjCd"));
+        			subjNmList.add(subjItem.get("subjCd"));
         		}
         	}else {
         		paramsSubjList = null;
@@ -228,7 +230,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		chapterList.add(chapterListMap);
         	}
         	
-        	chapter.put("subjCd",subjList);
+        	chapter.put("subjCd",subjNmList);
         	chapter.put("list",chapterList);
         	visionExamChapterStt.put("chapter",chapter);
         	
