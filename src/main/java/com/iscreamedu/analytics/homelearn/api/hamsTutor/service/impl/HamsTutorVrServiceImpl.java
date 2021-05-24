@@ -220,6 +220,30 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         			}
         		}
         		
+        		if(chapternmList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapternmList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapternmList.add("");
+        			}
+        		}
+        		
+        		if(chapterScoreList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapterScoreList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapterScoreList.add("");
+        			}
+        		}
+        		
+        		if(chapterCdList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapterCdList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapterCdList.add("");
+        			}
+        		}
+        		
         		chapterListMap.put("grade", item.get("grade"));
         		chapterListMap.put("term", item.get("term"));
         		chapterListMap.put("chapter", item.get("unitNo"));
