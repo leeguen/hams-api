@@ -129,6 +129,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	subjCrtRtList.clear();
         	for(Map<String, Object> subj : subjCrtRt) {
         		if(item.get("yymm").equals(subj.get("yymm"))) {
+        			subj.remove("yymm");
         			subjCrtRtList.add(subj);
         		}
         	}
@@ -183,6 +184,8 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> visionExamChapterStt = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterStt");
         ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterSubjList");
         
+        LinkedHashMap<String,Object> chapter = new LinkedHashMap<>();
+        
         if(visionExamChapterStt != null) {
         	ArrayList paramsSubjList = new ArrayList();
         	if(subjList.size() > 0) {
@@ -225,8 +228,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		chapterList.add(chapterListMap);
         	}
         	
-        	visionExamChapterStt.put("subjCd",subjList);
-        	visionExamChapterStt.put("chapterList",chapterList);
+        	chapter.put("subjCd",subjList);
+        	chapter.put("list",chapterList);
+        	visionExamChapterStt.put("chapter",chapter);
         	
         }
         
@@ -244,6 +248,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         LinkedHashMap<String,Object> visionExamChapterLrn = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterLrn");
+        LinkedHashMap<String,Object> visionExamChapter = new LinkedHashMap<>();
         LinkedHashMap<String,Object> priorLrn = new LinkedHashMap<>();
         LinkedHashMap<String,Object> currentLrn = new LinkedHashMap<>();
         
@@ -287,12 +292,12 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
     	}
 
-    	visionExamChapterLrn.put("priorLrn",priorLrn);
-    	visionExamChapterLrn.put("currentLrn",currentLrn);
-    	visionExamChapterLrn.put("followUpLrn",followUpLrnList);
-    	visionExamChapterLrn.put("supplementaryLrn",supplementaryLrnList);
+    	visionExamChapter.put("priorLrn",priorLrn);
+    	visionExamChapter.put("currentLrn",currentLrn);
+    	visionExamChapter.put("followUpLrn",followUpLrnList);
+    	visionExamChapter.put("supplementaryLrn",supplementaryLrnList);
     	
-    	data.put("visionExamChapterLrn",visionExamChapterLrn);
+    	data.put("visionExamChapterLrn",visionExamChapter);
     	setResult(dataKey,data);
 
         return result;
@@ -459,7 +464,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,false);
 
         //DB 조회
-        LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
+        LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintBasicInfo");
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
         ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsg");

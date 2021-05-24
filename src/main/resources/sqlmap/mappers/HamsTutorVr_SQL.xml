@@ -597,12 +597,12 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				DT,
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
 			    CRT_RT,
 			    UNIT_INFO,
 			    PRE_UNIT_INFO,
 			    IFNULL(PRE_B_CRT_RT, PRE_F_CRT_RT) AS PRE_CRT_RT,
-			    IFNULL(PRE_B_DT, PRE_F_DT) AS PRE_DT,
+			    DATE_FORMAT(IFNULL(PRE_B_DT, PRE_F_DT), '%Y-%m-%d') AS PRE_DT,
 			    REPLACE(SUB_UNIT_INFO,'|',',') AS SUB_UNIT_INFO,
 				REPLACE(SP_UNIT_INFO,'|',',') AS SP_UNIT_INFO
 			FROM (
@@ -643,12 +643,12 @@
 		</when>
 		<otherwise>
 			SELECT
-				DT,
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
 			    CRT_RT,
 			    UNIT_INFO,
 			    PRE_UNIT_INFO,
 			    IFNULL(PRE_B_CRT_RT, PRE_F_CRT_RT) AS PRE_CRT_RT,
-			    IFNULL(PRE_B_DT, PRE_F_DT) AS PRE_DT,
+			    DATE_FORMAT(IFNULL(PRE_B_DT, PRE_F_DT), '%Y-%m-%d') AS PRE_DT,
 			    REPLACE(SUB_UNIT_INFO,'|',',') AS SUB_UNIT_INFO,
 				REPLACE(SP_UNIT_INFO,'|',',') AS SP_UNIT_INFO
 			FROM (
@@ -1081,7 +1081,7 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				ATT_DT AS DT,
+				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
 			    FIRST_LOGIN_DTTM AS LOGIN_TM
 			FROM FIRST_VS_REPORT_STUD FS 
 			LEFT OUTER JOIN WEEK_ATT_LOG WA ON WA.YYMMWK BETWEEN FS.START_YYMMWK AND FS.END_YYMMWK AND FS.STUD_ID = WA.STUD_ID
@@ -1089,7 +1089,7 @@
 		</when>
 		<otherwise>
 			SELECT
-				ATT_DT AS DT,
+				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
 			    FIRST_LOGIN_DTTM AS LOGIN_TM
 			FROM VS_REPORT_STUD VS 
 			LEFT OUTER JOIN MONTH_ATT_LOG MA ON MA.YYMM BETWEEN VS.START_YYMM AND VS.END_YYMM AND VS.STUD_ID = MA.STUD_ID
@@ -1160,6 +1160,49 @@
 				AND STUD_ID = #{studId}
 			GROUP BY STUD_ID, SUBJ_CD, SUB_SUBJ_CD
 			ORDER BY SUBJ_CD, SUB_SUBJ_CD;
+		</otherwise>
+	</choose>
+    </select>
+    
+    <select id="selectVisionPrintBasicInfo" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				STUD_NM,
+			    CONCAT(
+					(SELECT IFNULL(MO,IFNULL(TU,IFNULL(WE,IFNULL(TH,IFNULL(FR,IFNULL(SA,SU)))))) FROM COMM_WK_DT WHERE YYMM = ST.START_YYMM AND WK = ST.START_WK), 
+			        ' ~ ',
+			        (SELECT IFNULL(SU,IFNULL(SA,IFNULL(FR,IFNULL(TH,IFNULL(WE,IFNULL(TU,MO)))))) FROM COMM_WK_DT WHERE YYMM = ST.END_YYMM AND WK = ST.END_WK)
+			    ) AS DT
+			FROM (
+				SELECT
+					STUD_NM,
+					SUBSTRING(START_YYMMWK,1,6) AS START_YYMM,
+					SUBSTRING(START_YYMMWK,7,7) AS START_WK,
+					SUBSTRING(END_YYMMWK,1,6) AS END_YYMM,
+					SUBSTRING(END_YYMMWK,7,7) AS END_WK
+				FROM FIRST_VS_REPORT_STUD
+				WHERE STUD_ID = #{studId}
+			) ST 
+		</when>
+		<otherwise>
+			SELECT
+				STUD_NM,
+			    CONCAT(
+					(SELECT IFNULL(MO,IFNULL(TU,IFNULL(WE,IFNULL(TH,IFNULL(FR,IFNULL(SA,SU)))))) FROM COMM_WK_DT WHERE YYMM = ST.START_YYMM AND WK = 1), 
+			        ' ~ ',
+			        END_DT
+			    ) AS DT
+			FROM (
+				SELECT
+					STUD_NM,
+					START_YYMM,
+					LAST_DAY(DATE_FORMAT(CONCAT(END_YYMM,'01'), '%Y-%m-%d')) AS END_DT
+				FROM VS_REPORT_STUD VS
+				WHERE YYMM = #{yymm}
+					AND TERM = #{term}
+					AND STUD_ID = #{studId}
+			) ST
 		</otherwise>
 	</choose>
     </select>
