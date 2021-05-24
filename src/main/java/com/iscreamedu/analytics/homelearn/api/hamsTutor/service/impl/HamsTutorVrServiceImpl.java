@@ -380,7 +380,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	totalCount = Integer.parseInt(visionExamMap.get("totalCount").toString());
         }
         
-        visionExamData.put("totalCount", totalCount);
+        visionExamData.put("totalCnt", totalCount);
         visionExamData.put("list",visionExamList);
         
         data.put("visionExamList",visionExamData);
