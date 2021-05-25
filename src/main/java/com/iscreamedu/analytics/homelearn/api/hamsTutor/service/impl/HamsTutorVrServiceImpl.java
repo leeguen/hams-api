@@ -55,7 +55,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
         
-        if(msg != null) {
+        if(msg != null && msg.size() > 0 && msg.get(0) != null) {
         	Map<String, Object> msgMap = msg.get(0);
         	
         	for(Entry<String, Object> item : msgMap.entrySet()) {
@@ -499,7 +499,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         ArrayList positiveMsgList = new ArrayList();
         ArrayList negativeMsgList = new ArrayList();
         if(visionPrintBasicInfo != null) {
-        	if(msg != null && msg.size() > 0) {
+        	if(msg != null && msg.size() > 0 && msg.get(0) != null) {
         		Map<String, Object> msgMap = msg.get(0);
         		
         		for(Entry<String, Object> item : msgMap.entrySet()) {
