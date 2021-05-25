@@ -651,7 +651,7 @@
 					WHERE UL.ORD = 1
 				) UT ON FEU.UNIT_CD = UT.UNIT_CD
 				WHERE FEU.STUD_ID = #{studId}
-					AND FEU.UNIT_CD = #{unitCd}
+					AND FEU.UNIT_CD = #{chapterCd}
 				LIMIT 1
 			) UNIT_INFO
 		</when>
@@ -699,7 +699,7 @@
 				WHERE VEU.YYMM = #{yymm}
 					AND VEU.TERM = #{term}
 					AND VEU.STUD_ID = #{studId}
-					AND VEU.UNIT_CD = #{unitCd}
+					AND VEU.UNIT_CD = #{chapterCd}
 				LIMIT 1
 			) UNIT_INFO
 		</otherwise>
