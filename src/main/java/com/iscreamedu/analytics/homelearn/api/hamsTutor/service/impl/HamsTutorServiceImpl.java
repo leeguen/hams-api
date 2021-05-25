@@ -343,6 +343,25 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         return result;
     }
 
+    @Override
+    public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        checkRequired(paramMap);
+
+        //DB 조회
+        List<Map<String,Object>> commMsgCd = (List<Map<String,Object>>)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getCommMsgCd");
+        LinkedHashMap<String,Object> commMsgCdMap = new LinkedHashMap<>();
+
+        for(Map item : commMsgCd) {
+            commMsgCdMap.put(item.get("msgCd").toString(),item.get("msg"));
+        }
+
+        data.put("commMsgCd",commMsgCdMap);
+        setResult(dataKey,data);
+
+        return result;
+    }
+
     //p,startDt,endDt 비교 메서드
     private void checkRequired(Map<String,Object> params) throws Exception {
         ValidationUtilTutor vu = new ValidationUtilTutor();

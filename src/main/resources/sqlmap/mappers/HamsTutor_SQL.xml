@@ -947,19 +947,7 @@
           AND
             LOGIN_PTN IS NOT NULL
     </select>
-    <select id="getAttSttChart" parameterType="hashMap" resultType="resultMap">
-        SELECT
-            ATT_DT AS DT,
-            FIRST_LOGIN_DTTM AS LOGIN_TM,
-            PLAN_YN,
-            LOGIN_YN
-        FROM
-            hams_tutor_dashboard.MONTH_ATT_LOG
-        WHERE
-            STUD_ID = #{studId}
-          AND
-            ATT_DT BETWEEN #{startDt} AND #{endDt}
-          AND
-            LOGIN_PTN IS NOT NULL
+    <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
+        SELECT MSG_CD,MSG FROM hams_tutor_dashboard.COMM_MSG_CD;
     </select>
 </mapper>
