@@ -215,7 +215,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		for(Map<String, Object> chapterItem : visionExamChapterList) {
         			if(item.get("unitNo").equals(chapterItem.get("unitNo"))) {
         				chapternmList.add(chapterItem.get("unitNm").toString());
-        				chapterScoreList.add(chapterItem.get("score").toString());
+        				chapterScoreList.add(Integer.valueOf(chapterItem.get("score").toString()));
         				chapterCdList.add(chapterItem.get("unitCd"));
         			}
         		}
@@ -246,7 +246,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		
         		chapterListMap.put("grade", item.get("grade"));
         		chapterListMap.put("term", item.get("term"));
-        		chapterListMap.put("chapter", item.get("unitNo"));
+        		chapterListMap.put("chapter", Integer.valueOf(item.get("unitNo").toString()));
         		chapterListMap.put("chapterNm", chapternmList);
         		chapterListMap.put("understandingLv", chapterScoreList);
         		chapterListMap.put("chapterCd", chapterCdList);
@@ -348,7 +348,12 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		}
         		
         		if(!"subjCd".equals(key) && value != null) {
-        			mapItem.setValue(value.split(","));
+        			if(key.contains("CrtRt")) {
+        				int[] crtRtList = Arrays.stream(value.split(",")).mapToInt(Integer::parseInt).toArray();
+        				mapItem.setValue(crtRtList);
+        			}else {
+        				mapItem.setValue(value.split(","));
+        			}
         		}
         	}
         }
