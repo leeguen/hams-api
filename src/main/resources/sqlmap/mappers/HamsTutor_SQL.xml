@@ -950,7 +950,7 @@
     <select id="getAttSttChart" parameterType="hashMap" resultType="resultMap">
         SELECT
             ATT_DT AS DT,
-            FIRST_LOGIN_DTTM AS LOGIN_TM,
+            DATE_FORMAT(FIRST_LOGIN_DTTM,'%Y-%m-%d %H:%i:%s') AS LOGIN_TM,
             PLAN_YN,
             LOGIN_YN
         FROM
