@@ -55,7 +55,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
         
-        if(msg != null) {
+        if(msg != null && msg.size() > 0 && msg.get(0) != null) {
         	Map<String, Object> msgMap = msg.get(0);
         	
         	for(Entry<String, Object> item : msgMap.entrySet()) {
@@ -129,14 +129,20 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	subjCrtRtList.clear();
         	for(Map<String, Object> subj : subjCrtRt) {
         		if(item.get("yymm").equals(subj.get("yymm"))) {
+        			subj.remove("yymm");
         			subjCrtRtList.add(subj);
         		}
         	}
         	
         	item.put("subjCrtRt", subjCrtRtList);
         }
-
-        data.put("visionGrowthStt",growStt);
+        
+        if(growStt.size() > 0) {
+        	data.put("visionGrowthStt",growStt);
+        }else {
+        	data.put("visionGrowthStt",null);
+        }
+        
         setResult(dataKey,data);
 
         return result;
@@ -178,11 +184,15 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> visionExamChapterStt = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterStt");
         ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterSubjList");
         
+        LinkedHashMap<String,Object> chapter = new LinkedHashMap<>();
+        
         if(visionExamChapterStt != null) {
         	ArrayList paramsSubjList = new ArrayList();
+        	ArrayList subjNmList = new ArrayList();
         	if(subjList.size() > 0) {
         		for(Map<String, Object> subjItem : subjList) {
         			paramsSubjList.add(subjItem.get("subjCd"));
+        			subjNmList.add(subjItem.get("subjCd"));
         		}
         	}else {
         		paramsSubjList = null;
@@ -210,6 +220,30 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         			}
         		}
         		
+        		if(chapternmList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapternmList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapternmList.add("");
+        			}
+        		}
+        		
+        		if(chapterScoreList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapterScoreList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapterScoreList.add("");
+        			}
+        		}
+        		
+        		if(chapterCdList.size() != subjNmList.size()) {
+        			int listDiff = subjNmList.size() - chapterCdList.size();
+        			
+        			for(int i = 0; i < listDiff; i++) {
+        				chapterCdList.add("");
+        			}
+        		}
+        		
         		chapterListMap.put("grade", item.get("grade"));
         		chapterListMap.put("term", item.get("term"));
         		chapterListMap.put("chapter", item.get("unitNo"));
@@ -220,8 +254,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		chapterList.add(chapterListMap);
         	}
         	
-        	visionExamChapterStt.put("subjCd",subjList);
-        	visionExamChapterStt.put("chapterList",chapterList);
+        	chapter.put("subjCd",subjNmList);
+        	chapter.put("list",chapterList);
+        	visionExamChapterStt.put("chapter",chapter);
         	
         }
         
@@ -239,6 +274,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         LinkedHashMap<String,Object> visionExamChapterLrn = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterLrn");
+        LinkedHashMap<String,Object> visionExamChapter = new LinkedHashMap<>();
         LinkedHashMap<String,Object> priorLrn = new LinkedHashMap<>();
         LinkedHashMap<String,Object> currentLrn = new LinkedHashMap<>();
         
@@ -282,12 +318,12 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
     	}
 
-    	visionExamChapterLrn.put("priorLrn",priorLrn);
-    	visionExamChapterLrn.put("currentLrn",currentLrn);
-    	visionExamChapterLrn.put("followUpLrn",followUpLrnList);
-    	visionExamChapterLrn.put("supplementaryLrn",supplementaryLrnList);
+    	visionExamChapter.put("priorLrn",priorLrn);
+    	visionExamChapter.put("currentLrn",currentLrn);
+    	visionExamChapter.put("followUpLrn",followUpLrnList);
+    	visionExamChapter.put("supplementaryLrn",supplementaryLrnList);
     	
-    	data.put("visionExamChapterLrn",visionExamChapterLrn);
+    	data.put("visionExamChapterLrn",visionExamChapter);
     	setResult(dataKey,data);
 
         return result;
@@ -300,7 +336,23 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         //DB 조회
         ArrayList<Map<String,Object>> visionExamFieldStt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamFieldStt");
-
+        ArrayList emptyList = new ArrayList<>();
+        
+        for(Map<String, Object> item : visionExamFieldStt) {
+        	
+        	for(Entry<String, Object> mapItem : item.entrySet()) {
+        		String key = mapItem.getKey();
+        		String value = (mapItem.getValue() != null) ? mapItem.getValue().toString() : null;
+        		if(!"subjCd".equals(key) && value == null) {
+        			mapItem.setValue(emptyList);
+        		}
+        		
+        		if(!"subjCd".equals(key) && value != null) {
+        			mapItem.setValue(value.split(","));
+        		}
+        	}
+        }
+        
         data.put("visionExamFieldStt",visionExamFieldStt);
         setResult(dataKey,data);
 
@@ -350,6 +402,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         }
         
         //DB 조회
+		LinkedHashMap<String,Object> visionExamData = new LinkedHashMap<>();
         LinkedHashMap<String,Object> visionExamMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamCount");
         ArrayList<Map<String,Object>> visionExamList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamList");
         
@@ -358,8 +411,10 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	totalCount = Integer.parseInt(visionExamMap.get("totalCount").toString());
         }
         
-        data.put("totalCount", totalCount);
-        data.put("visionExamList",visionExamList);
+        visionExamData.put("totalCnt", totalCount);
+        visionExamData.put("list",visionExamList);
+        
+        data.put("visionExamList",visionExamData);
         setResult(dataKey,data);
 
         return result;
@@ -398,28 +453,29 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         ArrayList<Map<String,Object>> subjLrnTmData = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionSubjLrnTm");
 
         ArrayList<Map<String,Object>> subjLrnTm = new ArrayList<>();
-        
-        if(subjLrnTmData != null) {
-        	ArrayList subjNmList = new ArrayList<>();
-        	
-        	for(Map<String, Object> item : subjLrnTmData) {
-        		if(!subjNmList.contains(item.get("subjCd"))) {
-        			subjNmList.add(item.get("subjCd").toString());
-        		}
-        	}
-        	
-        	for(Object subjNmItem : subjNmList) {
-        		ArrayList<Map<String, Object>> subjLrnList = new ArrayList<>();
+        if(visionLrnPtn != null) {
+        	if(subjLrnTmData != null) {
+        		ArrayList subjNmList = new ArrayList<>();
+        		
         		for(Map<String, Object> item : subjLrnTmData) {
-        			if(subjNmItem.toString().equals(item.get("subjCd"))) {
-        				subjLrnList.add(createSubjLrnTmMap(item.get("subSubjCd").toString(), Integer.valueOf(item.get("lrnSec").toString())));
+        			if(!subjNmList.contains(item.get("subjCd"))) {
+        				subjNmList.add(item.get("subjCd").toString());
         			}
         		}
         		
-        		subjLrnTm.add(createSubjLrnTm(subjNmItem.toString(), subjLrnList));
+        		for(Object subjNmItem : subjNmList) {
+        			ArrayList<Map<String, Object>> subjLrnList = new ArrayList<>();
+        			for(Map<String, Object> item : subjLrnTmData) {
+        				if(subjNmItem.toString().equals(item.get("subjCd"))) {
+        					subjLrnList.add(createSubjLrnTmMap(item.get("subSubjCd").toString(), Integer.valueOf(item.get("lrnSec").toString())));
+        				}
+        			}
+        			
+        			subjLrnTm.add(createSubjLrnTm(subjNmItem.toString(), subjLrnList));
+        		}
+        		
+        		visionLrnPtn.put("subjLrnTm", subjLrnTm);
         	}
-        	
-        	visionLrnPtn.put("subjLrnTm", subjLrnTm);
         }
         
         data.put("visionLrnPtn",visionLrnPtn);
@@ -434,201 +490,212 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,false);
 
         //DB 조회
-        LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicInfo");
+        LinkedHashMap<String,Object> visionPrintBasicInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintBasicInfo");
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
-        ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsg");
+        ArrayList<Map<String,Object>> consultinMsg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionPrintBasicConsultingMsg");
         LinkedHashMap<String,Object> cpMsgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicConsultingMsgCondition");
         
         ArrayList positiveMsgList = new ArrayList();
         ArrayList negativeMsgList = new ArrayList();
-        
-        if(msg != null) {
-        	Map<String, Object> msgMap = msg.get(0);
-        	
-        	for(Entry<String, Object> item : msgMap.entrySet()) {
-        		String key = item.getKey();
-        		String value = item.getValue().toString();
-        		if(value != null) {
-        			if(value.indexOf("studNm") > 0) {
-        				value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        if(visionPrintBasicInfo != null) {
+        	if(msg != null && msg.size() > 0 && msg.get(0) != null) {
+        		Map<String, Object> msgMap = msg.get(0);
+        		
+        		for(Entry<String, Object> item : msgMap.entrySet()) {
+        			String key = item.getKey();
+        			String value = (item.getValue() != null) ? item.getValue().toString() : null;
+        			if(value != null) {
+        				if(value.indexOf("studNm") > 0) {
+        					value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        				}
+        				
+        				if(value.indexOf("exRt") > 0) {
+        					value = value.replace("{exRt}", msgInfo.get("exRt").toString());
+        				}
+        				
+        				if(value.indexOf("attRt") > 0) {
+        					value = value.replace("{attRt}", msgInfo.get("attRt").toString());
+        				}
+        				
+        				if(value.indexOf("subjCd") > 0) {
+        					value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
+        				}
+        				
+        				if(value.indexOf("maxCrtRt") > 0) {
+        					value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
+        				}
+        				
+        				if(value.indexOf("minCrtRt") > 0) {
+        					value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
+        				}
+        				
+        				if(value.indexOf("spSubjCd") > 0) {
+        					value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
+        				}
+        				
+        				if(value.indexOf("spCnt") > 0) {
+        					value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
+        				}
+        				
+        				if(value.indexOf("fnshSubjCd") > 0) {
+        					value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
+        				}
+        				
+        				msgMap.put(key, value);
         			}
-        			
-        			if(value.indexOf("exRt") > 0) {
-        				value = value.replace("{exRt}", msgInfo.get("exRt").toString());
-        			}
-        			
-        			if(value.indexOf("attRt") > 0) {
-        				value = value.replace("{attRt}", msgInfo.get("attRt").toString());
-        			}
-        			
-        			if(value.indexOf("subjCd") > 0) {
-        				value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
-        			}
-        			
-        			if(value.indexOf("maxCrtRt") > 0) {
-        				value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
-        			}
-        			
-        			if(value.indexOf("minCrtRt") > 0) {
-        				value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
-        			}
-        			
-        			if(value.indexOf("spSubjCd") > 0) {
-        				value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
-        			}
-        			
-        			if(value.indexOf("spCnt") > 0) {
-        				value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
-        			}
-        			
-        			if(value.indexOf("fnshSubjCd") > 0) {
-        				value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
-        			}
-        			
-        			msgMap.put(key, value);
         		}
+        		
+        		msg.clear();
+        		msg.add(msgMap);
         	}
         	
-        	msg.clear();
-        	msg.add(msgMap);
-        }
-        
-        
-        for(Map<String, Object> msgItem : consultinMsg) {
-        	if("G".equals(msgItem.get("msgType"))) {
-        		if("CPG0003".equals(msgItem.get("msgCd")) || "CPG0004".equals(msgItem.get("msgCd")) || "CPG0005".equals(msgItem.get("msgCd")) || "CPG0006".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{a}", cpMsgInfo.get("explCnt").toString())
-        					.replace("{b}", cpMsgInfo.get("psExplCnt").toString())
-        					.replace("{c}", cpMsgInfo.get("crtRt").toString()));
-        		}else if("CPG0010".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{a}", cpMsgInfo.get("aLrnExCnt").toString())
-        					.replace("{b}", cpMsgInfo.get("aLrnSubjCd").toString()));
+        	if(consultinMsg !=null && consultinMsg.size() > 0) {
+        		for(Map<String, Object> msgItem : consultinMsg) {
+        			if("G".equals(msgItem.get("msgType"))) {
+        				if("CPG0003".equals(msgItem.get("msgCd")) || "CPG0004".equals(msgItem.get("msgCd")) || "CPG0005".equals(msgItem.get("msgCd")) || "CPG0006".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{a}", cpMsgInfo.get("explCnt").toString())
+        							.replace("{b}", cpMsgInfo.get("psExplCnt").toString())
+        							.replace("{c}", cpMsgInfo.get("crtRt").toString()));
+        				}else if("CPG0010".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{a}", cpMsgInfo.get("aLrnExCnt").toString())
+        							.replace("{b}", cpMsgInfo.get("aLrnSubjCd").toString()));
+        				}
+        				
+        				Boolean active = ("Y".equals(msgItem.get("active").toString())) ? true : false;
+        				
+        				positiveMsgList.add(createConsultingMsgMap(active, msgItem.get("msg").toString(), msgItem.get("msgCd").toString()));
+        			}else {
+        				if("CPB0004".equals(msgItem.get("msgCd")) ) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("exRt").toString()));
+        				}else if("CPB0006".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("nLrnExCnt").toString()));
+        				}else if("CPB0007".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("crtRt").toString()));
+        				}else if("CPB0008".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("explCnt").toString()));
+        				}else if("CPB0009".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{c}", cpMsgInfo.get("incrtNtCnt").toString()));
+        				}else if("CPB0010".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{c}", cpMsgInfo.get("skpQuesCnt").toString()));
+        				}else if("CPB0011".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{c}", cpMsgInfo.get("curQuesCnt").toString()));
+        				}else if("CPB0012".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{c}", cpMsgInfo.get("gucQuesCnt").toString()));
+        				}else if("CPB0013".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("over25MinLrnCnt").toString()));
+        				}else if("CPB0014".equals(msgItem.get("msgCd"))) {
+        					msgItem.put("msg", msgItem.get("msg").toString()
+        							.replace("{b}", cpMsgInfo.get("below5MinLrnCnt").toString()));
+        				}
+        				
+        				Boolean active = ("Y".equals(msgItem.get("active").toString())) ? true : false;
+        				
+        				negativeMsgList.add(createConsultingMsgMap(active, msgItem.get("msg").toString(), msgItem.get("msgCd").toString()));
+        			}
         		}
-        		
-        		positiveMsgList.add(msgItem.get("msg").toString());
-        	}else {
-        		if("CPB0004".equals(msgItem.get("msgCd")) ) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("exRt").toString()));
-        		}else if("CPB0006".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("nLrnExCnt").toString()));
-        		}else if("CPB0007".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("crtRt").toString()));
-        		}else if("CPB0008".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("explCnt").toString()));
-        		}else if("CPB0009".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{c}", cpMsgInfo.get("incrtNtCnt").toString()));
-        		}else if("CPB0010".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{c}", cpMsgInfo.get("skpQuesCnt").toString()));
-        		}else if("CPB0011".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{c}", cpMsgInfo.get("curQuesCnt").toString()));
-        		}else if("CPB0012".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{c}", cpMsgInfo.get("gucQuesCnt").toString()));
-        		}else if("CPB0013".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("over25MinLrnCnt").toString()));
-        		}else if("CPB0014".equals(msgItem.get("msgCd"))) {
-        			msgItem.put("msg", msgItem.get("msg").toString()
-        					.replace("{b}", cpMsgInfo.get("below5MinLrnCnt").toString()));
-        		}
-        		
-        		negativeMsgList.add(msgItem.get("msg").toString());
         	}
-        }
-        
-        String recommendJob = null;
-        Map<String, Object> apiMap = new HashMap<>();
-        Map<String, Object> paramData = new HashMap<>();
-        
-        paramData.put("p", paramMap.get("p"));
-        paramData.put("apiName", "intel-inspecion-strength");
-        
-        apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
-        
-        String intelNm = null;
-        List <Map> intelNmList = new ArrayList<>();
-        if(apiMap != null) {
-        	intelNmList = (List<Map>) apiMap.get("items");
-        	intelNm = intelNmList.get(0).get("intel_nm").toString().replace("지능", "");
-        }
-        
-        if(apiMap != null) {
-        	String intelStrength = intelNm;
-        	String maxSubjCd = null;
-        	if(msgInfo.get("maxLrnSubjCd")!= null) {
-        		
-        		if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
-        			maxSubjCd = "E01";
+        	
+        	String recommendJob = null;
+        	Map<String, Object> apiMap = new HashMap<>();
+        	Map<String, Object> paramData = new HashMap<>();
+        	
+        	paramData.put("p", paramMap.get("p"));
+        	paramData.put("apiName", "intel-inspecion-strength");
+        	
+        	apiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+        	
+        	String intelNm = null;
+        	List <Map> intelNmList = new ArrayList<>();
+        	if(apiMap != null) {
+        		intelNmList = (List<Map>) apiMap.get("items");
+        		intelNm = intelNmList.get(0).get("intel_nm").toString().replace("지능", "");
+        	}
+        	
+        	if(apiMap != null) {
+        		String intelStrength = intelNm;
+        		String maxSubjCd = null;
+        		if(msgInfo.get("maxLrnSubjCd")!= null) {
+        			
+        			if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
+        				maxSubjCd = "E01";
+        			}else {
+        				maxSubjCd = msgInfo.get("maxLrnSubjCd").toString();
+        			}
+        			
+        			switch (intelStrength) {
+        			case "언어":
+        				intelNm = "RJ01" + maxSubjCd;
+        				break;
+        			case "논리수학":
+        				intelNm = "RJ02" + maxSubjCd;
+        				break;
+        			case "공간":
+        				intelNm = "RJ03" + maxSubjCd;
+        				break;
+        			case "신체운동":
+        				intelNm = "RJ04" + maxSubjCd;
+        				break;
+        			case "대인":
+        				intelNm = "RJ05" + maxSubjCd;
+        				break;
+        			case "음악":
+        				intelNm = "RJ06" + maxSubjCd;
+        				break;
+        			case "개인내적":
+        				intelNm = "RJ07" + maxSubjCd;
+        				break;
+        			case "자연친화":
+        				intelNm = "RJ08" + maxSubjCd;
+        				break;
+        			default:
+        				intelNm = "RJ09" + maxSubjCd;
+        				break;
+        			}
         		}else {
-        			maxSubjCd = msgInfo.get("maxLrnSubjCd").toString();
-        		}
-        		
-        		switch (intelStrength) {
-        		case "언어":
-        			intelNm = "RJ01" + maxSubjCd;
-        			break;
-        		case "논리수학":
-        			intelNm = "RJ02" + maxSubjCd;
-        			break;
-        		case "공간":
-        			intelNm = "RJ03" + maxSubjCd;
-        			break;
-        		case "신체운동":
-        			intelNm = "RJ04" + maxSubjCd;
-        			break;
-        		case "대인":
-        			intelNm = "RJ05" + maxSubjCd;
-        			break;
-        		case "음악":
-        			intelNm = "RJ06" + maxSubjCd;
-        			break;
-        		case "개인내적":
-        			intelNm = "RJ07" + maxSubjCd;
-        			break;
-        		case "자연친화":
-        			intelNm = "RJ08" + maxSubjCd;
-        			break;
-        		default:
-        			intelNm = "RJ09" + maxSubjCd;
-        			break;
+        			intelNm = "RJ01E02";
         		}
         	}else {
-        		intelNm = "RJ01E02";
-        	}
-        }else {
-        	if(msgInfo.get("maxLrnSubjCd") != null) {
-        		if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
-        			intelNm = "RJ09E01";
+        		if(msgInfo != null) {
+        			if(msgInfo.get("maxLrnSubjCd") != null) {
+        				if("N02".equals(msgInfo.get("maxLrnSubjCd").toString())) {
+        					intelNm = "RJ09E01";
+        				}else {
+        					intelNm = "RJ09" + msgInfo.get("maxLrnSubjCd");
+        				}
+        			}else {
+        				intelNm = "RJ01E02";
+        			}
         		}else {
-        			intelNm = "RJ09" + msgInfo.get("maxLrnSubjCd");
+        			intelNm = "RJ01E02";
         		}
-        	}else {
-        		intelNm = "RJ01E02";
         	}
+        	
+        	paramData.clear();
+        	paramData.put("msgCd", intelNm);
+        	paramData.put("grp", "RECOMMEND_JOB");
+        	
+        	Map<String, Object> recommandJobData = (Map) commonMapperTutor.get(paramData, "HamsTutorVr.selectRecommendJob");
+        	
+        	recommendJob = recommandJobData.get("cdNm").toString();
+        	
+        	visionPrintBasicInfo.put("title",recommendJob);
+        	visionPrintBasicInfo.put("msg",msg.get(0));
+        	visionPrintBasicInfo.put("positiveMsg",positiveMsgList);
+        	visionPrintBasicInfo.put("negativeMsg",negativeMsgList);
         }
         
-        paramData.clear();
-        paramData.put("msgCd", intelNm);
-        paramData.put("grp", "RECOMMEND_JOB");
-        
-        Map<String, Object> recommandJobData = (Map) commonMapperTutor.get(paramData, "HamsTutorVr.selectRecommendJob");
-        
-        recommendJob = recommandJobData.get("cdNm").toString();
-        
-        visionPrintBasicInfo.put("title",recommendJob);
-        visionPrintBasicInfo.put("msg",msg.get(0));
-        visionPrintBasicInfo.put("positiveMsg",positiveMsgList);
-        visionPrintBasicInfo.put("negativeMsg",negativeMsgList);
         data.put("visionPrintBasicInfo",visionPrintBasicInfo);
 
         setResult(dataKey,data);
@@ -646,11 +713,19 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Integer> lrnStt = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintLrnStt");
         LinkedHashMap<String,Integer> examStt = (LinkedHashMap<String, Integer>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionPrintExamStt");
         LinkedHashMap<String,Integer> imprvSlvHabitDetail = new LinkedHashMap<>();
+        
+        if(lrnStt != null) {
+        	visionPrintLrnStt.put("lrnStt",lrnStt);
+        }
+        
+        if(examStt != null) {
+        	visionPrintLrnStt.put("examStt",examStt);
+        }
+        
+        if(!visionPrintLrnStt.isEmpty()) {
+        	data.put("visionPrintLrnStt",visionPrintLrnStt);
+        }
 
-        visionPrintLrnStt.put("lrnStt",lrnStt);
-        visionPrintLrnStt.put("examStt",examStt);
-
-        data.put("visionPrintLrnStt",visionPrintLrnStt);
         setResult(dataKey,data);
 
         return result;
@@ -713,11 +788,76 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
     @Override
     public Map getVisionPrintFeedbackUpdatePopup(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new HashMap<>();
-        checkRequired(paramMap,false);
-
+        checkRequired(paramMap,true);
+        
+        ArrayList positiveMsgActive = new ArrayList<>();
+    	ArrayList positiveMsgCd = new ArrayList<>();
+    	ArrayList<Map<String,String>> positiveMsgList = new ArrayList<>();
+    	
+    	ArrayList negativeMsgActive = new ArrayList<>();
+    	ArrayList negativeMsgCd = new ArrayList<>();
+    	ArrayList<Map<String,String>> negativeMsgList = new ArrayList<>();
+    	
+    	
+    	int vrMsgUpdateCheck = 0;
+    	int positiveMsgUpdateCheck = 0;
+    	int negativeMsgUpdateCheck = 0;
+        
+        if(paramMap.get("positiveMsgActive") != null && paramMap.get("positiveMsgCd") != null) {
+        	positiveMsgActive = (ArrayList) paramMap.get("positiveMsgActive");
+        	positiveMsgCd = (ArrayList) paramMap.get("positiveMsgCd");
+        	
+        	for(int i = 0; i < positiveMsgActive.size(); i++) {
+        		String active = (boolean) (positiveMsgActive.get(i)) ? "Y" : "N";
+        		positiveMsgList.add(createConsultingMsgUpdateMap(active, "G", positiveMsgCd.get(i).toString()));
+        	}
+        	
+        }
+        
+        if(paramMap.get("negativeMsgActive") != null && paramMap.get("negativeMsgCd") != null) {
+        	negativeMsgActive = (ArrayList) paramMap.get("negativeMsgActive");
+            negativeMsgCd = (ArrayList) paramMap.get("negativeMsgCd");
+            
+            for(int i = 0; i < negativeMsgActive.size(); i++) {
+        		String active = (boolean) (negativeMsgActive.get(i)) ? "Y" : "N";
+        		negativeMsgList.add(createConsultingMsgUpdateMap(active, "B", negativeMsgCd.get(i).toString()));
+        	}
+            
+        }
+        
         //DB 조회
-        setResult(dataKey, commonMapperTutor.update(paramMap, "updateVisionPrintFeedback"));
-
+        vrMsgUpdateCheck = commonMapperTutor.update(paramMap, "updateVisionPrintFeedback");
+        
+        if(positiveMsgList.size() > 0) {
+        	for(Map<String, String> positiveItem : positiveMsgList) {
+        		Map<String,Object> positiveMap = new HashMap<>();
+        		positiveMap.put("studId", paramMap.get("studId"));
+        		positiveMap.put("yymm", paramMap.get("yymm"));
+        		positiveMap.put("term", paramMap.get("term"));
+        		positiveMap.put("active", positiveItem.get("active"));
+        		positiveMap.put("msgType", positiveItem.get("msgType"));
+        		positiveMap.put("msgCd", positiveItem.get("msgCd"));
+            	
+            	positiveMsgUpdateCheck = commonMapperTutor.update(positiveMap, "updateVisionPrintFeedbackConsultingMsg");
+        	}
+        }
+        
+        if(negativeMsgList.size() > 0) {
+        	for(Map<String, String> negativeItem : negativeMsgList) {
+        		Map<String,Object> negativeMap = new HashMap<>();
+        		negativeMap.put("studId", paramMap.get("studId"));
+            	negativeMap.put("yymm", paramMap.get("yymm"));
+            	negativeMap.put("term", paramMap.get("term"));
+            	negativeMap.put("active", negativeItem.get("active"));
+            	negativeMap.put("msgType", negativeItem.get("msgType"));
+            	negativeMap.put("msgCd", negativeItem.get("msgCd"));
+            	
+            	negativeMsgUpdateCheck = commonMapperTutor.update(negativeMap, "updateVisionPrintFeedbackConsultingMsg");
+        	}
+        }
+        
+        setResult(dataKey, vrMsgUpdateCheck);
+        
         return result;
     }
 
@@ -768,6 +908,22 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
         resultMap.put("subjCd",subj);
         resultMap.put("crtRt",score);
+        return  resultMap;
+    }
+    
+    private Map createConsultingMsgUpdateMap(String active, String msgType, String msgCd) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+        resultMap.put("active",active);
+        resultMap.put("msgType",msgType);
+        resultMap.put("msgCd",msgCd);
+        return  resultMap;
+    }
+    
+    private Map createConsultingMsgMap(Boolean active, String msg, String msgCd) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+        resultMap.put("active",active);
+        resultMap.put("msg",msg);
+        resultMap.put("msgCd",msgCd);
         return  resultMap;
     }
 

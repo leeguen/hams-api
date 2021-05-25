@@ -61,7 +61,7 @@
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_2) AS CHAR(2000)) AS POSITIVE_EXAM_MIN_SUBJ_MSG,
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_3) AS CHAR(2000)) AS POSITIVE_EXAM_REVIEW_SUBJ_MSG,
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_4) AS CHAR(2000)) AS POSITIVE_EXAM_INCRT_NT_MSG,
-				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = LRN_EX_CONTROL_MSG) AS CHAR(2000)) AS NEGATVIE_LRN_MSG,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = LRN_EX_CONTROL_MSG) AS CHAR(2000)) AS NEGATIVE_LRN_MSG,
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = N_LRN_RECOMMAND_MSG) AS CHAR(2000)) AS NEGATIVE_SUBJ_RECOMMEND_MSG,
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = SUBJ_REVIEW_MSG) AS CHAR(2000)) AS NEGATIVE_REVIEW_SUBJ_MSG,
 				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = SUBJ_PREVIEW_MSG) AS CHAR(2000)) AS NEGATIVE_PREVIEW_SUBJ_MSG,
@@ -77,7 +77,7 @@
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_2) AS CHAR(2000)) AS POSITIVE_EXAM_MIN_SUBJ_MSG,
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_3) AS CHAR(2000)) AS POSITIVE_EXAM_REVIEW_SUBJ_MSG,
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = EXAM_MSG_4) AS CHAR(2000)) AS POSITIVE_EXAM_INCRT_NT_MSG,
-			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = LRN_EX_CONTROL_MSG) AS CHAR(2000)) AS NEGATVIE_LRN_MSG,
+			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = LRN_EX_CONTROL_MSG) AS CHAR(2000)) AS NEGATIVE_LRN_MSG,
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = N_LRN_RECOMMAND_MSG) AS CHAR(2000)) AS NEGATIVE_SUBJ_RECOMMEND_MSG,
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = SUBJ_REVIEW_MSG) AS CHAR(2000)) AS NEGATIVE_REVIEW_SUBJ_MSG,
 			    CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = SUBJ_PREVIEW_MSG) AS CHAR(2000)) AS NEGATIVE_PREVIEW_SUBJ_MSG,
@@ -502,16 +502,23 @@
 				SELECT
 					STUD_ID,
 					UNIT_CD,
-					CASE
-						WHEN TRUE_SCORE IS NULL THEN ROUND(CRT_CNT / QUES_CNT * 100)
-						ELSE ROUND(TRUE_SCORE / TRUE_SCORE_MAX * 100)
-					END AS CRT_RT
-				FROM FIRST_VS_REPORT_EXAM_UNIT_TEST_LOG
-				WHERE STUD_ID = #{studId}
-					AND SUBJ_CD IN 
-					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                	</foreach>
+					MAX(CRT_RT) AS CRT_RT
+				FROM (
+					SELECT
+						STUD_ID,
+						UNIT_CD,
+						CASE
+							WHEN TRUE_SCORE IS NULL THEN ROUND(CRT_CNT / QUES_CNT * 100)
+							ELSE ROUND(TRUE_SCORE / TRUE_SCORE_MAX * 100)
+						END AS CRT_RT
+					FROM FIRST_VS_REPORT_EXAM_UNIT_TEST_LOG
+					WHERE STUD_ID = #{studId}
+						AND SUBJ_CD IN 
+						<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                	</foreach>
+               	) UL
+				GROUP BY UL.STUD_ID, UL.UNIT_CD
 			) VER ON UI_1.STUD_ID = VER.STUD_ID AND UI_1.UNIT_CD = VER.UNIT_CD
 			ORDER BY UI_1.UNIT_NO, UI_1.SUBJ_CD
 		</when>
@@ -575,18 +582,25 @@
 				SELECT
 					STUD_ID,
 					UNIT_CD,
-					CASE
-						WHEN TRUE_SCORE IS NULL THEN ROUND(CRT_CNT / QUES_CNT * 100)
-						ELSE ROUND(TRUE_SCORE / TRUE_SCORE_MAX * 100)
-					END AS CRT_RT
-				FROM VS_REPORT_EXAM_UNIT_TEST_LOG
-				WHERE YYMM = #{yymm}
-					AND TERM = #{term}
-					AND STUD_ID = #{studId}
-					AND SUBJ_CD IN 
-					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                	</foreach>
+					MAX(CRT_RT) AS CRT_RT
+				FROM (
+					SELECT
+						STUD_ID,
+						UNIT_CD,
+						CASE
+							WHEN TRUE_SCORE IS NULL THEN ROUND(CRT_CNT / QUES_CNT * 100)
+							ELSE ROUND(TRUE_SCORE / TRUE_SCORE_MAX * 100)
+						END AS CRT_RT
+					FROM VS_REPORT_EXAM_UNIT_TEST_LOG
+					WHERE YYMM = #{yymm}
+						AND TERM = #{term}
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD IN 
+						<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                	</foreach>
+               	) UL
+				GROUP BY UL.STUD_ID, UL.UNIT_CD
 			) VER ON UI_1.STUD_ID = VER.STUD_ID AND UI_1.UNIT_CD = VER.UNIT_CD
 			ORDER BY UI_1.UNIT_NO, UI_1.SUBJ_CD
 		</otherwise>
@@ -597,12 +611,12 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				DT,
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
 			    CRT_RT,
 			    UNIT_INFO,
 			    PRE_UNIT_INFO,
 			    IFNULL(PRE_B_CRT_RT, PRE_F_CRT_RT) AS PRE_CRT_RT,
-			    IFNULL(PRE_B_DT, PRE_F_DT) AS PRE_DT,
+			    DATE_FORMAT(IFNULL(PRE_B_DT, PRE_F_DT), '%Y-%m-%d') AS PRE_DT,
 			    REPLACE(SUB_UNIT_INFO,'|',',') AS SUB_UNIT_INFO,
 				REPLACE(SP_UNIT_INFO,'|',',') AS SP_UNIT_INFO
 			FROM (
@@ -643,12 +657,12 @@
 		</when>
 		<otherwise>
 			SELECT
-				DT,
+				DATE_FORMAT(DT, '%Y-%m-%d') AS DT,
 			    CRT_RT,
 			    UNIT_INFO,
 			    PRE_UNIT_INFO,
 			    IFNULL(PRE_B_CRT_RT, PRE_F_CRT_RT) AS PRE_CRT_RT,
-			    IFNULL(PRE_B_DT, PRE_F_DT) AS PRE_DT,
+			    DATE_FORMAT(IFNULL(PRE_B_DT, PRE_F_DT), '%Y-%m-%d') AS PRE_DT,
 			    REPLACE(SUB_UNIT_INFO,'|',',') AS SUB_UNIT_INFO,
 				REPLACE(SP_UNIT_INFO,'|',',') AS SP_UNIT_INFO
 			FROM (
@@ -1081,7 +1095,7 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				ATT_DT AS DT,
+				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
 			    FIRST_LOGIN_DTTM AS LOGIN_TM
 			FROM FIRST_VS_REPORT_STUD FS 
 			LEFT OUTER JOIN WEEK_ATT_LOG WA ON WA.YYMMWK BETWEEN FS.START_YYMMWK AND FS.END_YYMMWK AND FS.STUD_ID = WA.STUD_ID
@@ -1089,7 +1103,7 @@
 		</when>
 		<otherwise>
 			SELECT
-				ATT_DT AS DT,
+				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
 			    FIRST_LOGIN_DTTM AS LOGIN_TM
 			FROM VS_REPORT_STUD VS 
 			LEFT OUTER JOIN MONTH_ATT_LOG MA ON MA.YYMM BETWEEN VS.START_YYMM AND VS.END_YYMM AND VS.STUD_ID = MA.STUD_ID
@@ -1163,6 +1177,75 @@
 		</otherwise>
 	</choose>
     </select>
+    
+    <select id="selectVisionPrintBasicInfo" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				STUD_NM,
+			    CONCAT(
+					(SELECT IFNULL(MO,IFNULL(TU,IFNULL(WE,IFNULL(TH,IFNULL(FR,IFNULL(SA,SU)))))) FROM COMM_WK_DT WHERE YYMM = ST.START_YYMM AND WK = ST.START_WK), 
+			        ' ~ ',
+			        (SELECT IFNULL(SU,IFNULL(SA,IFNULL(FR,IFNULL(TH,IFNULL(WE,IFNULL(TU,MO)))))) FROM COMM_WK_DT WHERE YYMM = ST.END_YYMM AND WK = ST.END_WK)
+			    ) AS DT
+			FROM (
+				SELECT
+					STUD_NM,
+					SUBSTRING(START_YYMMWK,1,6) AS START_YYMM,
+					SUBSTRING(START_YYMMWK,7,7) AS START_WK,
+					SUBSTRING(END_YYMMWK,1,6) AS END_YYMM,
+					SUBSTRING(END_YYMMWK,7,7) AS END_WK
+				FROM FIRST_VS_REPORT_STUD
+				WHERE STUD_ID = #{studId}
+			) ST 
+		</when>
+		<otherwise>
+			SELECT
+				STUD_NM,
+			    CONCAT(
+					(SELECT IFNULL(MO,IFNULL(TU,IFNULL(WE,IFNULL(TH,IFNULL(FR,IFNULL(SA,SU)))))) FROM COMM_WK_DT WHERE YYMM = ST.START_YYMM AND WK = 1), 
+			        ' ~ ',
+			        END_DT
+			    ) AS DT
+			FROM (
+				SELECT
+					STUD_NM,
+					START_YYMM,
+					LAST_DAY(DATE_FORMAT(CONCAT(END_YYMM,'01'), '%Y-%m-%d')) AS END_DT
+				FROM VS_REPORT_STUD VS
+				WHERE YYMM = #{yymm}
+					AND TERM = #{term}
+					AND STUD_ID = #{studId}
+			) ST
+		</otherwise>
+	</choose>
+    </select>
+    
+    <select id="selectVisionPrintBasicConsultingMsg" parameterType="hashMap" resultType="resultMap">
+	<choose>
+		<when test="term == 0">
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+			  	MSG_USE_YN AS ACTIVE,
+				MSG_TYPE
+			FROM FIRST_VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE STUD_ID = #{studId}
+				AND MSG_USE_YN = 'Y';
+		</when>
+		<otherwise>
+			SELECT
+				MSG_CD,
+				CAST((SELECT MSG FROM COMM_MSG_CD WHERE MSG_CD = CM.MSG_CD) AS CHAR(2000)) AS MSG,
+				MSG_USE_YN AS ACTIVE,
+				MSG_TYPE
+			FROM VS_REPORT_CONSULTING_POINT_MSG CM
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+    </select>
 	
 	<select id="selectVisionPrintLrnStt" parameterType="hashMap" resultType="resultMap">
 	<choose>
@@ -1207,12 +1290,12 @@
 			SELECT
 				FE.QUES_CNT AS ANS_QUES_CNT,
 				FE.CRT_CNT AS CRT_QUES_CNT,
-				(IFNULL(FE.CURSORY_QUES_CNT,0) + IFNULL(FE.SKIP_QUES_CNT,0) + IFNULL(FE.GUESS_CRT_QUES_CNT,0) + IFNULL(FE.GUESS_INCRT_QUES_CNT,0) + IFNULL(FE.MISTAKE_QUES_CNT,0)) AS IMPRV_SLB_HABIT_CNT,
+				(IFNULL(FE.CURSORY_QUES_CNT,0) + IFNULL(FE.SKIP_QUES_CNT,0) + IFNULL(FE.GUESS_CRT_QUES_CNT,0) + IFNULL(FE.GUESS_INCRT_QUES_CNT,0) + IFNULL(FE.MISTAKE_QUES_CNT,0)) AS IMPRV_SLV_HABIT_CNT,
 				(FE.INCRT_NT_REG_CNT - FE.INCRT_NT_FNSH_CNT) AS INCRT_NT_NT_CNT,
 				FE.SKIP_QUES_CNT,
 				FE.CURSORY_QUES_CNT,
 				(IFNULL(FE.GUESS_CRT_QUES_CNT,0) + IFNULL(FE.GUESS_INCRT_QUES_CNT,0)) AS GUESS_QUES_CNT,
-				FE.MISTAKE_QUES_CNT
+				FE.MISTAKE_QUES_CNT AS MISTAKEN_QUES_CNT
 			FROM FIRST_VS_REPORT_STUD FS
 			LEFT OUTER JOIN FIRST_VS_REPORT_EXAM_STT FE ON FS.STUD_ID = FE.STUD_ID
 			WHERE FS.STUD_ID = #{studId}
@@ -1221,12 +1304,12 @@
 			SELECT
 				VE.QUES_CNT AS ANS_QUES_CNT,
 			    VE.CRT_CNT AS CRT_QUES_CNT,
-			    (IFNULL(VE.CURSORY_QUES_CNT,0) + IFNULL(VE.SKIP_QUES_CNT,0) + IFNULL(VE.GUESS_CRT_QUES_CNT,0) + IFNULL(VE.GUESS_INCRT_QUES_CNT,0) + IFNULL(VE.MISTAKE_QUES_CNT,0)) AS IMPRV_SLB_HABIT_CNT,
+			    (IFNULL(VE.CURSORY_QUES_CNT,0) + IFNULL(VE.SKIP_QUES_CNT,0) + IFNULL(VE.GUESS_CRT_QUES_CNT,0) + IFNULL(VE.GUESS_INCRT_QUES_CNT,0) + IFNULL(VE.MISTAKE_QUES_CNT,0)) AS IMPRV_SLV_HABIT_CNT,
 			    (VE.INCRT_NT_REG_CNT - VE.INCRT_NT_FNSH_CNT) AS INCRT_NT_NT_CNT,
 			    VE.SKIP_QUES_CNT,
 			    VE.CURSORY_QUES_CNT,
 			    (IFNULL(VE.GUESS_CRT_QUES_CNT,0) + IFNULL(VE.GUESS_INCRT_QUES_CNT,0)) AS GUESS_QUES_CNT,
-			    VE.MISTAKE_QUES_CNT
+			    VE.MISTAKE_QUES_CNT AS MISTAKEN_QUES_CNT
 			FROM VS_REPORT_STUD VS
 			LEFT OUTER JOIN VS_REPORT_EXAM_STT VE ON VS.YYMM = VE.YYMM AND VS.TERM = VE.TERM AND VS.STUD_ID = VE.STUD_ID
 			WHERE VS.YYMM = #{yymm}
@@ -1248,10 +1331,11 @@
 				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
 				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
 				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
-			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeSubjRecommendMsg},
 			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
 			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
-			    COMM_MSG_2 = #{lastCommonMsg}
+			    COMM_MSG_2 = #{lastCommonMsg},
+			    UPD_DTTM = NOW()
 			WHERE STUD_ID = #{studId}
 		</when>
 		<otherwise>
@@ -1264,13 +1348,39 @@
 				EXAM_MSG_3 = #{positiveExamReviewSubjMsg},
 				EXAM_MSG_4 = #{positiveExamIncrtNtMsg},
 				LRN_EX_CONTROL_MSG = #{negativeLrnMsg},
-			    N_LRN_RECOMMAND_MSG = #{negativeNSubjRecommendMsg},
+			    N_LRN_RECOMMAND_MSG = #{negativeSubjRecommendMsg},
 			    SUBJ_REVIEW_MSG = #{negativeReviewSubjMsg},
 			    SUBJ_PREVIEW_MSG = #{negativePreviewSubjMsg},
-			    COMM_MSG_2 = #{lastCommonMsg}
+			    COMM_MSG_2 = #{lastCommonMsg},
+			    UPD_DTTM = NOW()
 			WHERE YYMM = #{yymm}
 				AND TERM = #{term}
 			    AND STUD_ID = #{studId}
+		</otherwise>
+	</choose>
+	</update>
+	
+	<update id="updateVisionPrintFeedbackConsultingMsg" parameterType="hashMap">
+    <choose>
+		<when test="term == 0">
+			UPDATE FIRST_VS_REPORT_CONSULTING_POINT_MSG 
+			SET 
+				MSG_USE_YN = #{active},
+				UPD_DTTM = NOW()
+			WHERE STUD_ID = #{studId}
+				AND MSG_CD = #{msgCd}
+				AND MSG_TYPE = #{msgType}
+		</when>
+		<otherwise>
+			UPDATE VS_REPORT_CONSULTING_POINT_MSG 
+			SET 
+				MSG_USE_YN = #{active},
+				UPD_DTTM = NOW()
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+			    AND STUD_ID = #{studId}
+			    AND MSG_CD = #{msgCd}
+				AND MSG_TYPE = #{msgType}
 		</otherwise>
 	</choose>
 	</update>
