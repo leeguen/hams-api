@@ -921,11 +921,11 @@
 		<when test="term == 0">
 		<foreach collection="yymms" item="item"  open="" close="" separator="UNION ALL">
 			SELECT
-				EXAM_CD,
+				CAST(EXAM_CD AS SIGNED) AS EXAM_CD,
 				SMT_ID,
 				STU_ID,
 				SUBJ_CD,
-				SMT_DTTM,
+				DATE_FORMAT(SMT_DTTM, '%Y-%m-%d %H:%i:%s') AS SMT_DTTM,
 				EXAM_TYPE AS TYPE,
 				EXAM_NM,
 				CASE
@@ -950,11 +950,11 @@
 		</when>
 		<otherwise>
 			SELECT
-				EXAM_CD,
+				CAST(EXAM_CD AS SIGNED) AS EXAM_CD,
 			    SMT_ID,
 			    STU_ID,
 			    SUBJ_CD,
-			    SMT_DTTM,
+			    DATE_FORMAT(SMT_DTTM, '%Y-%m-%d %H:%i:%s') AS SMT_DTTM,
 			    EXAM_TYPE AS TYPE,
 			    EXAM_NM,
 			    CASE
@@ -1118,7 +1118,7 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				(SELECT SUM(LRN_SEC) FROM FIRST_VS_REPORT_SUBJ_LRN_TM WHERE STUD_ID = #{studId} GROUP BY STUD_ID) AS LRN_SEC,
+				(SELECT SUM(LRN_SEC) FROM FIRST_VS_REPORT_SUBJ_LRN_TM WHERE STUD_ID = #{studId} GROUP BY STUD_ID) AS LRN_TM,
 				SUBJ_CD AS MAX_SUBJ_CD
 			FROM (
 				SELECT
@@ -1133,7 +1133,7 @@
 		</when>
 		<otherwise>
 			SELECT
-				(SELECT SUM(LRN_SEC) FROM VS_REPORT_SUBJ_LRN_TM WHERE YYMM = #{yymm} AND TERM = #{term} AND STUD_ID = #{studId} GROUP BY STUD_ID) AS LRN_SEC,
+				(SELECT SUM(LRN_SEC) FROM VS_REPORT_SUBJ_LRN_TM WHERE YYMM = #{yymm} AND TERM = #{term} AND STUD_ID = #{studId} GROUP BY STUD_ID) AS LRN_TM,
 				SUBJ_CD AS MAX_SUBJ_CD
 			FROM (
 				SELECT
