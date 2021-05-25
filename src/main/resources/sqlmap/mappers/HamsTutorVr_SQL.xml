@@ -1230,8 +1230,7 @@
 			  	MSG_USE_YN AS ACTIVE,
 				MSG_TYPE
 			FROM FIRST_VS_REPORT_CONSULTING_POINT_MSG CM
-			WHERE STUD_ID = #{studId}
-				AND MSG_USE_YN = 'Y';
+			WHERE STUD_ID = #{studId};
 		</when>
 		<otherwise>
 			SELECT
