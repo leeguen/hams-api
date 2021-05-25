@@ -388,6 +388,19 @@ public class HamsTutorController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 
+    /**
+     * 학습분석 메세지 코드 모음 (HAMS-T-LA-010)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getCommMsgCd")
+    @ResponseBody
+    public ResponseEntity getCommMsgCd(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorService.getCommMsgCd(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+
 
 
 

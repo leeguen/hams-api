@@ -962,4 +962,7 @@
           AND
             LOGIN_PTN IS NOT NULL
     </select>
+    <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
+        SELECT MSG_CD,MSG FROM hams_tutor_dashboard.COMM_MSG_CD;
+    </select>
 </mapper>
