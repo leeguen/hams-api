@@ -55,59 +55,63 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionBasicMsgCondition");
         ArrayList<Map<String,Object>> msg = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionBasicMsgInfo");
         
-        if(msg != null && msg.size() > 0 && msg.get(0) != null) {
-        	Map<String, Object> msgMap = msg.get(0);
-        	
-        	for(Entry<String, Object> item : msgMap.entrySet()) {
-        		String key = item.getKey();
-        		String value = (item.getValue() != null) ? item.getValue().toString() : null;
-        		if(value != null) {
-        			if(value.indexOf("studNm") > 0) {
-        				value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        if(visionBasicInfo != null) {
+        	if(msg != null && msg.size() > 0 && msg.get(0) != null) {
+        		Map<String, Object> msgMap = msg.get(0);
+        		
+        		for(Entry<String, Object> item : msgMap.entrySet()) {
+        			String key = item.getKey();
+        			String value = (item.getValue() != null) ? item.getValue().toString() : null;
+        			if(value != null) {
+        				if(value.indexOf("studNm") > 0) {
+        					value = value.replace("{studNm}", msgInfo.get("studNm").toString());
+        				}
+        				
+        				if(value.indexOf("exRt") > 0) {
+        					value = value.replace("{exRt}", msgInfo.get("exRt").toString());
+        				}
+        				
+        				if(value.indexOf("attRt") > 0) {
+        					value = value.replace("{attRt}", msgInfo.get("attRt").toString());
+        				}
+        				
+        				if(value.indexOf("subjCd") > 0) {
+        					value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
+        				}
+        				
+        				if(value.indexOf("maxCrtRt") > 0) {
+        					value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
+        				}
+        				
+        				if(value.indexOf("minCrtRt") > 0) {
+        					value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
+        				}
+        				
+        				if(value.indexOf("spSubjCd") > 0) {
+        					value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
+        				}
+        				
+        				if(value.indexOf("spCnt") > 0) {
+        					value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
+        				}
+        				
+        				if(value.indexOf("fnshSubjCd") > 0) {
+        					value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
+        				}
+        				
+        				msgMap.put(key, value);
         			}
-        			
-        			if(value.indexOf("exRt") > 0) {
-        				value = value.replace("{exRt}", msgInfo.get("exRt").toString());
-        			}
-        			
-        			if(value.indexOf("attRt") > 0) {
-        				value = value.replace("{attRt}", msgInfo.get("attRt").toString());
-        			}
-        			
-        			if(value.indexOf("subjCd") > 0) {
-        				value = value.replace("{subjCd}", msgInfo.get("subjCd").toString());
-        			}
-        			
-        			if(value.indexOf("maxCrtRt") > 0) {
-        				value = value.replace("{maxCrtRt}", msgInfo.get("maxCrtRt").toString());
-        			}
-        			
-        			if(value.indexOf("minCrtRt") > 0) {
-        				value = value.replace("{minCrtRt}", msgInfo.get("minCrtRt").toString());
-        			}
-        			
-        			if(value.indexOf("spSubjCd") > 0) {
-        				value = value.replace("{spSubjCd}", msgInfo.get("spSubjCd").toString());
-        			}
-        			
-        			if(value.indexOf("spCnt") > 0) {
-        				value = value.replace("{spCnt}", msgInfo.get("spCnt").toString());
-        			}
-        			
-        			if(value.indexOf("fnshSubjCd") > 0) {
-        				value = value.replace("{fnshSubjCd}", msgInfo.get("fnshSubjCd").toString());
-        			}
-        			
-        			msgMap.put(key, value);
         		}
+        		
+        		msg.clear();
+        		msg.add(msgMap);
+        		
+        		visionBasicInfo.put("msg",msg.get(0));
+        	}else {
+        		visionBasicInfo.put("msg",msg);
         	}
-        	
-        	msg.clear();
-        	msg.add(msgMap);
         }
         
-        visionBasicInfo.put("msg",msg.get(0));
-
         data.put("visionBasicInfo",visionBasicInfo);
         setResult(dataKey,data);
 
