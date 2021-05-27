@@ -1160,24 +1160,107 @@
 	<select id="selectVisionAttLog" parameterType="hashMap" resultType="resultMap">
 	<choose>
 		<when test="term == 0">
+		<foreach collection="yymmwk" item="item"  open="" close=";" separator="UNION ALL">
 			SELECT
-				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
-			    DATE_FORMAT(FIRST_LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_TM
+				DATE_FORMAT(CW.ATT_DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(WA.FIRST_LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_TM
 			FROM FIRST_VS_REPORT_STUD FS 
-			LEFT OUTER JOIN WEEK_ATT_LOG WA ON WA.YYMMWK BETWEEN FS.START_YYMMWK AND FS.END_YYMMWK AND FS.STUD_ID = WA.STUD_ID
-			WHERE FS.STUD_ID = #{studId};
+			LEFT OUTER JOIN (
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					MO AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					TU AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					WE AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					TH AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					FR AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					SA AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+				UNION ALL
+				SELECT
+					#{studId} AS STUD_ID,
+					YYMMWK,
+					SU AS ATT_DT
+				FROM COMM_WK_DT
+				WHERE YYMMWK = #{item.yymmwk}
+			) CW ON FS.STUD_ID = CW.STUD_ID
+			LEFT OUTER JOIN WEEK_ATT_LOG WA ON CW.YYMMWK = WA.YYMMWK AND CW.STUD_ID = WA.STUD_ID AND CW.ATT_DT = WA.ATT_DT
+			WHERE FS.STUD_ID = #{studId}
+        </foreach>
 		</when>
 		<otherwise>
 			SELECT
-				DATE_FORMAT(ATT_DT, '%Y-%m-%d') AS DT,
-			    DATE_FORMAT(FIRST_LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_TM
+				DATE_FORMAT(CM.ATT_DT, '%Y-%m-%d') AS DT,
+				DATE_FORMAT(FIRST_LOGIN_DTTM, '%Y-%m-%d %H:%i:%s') AS LOGIN_TM
 			FROM VS_REPORT_STUD VS 
-			LEFT OUTER JOIN MONTH_ATT_LOG MA ON MA.YYMM BETWEEN VS.START_YYMM AND VS.END_YYMM AND VS.STUD_ID = MA.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					#{studId} AS STUD_ID,
+					DT AS ATT_DT
+				FROM(
+					SELECT
+						DISTINCT 
+							DT
+					FROM DAY_PLAN_STT
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+				) ATT
+			) CM ON VS.STUD_ID = CM.STUD_ID
+			LEFT OUTER JOIN MONTH_ATT_LOG MA ON MA.YYMM BETWEEN VS.START_YYMM AND VS.END_YYMM AND VS.STUD_ID = MA.STUD_ID AND CM.ATT_DT = MA.ATT_DT
 			WHERE VS.YYMM = #{yymm}
 				AND VS.TERM = #{term}
 			    AND VS.STUD_ID = #{studId};
 		</otherwise>
 	</choose>
+    </select>
+    
+    <select id="selectAttYymmwk" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			DISTINCT 
+				CW.YYMMWK
+		FROM FIRST_VS_REPORT_STUD FS 
+		LEFT OUTER JOIN COMM_WK_DT CW ON CW.YYMMWK BETWEEN FS.START_YYMMWK AND FS.END_YYMMWK
+		WHERE FS.STUD_ID = #{studId};
+    </select>
+    
+    <select id="selectAttDt" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			DATE_FORMAT(CONCAT(START_YYMM,'01'), '%Y-%m-%d') AS START_DT,
+		    DATE_FORMAT(LAST_DAY(CONCAT(END_YYMM,'01')), '%Y-%m-%d') AS END_DT
+		FROM VS_REPORT_STUD
+		WHERE YYMM = #{yymm}
+			AND TERM = #{term}
+			AND STUD_ID = #{studId};
     </select>
 	
 	<select id="selectVisionLrnTm" parameterType="hashMap" resultType="resultMap">

@@ -433,6 +433,18 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
     public Map getVisionAttPtn(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new HashMap<>();
         checkRequired(paramMap,false);
+        
+        if(Integer.valueOf(paramMap.get("term").toString()) == 0) {
+        	ArrayList<Map<String,Object>> yymmwkList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectAttYymmwk"); 
+        	
+        	paramMap.put("yymmwk", yymmwkList);
+        	
+        }else {
+        	LinkedHashMap<String,Object> dtMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectAttDt");
+        	
+        	paramMap.put("startDt", dtMap.get("startDt"));
+        	paramMap.put("endDt", dtMap.get("endDt"));
+        }
 
         //DB 조회
         LinkedHashMap<String,Object> visionAttPtn = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionAttStt");
