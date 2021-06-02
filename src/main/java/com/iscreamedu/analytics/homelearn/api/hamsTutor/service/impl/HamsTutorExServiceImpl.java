@@ -70,8 +70,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 ArrayList<String> positiveMsgList = new ArrayList<>();
                 ArrayList<String> negativeMsgList = new ArrayList<>();
                 
-                int positivePointCnt = (msgCntList.get(1).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(1).get("cnt").toString());
-                int negativePointCnt = (msgCntList.get(0).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(0).get("cnt").toString());
+                int positivePointCnt = 0;
+                int negativePointCnt = 0;
+                
+                if(msgCntList.size() > 0) {
+                	positivePointCnt = (msgCntList.get(1).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(1).get("cnt").toString());
+                	negativePointCnt = (msgCntList.get(0).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(0).get("cnt").toString());
+                }
+                
                 
                 int bookCnt = 0;
                 
