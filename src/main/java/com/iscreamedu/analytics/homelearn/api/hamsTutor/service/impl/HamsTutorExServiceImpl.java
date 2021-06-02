@@ -293,7 +293,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             	aiRecmmendCourseMap.put("subjCourseList", aiRecommendCourseList);
             }
             
-            data.put("settleInfoPredictionStt",aiRecmmendCourseMap);
+            data.put("aiRecommenCourse",aiRecmmendCourseMap);
             setResult(dataKey,data);
 
             //리턴
