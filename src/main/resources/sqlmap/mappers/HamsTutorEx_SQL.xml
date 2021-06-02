@@ -93,7 +93,7 @@
     <select id="selectAiRecommendQuestion" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ST.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
-			QUES.EXAM_CD,
+			QUES.EXAM_CD AS EXAM_ID,
 			QUES.QUES_CD,
 			QUES.SMT_ID,
 			QUES.STU_ID AS STU_NO,
