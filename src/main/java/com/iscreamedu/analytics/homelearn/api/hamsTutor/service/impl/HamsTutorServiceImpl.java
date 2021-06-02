@@ -278,6 +278,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
 
             data.put("examStt",examStt);
+        System.out.println("data:::"+ data);
             setResult(dataKey,data);
 
         return result;
@@ -299,16 +300,10 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     @Override
     public Map getExamList(Map<String, Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
-            checkRequiredWithDt(paramMap);
-            if(paramMap.get("types").toString().equals("")) {
-                String[] allTypes = {"A","B","C","D","E","F","G","H","I"};
-                paramMap.put("types",allTypes);
-            }
-            else {
-                paramMap.put("types",paramMap.get("types").toString().split(","));
-            }
+            checkRequiredWithTypes(paramMap);
+            paramMap.put("types",paramMap.get("types").toString().split(","));
 
-
+            System.out.println("paramMap :::" + paramMap);
             //DB 조회
             LinkedHashMap<String,Object> examList = new LinkedHashMap<>();
             Map<String,Object> totalCnt = (Map)mapper.get(paramMap,TUTOR_NAMESPACE + ".getExamListCnt");
@@ -338,6 +333,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             attStt.put("attPtnChart",attPtnChart);
 
             data.put("attStt",attStt);
+
             setResult(dataKey,data);
 
         return result;
@@ -392,6 +388,21 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         params.put("studId",encodedStudId);
     }
 
+    private void checkRequiredWithTypes(Map<String,Object> params) throws Exception {
+        ValidationUtilTutor vu = new ValidationUtilTutor();
+        //필수값 체크
+        vu.checkRequired(new String[] {"p","startDt","endDt","types"},params);
+        vu.isDate("startDt",(String)params.get("startDt"));
+        vu.isDate("endDt",(String)params.get("endDt"));
+
+        //복호화
+        String[] encodedArr = getDecodedParam(params.get("p").toString());
+        String encodedStudId = encodedArr[1];
+
+        //DB params
+        params.put("studId",encodedStudId);
+    }
+
     private String subDate(String paramDt,int day,boolean isW,boolean isWEnd) throws ParseException {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat form = new SimpleDateFormat("yyyy-MM-dd");
@@ -418,6 +429,55 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
         return form.format(cal.getTime());
     }
+    private boolean resultNullCheck(Map<String,Object> data) {
+            int dataSize = data.size(); //data map의 크기
+            int count = 0; //inner data들의 null 체킹 횟수
+            for(String key : data.keySet()) {
+                if(data.get(key) instanceof List) {
+
+                    //List일때
+                    if((((List) data.get(key)).size() == 0)) {
+                        count += 1;
+                    }
+                }
+                else if(data.get(key) instanceof Map) {
+                    //Map일때
+                    if((((Map) data.get(key)).isEmpty())) {
+                        count += 1;
+                    }
+                    else if(innerResultNullCheck((Map)data.get(key))) {
+                        count += 1;
+                    }
+                }
+                else if(data.get(key) == null) {
+                    count += 1;
+                }
+            }
+            if(dataSize == count) {
+                return true;
+            }
+            return false;
+
+    }
+    private boolean innerResultNullCheck(Map<String,Object> data) {
+        int dataSize = data.size(); //data map의 크기
+        int count = 0; //inner data들의 null 체킹 횟수
+        for(String key : data.keySet()) {
+            if(
+                    (data.get(key) instanceof List && (((List) data.get(key)).size() == 0)) ||
+                            (data.get(key) instanceof Map && (((Map) data.get(key)).isEmpty()))) {
+                count += 1;
+            }
+            else if(data.get(key) == null) {
+                count += 1;
+            }
+        }
+        if(dataSize == count) {
+            return true;
+        }
+        return false;
+
+    }
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
      * @param key
@@ -431,7 +491,11 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                 || (data instanceof List && ((List)data).size() == 0)
                 || (data instanceof Map && ((Map)data).isEmpty())) {
             throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
-        } else {
+        }
+        else if(resultNullCheck((Map)data)) {
+            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+        }
+        else {
             message.put("resultCode", ValidationCode.SUCCESS.getCode());
             result.put(msgKey, message);
             result.put(dataKey, data);
