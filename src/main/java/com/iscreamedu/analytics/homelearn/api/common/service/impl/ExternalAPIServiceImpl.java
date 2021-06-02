@@ -63,6 +63,15 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	@Value("${extapi.hllogin.url}")
 	String HLLOGIN_API; //일일 로그인 기록 기본API 주소
 	
+	@Value("${extapi.hl.tutor.studinfo.url}")
+	String TUTORSTUDINFO_API; //학생 정보 API 주소
+	
+	@Value("${extapi.hl.tutor.course.url}")
+	String TUTORCOURSE_API; //학교공부, 특별학습 코스 정보 API 주소
+	
+	@Value("${extapi.hl.tutor.recommend.url}")
+	String TUTORRECOMMEND_API; //AI 추천 정보 API 주소
+	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
 
@@ -328,7 +337,118 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("result", "External API Error");
 	        		setResult(msgKey, msgMap);
 	        	}
-	        } else {
+	        } else if(apiName.equals("aiReport/")){
+	        	try {
+		        	String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
+		    		paramMap.put("studId", studId);
+		    		//paramMap.put("studId", "1006753");
+		    		
+		    		String url = TUTORSTUDINFO_API + apiName + paramMap.get("studId") + ".json";
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	builder.queryParam("for", "aiReport");
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        }else if(apiName.equals("recommand/")){
+	        	try {
+		        	String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
+		    		paramMap.put("studId", studId);
+		    		//paramMap.put("studId", "1006753");
+		    		
+		    		String url = TUTORRECOMMEND_API + apiName + paramMap.get("studId") + ".json";
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        }else if(apiName.equals("/study/course-due-dates")){
+	        	try {
+		        	String studId = "";
+		    		String encodedStr = paramMap.get("p").toString();
+		    		
+		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+		    		studId = paramList[1];
+		    		paramMap.put("studId", studId);
+		    		//paramMap.put("studId", "1006753");
+		    		
+		    		String url = TUTORCOURSE_API + paramMap.get("studId") + apiName + ".json";
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+		        	
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        }else {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
 		        	

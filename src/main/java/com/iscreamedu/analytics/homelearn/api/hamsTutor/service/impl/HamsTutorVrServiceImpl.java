@@ -756,24 +756,84 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
     public Map getVisionPrintLrnDiagnosisRst(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new HashMap<>();
         checkRequired(paramMap,false);
-
+        
         //DB 조회
-        ArrayList<Map<String,String>> visionPrintLrnDiagnosisRst = new ArrayList<>();
-        LinkedHashMap<String,String> dummyMap = new LinkedHashMap<>();
-        LinkedHashMap<String,String> dummyMapTwo = new LinkedHashMap<>();
+        ArrayList<Map<String,Object>> visionPrintLrnDiagnosisRst = new ArrayList<>();
+        Map<String,Object> externalApiParamMap = new LinkedHashMap<>();
+        ArrayList<Map<String,Object>> subjList = new ArrayList();
+        ArrayList<Map<String,Object>> unsubjList = new ArrayList();
+        
+        ArrayList<Map<String,Object>> subjCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectSubjCd");
+        
+        externalApiParamMap.put("p", paramMap.get("p"));
+        
+        externalApiParamMap.put("apiName", "aiReport.");
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(externalApiParamMap).get("data");
+        
+        String grade = (studInfoMap != null) ? studInfoMap.get("grade").toString() : "";
+        
+        externalApiParamMap.put("apiName", ".study.course-due-dates");
+        ArrayList<Map<String,Object>> externalApiList =  (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(externalApiParamMap).get("data");
+        
+        if(externalApiList != null && externalApiList.size() > 0) {
+        	for(Map<String, Object> item : externalApiList) {
+        		if(item.get("courseCls") != null) {
+        			Map<String, Object> courseInfo = (Map<String, Object>) item.get("courseCls"); 
+        			if("P".equals(courseInfo.get("code"))) {
+        				unsubjList = (ArrayList<Map<String, Object>>) item.get("courseDueDateInfoList");
+        			}else {
+        				subjList = (ArrayList<Map<String, Object>>) item.get("courseDueDateInfoList");
+        			}
+        		}
+        	}
+        	
+        	if(subjList.size() > 0) {
+        		String subjCdCheck = "";
+        		int listSize = 0;
+        		
+        		for(Map<String, Object> subjItem : subjList) {
+					String subjCd = null;
+					List<String> titleList = Arrays.asList(subjItem.get("title").toString().replace("|", ",").split(","));
+					
+        			for(Map<String, Object> subjCdItem : subjCdList) {
+        				
+        				if(subjCdItem.get("subjNm").toString().replace(" ", "").equals(subjItem.get("subjectName").toString().replace(" ", ""))) {
+        					subjCd = (Integer.valueOf(subjCdItem.get("depth").toString()) == 1) ? subjCdItem.get("subjCd").toString() : subjCdItem.get("upperSubjCd").toString();
+        					
+        					if(!subjCdCheck.equals(subjCd)) {
+        						subjCdCheck = subjCd;
+        					}
+        				}
+        			}
+        			
+        			if(subjList.size() > 2) {
+        				if(titleList.get(0).contains(grade)) {
+        					visionPrintLrnDiagnosisRst.add(createSubjCourseMap(subjCd, subjItem.get("lastDay").toString(), titleList.get(titleList.size()-1)));
+        					listSize++;
+        				}
+        			}else {
+        				visionPrintLrnDiagnosisRst.add(createSubjCourseMap(subjCd, subjItem.get("lastDay").toString(), titleList.get(titleList.size()-1)));
+        			}
+        			
+        		}
+        	}
+        	
+        	if(unsubjList.size() > 0) {
+        		for(Map<String, Object> unsubjItem : unsubjList) {
+        			String subjCd = null;
+        			
+        			for(Map<String, Object> subjCdItem : subjCdList) {
+        				if(subjCdItem.get("subjNm").toString().replace(" ", "").equals(unsubjItem.get("subjectName").toString().replace(" ", ""))) {
+        					subjCd = (Integer.valueOf(subjCdItem.get("depth").toString()) == 1) ? subjCdItem.get("subjCd").toString() : subjCdItem.get("upperSubjCd").toString();
+        				}
+        			}
+        			
+        			visionPrintLrnDiagnosisRst.add(createSubjCourseMap(subjCd, unsubjItem.get("lastDay").toString(), unsubjItem.get("title").toString()));
+        		}
+        	}
+        	data.put("visionPrintLrnDiagnosisRst",visionPrintLrnDiagnosisRst);
+        }
 
-        dummyMap.put("subjCd","C01");
-        dummyMap.put("endDt","2021-01-18");
-        dummyMap.put("curriculumNm","개념+실력+단원+서술형(1일 1장)");
-
-        dummyMapTwo.put("subjCd","C02");
-        dummyMapTwo.put("endDt","2021-01-08");
-        dummyMapTwo.put("curriculumNm","개념+실력기본+단원+서술형(1일 1장)");
-
-        visionPrintLrnDiagnosisRst.add(dummyMap);
-        visionPrintLrnDiagnosisRst.add(dummyMapTwo);
-
-        data.put("visionPrintLrnDiagnosisRst",visionPrintLrnDiagnosisRst);
         setResult(dataKey,data);
 
         return result;
@@ -785,22 +845,27 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         checkRequired(paramMap,false);
 
         //DB 조회
-        ArrayList<Map<String,String>> visionPrintAiRecommendLrn = new ArrayList<>();
+        ArrayList<Map<String,Object>> visionPrintAiRecommendLrn = new ArrayList<>();
         LinkedHashMap<String,String> dummyMap = new LinkedHashMap<>();
         LinkedHashMap<String,String> dummyMapTwo = new LinkedHashMap<>();
+        
+        Map<String,Object> externalApiParamMap = new LinkedHashMap<>();
+        ArrayList<Map<String,Object>> externalApiList = new ArrayList();
+        
+        externalApiParamMap.put("p", paramMap.get("p"));
+        
+        externalApiParamMap.put("apiName", "recommand.");
+        
+        externalApiList =  (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(externalApiParamMap).get("data");
+        
+        if(externalApiList != null && externalApiList.size() > 0) {
+        	for(Map<String, Object> item : externalApiList) {
+        		visionPrintAiRecommendLrn.add(createRecommendMap(item.get("imgUrl").toString(), item.get("categoryNm").toString(), item.get("serviceNm").toString()));
+        	}
+        	
+        	data.put("visionPrintAiRecommendLrn",visionPrintAiRecommendLrn);
+        }
 
-        dummyMap.put("thumUrl","https~~");
-        dummyMap.put("ctgr1","홈런북카페");
-        dummyMap.put("ctgr2","인문/교양");
-
-        dummyMapTwo.put("thumUrl","https~~");
-        dummyMapTwo.put("ctgr1","실험의 달인");
-        dummyMapTwo.put("ctgr2","뚜루뚜루 배우기");
-
-        visionPrintAiRecommendLrn.add(dummyMap);
-        visionPrintAiRecommendLrn.add(dummyMapTwo);
-
-        data.put("visionPrintAiRecommendLrn",visionPrintAiRecommendLrn);
         setResult(dataKey,data);
 
         return result;
@@ -965,6 +1030,27 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 
         return  resultMap;
     }
+    
+    private LinkedHashMap<String, Object> createSubjCourseMap(String subjCd, String lastDay, String title) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+
+        resultMap.put("subjCd",subjCd);
+        resultMap.put("endDt",lastDay);
+        resultMap.put("curriculumNm",title);
+
+        return  resultMap;
+    }
+    
+    private LinkedHashMap<String, Object> createRecommendMap(String thumUrl, String ctgr1, String ctgr2) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+
+        resultMap.put("thumUrl",thumUrl);
+        resultMap.put("ctgr1",ctgr1);
+        resultMap.put("ctgr2",ctgr2);
+
+        return  resultMap;
+    }
+    
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
      * @param key

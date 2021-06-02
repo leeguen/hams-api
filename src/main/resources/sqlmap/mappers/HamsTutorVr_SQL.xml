@@ -1533,4 +1533,14 @@
 	</choose>
 	</update>
 	
+	<select id="selectSubjCd" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			SUBJ_CD,
+		    UPPER_SUBJ_CD,
+		    SUBJ_NM,
+		    DEPTH
+		FROM COMM_SUBJ_CD
+		WHERE SUBJ_CD NOT LIKE 'Z%';
+    </select>
+	
 </mapper>
