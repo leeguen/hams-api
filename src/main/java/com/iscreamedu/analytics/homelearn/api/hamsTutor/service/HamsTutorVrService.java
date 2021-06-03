@@ -31,7 +31,7 @@ public interface HamsTutorVrService {
 
     public Map getVisionPrintAiRecommendLrn(Map<String, Object> paramMap) throws Exception;
     
-    public Map getVisionStudInfo(Map<String, Object> paramMap) throws Exception;
+    public Map getStudInfo(Map<String, Object> paramMap) throws Exception;
     
     public Map getVisionPrintFeedbackUpdatePopup (Map<String, Object> paramMap) throws Exception;
 

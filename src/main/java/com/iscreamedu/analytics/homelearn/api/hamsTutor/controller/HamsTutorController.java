@@ -389,14 +389,14 @@ public class HamsTutorController {
 	}
 	
 	/**
-     * 	비전리포트 회원 정보 (HAMS-T-VR-016)
+     * 	회원 정보 (HAMS-T-VR-016)
      * @param params
      * @return
      * @throws Exception
      */
-    @GetMapping("/getVisionStudInfo")
-    public ResponseEntity getVisionStudInfo(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) hamsTutorVrService.getVisionStudInfo(params);
+    @GetMapping("/getStudInfo")
+    public ResponseEntity getStudInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorVrService.getStudInfo(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
