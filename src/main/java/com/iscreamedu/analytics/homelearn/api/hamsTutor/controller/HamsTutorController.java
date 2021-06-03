@@ -387,6 +387,18 @@ public class HamsTutorController {
 		body = (LinkedHashMap<String, Object>)hamsTutorVrService.getVisionPrintFeedbackUpdatePopup(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/**
+     * 	비전리포트 회원 정보 (HAMS-T-VR-016)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getVisionStudInfo")
+    public ResponseEntity getVisionStudInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorVrService.getVisionStudInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 
     /**
      * 학습분석 메세지 코드 모음 (HAMS-T-LA-010)

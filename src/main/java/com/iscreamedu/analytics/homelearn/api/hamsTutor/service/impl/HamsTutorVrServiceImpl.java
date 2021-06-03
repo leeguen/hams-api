@@ -872,6 +872,29 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
     }
     
     @Override
+    public Map getVisionStudInfo(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        checkRequired(paramMap,true);
+
+        //API 조회
+        paramMap.put("apiName", "aiReport.");
+        
+        LinkedHashMap<String,String> visionStudInfo = new LinkedHashMap<>();
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+        
+        if(studInfoMap != null) {
+        	visionStudInfo.put("studType", studInfoMap.get("divCdNm").toString());
+        	visionStudInfo.put("lrnStatusType", studInfoMap.get("statusCdNm").toString());
+        	
+        	data.put("visionStudInfo", visionStudInfo);
+        }
+        
+        setResult(dataKey,data);
+
+        return result;
+    }
+    
+    @Override
     public Map getVisionPrintFeedbackUpdatePopup(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new HashMap<>();
         checkRequired(paramMap,true);
