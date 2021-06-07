@@ -218,8 +218,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 		if("".equals(item.get("guideMsgList"))) {
                 			item.put("guideMsgList", null);
                 		}else {
-                			List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\n"));
-                			item.put("guideMsgList", msgList);
+                			
+                			if(item.get("guideMsgList").toString().contains("\n")) {
+                				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\n"));
+                    			item.put("guideMsgList", msgList);
+                			}else if(item.get("guideMsgList").toString().contains("\r")) {
+                				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\r"));
+                    			item.put("guideMsgList", msgList);
+                			}
                 		}
                 	}
                 }
@@ -239,8 +245,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 ArrayList<Map<String,Object>> aiRecommendQuestion = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestion");
                 for(Map<String, Object> item : aiRecommendQuestion) {
                 	
-                	if(item.get("examCd") == null) {
-                		item.put("examCd", null);
+                	if(item.get("examId") == null) {
+                		item.put("examId", null);
                 		item.put("quesCd", null);
                 		item.put("smtId", null);
                 		item.put("stuNo", null);
