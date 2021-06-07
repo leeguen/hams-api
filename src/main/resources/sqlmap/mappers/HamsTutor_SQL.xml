@@ -1040,9 +1040,23 @@
             COUNT(CASE WHEN PLAN_YN = 'Y' AND LOGIN_YN = 'Y' THEN 1 ELSE NULL END) AS ATT_DT_CNT,
             CASE WHEN ROUND((COUNT(CASE WHEN LOGIN_PTN = 1 THEN 1 ELSE NULL END)/COUNT(FIRST_LOGIN_DTTM)) * 100) <![CDATA[>]]> 49 THEN '규칙적' ELSE '불규칙적' END AS LOGIN_PTN
         FROM
-            hams_tutor_dashboard.MONTH_ATT_LOG
+            <choose>
+                <when test='isWM == "W"'>
+                    hams_tutor_dashboard.DAY_ATT_LOG
+                </when>
+                <otherwise>
+                    hams_tutor_dashboard.MONTH_ATT_LOG
+                </otherwise>
+            </choose>
         WHERE
-            ATT_DT BETWEEN #{startDt} AND #{endDt}
+            <choose>
+                <when test='isWM == "W"'>
+                    DT BETWEEN #{startDt} AND #{endDt}
+                </when>
+                <otherwise>
+                    ATT_DT BETWEEN #{startDt} AND #{endDt}
+                </otherwise>
+            </choose>
           AND
             STUD_ID = #{studId}
           AND
@@ -1050,16 +1064,37 @@
     </select>
     <select id="getAttSttChart" parameterType="hashMap" resultType="resultMap">
         SELECT
-            ATT_DT AS DT,
+            <choose>
+                <when test='isWM == "W"'>
+                    DT,
+                </when>
+                <otherwise>
+                    ATT_DT AS DT,
+                </otherwise>
+            </choose>
             DATE_FORMAT(FIRST_LOGIN_DTTM,'%Y-%m-%d %H:%i:%s') AS LOGIN_TM,
             PLAN_YN,
             LOGIN_YN
         FROM
-            hams_tutor_dashboard.MONTH_ATT_LOG
+        <choose>
+            <when test='isWM == "W"'>
+                hams_tutor_dashboard.DAY_ATT_LOG
+            </when>
+            <otherwise>
+                hams_tutor_dashboard.MONTH_ATT_LOG
+            </otherwise>
+        </choose>
         WHERE
             STUD_ID = #{studId}
           AND
-            ATT_DT BETWEEN #{startDt} AND #{endDt}
+            <choose>
+                <when test='isWM == "W"'>
+                    DT BETWEEN #{startDt} AND #{endDt}
+                </when>
+                <otherwise>
+                    ATT_DT BETWEEN #{startDt} AND #{endDt}
+                </otherwise>
+            </choose>
           AND
             LOGIN_PTN IS NOT NULL
     </select>

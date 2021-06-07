@@ -164,8 +164,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                 data.put("lrnBasicInfo",lrnBasicInfo);
                 setResult(dataKey,data);
 
-
-
             return result;
         }
 
@@ -278,7 +276,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
 
             data.put("examStt",examStt);
-        System.out.println("data:::"+ data);
             setResult(dataKey,data);
 
         return result;
@@ -303,7 +300,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             checkRequiredWithTypes(paramMap);
             paramMap.put("types",paramMap.get("types").toString().split(","));
 
-            System.out.println("paramMap :::" + paramMap);
             //DB 조회
             LinkedHashMap<String,Object> examList = new LinkedHashMap<>();
             Map<String,Object> totalCnt = (Map)mapper.get(paramMap,TUTOR_NAMESPACE + ".getExamListCnt");
@@ -423,8 +419,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                 cal.add(Calendar.MONTH,day);
             }
         }
-        System.out.println("day:::" + day);
-        System.out.println("getTime:::" + cal.getTime());
         System.out.println("format getTime:::" + form.format(cal.getTime()));
 
         return form.format(cal.getTime());
