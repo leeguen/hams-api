@@ -2,6 +2,7 @@ package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutorWr;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
@@ -20,6 +21,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 	
 	@Autowired
 	CommonMapperTutor commonMapperTutor;
+	
+	@Autowired
+	CommonMapperTutorWr commonMapperTutorWr;
 	
 	@Autowired
 	ExternalAPIService externalAPIservice;
@@ -295,17 +299,20 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
             priorLrn.put("examCrtRt",visionExamChapterLrn.get("preCrtRt"));
             priorLrn.put("examDt",visionExamChapterLrn.get("preDt"));
             
-            if(visionExamChapterLrn.get("subUnitInfo").toString().contains(",")) {
-            	String followInfo = visionExamChapterLrn.get("subUnitInfo").toString();
-        		List<String> followList = Arrays.asList(followInfo.split(","));
-        		
-        		for(int i = 0; i < followList.size(); i++) {
-        			followUpLrnList.add(followList.get(i));
+            if(visionExamChapterLrn.get("subUnitInfo") != null) {
+            	if(visionExamChapterLrn.get("subUnitInfo").toString().contains(",")) {
+            		String followInfo = visionExamChapterLrn.get("subUnitInfo").toString();
+            		List<String> followList = Arrays.asList(followInfo.split(","));
+            		
+            		for(int i = 0; i < followList.size(); i++) {
+            			followUpLrnList.add(followList.get(i));
+            		}
+            		
+            	}else {
+            		followUpLrnList.add(visionExamChapterLrn.get("subUnitInfo"));
             	}
-            	
-            }else {
-            	followUpLrnList.add(visionExamChapterLrn.get("subUnitInfo"));
             }
+            
             
         	if(visionExamChapterLrn.get("spUnitInfo").toString().contains(",")) {
         		String spInfo = visionExamChapterLrn.get("spUnitInfo").toString();
@@ -935,7 +942,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         }
         
         //DB 조회
-        vrMsgUpdateCheck = commonMapperTutor.update(paramMap, "updateVisionPrintFeedback");
+        vrMsgUpdateCheck = commonMapperTutorWr.update(paramMap, "updateVisionPrintFeedback");
         
         if(positiveMsgList.size() > 0) {
         	for(Map<String, String> positiveItem : positiveMsgList) {
@@ -947,7 +954,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		positiveMap.put("msgType", positiveItem.get("msgType"));
         		positiveMap.put("msgCd", positiveItem.get("msgCd"));
             	
-            	positiveMsgUpdateCheck = commonMapperTutor.update(positiveMap, "updateVisionPrintFeedbackConsultingMsg");
+            	positiveMsgUpdateCheck = commonMapperTutorWr.update(positiveMap, "updateVisionPrintFeedbackConsultingMsg");
         	}
         }
         
@@ -961,7 +968,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
             	negativeMap.put("msgType", negativeItem.get("msgType"));
             	negativeMap.put("msgCd", negativeItem.get("msgCd"));
             	
-            	negativeMsgUpdateCheck = commonMapperTutor.update(negativeMap, "updateVisionPrintFeedbackConsultingMsg");
+            	negativeMsgUpdateCheck = commonMapperTutorWr.update(negativeMap, "updateVisionPrintFeedbackConsultingMsg");
         	}
         }
         
