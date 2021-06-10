@@ -112,7 +112,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		
         		visionBasicInfo.put("msg",msg.get(0));
         	}else {
-        		visionBasicInfo.put("msg",msg);
+        		visionBasicInfo.put("msg",null);
         	}
         }
         
