@@ -7,6 +7,9 @@ import javax.annotation.Resource;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.support.SqlSessionDaoSupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,12 +27,13 @@ import org.springframework.stereotype.Repository;
  *  2019.09.05  hy        	최초 생성 
  *  </pre>
  */
-@Repository
+@Repository //DAO CLASS 에서 쓰인다.
 public class CommonMapper extends SqlSessionDaoSupport {
-	
-	@Resource
+
+	@Autowired
+	@Qualifier("salesdbSessionFactory")
 	public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory){
-		super.setSqlSessionFactory(sqlSessionFactory);
+		super.setSqlSessionFactory(sqlSessionFactory); //Mybatis 연동
 	}
 	
 	/**

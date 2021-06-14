@@ -44,9 +44,9 @@ public class ValidationUtil {
 	 */
 	public boolean isValid() {
 		if(result == null) {
-			return true;
+			return true; //결과 log값이 없을때 true 반환
 		} else {
-			return false;
+			return false; //log값이 있을때 false 반환
 		}
 	}
 
@@ -74,7 +74,7 @@ public class ValidationUtil {
 	public void checkRequired(String[] requieredKeyArr, Map<String, Object> paramMap) {
 		for(String key : requieredKeyArr) {
 			if(paramMap.containsKey(key)){
-				isBlank(key, paramMap.get(key).toString());				
+				isBlank(key, paramMap.get(key).toString()); //파라미터에 require key가 있을때
 			} else {
 				showMessage(ValidationCode.REQUIRED, key, "required");
 			}
@@ -92,6 +92,7 @@ public class ValidationUtil {
 	 * @return
 	 */
 	public void isBlank(String key, String value) {
+		//필수값이 있지만 비었을때
 		if(value == null || value.trim().length() == 0) {
 			showMessage(ValidationCode.REQUIRED, key, "blank");
 		}
