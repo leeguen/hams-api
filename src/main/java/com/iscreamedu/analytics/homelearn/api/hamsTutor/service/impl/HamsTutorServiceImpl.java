@@ -297,7 +297,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     @Override
     public Map getExamList(Map<String, Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
-            checkRequiredWithTypes(paramMap);
+            checkRequiredWithDt(paramMap);
             paramMap.put("types",paramMap.get("types").toString().split(","));
 
             //DB 조회
@@ -373,21 +373,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         ValidationUtilTutor vu = new ValidationUtilTutor();
         //필수값 체크
         vu.checkRequired(new String[] {"p","startDt","endDt"},params);
-        vu.isDate("startDt",(String)params.get("startDt"));
-        vu.isDate("endDt",(String)params.get("endDt"));
-
-        //복호화
-        String[] encodedArr = getDecodedParam(params.get("p").toString());
-        String encodedStudId = encodedArr[1];
-
-        //DB params
-        params.put("studId",encodedStudId);
-    }
-
-    private void checkRequiredWithTypes(Map<String,Object> params) throws Exception {
-        ValidationUtilTutor vu = new ValidationUtilTutor();
-        //필수값 체크
-        vu.checkRequired(new String[] {"p","startDt","endDt","types"},params);
         vu.isDate("startDt",(String)params.get("startDt"));
         vu.isDate("endDt",(String)params.get("endDt"));
 
