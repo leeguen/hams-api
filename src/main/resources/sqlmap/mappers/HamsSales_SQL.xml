@@ -263,10 +263,7 @@
 	/* HamsSales.selectLrnTmln : 3일 리포트 학습 패턴 - 타임라인 상세*/
 		SELECT 
 			SERVICE_ID,
-			CASE
-				WHEN SUBJ_CD IS NULL THEN (SELECT SUBSTRING(CD,1,3) FROM COMM_SUB_CD WHERE CD_NM = REPLACE(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(A.LRN_NM,' > ', 2),'>',-1),' ',''),' ',''))
-                ELSE SUBJ_CD
-            END AS SUBJ_CD,
+			SUBJ_CD,
 		    EX_TM,
 		    LRN_NM,
 		    LRN_SEC,
