@@ -985,6 +985,25 @@
     <select id="selectVisionExamList" parameterType="hashMap" resultType="resultMap">
 	<choose>
 		<when test="term == 0">
+		SELECT 
+			EXAM_CD,
+			SMT_ID,
+			STU_ID,
+			SUBJ_CD,
+			SMT_DTTM,
+			TYPE,
+			EXAM_NM,
+			CRT_RT,
+			CRT_QUES_CNT,
+			QUES_CNT,
+			CRT_QUES,
+			GUESS_QUES,
+			SKIP_QUES,
+			GUESS_INC_QUES,
+			CURSORY_QUES,
+			INCRT_QUES,
+			MISTAKE_QUES
+		FROM (
 		<foreach collection="yymms" item="item"  open="" close="" separator="UNION ALL">
 			SELECT
 				CAST(EXAM_CD AS SIGNED) AS EXAM_CD,
@@ -1013,6 +1032,8 @@
 			    AND STUD_ID = #{item.studId}
 			    AND SUBJ_CD = #{item.subjCd}
         </foreach>
+        ) FVSEXAM
+        ORDER BY SMT_DTTM DESC
 		</when>
 		<otherwise>
 			SELECT
@@ -1043,6 +1064,7 @@
                 </foreach>
 				AND STUD_ID = #{studId}
 			    AND SUBJ_CD = #{subjCd}
+		    ORDER BY SMT_DTTM DESC
 		</otherwise>
 	</choose>
 	<choose>
