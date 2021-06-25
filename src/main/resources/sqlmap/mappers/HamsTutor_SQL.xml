@@ -442,7 +442,8 @@
         CASE WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN LRN_EX_CNT ELSE NULL END AS LRN_EX_CNT,
         CASE WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN B_LRN_EX_CNT ELSE NULL END AS B_LRN_EX_CNT,
         IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
-        IFNULL(B.A_LRN_NM,0) AS A_LRN_NM
+        B.A_LRN_UPPER_NM,
+        B.A_LRN_NM
         FROM
              hams_tutor_dashboard.DAY_LRN_EX_LOG AS A
         LEFT OUTER JOIN (
@@ -467,11 +468,16 @@
         ) A
         ) AS
             A_LRN_EX_CNT,
+        SUBJ_NM AS A_LRN_UPPER_NM,
         SUB_SUBJ_NM AS A_LRN_NM
         FROM
             (
             SELECT
-                COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD,STUD_ID
+                COUNT(SUB_SUBJ_NM) CNT,
+                SUBJ_NM,
+                SUB_SUBJ_NM,
+                SUB_SUBJ_CD,
+                STUD_ID
             FROM
                  hams_tutor_dashboard.DAY_LRN_EX_LOG
             WHERE
