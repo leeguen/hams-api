@@ -66,16 +66,16 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 // 시연용 로직 추가 
                 LinkedHashMap<String,Object> studInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectStudInfo");
                 
+                String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
                 int endDay = Integer.valueOf(paramMap.get("endDt").toString().replace("-", ""));
-                int studStartDay = Integer.valueOf(studInfo.get("startDt").toString().replace("-", ""));
+                int studStartDay = (studInfo != null) ? Integer.valueOf(studInfo.get("startDt").toString().replace("-", "")) : Integer.valueOf(today.replace("-", ""));
                 
-                if(endDay < studStartDay) {
+                if(studInfo != null && endDay < studStartDay) {
                 	String startDt = paramMap.get("startDt").toString();
                 	String endDt = paramMap.get("endDt").toString();
-                	String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
                 	
-                	startDt = startDt.replace(startDt.substring(0,4), studInfo.get("startDt").toString().substring(0, 4));
-                	endDt = endDt.replace(endDt.substring(0,4), studInfo.get("startDt").toString().substring(0, 4));
+                	startDt = startDt.replace(startDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
+                	endDt = endDt.replace(endDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
                 	
                 	if(Integer.valueOf(endDt.replace("-", "")) > Integer.valueOf(today.replace("-", ""))) {
                 		endDt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7).toString();
