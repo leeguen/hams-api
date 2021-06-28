@@ -221,7 +221,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		ArrayList chapterCdList = new ArrayList();
         		
         		for(Map<String, Object> chapterItem : visionExamChapterList) {
-        			if(item.get("unitNo").equals(chapterItem.get("unitNo"))) {
+        			if(item.get("unitNo").toString().equals(chapterItem.get("unitNo").toString())) {
         				chapternmList.add(chapterItem.get("unitNm").toString());
         				chapterScoreList.add(Integer.valueOf(chapterItem.get("score").toString()));
         				chapterCdList.add(chapterItem.get("unitCd"));
