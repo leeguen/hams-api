@@ -172,7 +172,9 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 		}else if("CPG0010".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
                 					.replace("{a}", msgInfo.get("aLrnExCnt").toString())
-                					.replace("{b}", msgInfo.get("aLrnSubjCd").toString()));
+                					.replace("{b}", msgInfo.get("aLrnSubSubjCd").toString())
+                					.replace("{c}", msgInfo.get("aLrnSubjCd").toString())
+                					);
                 		}else if("CPG0012".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
                 					.replace("{a}", String.valueOf(bookCnt)));
