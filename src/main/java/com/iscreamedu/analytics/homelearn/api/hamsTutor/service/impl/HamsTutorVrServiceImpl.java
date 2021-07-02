@@ -781,7 +781,6 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         
         externalApiParamMap.put("apiName", ".study.course-due-dates");
         ArrayList<Map<String,Object>> externalApiList =  (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(externalApiParamMap).get("data");
-        
         if(externalApiList != null && externalApiList.size() > 0) {
         	for(Map<String, Object> item : externalApiList) {
         		if(item.get("courseCls") != null) {
@@ -840,7 +839,6 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	}
         	data.put("visionPrintLrnDiagnosisRst",visionPrintLrnDiagnosisRst);
         }
-
         setResult(dataKey,data);
 
         return result;

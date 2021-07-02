@@ -422,7 +422,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		    		//paramMap.put("studId", "1006753");
 		    		
 		    		String url = TUTORCOURSE_API + paramMap.get("studId") + apiName + ".json";
-		        	
+
 		        	//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 		        	
