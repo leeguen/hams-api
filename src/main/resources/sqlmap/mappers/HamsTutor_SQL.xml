@@ -14,7 +14,7 @@
                 ROUND((COUNT(CASE WHEN PLAN_YN = 'Y' AND LOGIN_YN = 'Y' THEN 1 ELSE NULL END)/COUNT(CASE WHEN PLAN_YN = 'Y' THEN 1 ELSE NULL END))*100) AS ATT_RT
                 FROM
                 <choose>
-                    <when test='isWM="M"'>
+                    <when test='isWM == "M"'>
                         hams_tutor_dashboard.MONTH_ATT_LOG
                         WHERE
                         STUD_ID = #{studId}
@@ -70,7 +70,7 @@
                     CASE WHEN ROUND((COUNT(CASE WHEN LOGIN_PTN = 1 THEN 1 ELSE NULL END)/COUNT(FIRST_LOGIN_DTTM)) * 100) <![CDATA[>]]> 49 THEN '규칙적' ELSE '불규칙적' END AS LOGIN_PTN
                 FROM
                 <choose>
-                    <when test='isWM="M"'>
+                    <when test='isWM == "M"'>
                             hams_tutor_dashboard.MONTH_ATT_LOG
                         WHERE
                             ATT_DT between #{startDt} AND #{endDt}
