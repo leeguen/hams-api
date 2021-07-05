@@ -475,35 +475,47 @@
 	<choose>
 		<when test="term == 0">
 			SELECT
-				DISTINCT
-					UI.GRADE,
-					UI.TERM,
-					SUBSTRING(UI.UNIT_NO,1,1) AS UNIT_NO
-			FROM FIRST_VS_REPORT_STUD FS
-			JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
-			WHERE FS.STUD_ID = #{studId}
-				AND UI.SUBJ_CD IN 
-				<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                </foreach>
-			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
+				GRADE,
+			    TERM,
+			    UNIT_NO
+			FROM(
+				SELECT
+					DISTINCT
+						UI.GRADE,
+						UI.TERM,
+						CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED) AS UNIT_NO
+				FROM FIRST_VS_REPORT_STUD FS
+				JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
+				WHERE FS.STUD_ID = #{studId}
+					AND UI.SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                </foreach>
+			) UI
+			ORDER BY UNIT_NO
 		</when>
 		<otherwise>
 			SELECT
-				DISTINCT
-					UI.GRADE,
-			        UI.TERM,
-			        SUBSTRING(UI.UNIT_NO,1,1) AS UNIT_NO
-			FROM VS_REPORT_STUD VS
-			JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
-			WHERE VS.YYMM = #{yymm}
-				AND VS.TERM = #{term}
-			    AND VS.STUD_ID = #{studId}
-			    AND UI.SUBJ_CD IN 
-				<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                </foreach>
-			ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
+				GRADE,
+			    TERM,
+			    UNIT_NO
+			FROM(
+				SELECT
+					DISTINCT
+						UI.GRADE,
+				        UI.TERM,
+				        CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED) AS UNIT_NO
+				FROM VS_REPORT_STUD VS
+				JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
+				WHERE VS.YYMM = #{yymm}
+					AND VS.TERM = #{term}
+				    AND VS.STUD_ID = #{studId}
+				    AND UI.SUBJ_CD IN 
+					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                </foreach>
+			) UI
+			ORDER BY UNIT_NO
 		</otherwise>
 	</choose>
     </select>
@@ -526,43 +538,54 @@
 					ELSE 0
 				END AS SCORE
 			FROM(
-				SELECT
-					FS.STUD_ID,
-					UI.UNIT_CD,
-					UI.GRADE,
-					UI.TERM,
-					UI.SUBJ_CD,
-					UI.EXAM_SUBJ_CD,
-					UI.UNIT_NM,
-					CASE
-						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
-							CASE
-								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
-				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
-				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
-				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
-				                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
-				                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
-				            END 
-						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
-							CASE
-								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
-				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
-				                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
-				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
-				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
-				                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
-				            END 
-				        ELSE SUBSTRING(UI.UNIT_NO,1,1)
-			    	END AS UNIT_NO
-				FROM FIRST_VS_REPORT_STUD FS
-				JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
-				WHERE FS.STUD_ID = #{studId}
-					AND UI.SUBJ_CD IN 
-					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                	</foreach>
-				ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
+				SELECT 
+					STUD_ID,
+					UNIT_CD,
+					GRADE,
+					TERM,
+					SUBJ_CD,
+					EXAM_SUBJ_CD,
+					UNIT_NM,
+			        UNIT_NO
+				FROM (
+					SELECT
+						FS.STUD_ID,
+						UI.UNIT_CD,
+						UI.GRADE,
+						UI.TERM,
+						UI.SUBJ_CD,
+						UI.EXAM_SUBJ_CD,
+						UI.UNIT_NM,
+						CASE
+							WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
+								CASE
+									WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+					                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+					                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
+					                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
+					                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
+					                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
+					            END 
+							WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
+								CASE
+									WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+					                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+					                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
+					                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
+					                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
+					                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
+					            END 
+					        ELSE CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED)
+				    	END AS UNIT_NO
+					FROM FIRST_VS_REPORT_STUD FS
+					JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
+					WHERE FS.STUD_ID = #{studId}
+						AND UI.SUBJ_CD IN 
+						<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                	</foreach>
+				) UI_2
+    			ORDER BY UNIT_NO, SUBJ_CD, EXAM_SUBJ_CD
 			) UI_1
 			LEFT OUTER JOIN (
 				SELECT
@@ -604,45 +627,56 @@
 			        ELSE 0
 			    END AS SCORE
 			FROM(
-				SELECT
-					VS.STUD_ID,
-					UI.UNIT_CD,
-					UI.GRADE,
-					UI.TERM,
-					UI.SUBJ_CD,
-					UI.EXAM_SUBJ_CD,
-					UI.UNIT_NM,
-					CASE
-						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
-							CASE
-								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
-				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
-				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
-				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
-				                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
-				                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
-				            END 
-						WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
-							CASE
-								WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
-				                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
-				                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
-				                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
-				                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
-				                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
-				            END 
-				        ELSE SUBSTRING(UI.UNIT_NO,1,1)
-			    	END AS UNIT_NO
-				FROM VS_REPORT_STUD VS
-				JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
-				WHERE VS.YYMM = #{yymm}
-					AND VS.TERM = #{term}
-					AND VS.STUD_ID = #{studId}
-					AND UI.SUBJ_CD IN 
-					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-                	</foreach>
-				ORDER BY SUBSTRING(UI.UNIT_NO,1,1), UI.SUBJ_CD, UI.EXAM_SUBJ_CD
+				SELECT 
+					STUD_ID,
+					UNIT_CD,
+					GRADE,
+					TERM,
+					SUBJ_CD,
+					EXAM_SUBJ_CD,
+					UNIT_NM,
+			        UNIT_NO
+				FROM (
+					SELECT
+						VS.STUD_ID,
+						UI.UNIT_CD,
+						UI.GRADE,
+						UI.TERM,
+						UI.SUBJ_CD,
+						UI.EXAM_SUBJ_CD,
+						UI.UNIT_NM,
+						CASE
+							WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[<]]> 5 THEN 
+								CASE
+									WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+					                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+					                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 3
+					                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 4
+					                WHEN UI.UNIT_NO LIKE '3단원1중%' THEN 5
+					                WHEN UI.UNIT_NO LIKE '3단원2중%' THEN 6
+					            END 
+							WHEN UI.SUBJ_CD = 'C03' AND UI.GRADE <![CDATA[>]]> 4 THEN 
+								CASE
+									WHEN UI.UNIT_NO LIKE '1단원1중%' THEN 1
+					                WHEN UI.UNIT_NO LIKE '1단원2중%' THEN 2
+					                WHEN UI.UNIT_NO LIKE '1단원3중%' THEN 3
+					                WHEN UI.UNIT_NO LIKE '2단원1중%' THEN 4
+					                WHEN UI.UNIT_NO LIKE '2단원2중%' THEN 5
+					                WHEN UI.UNIT_NO LIKE '2단원3중%' THEN 6
+					            END 
+					        ELSE CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED)
+				    	END AS UNIT_NO
+					FROM VS_REPORT_STUD VS
+					JOIN UNIT_INFO UI ON VS.GRADE = UI.GRADE AND VS.TERM = UI.TERM
+					WHERE VS.YYMM = #{yymm}
+						AND VS.TERM = #{term}
+						AND VS.STUD_ID = #{studId}
+						AND UI.SUBJ_CD IN 
+						<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                	</foreach>
+				) UI_2
+    			ORDER BY UNIT_NO, SUBJ_CD, EXAM_SUBJ_CD
 			) UI_1
 			LEFT OUTER JOIN (
 				SELECT

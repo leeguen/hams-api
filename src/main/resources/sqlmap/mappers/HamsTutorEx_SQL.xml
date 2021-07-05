@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="HamsTutorEx">
 	
+	<select id="selectStudInfo" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			START_DT
+		FROM STUD
+		WHERE STUD_ID = #{studId};
+    </select>
+	
 	<select id="selectAiDiagnosisRst" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			MSG_TYPE,
@@ -46,7 +53,8 @@
 		    ROUND(LE.PLAN_LRN_EX_CNT / LE.PLAN_CNT * 100) AS EX_RT,
 		    (LE.PLAN_CNT - LE.PLAN_LRN_EX_CNT) AS N_LRN_EX_CNT,
 		    ALRN.A_LRN_EX_CNT,
-		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUB_SUBJ_CD) AS A_LRN_SUBJ_CD,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUBJ_CD) AS A_LRN_SUBJ_CD,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ALRN.SUB_SUBJ_CD) AS A_LRN_SUB_SUBJ_CD,
 		    TM.BELOW_5_MIN_LRN_CNT,
 		    TM.OVER_25_MIN_LRN_CNT
 		FROM STUD ST

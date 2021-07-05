@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -61,7 +62,31 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         public Map getAiDiagnosisRst(Map<String,Object> paramMap) throws Exception{
                 Map<String,Object> data = new HashMap<>();
                 checkRequiredWithDt(paramMap);
-
+                
+                // 시연용 로직 추가 
+                LinkedHashMap<String,Object> studInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectStudInfo");
+                
+                String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
+                int endDay = Integer.valueOf(paramMap.get("endDt").toString().replace("-", ""));
+                int studStartDay = (studInfo != null) ? Integer.valueOf(studInfo.get("startDt").toString().replace("-", "")) : Integer.valueOf(today.replace("-", ""));
+                
+                if(studInfo != null && endDay < studStartDay) {
+                	String startDt = paramMap.get("startDt").toString();
+                	String endDt = paramMap.get("endDt").toString();
+                	
+                	startDt = startDt.replace(startDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
+                	endDt = endDt.replace(endDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
+                	
+                	if(Integer.valueOf(endDt.replace("-", "")) > Integer.valueOf(today.replace("-", ""))) {
+                		endDt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7).toString();
+                		endDt = today;
+                	}
+                	
+                	paramMap.put("startDt", startDt);
+                	paramMap.put("endDt", endDt);
+                }
+                // 시연용 로직 추가 
+                
                 //DB 조회
                 LinkedHashMap<String,Object> aiDiagnosisRst = new LinkedHashMap<>();
                 ArrayList<Map<String,Object>> msgCntList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRst");
@@ -147,7 +172,9 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 		}else if("CPG0010".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
                 					.replace("{a}", msgInfo.get("aLrnExCnt").toString())
-                					.replace("{b}", msgInfo.get("aLrnSubjCd").toString()));
+                					.replace("{b}", msgInfo.get("aLrnSubSubjCd").toString())
+                					.replace("{c}", msgInfo.get("aLrnSubjCd").toString())
+                					);
                 		}else if("CPG0012".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
                 					.replace("{a}", String.valueOf(bookCnt)));
@@ -175,7 +202,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 					.replace("{c}", msgInfo.get("skpQuesCnt").toString()));
                 		}else if("CPB0011".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
-                					.replace("{c}", msgInfo.get("curQuesCnt").toString()));
+                					.replace("{c+d}", msgInfo.get("curQuesCnt").toString()));
                 		}else if("CPB0012".equals(item.get("msgCd"))) {
                 			item.put("msg", item.get("msg").toString()
                 					.replace("{c}", msgInfo.get("gucQuesCnt").toString()));
