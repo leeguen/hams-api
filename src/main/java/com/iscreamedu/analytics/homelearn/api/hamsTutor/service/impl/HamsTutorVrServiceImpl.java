@@ -589,7 +589,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         				}else if("CPG0010".equals(msgItem.get("msgCd"))) {
         					msgItem.put("msg", msgItem.get("msg").toString()
         							.replace("{a}", cpMsgInfo.get("aLrnExCnt").toString())
-        							.replace("{b}", cpMsgInfo.get("aLrnSubjCd").toString()));
+        							.replace("{b}", cpMsgInfo.get("aLrnSubSubjCd").toString())
+                					.replace("{c}", cpMsgInfo.get("aLrnSubjCd").toString())
+        							);
         				}
         				
         				Boolean active = ("Y".equals(msgItem.get("active").toString())) ? true : false;
@@ -616,7 +618,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         							.replace("{c}", cpMsgInfo.get("skpQuesCnt").toString()));
         				}else if("CPB0011".equals(msgItem.get("msgCd"))) {
         					msgItem.put("msg", msgItem.get("msg").toString()
-        							.replace("{c}", cpMsgInfo.get("curQuesCnt").toString()));
+        							.replace("{c+d}", cpMsgInfo.get("curQuesCnt").toString()));
         				}else if("CPB0012".equals(msgItem.get("msgCd"))) {
         					msgItem.put("msg", msgItem.get("msg").toString()
         							.replace("{c}", cpMsgInfo.get("gucQuesCnt").toString()));
