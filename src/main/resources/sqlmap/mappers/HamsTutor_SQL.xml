@@ -462,55 +462,61 @@
             ELSE NULL END
             AS EX_RT,
             C.PLAN_CNT,
-            CASE WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN D_LRN_EX_CNT ELSE NULL END AS D_LRN_EX_CNT,
-            CASE WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN LRN_EX_CNT ELSE NULL END AS LRN_EX_CNT,
-            CASE WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN B_LRN_EX_CNT ELSE NULL END AS B_LRN_EX_CNT,
+            D_LRN_EX_CNT,
+            LRN_EX_CNT,
+            B_LRN_EX_CNT,
             IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
-            IFNULL(B.A_LRN_NM,0) AS A_LRN_NM
+            B.A_LRN_NM AS A_LRN_NM,
+            B.SUBJ_NM AS A_LRN_UPPER_NM
         FROM
-            STUD AS ST
+        STUD AS ST
         LEFT OUTER JOIN
-            (
-            SELECT
+        (
+        SELECT
             STUD_ID,
-            (
-            SELECT SUM(CNT) AS A_LRN_EX_CNT FROM
-                (
-                SELECT
-                    COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD
-                FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-                WHERE
-                      STUD_ID = #{studId}
-                AND
-                      DT BETWEEN #{startDt} AND #{endDt}
-                AND
-                      PLAN_DT IS NULL
-                AND
-                      FNSH_YN = 'Y'
-                GROUP BY
-                      SUB_SUBJ_NM
-                ) A
-                ) AS A_LRN_EX_CNT,
-                SUB_SUBJ_NM AS A_LRN_NM
-            FROM
+        (
+        SELECT SUM(CNT) AS A_LRN_EX_CNT FROM
             (
             SELECT
-                COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD,STUD_ID
-            FROM
-                 hams_tutor_dashboard.DAY_LRN_EX_LOG
+                COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD
+            FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
             WHERE
-                  STUD_ID = #{studId}
+                STUD_ID = #{startDt}
             AND
-                  DT BETWEEN #{startDt} AND #{endDt}
+                DT BETWEEN #{startDt} AND #{endDt}
             AND
-                  PLAN_DT IS NULL
+                PLAN_DT IS NULL
             AND
-                  FNSH_YN = 'Y'
+                FNSH_YN = 'Y'
             GROUP BY
-                  SUB_SUBJ_NM
+                SUB_SUBJ_NM
+            ) A
+            ) AS A_LRN_EX_CNT,
+        SUB_SUBJ_NM AS A_LRN_NM,
+        SUBJ_NM
+        FROM
+        (
+            SELECT
+                COUNT(SUB_SUBJ_NM) CNT,
+                SUBJ_NM,
+                SUB_SUBJ_NM,
+                SUB_SUBJ_CD,
+                STUD_ID
+            FROM
+                hams_tutor_dashboard.DAY_LRN_EX_LOG
+            WHERE
+                STUD_ID = #{startDt}
+            AND
+                DT BETWEEN #{startDt} AND #{endDt}
+            AND
+                PLAN_DT IS NULL
+            AND
+            FNSH_YN = 'Y'
+            GROUP BY
+            SUB_SUBJ_NM
             ) B
-            ORDER BY CNT DESC,
-            CASE LEFT(SUB_SUBJ_CD,3)
+        ORDER BY CNT DESC,
+        CASE LEFT(SUB_SUBJ_CD,3)
             WHEN 'C02' THEN 1
             WHEN 'C01' THEN 2
             WHEN 'C05' THEN 3
@@ -524,59 +530,58 @@
             WHEN 'N05' THEN 11
             WHEN 'N01' THEN 12
             WHEN 'N06' THEN 13
-            END ASC,
-            CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) ASC
-            LIMIT 1
-            ) B
+        END ASC,
+        CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) ASC
+        LIMIT 1
+        ) B
         ON
             ST.STUD_ID = B.STUD_ID
         LEFT OUTER JOIN
-        (
-        SELECT
-            STUD_ID,
-            SUM(PLAN_CNT) AS PLAN_CNT
-        FROM
-            hams_tutor_dashboard.DAY_PLAN_STT
-        WHERE
-            STUD_ID = #{studId}
-        AND
-            PLAN_CNT IS NOT NULL AND
-            DT BETWEEN #{startDt} AND #{endDt}
-        ) AS C
+            (
+            SELECT
+                STUD_ID,
+                SUM(PLAN_CNT) AS PLAN_CNT
+            FROM
+                hams_tutor_dashboard.DAY_PLAN_STT
+            WHERE
+                STUD_ID = #{startDt}
+            AND
+                PLAN_CNT IS NOT NULL AND
+                DT BETWEEN #{startDt} AND #{endDt}
+            ) AS C
         ON
             ST.STUD_ID = C.STUD_ID
         JOIN
-        (
+            (
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
             FROM
-            (
-            SELECT
-                STUD_ID,
-                PLAN_DT,
-                END_DTTM
-            FROM
-                hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
-            WHERE
-                D.STUD_ID = #{studId}
-            AND
-                D.DT BETWEEN #{startDt} AND #{endDt}
-            AND
-                D.PLAN_DT IS NOT NULL
-            AND
-                D.FNSH_YN = 'Y'
-            GROUP BY STUD_ID,PRGS_SERVICE_ID
-            ) AS A
-        )
+                (
+                SELECT
+                    STUD_ID,
+                    PLAN_DT,
+                    END_DTTM
+                FROM
+                    hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
+                WHERE
+                    D.STUD_ID = #{startDt}
+                AND
+                    D.DT BETWEEN #{startDt} AND #{endDt}
+                AND
+                    D.PLAN_DT IS NOT NULL
+                AND
+                    D.FNSH_YN = 'Y'
+                GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
+                ) AS A
+            )
         AS D
         ON
             ST.STUD_ID = D.STUD_ID
         WHERE
-            ST.STUD_ID = #{studId}
-
+            ST.STUD_ID = #{startDt}
     </select>
     <select id="getLrnExSttTm" parameterType="hashMap" resultType="resultMap">
         SELECT
