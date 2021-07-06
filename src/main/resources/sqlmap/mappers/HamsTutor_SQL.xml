@@ -481,7 +481,7 @@
                 COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD
             FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
             WHERE
-                STUD_ID = #{startDt}
+                STUD_ID = #{studId}
             AND
                 DT BETWEEN #{startDt} AND #{endDt}
             AND
@@ -505,7 +505,7 @@
             FROM
                 hams_tutor_dashboard.DAY_LRN_EX_LOG
             WHERE
-                STUD_ID = #{startDt}
+                STUD_ID = #{studId}
             AND
                 DT BETWEEN #{startDt} AND #{endDt}
             AND
@@ -544,7 +544,7 @@
             FROM
                 hams_tutor_dashboard.DAY_PLAN_STT
             WHERE
-                STUD_ID = #{startDt}
+                STUD_ID = #{studId}
             AND
                 PLAN_CNT IS NOT NULL AND
                 DT BETWEEN #{startDt} AND #{endDt}
@@ -567,7 +567,7 @@
                 FROM
                     hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
                 WHERE
-                    D.STUD_ID = #{startDt}
+                    D.STUD_ID = #{studId}
                 AND
                     D.DT BETWEEN #{startDt} AND #{endDt}
                 AND
@@ -581,7 +581,7 @@
         ON
             ST.STUD_ID = D.STUD_ID
         WHERE
-            ST.STUD_ID = #{startDt}
+            ST.STUD_ID = #{studId}
     </select>
     <select id="getLrnExSttTm" parameterType="hashMap" resultType="resultMap">
         SELECT
