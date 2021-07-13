@@ -20,6 +20,8 @@
                         STUD_ID = #{studId}
                         AND
                         ATT_DT between #{startDt} AND #{endDt}
+                        AND
+                        LOGIN_PTN IS NOT NULL
                     </when>
                     <otherwise>
                         hams_tutor_dashboard.DAY_ATT_LOG
@@ -27,6 +29,8 @@
                         STUD_ID = #{studId}
                         AND
                         DT between #{startDt} AND #{endDt}
+                        AND
+                        LOGIN_PTN IS NOT NULL
                     </otherwise>
                 </choose>
             ) AS ATT_RT,
@@ -257,7 +261,7 @@
                     A.EXAM_CD,
                     A.INCRT_NT_REG_CNT,
                     A.INCRT_NT_FNSH_CNT,
-                    A.SCORE,
+                    A.CRT_RT AS SCORE,
                     A.CRT_CNT,
                     A.INCRT_CNT,
                     A.QUES_CNT,
@@ -569,7 +573,7 @@
                 WHERE
                     D.STUD_ID = #{studId}
                 AND
-                    D.DT BETWEEN #{startDt} AND #{endDt}
+                    D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
                 AND
                     D.PLAN_DT IS NOT NULL
                 AND
