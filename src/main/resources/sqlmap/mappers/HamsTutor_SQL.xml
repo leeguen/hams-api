@@ -317,9 +317,20 @@
         </choose>
             ROUND((SUM(E.CRT_CNT)/SUM(E.QUES_CNT)) * 100) AS CRT_RT,
         CASE
-        WHEN B.PLAN_CNT > 0 THEN ROUND((((B.D_LRN_EX_CNT + B.LRN_EX_CNT + B.B_LRN_EX_CNT) / B.PLAN_CNT) * 100))
-        ELSE NULL
-        END AS EX_RT,
+        WHEN PL.PLAN_CNT > 0
+        THEN ROUND(
+                    (
+                        (
+                            (
+                            D_LRN_EX_CNT +
+                            LRN_EX_CNT +
+                            B_LRN_EX_CNT
+                            ) / PL.PLAN_CNT
+                        ) * 100
+                    )
+        )
+        ELSE NULL END
+        AS EX_RT,
             E.C01,
             E.C02,
             E.C03,
@@ -347,38 +358,46 @@
             </when>
         </choose>
         (
+        SELECT
+            STUD_ID,
+            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
+            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
+            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
+        FROM
+            (
             SELECT
                 STUD_ID,
-                COUNT(*) PLAN_CNT,
-                COUNT(CASE
-                WHEN
-                FNSH_YN = 'Y'
-                AND (DATE_FORMAT(END_DTTM, '%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT, '%Y%m%d'))
-                THEN
+                PLAN_DT,
                 END_DTTM
-                END) D_LRN_EX_CNT,
-                COUNT(CASE
-                WHEN
-                FNSH_YN = 'Y'
-                AND (DATE_FORMAT(END_DTTM, '%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT, '%Y%m%d'))
-                THEN
-                END_DTTM
-                END) LRN_EX_CNT,
-                COUNT(CASE
-                WHEN
-                FNSH_YN = 'Y'
-                AND (DATE_FORMAT(END_DTTM, '%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT, '%Y%m%d'))
-                THEN
-                END_DTTM
-                END) B_LRN_EX_CNT
-        FROM
-            hams_tutor_dashboard.DAY_LRN_EX_LOG
-        WHERE
-            STUD_ID = #{studId}
-        AND PLAN_DT IS NOT NULL
-        AND PLAN_DT BETWEEN #{startDt} AND #{endDt}
+            FROM
+                hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
+            WHERE
+                D.STUD_ID = #{studId}
+            AND
+                D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
+            AND
+                D.PLAN_DT IS NOT NULL
+            AND
+                D.FNSH_YN = 'Y'
+            GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
+            ) AS A
         ) AS B
         ON A.STUD_ID = B.STUD_ID
+        LEFT OUTER JOIN
+        (
+        SELECT
+            STUD_ID,
+            SUM(PLAN_CNT) AS PLAN_CNT
+        FROM
+            hams_tutor_dashboard.DAY_PLAN_STT
+        WHERE
+            STUD_ID = #{studId}
+        AND
+            PLAN_CNT IS NOT NULL AND
+        DT BETWEEN #{startDt} AND #{endDt}
+        ) AS PL
+        ON
+            A.STUD_ID = PL.STUD_ID
         LEFT OUTER JOIN
             <choose>
                 <when test='isWM == "W"'>
