@@ -662,6 +662,8 @@
               STUD_ID = #{studId}
         AND
               DT BETWEEN #{startDt} AND #{endDt}
+        AND
+              FNSH_YN = 'Y'
     </select>
     <select id="getLrnExChartDay" parameterType="hashMap" resultType="resultMap">
         SELECT
