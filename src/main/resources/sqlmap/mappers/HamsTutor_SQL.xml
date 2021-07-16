@@ -233,6 +233,8 @@
                   STUD_ID = #{studId}
             AND
                   DT between #{startDt} AND #{endDt}
+            AND
+                  FNSH_YN = 'Y'
             ) AS D
         ON F.STUD_ID = D.STUD_ID
         LEFT OUTER JOIN
@@ -785,8 +787,8 @@
             WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
             WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
             WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
-            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL THEN '스스로'
-            WHEN FNSH_YN = 'N' THEN '학습중'
+            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
+            WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
             ELSE '안했어요'
             END AS EX_TYPE,
             CASE
