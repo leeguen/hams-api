@@ -39,18 +39,50 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         @Override
         public Map getSettleInfoPredictionStt (Map<String,Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
-            checkRequired(paramMap);
+            checkTchrRequired(paramMap);
 
             //DB 조회
-            LinkedHashMap<String,Object> settleInfoPredictionStt = new LinkedHashMap<>(); //DB결과값
-            settleInfoPredictionStt.put("good",17);
-            settleInfoPredictionStt.put("maintaining",10);
-            settleInfoPredictionStt.put("encouragement",2);
+            ArrayList<Map<String,Object>> settleInfoPredictionStt = new ArrayList();
+            
+            String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
+            paramMap.put("dt", today);
+            
+            ArrayList<Map<String,Object>> predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
+            ArrayList<Map<String,Object>> predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
+            ArrayList<Map<String,Object>> predictionStudList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionList");
+            
+            for(Map<String, Object> cdItem : predictionCdList) {
+            	LinkedHashMap<String, Object> predictionMap = new LinkedHashMap<>();
+            	ArrayList<Integer> studList = new ArrayList<>();
+            	
+            	String cd = cdItem.get("cd").toString();
+            	int studCnt = 0;
+            	
+            	predictionMap.put("type", cdItem.get("cdNm"));
+            	if(predictionCnt.size() > 0) {
+            		for(Map<String, Object> cntItem : predictionCnt) {
+            			if(cd.equals(cntItem.get("predictionType"))) {
+            				studCnt = Integer.valueOf(cntItem.get("predictionCnt").toString());
+            			}
+            		}
+            	}
+            	
+            	if(predictionStudList != null && predictionStudList.size() > 0) {
+            		for(Map<String, Object> studItem : predictionStudList) {
+            			if(cd.equals(studItem.get("predictionType"))) {
+            				studList.add(Integer.valueOf(studItem.get("studId").toString()));
+            			}
+            		}
+            	}
+            	
+            	predictionMap.put("typeDetail", createTypeDetailjMap(studCnt, studList));
+            	
+            	settleInfoPredictionStt.add(predictionMap);
+            }
+            
 
             //DB 데이터 주입
-            if(settleInfoPredictionStt != null) {
-                data.put("settleInfoPredictionStt",settleInfoPredictionStt);
-            }
+            data.put("settleInfoPredictionStt",settleInfoPredictionStt);
             setResult(dataKey,data);
 
             //리턴
@@ -269,21 +301,43 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 checkRequiredWithDt(paramMap);
 
                 //DB 조회
+                ArrayList<Map<String,String>> subjList = (ArrayList<Map<String, String>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestionSubjList");
                 ArrayList<Map<String,Object>> aiRecommendQuestion = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestion");
-                for(Map<String, Object> item : aiRecommendQuestion) {
+                ArrayList<Map<String,Object>> aiRecommendQuestionData = new ArrayList<>();
+                
+                for(Map<String, String> subjItem : subjList) {
+                	String subjNm = subjItem.get("subjCd");
                 	
-                	if(item.get("examId") == null) {
-                		item.put("examId", null);
-                		item.put("quesCd", null);
-                		item.put("smtId", null);
-                		item.put("stuNo", null);
-                		item.put("examNm", null);
-                		item.put("smtDttm", null);
-                		item.put("recommendType", null);
+                	LinkedHashMap<String, Object> subjMap = new LinkedHashMap<>();
+                	ArrayList<Map<String,Object>> subjDetailList = new ArrayList<>();
+                	
+                	for(Map<String, Object> item : aiRecommendQuestion) {
+                		if(item.get("examId") == null) {
+                			item.put("examId", null);
+                			item.put("quesCd", null);
+                			item.put("smtId", null);
+                			item.put("stuNo", null);
+                			item.put("examNm", null);
+                			item.put("smtDttm", null);
+                			item.put("recommendType", null);
+                		}
+                		
+                		if(subjNm.equals(item.get("subjCd").toString())) {
+                			Map<String, Object> itemTemp = new HashMap<String, Object>();
+                			itemTemp.putAll(item);
+                			itemTemp.remove("subjCd");
+                			
+                			subjDetailList.add(itemTemp);
+                		}
                 	}
-                }
 
-                data.put("aiRecommendQuestion",aiRecommendQuestion);
+                	subjMap.put("subjCd", subjNm);
+                	subjMap.put("subjDetail", subjDetailList);
+                	
+                	aiRecommendQuestionData.add(subjMap);
+                }
+                
+                data.put("aiRecommendQuestion",aiRecommendQuestionData);
                 setResult(dataKey,data);
 
             return result;
@@ -295,24 +349,19 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             checkRequired(paramMap);
             
             LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
-            LocalDate beforeDate = endDate.minusMonths(1);
+            //LocalDate beforeDate = endDate.minusMonths(1);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-            int yymm = 0;
-            int beforeYymm = 0;
-            System.out.println(endDate.getMonthValue());
             
-            if(endDate.getMonthValue() % 2 == 1) {
-            	yymm  = Integer.parseInt(endDate.format(formatter));
-            	beforeYymm = Integer.parseInt(beforeDate.format(formatter));
-            	
-            	paramMap.put("yymm", yymm);
-            	paramMap.put("exYymm", beforeYymm);
-            }else {
-            	beforeYymm = Integer.parseInt(beforeDate.format(formatter));
-            	
-            	paramMap.put("yymm", beforeYymm);
-            	paramMap.put("exYymm", beforeYymm);
-            }
+            int beforeYymm = 0;
+            
+            beforeYymm = Integer.parseInt(endDate.format(formatter));
+        	
+            String yy = String.valueOf(beforeYymm).substring(0,4);
+            String mm = String.valueOf(beforeYymm).substring(4);
+            String startDt = yy + "-" + mm + "-01";  
+            
+        	paramMap.put("yymm", beforeYymm);
+        	paramMap.put("startDt", startDt);
 
             //DB 조회
             LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
@@ -321,14 +370,6 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             //DB 데이터 주입
             
             if(aiRecmmendCourseMap != null) {
-            	if(aiRecmmendCourseMap.get("exRt") == null) {
-            		aiRecmmendCourseMap.put("exRt", null);
-            	}
-            	
-            	if(aiRecmmendCourseMap.get("crtRt") == null) {
-            		aiRecmmendCourseMap.put("crtRt", null);
-            	}
-            	
             	aiRecmmendCourseMap.put("subjCourseList", aiRecommendCourseList);
             }
             
@@ -353,6 +394,20 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
         //DB params
         params.put("studId",encodedStudId);
+    }
+    
+    //p,startDt,endDt 비교 메서드
+    private void checkTchrRequired(Map<String,Object> params) throws Exception {
+        ValidationUtilTutor vu = new ValidationUtilTutor();
+        //필수값 체크
+        vu.checkRequired(new String[] {"p"},params);
+
+        //복호화
+        String[] encodedArr = getDecodedParam(params.get("p").toString());
+        String encodedTchrId = encodedArr[0];
+
+        //DB params
+        params.put("tchrId",encodedTchrId);
     }
 
     //p,startDt,endDt 비교 메서드
@@ -390,6 +445,16 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             dummyMap.put("ctgr",ctgr);
             dummyMap.put("msg",msg);
             return dummyMap;
+
+    }
+    
+  //getLrnExChart의 day,subj dummy map을 만드는 메서드
+    private Map createTypeDetailjMap(int studCnt, ArrayList<Integer> studList) {
+		LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+		
+		dummyMap.put("studCnt",studCnt);
+		dummyMap.put("studList",studList);
+		return dummyMap;
 
     }
 

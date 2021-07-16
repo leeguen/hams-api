@@ -2,6 +2,61 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="HamsTutorEx">
 	
+	<select id="selectPredictionCd" parameterType="hashMap" resultType="resultMap">
+		SELECT 
+			CD,
+			CD_NM
+		FROM COMM_CD
+		WHERE GRP = 'PREDICTION_TYPE'
+			AND LANG_CD = 'ko';
+    </select>
+    
+    <select id="selectPredictionCount" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			PREDICTION_TYPE,
+		    COUNT(*) AS PREDICTION_CNT
+		FROM (
+			SELECT
+				RP.STUD_ID,
+				RP.PAYMENT_PROBABILITY,
+				CASE
+					WHEN RP.PAYMENT_PROBABILITY <![CDATA[>=]]> 70 THEN 'P1'
+					WHEN RP.PAYMENT_PROBABILITY <![CDATA[>=]]> 40 AND RP.PAYMENT_PROBABILITY <![CDATA[<]]> 70 THEN 'P2'
+					WHEN RP.PAYMENT_PROBABILITY IS NULL THEN 'F'
+					ELSE 'P3'
+				END AS PREDICTION_TYPE
+			FROM SETTLEMENT_REPAY_PREDICTION RP
+			JOIN STUD ST ON RP.STUD_ID = ST.STUD_ID
+			JOIN TCHR TC ON RP.DT = TC.DT AND ST.TCHR_CHA_ID = TC.TCHR_ID AND TC.TCHR_ID = #{tchrId}
+			WHERE RP.DT = '2021-07-14'
+				AND RP.EXCLUSION_REASON IS NULL
+		) CNT
+		GROUP BY PREDICTION_TYPE
+    </select>
+    
+    <select id="selectPredictionList" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			STUD_ID,
+		    PREDICTION_TYPE
+		FROM (
+			SELECT
+				RP.STUD_ID,
+				RP.PAYMENT_PROBABILITY,
+				CASE
+					WHEN RP.PAYMENT_PROBABILITY <![CDATA[>=]]> 70 THEN 'P1'
+					WHEN RP.PAYMENT_PROBABILITY <![CDATA[>=]]> 40 AND RP.PAYMENT_PROBABILITY <![CDATA[<]]> 70 THEN 'P2'
+					WHEN RP.PAYMENT_PROBABILITY IS NULL THEN 'F'
+					ELSE 'P3'
+				END AS PREDICTION_TYPE
+			FROM SETTLEMENT_REPAY_PREDICTION RP
+			JOIN STUD ST ON RP.STUD_ID = ST.STUD_ID
+			JOIN TCHR TC ON RP.DT = TC.DT AND ST.TCHR_CHA_ID = TC.TCHR_ID AND TC.TCHR_ID =  #{tchrId}
+			WHERE RP.DT = '2021-07-14'
+				AND RP.EXCLUSION_REASON IS NULL
+		) TPR
+		ORDER BY PREDICTION_TYPE, STUD_ID
+    </select>
+	
 	<select id="selectStudInfo" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			START_DT
@@ -96,6 +151,19 @@
 		LEFT OUTER JOIN DAY_7_WEAK_UNIT_GUIDE WU ON EX.DT = WU.DT AND EX.STUD_ID = WU.STUD_ID AND SUBJ.SUBJ_CD = WU.SUBJ_CD
 		WHERE EX.DT = #{endDt}
 			AND EX.STUD_ID = #{studId};
+    </select>
+    
+    <select id="selectAiRecommendQuestionSubjList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = ST.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD
+		FROM (
+			SELECT
+				SUBJ.SUBJ_CD
+			FROM STUD ST
+			JOIN COMM_SUBJ_CD SUBJ ON SUBJ.SUBJ_CD LIKE 'C%' AND SUBJ.DEPTH = 1
+			LEFT OUTER JOIN DAY_7_WEAK_UNIT_GUIDE WU ON WU.DT = #{endDt} AND ST.STUD_ID = WU.STUD_ID AND SUBJ.SUBJ_CD = WU.SUBJ_CD
+			WHERE ST.STUD_ID = #{studId}
+		) ST
     </select>
     
     <select id="selectAiRecommendQuestion" parameterType="hashMap" resultType="resultMap">
@@ -205,35 +273,94 @@
     
     <select id="selectAiRecommendCourse" parameterType="hashMap" resultType="resultMap">
 		SELECT
-			STUD_NM,
-		    CASE
-				WHEN ML.PLAN_CNT <![CDATA[<]]> ML.PLAN_LRN_EX_CNT THEN 100
-		        ELSE ROUND(ML.PLAN_LRN_EX_CNT / ML.PLAN_CNT * 100)
-		    END AS EX_RT,
-		    CASE
-				WHEN EM.QUES_CNT <![CDATA[<]]> EM.CRT_CNT THEN 100
-		        ELSE ROUND(EM.CRT_CNT / EM.QUES_CNT * 100)
-		    END AS CRT_RT
+			STUD_NM
 		FROM STUD ST
-		LEFT OUTER JOIN MONTH_LRN_EX_STT ML ON ML.YYMM = #{exYymm} AND ST.STUD_ID = ML.STUD_ID
-		LEFT OUTER JOIN EXAM_MONTH_STT EM ON EM.YYMM = #{exYymm} AND ST.STUD_ID = EM.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="selectAiRecommendCourseList" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = RC.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
-		    COURSE_CTGR_01 AS COURSE_TITLE_1,
-		    COURSE_NM_01 AS COURSE_NM_1,
-		    COURSE_ID_01 AS COURSE_ID_1,
-		    COURSE_CTGR_02 AS COURSE_TITLE_2,
-		    COURSE_NM_02 AS COURSE_NM_2,
-		    COURSE_ID_02 AS COURSE_ID_2,
-		    COURSE_CTGR_03 AS COURSE_TITLE_3,
-		    COURSE_NM_03 AS COURSE_NM_3,
-		    COURSE_ID_03 AS COURSE_ID_3
+		    LRN.EX_RT,
+		    CASE
+				WHEN EX_RT BETWEEN 90 AND 100 THEN 'G'
+		        WHEN EX_RT BETWEEN 30 AND 89 THEN 'Y'
+		        WHEN EX_RT BETWEEN 0 AND 29 THEN 'R'
+		        ELSE NULL
+		    END AS EX_RT_TYPE,
+		    EXAM.CRT_RT,
+			CASE
+				WHEN CRT_RT BETWEEN 80 AND 100 THEN 'G'
+		        WHEN CRT_RT BETWEEN 50 AND 79 THEN 'Y'
+		        WHEN CRT_RT BETWEEN 0 AND 49 THEN 'R'
+		        ELSE NULL
+		    END AS CRT_RT_TYPE,
+			COURSE_CTGR_01 AS COURSE_TITLE_1,
+			COURSE_NM_01 AS COURSE_NM_1,
+			COURSE_ID_01 AS COURSE_ID_1,
+			COURSE_CTGR_02 AS COURSE_TITLE_2,
+			COURSE_NM_02 AS COURSE_NM_2,
+			COURSE_ID_02 AS COURSE_ID_2,
+			COURSE_CTGR_03 AS COURSE_TITLE_3,
+			COURSE_NM_03 AS COURSE_NM_3,
+			COURSE_ID_03 AS COURSE_ID_3
 		FROM STUD_RECOMMEND_COURSE RC
-		WHERE YYMM = #{yymm} 
-			AND STUD_ID = #{studId};
+		LEFT OUTER JOIN (
+			SELECT
+				PLAN.STUD_ID,
+				PLAN.SUBJ_CD,
+				CASE
+					WHEN PLAN_CNT <![CDATA[<]]> LRN_CNT THEN 100
+					ELSE ROUND(LRN_CNT / PLAN_CNT * 100)
+				END AS EX_RT
+			FROM (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUM(PLAN_CNT) AS PLAN_CNT
+				FROM (
+					SELECT
+						STUD_ID,
+						CASE
+							WHEN SUBJ_CD = 'N01' THEN 'C05'
+							WHEN SUBJ_CD = 'N02' THEN 'C02'
+							ELSE SUBJ_CD
+						END AS SUBJ_CD,
+						PLAN_CNT
+					FROM DAY_SUBJ_PLAN_STT
+					WHERE DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD IN ('C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'N01', 'N02')
+				) PLAN_1
+				GROUP BY STUD_ID, SUBJ_CD
+			) PLAN
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					COUNT(STUD_ID) AS LRN_CNT
+				FROM DAY_LRN_EX_LOG
+				WHERE PLAN_DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
+					AND STUD_ID = #{studId}
+					AND SUBJ_CD IN ('C01', 'C02', 'C03', 'C04', 'C05', 'C06')
+					AND FNSH_YN = 'Y'
+					AND PLAN_UPD_YN IS NULL
+				GROUP BY STUD_ID, SUBJ_CD
+			) LRN ON PLAN.STUD_ID = LRN.STUD_ID AND PLAN.SUBJ_CD = LRN.SUBJ_CD
+		) LRN ON RC.STUD_ID = LRN.STUD_ID AND RC.SUBJ_CD = LRN.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        SUBJ_CD,
+				CASE
+					WHEN QUES_CNT <![CDATA[<]]> CRT_CNT THEN 100
+					ELSE ROUND(CRT_CNT / QUES_CNT * 100)
+				END AS CRT_RT
+			FROM EXAM_MONTH_SUBJ_RST
+			WHERE YYMM = #{yymm}
+				AND STUD_ID = #{studId}
+		) EXAM ON RC.STUD_ID = EXAM.STUD_ID AND RC.SUBJ_CD = EXAM.SUBJ_CD
+		WHERE RC.YYMM = #{yymm}
+			AND RC.STUD_ID = #{studId};
     </select>
 </mapper>
