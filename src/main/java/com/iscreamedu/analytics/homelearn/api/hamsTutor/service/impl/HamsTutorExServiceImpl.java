@@ -349,7 +349,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             checkRequired(paramMap);
             
             LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
-            //LocalDate beforeDate = endDate.minusMonths(1);
+            LocalDate beforeDate = endDate.minusMonths(1);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
             
             int beforeYymm = 0;
@@ -366,6 +366,19 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             //DB 조회
             LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
             ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+            
+            // 테스트용 로직 -> 운영 배포 전 삭제 필요
+            if(aiRecommendCourseList.size() < 1) {
+            	int beforeYymm1 = Integer.parseInt(beforeDate.format(formatter));
+            	
+            	String yy1 = String.valueOf(beforeYymm1).substring(0,4);
+                String mm1 = String.valueOf(beforeYymm1).substring(4);
+                String startDt1 = yy1 + "-" + mm1 + "-01"; 
+            	paramMap.put("yymm", beforeYymm1);
+            	paramMap.put("startDt", startDt1);
+            	
+            	aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+            }
 
             //DB 데이터 주입
             
