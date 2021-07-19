@@ -403,7 +403,7 @@
                 D.PLAN_DT IS NOT NULL
             AND
                 D.FNSH_YN = 'Y'
-            GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
+            GROUP BY STUD_ID,SERVICE_ID
             ) AS A
         ) AS B
         ON A.STUD_ID = B.STUD_ID
@@ -621,7 +621,7 @@
                     D.PLAN_DT IS NOT NULL
                 AND
                     D.FNSH_YN = 'Y'
-                GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
+                GROUP BY STUD_ID,SERVICE_ID
                 ) AS A
             )
         AS D
