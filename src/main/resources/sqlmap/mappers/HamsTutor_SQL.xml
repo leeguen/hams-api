@@ -49,7 +49,7 @@
         )
         ELSE NULL END
         AS EX_RT,
-        A.D_LRN_EX_CNT,
+            A.D_LRN_EX_CNT,
             IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
             IFNULL(B.A_LRN_NM,0) AS A_LRN_NM,
             D.LONG_LRN_TM,
@@ -327,8 +327,6 @@
             F.STUD_ID = E.STUD_ID
         WHERE
             F.STUD_ID = #{studId}
-        AND A.PLAN_DT IS NOT NULL
-        AND A.PLAN_DT between #{startDt} AND #{endDt}
     </select>
     <select id="getLrnGrowthStt" parameterType="hashMap" resultType="resultMap">
         SELECT
