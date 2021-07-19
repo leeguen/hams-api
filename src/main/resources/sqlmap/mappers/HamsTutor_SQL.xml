@@ -40,16 +40,16 @@
                     (
                         (
                             (
-                                COUNT(CASE WHEN A.FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(A.PLAN_DT,'%Y%m%d')) THEN END_DTTM END) +
-                                COUNT(CASE WHEN A.FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(A.PLAN_DT,'%Y%m%d')) THEN END_DTTM END) +
-                                COUNT(CASE WHEN A.FNSH_YN = 'Y' AND (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(A.PLAN_DT,'%Y%m%d')) THEN END_DTTM END)
+                                A.D_LRN_EX_CNT +
+                                A.LRN_EX_CNT +
+                                A.B_LRN_EX_CNT
                             ) / C.PLAN_CNT
                         ) * 100
                     )
         )
         ELSE NULL END
         AS EX_RT,
-        CASE WHEN C.PLAN_CNT > 0 THEN COUNT(CASE WHEN A.FNSH_YN = 'Y' AND (DATE_FORMAT(A.END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(A.PLAN_DT,'%Y%m%d')) THEN A.END_DTTM END) ELSE NULL END D_LRN_EX_CNT,
+        A.D_LRN_EX_CNT,
             IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
             IFNULL(B.A_LRN_NM,0) AS A_LRN_NM,
             D.LONG_LRN_TM,
@@ -97,7 +97,31 @@
         FROM
             hams_tutor_dashboard.STUD AS F
         LEFT OUTER JOIN
-            hams_tutor_dashboard.DAY_LRN_EX_LOG AS A
+            (
+            SELECT
+                STUD_ID,
+                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
+                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
+                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
+            FROM
+                (
+                    SELECT
+                        STUD_ID,
+                        PLAN_DT,
+                        END_DTTM
+                    FROM
+                        hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
+                    WHERE
+                        D.STUD_ID = #{studId}
+                    AND
+                        D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
+                    AND
+                        D.PLAN_DT IS NOT NULL
+                    AND
+                        D.FNSH_YN = 'Y'
+                    GROUP BY STUD_ID,SERVICE_ID
+                ) AS A
+            ) AS A
         ON F.STUD_ID = A.STUD_ID
         LEFT OUTER JOIN
                 (
@@ -381,7 +405,7 @@
                 D.PLAN_DT IS NOT NULL
             AND
                 D.FNSH_YN = 'Y'
-            GROUP BY STUD_ID,SERVICE_ID
+            GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
             ) AS A
         ) AS B
         ON A.STUD_ID = B.STUD_ID
@@ -599,7 +623,7 @@
                     D.PLAN_DT IS NOT NULL
                 AND
                     D.FNSH_YN = 'Y'
-                GROUP BY STUD_ID,SERVICE_ID
+                GROUP BY STUD_ID,SERVICE_ID,PRGS_SERVICE_ID
                 ) AS A
             )
         AS D
