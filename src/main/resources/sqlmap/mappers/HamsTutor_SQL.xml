@@ -119,6 +119,8 @@
                         D.PLAN_DT IS NOT NULL
                     AND
                         D.FNSH_YN = 'Y'
+                    AND
+                        D.SUBJ_CD NOT LIKE '%Z%'
                     GROUP BY STUD_ID,SERVICE_ID
                 ) AS A
             ) AS A
@@ -142,6 +144,8 @@
                           PLAN_DT IS NULL
                     AND
                           FNSH_YN = 'Y'
+                    AND
+                          SUBJ_CD NOT LIKE '%Z%'
                     GROUP BY
                           SUB_SUBJ_NM
                     ) A
@@ -161,6 +165,8 @@
                          PLAN_DT IS NULL
                     AND
                          FNSH_YN = 'Y'
+                    AND
+                         SUBJ_CD NOT LIKE '%Z%'
                     GROUP BY
                          SUB_SUBJ_NM
                     ) B
@@ -248,6 +254,8 @@
                       A.END_DTTM = B.SORT_END_DTTM
                 AND
                       (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
+                AND
+                SUBJ_CD NOT LIKE '%Z%'
                 ORDER BY
                       A.END_DTTM,A.SUBJ_CD
                 ) AS LRN_PTN_CNT
@@ -259,6 +267,8 @@
                   DT between #{startDt} AND #{endDt}
             AND
                   FNSH_YN = 'Y'
+            AND
+                  SUBJ_CD NOT LIKE '%Z%'
             ) AS D
         ON F.STUD_ID = D.STUD_ID
         LEFT OUTER JOIN
@@ -403,6 +413,8 @@
                 D.PLAN_DT IS NOT NULL
             AND
                 D.FNSH_YN = 'Y'
+            AND
+                SUBJ_CD NOT LIKE '%Z%'
             GROUP BY STUD_ID,SERVICE_ID
             ) AS A
         ) AS B
@@ -535,6 +547,8 @@
                 PLAN_DT IS NULL
             AND
                 FNSH_YN = 'Y'
+            AND
+                SUBJ_CD NOT LIKE '%Z%'
             GROUP BY
                 SUB_SUBJ_NM
             ) A
@@ -558,7 +572,9 @@
             AND
                 PLAN_DT IS NULL
             AND
-            FNSH_YN = 'Y'
+                FNSH_YN = 'Y'
+            AND
+                SUBJ_CD NOT LIKE '%Z%'
             GROUP BY
             SUB_SUBJ_NM
             ) B
@@ -621,6 +637,8 @@
                     D.PLAN_DT IS NOT NULL
                 AND
                     D.FNSH_YN = 'Y'
+                AND
+                    SUBJ_CD NOT LIKE '%Z%'
                 GROUP BY STUD_ID,SERVICE_ID
                 ) AS A
             )
@@ -653,6 +671,8 @@
                               PLAN_DT IS NOT NULL
                         AND
                               FNSH_YN = 'Y'
+                        AND
+                              SUBJ_CD NOT LIKE '%Z%'
                         GROUP BY
                               DT,CTGR
                         HAVING COUNT(DT) <![CDATA[>]]> 1
@@ -677,6 +697,8 @@
                       A.END_DTTM = B.SORT_END_DTTM
                 AND
                       (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
+                AND
+                       SUBJ_CD NOT LIKE '%Z%'
                 ORDER BY
                       A.END_DTTM,A.SUBJ_CD
             ) AS LRN_PTN_CNT
@@ -688,6 +710,8 @@
               DT BETWEEN #{startDt} AND #{endDt}
         AND
               FNSH_YN = 'Y'
+        AND
+              SUBJ_CD NOT LIKE '%Z%'
     </select>
     <select id="getLrnExChartDay" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -710,6 +734,8 @@
         WHERE
             A.STUD_ID = #{studId}
           AND A.DT BETWEEN #{startDt} AND #{endDt}
+          AND
+            A.SUBJ_CD NOT LIKE '%Z%'
         GROUP BY A.DT,A.SUBJ_CD
         HAVING
             LRN_TM <![CDATA[>]]> 0
@@ -734,19 +760,23 @@
               DT BETWEEN #{startDt} AND #{endDt}
         AND
               LRN_SEC <![CDATA[>]]> 0
+        AND
+              SUBJ_CD NOT LIKE '%Z%'
         ORDER BY
                 DT,SUBJ_CD,SUB_SUBJ_CD
     </select>
     <select id="getLrnExChartSubj" parameterType="hashMap" resultType="resultMap">
         SELECT
             SUBJ_CD,
-            (SELECT SUM(LRN_SEC) FROM DAY_LRN_EX_LOG WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId} AND SUBJ_CD = A.SUBJ_CD GROUP BY SUBJ_CD) AS TOTAL_LRN_TM,
+            (SELECT SUM(LRN_SEC) FROM DAY_LRN_EX_LOG WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId} AND SUBJ_CD = A.SUBJ_CD AND SUBJ_CD NOT LIKE '%Z%' GROUP BY SUBJ_CD) AS TOTAL_LRN_TM,
             SUB_SUBJ_CD,
             SUM(LRN_SEC) AS LRN_TM
         FROM hams_tutor_dashboard.DAY_LRN_EX_LOG A
         WHERE
             STUD_ID = #{studId}
           AND DT BETWEEN #{startDt} AND #{endDt}
+          AND
+            SUBJ_CD NOT LIKE '%Z%'
         GROUP BY SUBJ_CD, SUB_SUBJ_CD
         HAVING SUM(LRN_SEC) <![CDATA[>]]> 0
         ORDER BY SUBJ_CD,SUB_SUBJ_CD
@@ -765,6 +795,8 @@
         WHERE
             STUD_ID = #{studId}
           AND DT BETWEEN #{startDt} AND #{endDt}
+          AND
+            SUBJ_CD NOT LIKE '%Z%'
         GROUP BY SUBJ_CD, SUB_SUBJ_CD,CTGR
         HAVING SUM(LRN_SEC) <![CDATA[>]]> 0
         ORDER BY SUBJ_CD,SUB_SUBJ_CD
