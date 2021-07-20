@@ -101,11 +101,12 @@
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
-                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
+                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
             FROM
                 (
                     SELECT
+                        SERVICE_ID,
                         STUD_ID,
                         PLAN_DT,
                         END_DTTM
@@ -395,11 +396,12 @@
         SELECT
             STUD_ID,
             COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
-            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
+            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
             COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
         FROM
             (
             SELECT
+                SERVICE_ID,
                 STUD_ID,
                 PLAN_DT,
                 END_DTTM
@@ -619,11 +621,12 @@
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
-                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) LRN_EX_CNT,
+                COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
             FROM
                 (
                 SELECT
+                    SERVICE_ID,
                     STUD_ID,
                     PLAN_DT,
                     END_DTTM
