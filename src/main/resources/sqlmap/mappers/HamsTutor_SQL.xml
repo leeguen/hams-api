@@ -731,6 +731,8 @@
                      STUD_ID = #{studId}
                    AND
                      DT BETWEEN #{startDt} AND #{endDt}
+                   AND
+                     SUBJ_CD NOT LIKE '%Z%'
                  GROUP BY
                      DT
              ) AS B ON A.DT = B.DT

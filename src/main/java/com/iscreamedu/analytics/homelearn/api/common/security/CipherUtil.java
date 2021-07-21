@@ -89,7 +89,7 @@ public class CipherUtil {
 		
 	public static void main(String[] args) throws Exception{
 		CipherUtil cp = CipherUtil.getInstance();
-		String encodedStr = cp.AES_Encode("1518810&2204561"); //TCHR_ID&STUD_ID
+		String encodedStr = cp.AES_Encode("1518810&1806565"); //TCHR_ID&STUD_ID
 		LOGGER.debug("***************** encodingTemp : " + encodedStr);
 		
 		String decodedStr = cp.AES_Decode(encodedStr);
