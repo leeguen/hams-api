@@ -201,6 +201,9 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                     lrnGrowthStt.add(item);
                 }
             }
+            
+            Collections.reverse(lrnGrowthStt);
+            
             data.put("lrnGrowthStt",lrnGrowthStt);
             setResult(dataKey,data);
 
