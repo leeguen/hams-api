@@ -137,12 +137,13 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	subjCrtRtList.clear();
         	for(Map<String, Object> subj : subjCrtRt) {
         		if(item.get("yymm").equals(subj.get("yymm"))) {
-        			subj.remove("yymm");
-        			subjCrtRtList.add(subj);
+        			//subj.remove("yymm");
+        			//subjCrtRtList.add(subj);
+        			item.put(subj.get("subjCd").toString(), subj.get("crtRt"));
         		}
         	}
         	
-        	item.put("subjCrtRt", subjCrtRtList);
+        	//item.put("subjCrtRt", subjCrtRtList);
         }
         
         if(growStt.size() > 0) {
