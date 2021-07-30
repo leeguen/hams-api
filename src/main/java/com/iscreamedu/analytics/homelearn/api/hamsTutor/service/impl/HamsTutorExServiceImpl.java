@@ -95,52 +95,25 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 Map<String,Object> data = new HashMap<>();
                 checkRequiredWithDt(paramMap);
                 
-                // 시연용 로직 추가 
-                LinkedHashMap<String,Object> studInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectStudInfo");
-                
-                String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
-                int endDay = Integer.valueOf(paramMap.get("endDt").toString().replace("-", ""));
-                int studStartDay = (studInfo != null) ? Integer.valueOf(studInfo.get("startDt").toString().replace("-", "")) : Integer.valueOf(today.replace("-", ""));
-                
-                if(studInfo != null && endDay < studStartDay) {
-                	String startDt = paramMap.get("startDt").toString();
-                	String endDt = paramMap.get("endDt").toString();
-                	
-                	startDt = startDt.replace(startDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
-                	endDt = endDt.replace(endDt.substring(0,4), (studInfo != null)? studInfo.get("startDt").toString().substring(0, 4) : today.substring(0, 4));
-                	
-                	if(Integer.valueOf(endDt.replace("-", "")) > Integer.valueOf(today.replace("-", ""))) {
-                		endDt = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7).toString();
-                		endDt = today;
-                	}
-                	
-                	paramMap.put("startDt", startDt);
-                	paramMap.put("endDt", endDt);
-                }
-                // 시연용 로직 추가 
-                
                 //DB 조회
                 LinkedHashMap<String,Object> aiDiagnosisRst = new LinkedHashMap<>();
-                ArrayList<Map<String,Object>> msgCntList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRst");
+                //ArrayList<Map<String,Object>> msgCntList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRst");
                 ArrayList<Map<String,Object>> msgList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRstList");
                 LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiDiagnosisRstMsg");
+                ArrayList<String> positiveMsgCdList = new ArrayList<>();
                 ArrayList<String> positiveMsgList = new ArrayList<>();
+                ArrayList<String> negativeMsgCdList = new ArrayList<>();
                 ArrayList<String> negativeMsgList = new ArrayList<>();
                 
                 int positivePointCnt = 0;
                 int negativePointCnt = 0;
                 
-                if(msgCntList.size() > 1) {
-                	positivePointCnt = (msgCntList.get(1).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(1).get("cnt").toString());
-                	negativePointCnt = (msgCntList.get(0).get("cnt") == null) ? 0 : Integer.valueOf(msgCntList.get(0).get("cnt").toString());
-                }else if(msgCntList.size() > 0) {
-                	if("G".equals(msgCntList.get(0).get("msgType").toString())) {
-                		positivePointCnt = Integer.valueOf(msgCntList.get(0).get("cnt").toString());
-                	}else {
-                		negativePointCnt = Integer.valueOf(msgCntList.get(0).get("cnt").toString());
-                	}
-                }
+                positiveMsgCdList = getPositiveMsgList(msgInfo);
+                negativeMsgCdList = getNegativeMsgList(msgInfo);
                 
+                
+                positivePointCnt = positiveMsgCdList.size();
+                negativePointCnt = positiveMsgCdList.size();
                 
                 int bookCnt = 0;
                 
@@ -160,93 +133,67 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
         			
         			if(bookCnt == 0) {
-        				for(int i = 0; i < msgList.size(); i++) {
-        					if("CPG0012".equals(msgList.get(i).get("msgCd"))) {
-        						msgList.remove(i);
-        					}
-        				}
-        				
-        				for(int i = 0; i < msgList.size(); i++) {
-        					if(positivePointCnt > 0 && "CPG0013".equals(msgList.get(i).get("msgCd"))) {
-        						msgList.remove(i);
-        					}
-        				}
-        				
         				if(positivePointCnt == 0) {
-        					positivePointCnt += 1;
+        					positiveMsgCdList.add("CPG0013");
+        					positivePointCnt = 1;
         				}
         			}else {
-        				for(int i = 0; i < msgList.size(); i++) {
-        					if(positivePointCnt == 5 && "CPG0012".equals(msgList.get(i).get("msgCd"))){
-        						msgList.remove(i);
-        					}
-        				}
-        				
-        				for(int i = 0; i < msgList.size(); i++) {
-        					if("CPG0013".equals(msgList.get(i).get("msgCd"))) {
-        						msgList.remove(i);
-        					}
-        				}
-        				
-        				if(positivePointCnt < 5) {
-        					positivePointCnt += 1;
-        				}
+        				positiveMsgCdList.add("CPG0012");
+        				positivePointCnt += 1;
         			}
                 }
                 
+                if(negativePointCnt == 0) {
+                	negativeMsgCdList.add("CPB0017");
+                	negativePointCnt += 1;
+                }
+                
                 for(Map<String, Object> item : msgList) {
+                	
+                	String msgCd = item.get("msgCd").toString();
+                	String msg = item.get("msg").toString();
+                	
                 	if("G".equals(item.get("msgType"))) {
-                		if("CPG0003".equals(item.get("msgCd")) || "CPG0004".equals(item.get("msgCd")) || "CPG0005".equals(item.get("msgCd")) || "CPG0006".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{a}", msgInfo.get("explCnt").toString())
-                					.replace("{b}", msgInfo.get("psExplCnt").toString())
-                					.replace("{c}", msgInfo.get("crtRt").toString()));
-                		}else if("CPG0010".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{a}", msgInfo.get("aLrnExCnt").toString())
-                					.replace("{b}", msgInfo.get("aLrnSubSubjCd").toString())
-                					.replace("{c}", msgInfo.get("aLrnSubjCd").toString())
-                					);
-                		}else if("CPG0012".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{a}", String.valueOf(bookCnt)));
+                		if(positiveMsgCdList.contains(msgCd)) {
+                			if("CPG0003".equals(msgCd) || "CPG0004".equals(msgCd) || "CPG0005".equals(msgCd) || "CPG0006".equals(msgCd)) {
+                				msg = msg.replace("{a}", msgInfo.get("explCnt").toString())
+                    					.replace("{b}", msgInfo.get("psExplCnt").toString())
+                    					.replace("{c}", msgInfo.get("crtRt").toString());
+                    		}else if("CPG0010".equals(msgCd)) {
+                    			msg = msg.replace("{a}", msgInfo.get("aLrnCnt").toString())
+                    					.replace("{b}", msgInfo.get("subSubjCd").toString())
+                    					.replace("{c}", msgInfo.get("subjCd").toString());
+                    		}else if("CPG0012".equals(msgCd)) {
+                    			msg = msg.replace("{a}", String.valueOf(bookCnt));
+                    		}
+                			positiveMsgList.add(msg);
                 		}
-                		
-                		positiveMsgList.add(item.get("msg").toString());
                 	}else {
-                		if("CPB0004".equals(item.get("msgCd")) ) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("exRt").toString()));
-                		}else if("CPB0006".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("nLrnExCnt").toString()));
-                		}else if("CPB0007".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("crtRt").toString()));
-                		}else if("CPB0008".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("explCnt").toString()));
-                		}else if("CPB0009".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{c}", msgInfo.get("incrtNtCnt").toString()));
-                		}else if("CPB0010".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{c}", msgInfo.get("skpQuesCnt").toString()));
-                		}else if("CPB0011".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{c+d}", msgInfo.get("curQuesCnt").toString()));
-                		}else if("CPB0012".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{c}", msgInfo.get("gucQuesCnt").toString()));
-                		}else if("CPB0013".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("over25MinLrnCnt").toString()));
-                		}else if("CPB0014".equals(item.get("msgCd"))) {
-                			item.put("msg", item.get("msg").toString()
-                					.replace("{b}", msgInfo.get("below5MinLrnCnt").toString()));
+                		if(negativeMsgCdList.contains(msgCd)) {
+                			if("CPB0004".equals(msgCd) ) {
+                				msg = msg.replace("{b}", msgInfo.get("exRt").toString());
+                			}else if("CPB0006".equals(msgCd)) {
+                				msg = msg.replace("{b}", msgInfo.get("nLrnCnt").toString());
+                			}else if("CPB0007".equals(msgCd)) {
+                				msg = msg.replace("{b}", msgInfo.get("crtRt").toString());
+                			}else if("CPB0008".equals(msgCd)) {
+                				msg = msg.replace("{b}", msgInfo.get("explCnt").toString());
+                			}else if("CPB0009".equals(msgCd)) {
+                				msg = msg.replace("{c}", msgInfo.get("incrtNtCnt").toString());
+                			}else if("CPB0010".equals(msgCd)) {
+                				msg = msg.replace("{c}", msgInfo.get("skpQuesCnt").toString());
+                			}else if("CPB0011".equals(msgCd)) {
+                				msg = msg.replace("{c+d}", msgInfo.get("curQuesCnt").toString());
+                			}else if("CPB0012".equals(msgCd)) {
+                				msg = msg.replace("{c}", msgInfo.get("gucQuesCnt").toString());
+                			}else if("CPB0013".equals(msgCd)) {
+                				msg = msg.replace("{b}", msgInfo.get("oLrnCnt").toString());
+                			}else if("CPB0014".equals(msgCd)) {
+                				msg = msg.replace("{b}", msgInfo.get("bLrnCnt").toString());
+                			}
+                			
+                			negativeMsgList.add(msg);
                 		}
-                		
-                		negativeMsgList.add(item.get("msg").toString());
                 	}
                 }
 
@@ -484,6 +431,177 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
         return form.format(cal.getTime());
     }
+    
+    //칭찬포인트 메시지 산출
+    private ArrayList getPositiveMsgList(Map<String, Object> msgData) {
+    	ArrayList<String> msgCdList = new ArrayList<>();
+    	
+    	int exRt = (msgData.get("exRt") != null) ? Integer.valueOf(msgData.get("exRt").toString()) : 0;
+    	int dLrnCnt = (msgData.get("dLrnCnt") != null) ? Integer.valueOf(msgData.get("dLrnCnt").toString()) : -1;
+    	int aLrnCnt = (msgData.get("aLrnCnt") != null) ? Integer.valueOf(msgData.get("aLrnCnt").toString()) : 0;
+    	int explCnt = (msgData.get("explCnt") != null) ? Integer.valueOf(msgData.get("explCnt").toString()) : 0;
+    	int psExplCnt = (msgData.get("psExplCnt") != null) ? Integer.valueOf(msgData.get("psExplCnt").toString()) : -1;
+    	int crtRt = (msgData.get("crtRt") != null) ? Integer.valueOf(msgData.get("crtRt").toString()) : 0;
+    	int incrtNtCnt = (msgData.get("incrtNtCnt") != null) ? Integer.valueOf(msgData.get("incrtNtCnt").toString()) : -1;
+    	int ptnRt = (msgData.get("ptnRt") != null) ? Integer.valueOf(msgData.get("ptnRt").toString()) : 0;
+    	int slvCnt = (msgData.get("slvCnt") != null) ? Integer.valueOf(msgData.get("slvCnt").toString()) : 0;
+    	
+    	if(exRt >= 90 && exRt <= 100) {
+    		if(dLrnCnt > 0 && dLrnCnt <= 3) {
+    			msgCdList.add("CPG0001");
+    		}else if(dLrnCnt > 3) {
+    			msgCdList.add("CPG0002");
+    		}
+    	}
+    	
+    	if(explCnt >= 1) {
+    		if(explCnt == psExplCnt) {
+    			msgCdList.add("CPG0003");
+    		}
+    	}
+    	
+    	if(explCnt >= 2) {
+    		if(explCnt > psExplCnt && psExplCnt >= 1) {
+    			if(incrtNtCnt > 0) {
+    				msgCdList.add("CPG0004");
+    			}else if(incrtNtCnt == 0) {
+    				msgCdList.add("CPG0005");
+    			}
+    		}
+    	}
+    	
+    	if(explCnt >= 1) {
+    		if(psExplCnt == 0) {
+    			if(crtRt >= 80) {
+    				msgCdList.add("CPG0006");
+    			}else if(crtRt < 50 && incrtNtCnt == 0) {
+    				msgCdList.add("CPG0007");
+    			}else if(crtRt >= 50 && incrtNtCnt == 0) {
+    				msgCdList.add("CPG0008");
+    			}
+    		}
+    	}
+    	
+    	if(ptnRt >= 50) {
+    		msgCdList.add("CPG0009");
+    	}
+    	
+    	if(aLrnCnt > 0 && msgCdList.size() < 6) {
+    		msgCdList.add("CPG0010");
+    	}
+    	
+    	if(slvCnt <= 5 && msgCdList.size() < 6) {
+    		msgCdList.add("CPG0011");
+    	}
+    	
+    	return msgCdList;
+    }
+    
+    
+    // 처방포인트 메시지 산출
+    private ArrayList getNegativeMsgList(Map<String, Object> msgData) {
+    	ArrayList<String> msgCdList = new ArrayList<>();
+    	
+    	int loginCnt = (msgData.get("loginCnt") != null) ? Integer.valueOf(msgData.get("loginCnt").toString()) : 0;
+    	
+    	int exRt = (msgData.get("exRt") != null) ? Integer.valueOf(msgData.get("exRt").toString()) : 0;
+    	int dLrnCnt = (msgData.get("dLrnCnt") != null) ? Integer.valueOf(msgData.get("dLrnCnt").toString()) : -1;
+    	int aLrnCnt = (msgData.get("aLrnCnt") != null) ? Integer.valueOf(msgData.get("aLrnCnt").toString()) : 0;
+    	int nLrnCnt = (msgData.get("nLrnCnt") != null) ? Integer.valueOf(msgData.get("nLrnCnt").toString()) : 0;
+    	
+    	int rLrnCnt = (msgData.get("rLrnCnt") != null) ? Integer.valueOf(msgData.get("rLrnCnt").toString()) : 0;
+    	int bLrnCnt = (msgData.get("bLrnCnt") != null) ? Integer.valueOf(msgData.get("bLrnCnt").toString()) : 0;
+    	int oLrnCnt = (msgData.get("oLrnCnt") != null) ? Integer.valueOf(msgData.get("oLrnCnt").toString()) : 0;
+    	
+    	int explCnt = (msgData.get("explCnt") != null) ? Integer.valueOf(msgData.get("explCnt").toString()) : 0;
+    	int psExplCnt = (msgData.get("psExplCnt") != null) ? Integer.valueOf(msgData.get("psExplCnt").toString()) : -1;
+    	int npsExplCnt = (msgData.get("npsExplCnt") != null) ? Integer.valueOf(msgData.get("npsExplCnt").toString()) : -1;
+    	int crtRt = (msgData.get("crtRt") != null) ? Integer.valueOf(msgData.get("crtRt").toString()) : 0;
+    	int incrtNtCnt = (msgData.get("incrtNtCnt") != null) ? Integer.valueOf(msgData.get("incrtNtCnt").toString()) : -1;
+    	
+    	int slvCnt = (msgData.get("slvCnt") != null) ? Integer.valueOf(msgData.get("slvCnt").toString()) : 0;
+    	int gucQuesCnt = (msgData.get("gucQuesCnt") != null) ? Integer.valueOf(msgData.get("gucQuesCnt").toString()) : 0;
+    	int skpQuesCnt = (msgData.get("skpQuesCnt") != null) ? Integer.valueOf(msgData.get("skpQuesCnt").toString()) : 0;
+    	int curQuesCnt = (msgData.get("curQuesCnt") != null) ? Integer.valueOf(msgData.get("curQuesCnt").toString()) : 0;
+    	
+    	
+    	if(loginCnt > 0) {
+    		
+    		if(exRt == 0) {
+    			if(aLrnCnt == 0) {
+    				msgCdList.add("CPB0002");
+    			}else if(aLrnCnt > 0) {
+    				msgCdList.add("CPB0003");
+    			}
+    		}
+    		
+    		if(exRt > 0 && exRt < 30) {
+    			msgCdList.add("CPB0004");
+    		}
+    		
+    		if(exRt >= 30 && exRt < 60 && dLrnCnt >= 10) {
+    			msgCdList.add("CPB0005");
+    		}
+    		
+    		if(exRt < 100) {
+    			msgCdList.add("CPB0006");
+    		}
+    		
+    		if(explCnt >= 1 && crtRt < 50) {
+    			msgCdList.add("CPB0007");
+    		}
+    		
+    		if(explCnt >= 2 && msgCdList.size() < 6) {
+    			if(explCnt > psExplCnt && psExplCnt >= 1) {
+    				msgCdList.add("CPB0008");
+    			}
+    		}
+    		
+    		if(explCnt >= 1 && msgCdList.size() < 6) {
+    			if(psExplCnt == 0 && incrtNtCnt > 0) {
+    				msgCdList.add("CPB0009");
+    			}
+    		}
+    		
+    		if(explCnt >= 1 && msgCdList.size() < 6) {
+    			if(slvCnt > 5) {
+    				if(skpQuesCnt > 1) {
+    					msgCdList.add("CPB0010");
+    				}
+    				
+    				if(curQuesCnt > 1 && msgCdList.size() < 6) {
+    					msgCdList.add("CPB0011");
+    				}
+    				
+    				if(gucQuesCnt > 1 && msgCdList.size() < 6) {
+    					msgCdList.add("CPB0012");
+    				}
+    			}
+    		}
+    		
+    		if(oLrnCnt > 0 && msgCdList.size() < 6) {
+    			msgCdList.add("CPB0013");
+    		}
+    		
+    		if(bLrnCnt > 0 && msgCdList.size() < 6) {
+    			msgCdList.add("CPB0014");
+    		}
+    		
+    		if(aLrnCnt == 0 && msgCdList.size() < 6) {
+    			msgCdList.add("CPB0015");
+    		}
+    		
+    		if(rLrnCnt > 0 && msgCdList.size() < 6) {
+    			msgCdList.add("CPB0016");
+    		}
+    		
+    	}else {
+    		msgCdList.add("CPB0001");
+    	}
+    	
+    	return msgCdList;
+    }
+    
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
      * @param key
