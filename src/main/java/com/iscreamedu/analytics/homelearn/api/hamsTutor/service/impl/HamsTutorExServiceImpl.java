@@ -113,7 +113,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 
                 
                 positivePointCnt = positiveMsgCdList.size();
-                negativePointCnt = positiveMsgCdList.size();
+                negativePointCnt = negativeMsgCdList.size();
                 
                 int bookCnt = 0;
                 
@@ -177,7 +177,10 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 			}else if("CPB0007".equals(msgCd)) {
                 				msg = msg.replace("{b}", msgInfo.get("crtRt").toString());
                 			}else if("CPB0008".equals(msgCd)) {
-                				msg = msg.replace("{b}", msgInfo.get("explCnt").toString());
+                				int explCnt = Integer.valueOf(msgInfo.get("explCnt").toString());
+                				int psExplCnt = Integer.valueOf(msgInfo.get("psExplCnt").toString());
+                				int diff = explCnt - psExplCnt;
+                				msg = msg.replace("{b}", String.valueOf(diff));
                 			}else if("CPB0009".equals(msgCd)) {
                 				msg = msg.replace("{c}", msgInfo.get("incrtNtCnt").toString());
                 			}else if("CPB0010".equals(msgCd)) {
