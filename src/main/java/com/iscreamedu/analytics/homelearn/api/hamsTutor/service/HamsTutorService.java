@@ -4,14 +4,6 @@ import java.util.Map;
 
 public interface HamsTutorService {
 
-    public Map getSettleInfoPredictionStt (Map<String,Object> paramMap) throws Exception;
-
-    public Map getAiDiagnosisRst(Map<String, Object> paramMap) throws Exception;
-
-    public Map getAiWeakChapterGuide(Map<String, Object> paramMap) throws Exception;
-
-    public Map getAiRecommendQuestion(Map<String, Object> paramMap) throws Exception;
-
     public Map getLrnBasicInfo(Map<String, Object> paramMap) throws Exception;
 
     public Map getLrnGrowthStt(Map<String, Object> paramMap) throws Exception;

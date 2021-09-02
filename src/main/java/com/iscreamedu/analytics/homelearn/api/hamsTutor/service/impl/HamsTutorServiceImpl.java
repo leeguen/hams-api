@@ -29,143 +29,20 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     @Autowired
     CommonMapperTutor mapper;
 
-        @Override
-        public Map getSettleInfoPredictionStt (Map<String,Object> paramMap) throws Exception {
+
+    @Override
+    public Map getLrnBasicInfo(Map<String, Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
-            checkRequired(paramMap);
+            checkRequiredWithDt(paramMap);
 
             //DB 조회
-            LinkedHashMap<String,Object> settleInfoPredictionStt = new LinkedHashMap<>(); //DB결과값
-            settleInfoPredictionStt.put("good",17);
-            settleInfoPredictionStt.put("maintaining",10);
-            settleInfoPredictionStt.put("encouragement",2);
+        LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
 
-            //DB 데이터 주입
-            if(settleInfoPredictionStt != null) {
-                data.put("settleInfoPredictionStt",settleInfoPredictionStt);
-            }
+            data.put("lrnBasicInfo",lrnBasicInfo);
             setResult(dataKey,data);
 
-            //리턴
-            return result;
-
-        }
-
-        @Override
-        public Map getAiDiagnosisRst(Map<String,Object> paramMap) throws Exception{
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
-
-                //DB 조회
-                LinkedHashMap<String,Object> aiDiagnosisRst = new LinkedHashMap<>();
-                ArrayList<String> positiveMsgList = new ArrayList<>();
-                ArrayList<String> negativeMsgList = new ArrayList<>();
-
-                positiveMsgList.add("positiveMessage1");
-                positiveMsgList.add("positiveMessage2");
-                positiveMsgList.add("positiveMessage3");
-                positiveMsgList.add("positiveMessage4");
-                positiveMsgList.add("positiveMessage5");
-
-                negativeMsgList.add("negativeMessage1");
-                negativeMsgList.add("negativeMessage2");
-                negativeMsgList.add("negativeMessage3");
-                negativeMsgList.add("negativeMessage4");
-                negativeMsgList.add("negativeMessage5");
-
-                aiDiagnosisRst.put("positivePointCnt",2);
-                aiDiagnosisRst.put("negativePointCnt",3);
-                aiDiagnosisRst.put("positiveMsgList",positiveMsgList);
-                aiDiagnosisRst.put("negativeMsgList",negativeMsgList);
-
-                data.put("aiDiagnosisRst",aiDiagnosisRst);
-                setResult(dataKey,data);
-
-            return result;
-        }
-
-        @Override
-        public Map getAiWeakChapterGuide(Map<String, Object> paramMap) throws Exception {
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
-
-                //DB 조회
-                ArrayList<Map<String,Object>> aiWeakChapterGuide = new ArrayList<>();
-
-                LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-                LinkedHashMap<String,Object> dummyMapTwo = new LinkedHashMap<>();
-                ArrayList<String> dummyGuideMsgList = new ArrayList<>();
-
-                dummyGuideMsgList.add("guideMessage1");
-                dummyGuideMsgList.add("guideMessage2");
-                dummyGuideMsgList.add("guideMessage3");
-                dummyGuideMsgList.add("guideMessage4");
-
-                dummyMap.put("subjCd","C01");
-                dummyMap.put("title","수학 3학년 1학기 2단원 평면도형");
-                dummyMap.put("guideMsgList",dummyGuideMsgList);
-
-                dummyMapTwo.put("subjCd","C02");
-                dummyMapTwo.put("title","국어 2학년 1학기 1단원 어휘");
-                dummyMapTwo.put("guideMsgList",dummyGuideMsgList);
-
-                aiWeakChapterGuide.add(dummyMap);
-                aiWeakChapterGuide.add(dummyMapTwo);
-
-                data.put("aiWeakChapterGuide",aiWeakChapterGuide);
-                setResult(dataKey,data);
-
-            return result;
-        }
-
-        @Override
-        public Map getAiRecommendQuestion(Map<String, Object> paramMap) throws Exception {
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
-
-                //DB 조회
-                ArrayList<Map<String,Object>> aiRecommendQuestion = new ArrayList<>();
-                LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
-                LinkedHashMap<String,Object> dummyMapTwo = new LinkedHashMap<>();
-
-                dummyMap.put("p","g4GeLOLo84wAaoI6uSHEuw==");
-                dummyMap.put("subjCd","C01");
-                dummyMap.put("recommendType","실수한 문제");
-                dummyMap.put("smtDttm","2020-11-26 19:10");
-                dummyMap.put("examType","실력평가");
-                dummyMap.put("examNm","[3-2] 9단원_26장_글");
-                dummyMap.put("examId",123456);
-
-                dummyMapTwo.put("p","g4GeLOLo84wAaoI6uSHEuw==");
-                dummyMapTwo.put("subjCd","C02");
-                dummyMapTwo.put("recommendType","실수한 문제");
-                dummyMapTwo.put("smtDttm","2020-11-26 19:10");
-                dummyMapTwo.put("examType","실력평가");
-                dummyMapTwo.put("examNm","[3-2] 9단원_26장_글");
-                dummyMapTwo.put("examId",98765);
-
-                aiRecommendQuestion.add(dummyMap);
-                aiRecommendQuestion.add(dummyMapTwo);
-
-                data.put("aiRecommendQuestion",aiRecommendQuestion);
-                setResult(dataKey,data);
-
-            return result;
-        }
-
-        @Override
-        public Map getLrnBasicInfo(Map<String, Object> paramMap) throws Exception {
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
-
-                //DB 조회
-            LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
-
-                data.put("lrnBasicInfo",lrnBasicInfo);
-                setResult(dataKey,data);
-
-            return result;
-        }
+        return result;
+    }
 
     @Override
     public Map getLrnGrowthStt(Map<String, Object> paramMap) throws Exception {

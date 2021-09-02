@@ -10,45 +10,29 @@
             F.SCHL_NM,
             F.GRADE,
             (
-                SELECT
-                ROUND((COUNT(CASE WHEN PLAN_YN = 'Y' AND LOGIN_YN = 'Y' THEN 1 ELSE NULL END)/COUNT(CASE WHEN PLAN_YN = 'Y' THEN 1 ELSE NULL END))*100) AS ATT_RT
+				SELECT
+                	ROUND((COUNT(CASE WHEN PLAN_YN = 'Y' AND LOGIN_YN = 'Y' THEN 1 ELSE NULL END)/COUNT(CASE WHEN PLAN_YN = 'Y' THEN 1 ELSE NULL END))*100) AS ATT_RT
                 FROM
                 <choose>
                     <when test='isWM == "M"'>
-                        hams_tutor_dashboard.MONTH_ATT_LOG
-                        WHERE
-                        STUD_ID = #{studId}
-                        AND
-                        ATT_DT between #{startDt} AND #{endDt}
-                        AND
-                        LOGIN_PTN IS NOT NULL
+                        MONTH_ATT_LOG
+                        WHERE STUD_ID = #{studId}
+	                        AND ATT_DT between #{startDt} AND #{endDt}
+	                        AND LOGIN_PTN IS NOT NULL
                     </when>
                     <otherwise>
-                        hams_tutor_dashboard.DAY_ATT_LOG
-                        WHERE
-                        STUD_ID = #{studId}
-                        AND
-                        DT between #{startDt} AND #{endDt}
-                        AND
-                        LOGIN_PTN IS NOT NULL
+                        DAY_ATT_LOG
+                        WHERE STUD_ID = #{studId}
+	                        AND DT between #{startDt} AND #{endDt}
+	                        AND LOGIN_PTN IS NOT NULL
                     </otherwise>
                 </choose>
             ) AS ATT_RT,
-        CASE
-        WHEN C.PLAN_CNT <![CDATA[>]]> 0
-        THEN ROUND(
-                    (
-                        (
-                            (
-                                A.D_LRN_EX_CNT +
-                                A.LRN_EX_CNT +
-                                A.B_LRN_EX_CNT
-                            ) / C.PLAN_CNT
-                        ) * 100
-                    )
-        )
-        ELSE NULL END
-        AS EX_RT,
+            CASE
+				WHEN C.PLAN_CNT <![CDATA[<]]> (A.D_LRN_EX_CNT + A.LRN_EX_CNT + A.B_LRN_EX_CNT) THEN 100
+				WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN ROUND(((A.D_LRN_EX_CNT + A.LRN_EX_CNT + A.B_LRN_EX_CNT) / C.PLAN_CNT) * 100)
+				ELSE NULL 
+			END AS EX_RT,
             A.D_LRN_EX_CNT,
             IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
             IFNULL(B.A_LRN_NM,0) AS A_LRN_NM,
@@ -75,205 +59,149 @@
                 FROM
                 <choose>
                     <when test='isWM == "M"'>
-                            hams_tutor_dashboard.MONTH_ATT_LOG
-                        WHERE
-                            ATT_DT between #{startDt} AND #{endDt}
-                        AND
-                            STUD_ID = #{studId}
-                        AND
-                            LOGIN_PTN IS NOT NULL
+                            MONTH_ATT_LOG
+                        WHERE ATT_DT between #{startDt} AND #{endDt}
+	                        AND STUD_ID = #{studId}
+	                        AND LOGIN_PTN IS NOT NULL
                     </when>
                     <otherwise>
-                            hams_tutor_dashboard.DAY_ATT_LOG
-                        WHERE
-                            DT between #{startDt} AND #{endDt}
-                        AND
-                            STUD_ID = #{studId}
-                        AND
-                            LOGIN_PTN IS NOT NULL
+                            DAY_ATT_LOG
+                        WHERE DT between #{startDt} AND #{endDt}
+	                        AND STUD_ID = #{studId}
+	                        AND LOGIN_PTN IS NOT NULL
                     </otherwise>
                 </choose>
             ) AS LOGIN_PTN
-        FROM
-            hams_tutor_dashboard.STUD AS F
-        LEFT OUTER JOIN
-            (
+        FROM STUD AS F
+        LEFT OUTER JOIN (
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
-            FROM
-                (
-                    SELECT
-                        SERVICE_ID,
-                        STUD_ID,
-                        PLAN_DT,
-                        END_DTTM
-                    FROM
-                        hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
-                    WHERE
-                        D.STUD_ID = #{studId}
-                    AND
-                        D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
-                    AND
-                        D.PLAN_DT IS NOT NULL
-                    AND
-                        D.FNSH_YN = 'Y'
-                    AND
-                        D.SUBJ_CD NOT LIKE '%Z%'
-                    GROUP BY STUD_ID,SERVICE_ID
-                ) AS A
-            ) AS A
-        ON F.STUD_ID = A.STUD_ID
-        LEFT OUTER JOIN
-                (
-                SELECT
-                    STUD_ID,
-                (
-                SELECT SUM(CNT) AS A_LRN_EX_CNT FROM
-                    (
-                    SELECT
-                          COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD
-                    FROM
-                          hams_tutor_dashboard.DAY_LRN_EX_LOG
-                    WHERE
-                          STUD_ID = #{studId}
-                    AND
-                          DT BETWEEN #{startDt} AND #{endDt}
-                    AND
-                          PLAN_DT IS NULL
-                    AND
-                          FNSH_YN = 'Y'
-                    AND
-                          SUBJ_CD NOT LIKE '%Z%'
-                    GROUP BY
-                          SUB_SUBJ_NM
-                    ) A
-                ) AS A_LRN_EX_CNT,
-                SUB_SUBJ_NM AS A_LRN_NM
-                FROM
-                    (
-                    SELECT
-                        COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD,STUD_ID
-                    FROM
-                         hams_tutor_dashboard.DAY_LRN_EX_LOG
-                    WHERE
-                         STUD_ID = #{studId}
-                    AND
-                         DT BETWEEN #{startDt} AND #{endDt}
-                    AND
-                         PLAN_DT IS NULL
-                    AND
-                         FNSH_YN = 'Y'
-                    AND
-                         SUBJ_CD NOT LIKE '%Z%'
-                    GROUP BY
-                         SUB_SUBJ_NM
-                    ) B
-                ORDER BY
-                  CNT DESC,
-                CASE LEFT(SUB_SUBJ_CD,3)
-                WHEN 'C02' THEN 1
-                WHEN 'C01' THEN 2
-                WHEN 'C05' THEN 3
-                WHEN 'C04' THEN 4
-                WHEN 'C03' THEN 5
-                WHEN 'C06' THEN 6
-                WHEN 'N04' THEN 7
-                WHEN 'NO3' THEN 8
-                WHEN 'N01' THEN 9
-                WHEN 'N02' THEN 10
-                WHEN 'N05' THEN 11
-                WHEN 'N01' THEN 12
-                WHEN 'N06' THEN 13
-                END ASC,
-                CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) ASC
-                LIMIT 1
-                ) B
-        ON
-            F.STUD_ID = B.STUD_ID
-        LEFT OUTER JOIN
-            (
+            FROM (
+				SELECT
+				    SERVICE_ID,
+				    STUD_ID,
+				    PLAN_DT,
+				    END_DTTM
+				FROM DAY_LRN_EX_LOG
+				WHERE STUD_ID = #{studId}
+					AND PLAN_DT BETWEEN #{startDt} AND #{endDt}
+					AND PLAN_DT IS NOT NULL
+					AND FNSH_YN = 'Y'
+					AND SUBJ_CD NOT LIKE '%Z%'
+					AND PLAN_UPD_YN IS NULL
+				GROUP BY STUD_ID,SERVICE_ID
+			) A1
+		) A ON F.STUD_ID = A.STUD_ID
+        LEFT OUTER JOIN (
+			SELECT
+		    	STUD_ID,
+				(
+					SELECT 
+						SUM(CNT) AS A_LRN_EX_CNT 
+					FROM (
+					    SELECT
+					          COUNT(SUB_SUBJ_NM) AS CNT, 
+					          SUB_SUBJ_NM,
+					          SUB_SUBJ_CD
+					    FROM DAY_LRN_EX_LOG
+					    WHERE DT BETWEEN #{startDt} AND #{endDt}
+						    AND STUD_ID = #{studId}
+						    AND ( PLAN_DT IS NULL OR (PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y'))
+						    AND FNSH_YN = 'Y'
+						    AND SUBJ_CD NOT LIKE '%Z%'
+					    GROUP BY SUB_SUBJ_NM
+					) A
+				) AS A_LRN_EX_CNT,
+				SUB_SUBJ_NM AS A_LRN_NM
+			FROM (
+				SELECT
+					COUNT(SUB_SUBJ_NM) AS CNT,
+					SUBJ_NM,
+					SUB_SUBJ_NM,
+					SUB_SUBJ_CD,
+					STUD_ID,
+					CASE LEFT(SUB_SUBJ_CD,3)
+						WHEN 'C02' THEN 1
+						WHEN 'C01' THEN 2
+						WHEN 'C05' THEN 3
+						WHEN 'C04' THEN 4
+						WHEN 'C03' THEN 5
+						WHEN 'C06' THEN 6
+						WHEN 'N04' THEN 7
+						WHEN 'NO3' THEN 8
+						WHEN 'N01' THEN 9
+						WHEN 'N02' THEN 10
+						WHEN 'N05' THEN 11
+						WHEN 'N01' THEN 12
+						WHEN 'N06' THEN 13
+					END AS SUBJ_RANK,
+					CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) AS SUB_SUBJ_RANK
+				FROM DAY_LRN_EX_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND ( PLAN_DT IS NULL OR (PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y'))
+					AND FNSH_YN = 'Y'
+					AND SUBJ_CD NOT LIKE '%Z%'
+				GROUP BY SUBJ_NM, SUB_SUBJ_NM
+			) B
+            ORDER BY CNT DESC, SUBJ_RANK ASC, SUB_SUBJ_RANK ASC
+			LIMIT 1	
+		) B ON F.STUD_ID = B.STUD_ID
+        LEFT OUTER JOIN (
             SELECT
-                STUD_ID,SUM(PLAN_CNT) AS PLAN_CNT
-            FROM
-                hams_tutor_dashboard.DAY_PLAN_STT
-            WHERE
-                STUD_ID = #{studId}
-            AND
-                PLAN_CNT IS NOT NULL AND
-            DT BETWEEN #{startDt} AND #{endDt}
-            ) AS C
-        ON
-            F.STUD_ID = C.STUD_ID
-        LEFT OUTER JOIN
-            (
+                STUD_ID,
+                SUM(PLAN_CNT) AS PLAN_CNT
+            FROM DAY_PLAN_STT
+            WHERE DT BETWEEN #{startDt} AND #{endDt}
+            	AND STUD_ID = #{studId}
+            	AND PLAN_CNT IS NOT NULL
+		) C ON F.STUD_ID = C.STUD_ID
+        LEFT OUTER JOIN (
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100 OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[>]]> 1500 THEN LRN_SEC END) AS LONG_LRN_TM,
                 COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100  OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[<]]> 300 THEN LRN_SEC END) AS SHORT_LRN_TM,
                 (
-                    SELECT COUNT(A.SUB_SUBJ_CD) AS LRN_TM_CHECK FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS A,
-                    (
-                    SELECT
-                           DT,CTGR,MAX(END_DTTM) AS SORT_END_DTTM FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-                    Where
-                          STUD_ID = #{studId}
-                    AND
-                          DT between #{startDt} AND #{endDt}
-                    AND
-                          (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 11)
-                    AND
-                          END_DTTM IS NOT NULL
-                    AND
-                          PLAN_DT IS NOT NULL
-                    AND
-                          FNSH_YN = 'Y'
-                    GROUP BY
-                             DT,CTGR
-                    HAVING
-                           COUNT(DT) <![CDATA[>]]> 1
-                    ) AS B
-                Where
-                      A.STUD_ID = #{studId}
-                AND
-                      A.DT between #{startDt} AND #{endDt}
-                AND
-                      (CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 11)
-                AND
-                      A.END_DTTM IS NOT NULL
-                AND
-                      A.PLAN_DT IS NOT NULL
-                AND
-                      A.FNSH_YN = 'Y'
-                AND
-                      A.DT = B.DT
-                AND
-                      A.CTGR = B.CTGR
-                AND
-                      A.END_DTTM = B.SORT_END_DTTM
-                AND
-                      (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
-                AND
-                SUBJ_CD NOT LIKE '%Z%'
-                ORDER BY
-                      A.END_DTTM,A.SUBJ_CD
-                ) AS LRN_PTN_CNT
-            FROM
-                 hams_tutor_dashboard.DAY_LRN_EX_LOG
-            WHERE
-                  STUD_ID = #{studId}
-            AND
-                  DT between #{startDt} AND #{endDt}
-            AND
-                  FNSH_YN = 'Y'
-            AND
-                  SUBJ_CD NOT LIKE '%Z%'
-            ) AS D
-        ON F.STUD_ID = D.STUD_ID
-        LEFT OUTER JOIN
-            (
+					SELECT 
+						COUNT(A.SUB_SUBJ_CD) AS LRN_TM_CHECK 
+					FROM DAY_LRN_EX_LOG AS A, (
+						SELECT
+							DT,
+							CTGR,
+							MAX(END_DTTM) AS SORT_END_DTTM 
+						FROM DAY_LRN_EX_LOG
+						WHERE DT BETWEEN #{startDt} AND #{endDt}
+							AND STUD_ID = #{studId}
+							AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 11)
+							AND END_DTTM IS NOT NULL
+							AND PLAN_DT IS NOT NULL
+							AND FNSH_YN = 'Y'
+						GROUP BY DT, CTGR
+						HAVING COUNT(DT) <![CDATA[>]]> 1
+					) AS B
+					WHERE A.DT BETWEEN #{startDt} AND #{endDt}
+						AND A.STUD_ID = #{studId}
+						AND (CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 11)
+						AND A.END_DTTM IS NOT NULL
+						AND A.PLAN_DT IS NOT NULL
+						AND A.FNSH_YN = 'Y'
+						AND A.DT = B.DT
+						AND A.CTGR = B.CTGR
+						AND A.END_DTTM = B.SORT_END_DTTM
+						AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
+						AND SUBJ_CD NOT LIKE '%Z%'
+					ORDER BY A.END_DTTM,A.SUBJ_CD
+				) AS LRN_PTN_CNT
+            FROM DAY_LRN_EX_LOG
+            WHERE DT between #{startDt} AND #{endDt}
+	            AND STUD_ID = #{studId}
+	            AND FNSH_YN = 'Y'
+	            AND SUBJ_CD NOT LIKE '%Z%'
+		) AS D ON F.STUD_ID = D.STUD_ID
+        LEFT OUTER JOIN (
             SELECT
                 STUD_ID,
                 COUNT(*) AS EXPL_CNT,
@@ -290,8 +218,7 @@
                 SUM(SKIP_QUES) AS SKIP_QUES,
                 SUM(MISTAKEN_QUES) AS MISTAKEN_QUES,
                 SUM(GUESS_CRT_QUES + GUESS_INC_QUES) AS GUESS_QUES
-            FROM
-                (
+            FROM (
                 SELECT
                     A.STUD_ID,
                     A.SUBJ_CD,
@@ -308,19 +235,16 @@
                     COUNT(CASE WHEN IFNULL(B.QUES_PTN_IRT = 'CUR',B.QUES_PTN = 'CUR') THEN 1 ELSE NULL END) AS CURSORY_QUES,
                     COUNT(CASE WHEN IFNULL(B.QUES_PTN_IRT = 'INC',B.QUES_PTN = 'INC') THEN 1 ELSE NULL END) AS INCRT_QUES,
                     COUNT(CASE WHEN IFNULL(B.QUES_PTN_IRT = 'MIS',B.QUES_PTN = 'MIS') THEN 1 ELSE NULL END) AS MISTAKEN_QUES
-                FROM hams_tutor_dashboard.EXAM_RST AS A
-                LEFT OUTER JOIN hams_tutor_dashboard.EXAM_RST_QUES_LOG AS B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD AND A.SMT_ID = B.SMT_ID
-                WHERE A.STUD_ID = #{studId}
-	                AND A.DT BETWEEN #{startDt} AND #{endDt}
+                FROM EXAM_RST AS A
+                LEFT OUTER JOIN EXAM_RST_QUES_LOG AS B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD AND A.SMT_ID = B.SMT_ID
+                WHERE A.DT BETWEEN #{startDt} AND #{endDt}
+	                AND A.STUD_ID = #{studId}
 	                AND A.DEL_YN = 'N'
                 	-- AND A.SCORE IS NOT NULL
                 GROUP BY A.DT, A.STUD_ID,A.EXAM_NM
-                ) AS A
-            ) AS E
-        ON
-            F.STUD_ID = E.STUD_ID
-        WHERE
-            F.STUD_ID = #{studId}
+			) AS A
+		) AS E ON F.STUD_ID = E.STUD_ID
+        WHERE F.STUD_ID = #{studId}
     </select>
     <select id="getLrnGrowthStt" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -334,21 +258,11 @@
                </otherwise>
         </choose>
             ROUND((SUM(E.CRT_CNT)/SUM(E.QUES_CNT)) * 100) AS CRT_RT,
-        CASE
-        WHEN PL.PLAN_CNT > 0
-        THEN ROUND(
-                    (
-                        (
-                            (
-                            D_LRN_EX_CNT +
-                            LRN_EX_CNT +
-                            B_LRN_EX_CNT
-                            ) / PL.PLAN_CNT
-                        ) * 100
-                    )
-        )
-        ELSE NULL END
-        AS EX_RT,
+            CASE
+				WHEN PL.PLAN_CNT <![CDATA[<]]> (D_LRN_EX_CNT + LRN_EX_CNT + B_LRN_EX_CNT) THEN 100
+				WHEN PL.PLAN_CNT <![CDATA[>]]> 0 THEN ROUND(((D_LRN_EX_CNT + LRN_EX_CNT + B_LRN_EX_CNT) / PL.PLAN_CNT) * 100)
+				ELSE NULL 
+			END AS EX_RT,
             E.C01,
             E.C02,
             E.C03,
@@ -359,81 +273,71 @@
             C.GRP_AVG_EX_RT,
             D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
             C.TOP_10_EX_RT AS TOP_10_AVG_EX_RT
-        FROM
-        hams_tutor_dashboard.STUD AS A
+        FROM STUD AS A
         LEFT OUTER JOIN
         <choose>
             <when test='isWM == "W"'>
-                hams_tutor_dashboard.COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
-                AND (F.MO = #{endDt}
-                OR F.TU = #{endDt}
-                OR F.WE = #{endDt}
-                OR F.TH = #{endDt}
-                OR F.FR = #{endDt}
-                OR F.SA = #{endDt}
-                OR F.SU = #{endDt})
+                COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
+	                AND (F.MO = #{endDt}
+	                OR F.TU = #{endDt}
+	                OR F.WE = #{endDt}
+	                OR F.TH = #{endDt}
+	                OR F.FR = #{endDt}
+	                OR F.SA = #{endDt}
+	                OR F.SU = #{endDt})
                 LEFT OUTER JOIN
             </when>
         </choose>
         (
-        SELECT
-            STUD_ID,
-            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
-            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
-            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
-        FROM
-            (
-            SELECT
-                SERVICE_ID,
-                STUD_ID,
-                PLAN_DT,
-                END_DTTM
-            FROM
-                hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
-            WHERE
-                D.STUD_ID = #{studId}
-            AND
-                D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
-            AND
-                D.PLAN_DT IS NOT NULL
-            AND
-                D.FNSH_YN = 'Y'
-            AND
-                SUBJ_CD NOT LIKE '%Z%'
-            GROUP BY STUD_ID,SERVICE_ID
-            ) AS A
-        ) AS B
-        ON A.STUD_ID = B.STUD_ID
-        LEFT OUTER JOIN
-        (
-        SELECT
-            STUD_ID,
-            SUM(PLAN_CNT) AS PLAN_CNT
-        FROM
-            hams_tutor_dashboard.DAY_PLAN_STT
-        WHERE
-            STUD_ID = #{studId}
-        AND
-            PLAN_CNT IS NOT NULL AND
-        DT BETWEEN #{startDt} AND #{endDt}
-        ) AS PL
-        ON
-            A.STUD_ID = PL.STUD_ID
+	        SELECT
+	            STUD_ID,
+	            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
+	            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[=]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) AND SERVICE_ID IS NOT NULL THEN 1 ELSE NULL END) LRN_EX_CNT,
+	            COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) B_LRN_EX_CNT
+	        FROM
+	            (
+	            SELECT
+	                SERVICE_ID,
+	                STUD_ID,
+	                PLAN_DT,
+	                END_DTTM
+	            FROM
+	                hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
+	            WHERE
+	                D.STUD_ID = #{studId}
+	            AND
+	                D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
+	            AND
+	                D.PLAN_DT IS NOT NULL
+	            AND
+	                D.FNSH_YN = 'Y'
+	            AND
+	                SUBJ_CD NOT LIKE '%Z%'
+	            GROUP BY STUD_ID,SERVICE_ID
+	            ) AS A
+        ) B ON A.STUD_ID = B.STUD_ID
+        LEFT OUTER JOIN (
+	        SELECT
+	            STUD_ID,
+	            SUM(PLAN_CNT) AS PLAN_CNT
+	        FROM
+	            DAY_PLAN_STT
+	        WHERE DT BETWEEN #{startDt} AND #{endDt}
+	            AND STUD_ID = #{studId}
+	        	AND PLAN_CNT IS NOT NULL
+        ) PL ON A.STUD_ID = PL.STUD_ID
         LEFT OUTER JOIN
             <choose>
                 <when test='isWM == "W"'>
-                        hams_tutor_dashboard.DAY_7_GRP_LRN_EX_STT AS C ON C.DT = #{endDt} AND A.GRADE = C.GRADE
-                    LEFT OUTER JOIN
-                        hams_tutor_dashboard.DAY_7_GRP_EXAM_RST AS D ON D.DT = #{endDt} AND A.GRADE = D.GRADE
+                        DAY_7_GRP_LRN_EX_STT AS C ON C.DT = #{endDt} AND A.GRADE = C.GRADE
+                    LEFT OUTER JOIN DAY_7_GRP_EXAM_RST AS D ON D.DT = #{endDt} AND A.GRADE = D.GRADE
                 </when>
                 <otherwise>
-                        hams_tutor_dashboard.MONTH_GRP_LRN_EX_STT AS C ON C.YYMM = DATE_FORMAT(#{endDt},'%Y%m') AND A.GRADE = C.GRADE
-                    LEFT OUTER JOIN
-                        hams_tutor_dashboard.MONTH_GRP_EXAM_RST AS D ON D.YYMM = DATE_FORMAT(#{endDt},'%Y%m') AND A.GRADE = D.GRADE
+                        MONTH_GRP_LRN_EX_STT AS C ON C.YYMM = DATE_FORMAT(#{endDt},'%Y%m') AND A.GRADE = C.GRADE
+                    LEFT OUTER JOIN MONTH_GRP_EXAM_RST AS D ON D.YYMM = DATE_FORMAT(#{endDt},'%Y%m') AND A.GRADE = D.GRADE
                 </otherwise>
             </choose>
-        LEFT OUTER JOIN
-        (
+        LEFT OUTER JOIN (
             SELECT
                 A.STUD_ID,
                 SUM(A.C01) AS C01,
@@ -444,67 +348,50 @@
                 SUM(A.C06) AS C06,
                 SUM(A.CRT_CNT) AS CRT_CNT,
                 SUM(A.QUES_CNT) AS QUES_CNT
-            FROM
-                (
-                SELECT
-                    STUD_ID,
-                CASE
-                    WHEN SUBJ_CD = 'C01' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C01,
-                CASE
-                    WHEN SUBJ_CD = 'C02' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C02,
-                CASE
-                    WHEN SUBJ_CD = 'C03' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C03,
-                CASE
-                    WHEN SUBJ_CD = 'C04' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C04,
-                CASE
-                    WHEN SUBJ_CD = 'C05' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C05,
-                CASE
-                    WHEN SUBJ_CD = 'C06' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
-                ELSE NULL
-                END AS C06,
-                SUM(CRT_CNT) AS CRT_CNT,
-                SUM(QUES_CNT) AS QUES_CNT
-                FROM
-                    hams_tutor_dashboard.EXAM_SUBJ_RST
-                WHERE
-                    STUD_ID = #{studId}
-                AND
-                    DT BETWEEN #{startDt} AND #{endDt}
-                GROUP BY SUBJ_CD
-                ) A
-        )
-        AS
-            E ON A.STUD_ID = E.STUD_ID
-        WHERE
-        A.STUD_ID = #{studId}
+            FROM (
+      			SELECT
+				    STUD_ID,
+				 	CASE
+		    	 		WHEN SUBJ_CD = 'C01' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C01,
+				 	CASE
+				    	WHEN SUBJ_CD = 'C02' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C02,
+				 	CASE
+				     	WHEN SUBJ_CD = 'C03' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C03,
+				 	CASE
+				     	WHEN SUBJ_CD = 'C04' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C04,
+				 	CASE
+				     	WHEN SUBJ_CD = 'C05' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C05,
+				 	CASE
+				     	WHEN SUBJ_CD = 'C06' THEN IFNULL(ROUND((SUM(CRT_CNT) / SUM(QUES_CNT)) * 100),0)
+				 		ELSE NULL
+				 	END AS C06,
+				 	SUM(CRT_CNT) AS CRT_CNT,
+				 	SUM(QUES_CNT) AS QUES_CNT
+				FROM EXAM_SUBJ_RST
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+				 	AND STUD_ID = #{studId}
+				GROUP BY SUBJ_CD
+			) A
+        ) E ON A.STUD_ID = E.STUD_ID
+        WHERE A.STUD_ID = #{studId}
     </select>
     <select id="getLrnExSttEx" parameterType="hashMap" resultType="resultMap">
         SELECT
             CASE
-            WHEN C.PLAN_CNT > 0
-            THEN ROUND(
-                (
-                    (
-                        (
-                        D_LRN_EX_CNT +
-                        LRN_EX_CNT +
-                        B_LRN_EX_CNT
-                        ) / C.PLAN_CNT
-                    ) * 100
-                )
-            )
-            ELSE NULL END
-            AS EX_RT,
+            	WHEN C.PLAN_CNT <![CDATA[<]]> (D_LRN_EX_CNT + LRN_EX_CNT + B_LRN_EX_CNT) THEN 100
+	            WHEN C.PLAN_CNT <![CDATA[>]]> 0 THEN ROUND(((D_LRN_EX_CNT + LRN_EX_CNT + B_LRN_EX_CNT) / C.PLAN_CNT) * 100)
+	            ELSE NULL 
+            END AS EX_RT,
             C.PLAN_CNT,
             D_LRN_EX_CNT,
             LRN_EX_CNT,
@@ -512,95 +399,72 @@
             IFNULL(B.A_LRN_EX_CNT,0) AS A_LRN_EX_CNT,
             B.A_LRN_NM AS A_LRN_NM,
             B.SUBJ_NM AS A_LRN_UPPER_NM
-        FROM
-        STUD AS ST
-        LEFT OUTER JOIN
-        (
-        SELECT
-            STUD_ID,
-        (
-        SELECT SUM(CNT) AS A_LRN_EX_CNT FROM
-            (
-            SELECT
-                COUNT(SUB_SUBJ_NM) CNT, SUB_SUBJ_NM,SUB_SUBJ_CD
-            FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-            WHERE
-                STUD_ID = #{studId}
-            AND
-                DT BETWEEN #{startDt} AND #{endDt}
-            AND
-                PLAN_DT IS NULL
-            AND
-                FNSH_YN = 'Y'
-            AND
-                SUBJ_CD NOT LIKE '%Z%'
-            GROUP BY
-                SUB_SUBJ_NM
-            ) A
-            ) AS A_LRN_EX_CNT,
-        SUB_SUBJ_NM AS A_LRN_NM,
-        SUBJ_NM
-        FROM
-        (
-            SELECT
-                COUNT(SUB_SUBJ_NM) CNT,
-                SUBJ_NM,
-                SUB_SUBJ_NM,
-                SUB_SUBJ_CD,
-                STUD_ID
-            FROM
-                hams_tutor_dashboard.DAY_LRN_EX_LOG
-            WHERE
-                STUD_ID = #{studId}
-            AND
-                DT BETWEEN #{startDt} AND #{endDt}
-            AND
-                PLAN_DT IS NULL
-            AND
-                FNSH_YN = 'Y'
-            AND
-                SUBJ_CD NOT LIKE '%Z%'
-            GROUP BY
-            SUB_SUBJ_NM
+        FROM STUD AS ST
+        LEFT OUTER JOIN (
+	        SELECT
+	            STUD_ID,
+		        (
+		        	SELECT SUM(CNT) AS A_LRN_EX_CNT 
+		        	FROM (
+			            SELECT
+			                COUNT(SUB_SUBJ_NM) AS CNT, 
+			                SUB_SUBJ_NM,
+			                SUB_SUBJ_CD
+			            FROM DAY_LRN_EX_LOG
+			            WHERE DT BETWEEN #{startDt} AND #{endDt}
+				            AND STUD_ID = #{studId}
+				            AND ( PLAN_DT IS NULL OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
+				            AND FNSH_YN = 'Y'
+				            AND SUBJ_CD NOT LIKE '%Z%'
+			            GROUP BY SUB_SUBJ_NM
+		            ) A
+	            ) AS A_LRN_EX_CNT,
+		        SUB_SUBJ_NM AS A_LRN_NM,
+		        SUBJ_NM
+	        FROM (
+	            SELECT
+	                COUNT(SUB_SUBJ_NM) AS CNT,
+	                SUBJ_NM,
+	                SUB_SUBJ_NM,
+	                SUB_SUBJ_CD,
+	                STUD_ID,
+	                CASE LEFT(SUB_SUBJ_CD,3)
+						WHEN 'C02' THEN 1
+						WHEN 'C01' THEN 2
+						WHEN 'C05' THEN 3
+						WHEN 'C04' THEN 4
+						WHEN 'C03' THEN 5
+						WHEN 'C06' THEN 6
+						WHEN 'N04' THEN 7
+						WHEN 'NO3' THEN 8
+						WHEN 'N01' THEN 9
+						WHEN 'N02' THEN 10
+						WHEN 'N05' THEN 11
+						WHEN 'N01' THEN 12
+						WHEN 'N06' THEN 13
+					END AS SUBJ_RANK,
+					CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) AS SUB_SUBJ_RANK
+	            FROM DAY_LRN_EX_LOG
+	            WHERE DT BETWEEN #{startDt} AND #{endDt}
+		            AND STUD_ID = #{studId}
+		            AND ( PLAN_DT IS NULL OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
+		            AND FNSH_YN = 'Y'
+		            AND SUBJ_CD NOT LIKE '%Z%'
+	            GROUP BY SUBJ_NM, SUB_SUBJ_NM
             ) B
-        ORDER BY CNT DESC,
-        CASE LEFT(SUB_SUBJ_CD,3)
-            WHEN 'C02' THEN 1
-            WHEN 'C01' THEN 2
-            WHEN 'C05' THEN 3
-            WHEN 'C04' THEN 4
-            WHEN 'C03' THEN 5
-            WHEN 'C06' THEN 6
-            WHEN 'N04' THEN 7
-            WHEN 'NO3' THEN 8
-            WHEN 'N01' THEN 9
-            WHEN 'N02' THEN 10
-            WHEN 'N05' THEN 11
-            WHEN 'N01' THEN 12
-            WHEN 'N06' THEN 13
-        END ASC,
-        CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) ASC
-        LIMIT 1
-        ) B
-        ON
-            ST.STUD_ID = B.STUD_ID
-        LEFT OUTER JOIN
-            (
+	        ORDER BY CNT DESC, SUBJ_RANK ASC, SUB_SUBJ_RANK ASC
+	        LIMIT 1
+        ) B ON ST.STUD_ID = B.STUD_ID
+        LEFT OUTER JOIN (
             SELECT
                 STUD_ID,
                 SUM(PLAN_CNT) AS PLAN_CNT
-            FROM
-                hams_tutor_dashboard.DAY_PLAN_STT
-            WHERE
-                STUD_ID = #{studId}
-            AND
-                PLAN_CNT IS NOT NULL AND
-                DT BETWEEN #{startDt} AND #{endDt}
-            ) AS C
-        ON
-            ST.STUD_ID = C.STUD_ID
-        JOIN
-            (
+            FROM DAY_PLAN_STT
+            WHERE DT BETWEEN #{startDt} AND #{endDt}
+            	AND STUD_ID = #{studId}
+            	AND PLAN_CNT IS NOT NULL
+		) C ON ST.STUD_ID = C.STUD_ID
+        JOIN (
             SELECT
                 STUD_ID,
                 COUNT(CASE WHEN (DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d')) THEN 1 ELSE NULL END) D_LRN_EX_CNT,
@@ -613,26 +477,17 @@
                     STUD_ID,
                     PLAN_DT,
                     END_DTTM
-                FROM
-                    hams_tutor_dashboard.DAY_LRN_EX_LOG AS D
-                WHERE
-                    D.STUD_ID = #{studId}
-                AND
-                    D.PLAN_DT BETWEEN #{startDt} AND #{endDt}
-                AND
-                    D.PLAN_DT IS NOT NULL
-                AND
-                    D.FNSH_YN = 'Y'
-                AND
-                    SUBJ_CD NOT LIKE '%Z%'
+                FROM DAY_LRN_EX_LOG
+                WHERE STUD_ID = #{studId}
+                	AND PLAN_DT BETWEEN #{startDt} AND #{endDt}
+                	AND PLAN_DT IS NOT NULL
+                	AND FNSH_YN = 'Y'
+                	AND SUBJ_CD NOT LIKE '%Z%'
+                	AND PLAN_UPD_YN IS NULL
                 GROUP BY STUD_ID,SERVICE_ID
                 ) AS A
-            )
-        AS D
-        ON
-            ST.STUD_ID = D.STUD_ID
-        WHERE
-            ST.STUD_ID = #{studId}
+		) D ON ST.STUD_ID = D.STUD_ID
+        WHERE ST.STUD_ID = #{studId}
     </select>
     <select id="getLrnExSttTm" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -640,64 +495,42 @@
             COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100 OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[>]]> 1500 THEN LRN_SEC END) AS LONG_LRN_TM,
             COUNT(CASE WHEN (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) <![CDATA[>]]> 100  OR (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED)) = 001) AND LRN_SEC <![CDATA[<]]> 300 THEN LRN_SEC END) AS SHORT_LRN_TM,
             (
-                SELECT
-                    COUNT(A.SUB_SUBJ_CD) AS LRN_TM_CHECK FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS A,
+				SELECT
+					COUNT(A.SUB_SUBJ_CD) AS LRN_TM_CHECK FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS A,
                     (
                         SELECT
-                               DT,CTGR,MAX(END_DTTM) AS SORT_END_DTTM FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-                        Where
-                              STUD_ID = #{studId}
-                        AND
-                              DT BETWEEN #{startDt} AND #{endDt}
-                        AND
-                              (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 11)
-                        AND
-                              END_DTTM IS NOT NULL
-                        AND
-                              PLAN_DT IS NOT NULL
-                        AND
-                              FNSH_YN = 'Y'
-                        AND
-                              SUBJ_CD NOT LIKE '%Z%'
-                        GROUP BY
-                              DT,CTGR
+							DT,
+							CTGR,
+							MAX(END_DTTM) AS SORT_END_DTTM 
+						FROM DAY_LRN_EX_LOG
+                        WHERE DT BETWEEN #{startDt} AND #{endDt}
+	                        AND STUD_ID = #{studId}
+	                        AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 11)
+	                        AND END_DTTM IS NOT NULL
+	                        AND PLAN_DT IS NOT NULL
+	                        AND FNSH_YN = 'Y'
+	                        AND SUBJ_CD NOT LIKE '%Z%'
+                        GROUP BY DT,CTGR
                         HAVING COUNT(DT) <![CDATA[>]]> 1
                     ) AS B
-                Where
-                      A.STUD_ID = #{studId}
-                AND
-                      A.DT BETWEEN #{startDt} AND #{endDt}
-                AND
-                      (CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 11)
-                AND
-                      A.END_DTTM IS NOT NULL
-                AND
-                      A.PLAN_DT IS NOT NULL
-                AND
-                      A.FNSH_YN = 'Y'
-                AND
-                      A.DT = B.DT
-                AND
-                      A.CTGR = B.CTGR
-                AND
-                      A.END_DTTM = B.SORT_END_DTTM
-                AND
-                      (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
-                AND
-                       SUBJ_CD NOT LIKE '%Z%'
-                ORDER BY
-                      A.END_DTTM,A.SUBJ_CD
-            ) AS LRN_PTN_CNT
-        FROM
-             hams_tutor_dashboard.DAY_LRN_EX_LOG
-        WHERE
-              STUD_ID = #{studId}
-        AND
-              DT BETWEEN #{startDt} AND #{endDt}
-        AND
-              FNSH_YN = 'Y'
-        AND
-              SUBJ_CD NOT LIKE '%Z%'
+                WHERE A.DT BETWEEN #{startDt} AND #{endDt}
+	                AND A.STUD_ID = #{studId}
+	                AND (CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 1 OR CAST(RIGHT(A.SUB_SUBJ_CD,3) AS SIGNED) = 11)
+	                AND A.END_DTTM IS NOT NULL
+	                AND A.PLAN_DT IS NOT NULL
+	                AND A.FNSH_YN = 'Y'
+	                AND A.DT = B.DT
+	                AND A.CTGR = B.CTGR
+	                AND A.END_DTTM = B.SORT_END_DTTM
+	                AND (CAST(RIGHT(SUB_SUBJ_CD,3) AS SIGNED) = 1)
+	                AND SUBJ_CD NOT LIKE '%Z%'
+				ORDER BY A.END_DTTM,A.SUBJ_CD
+			) AS LRN_PTN_CNT
+        FROM DAY_LRN_EX_LOG
+        WHERE DT BETWEEN #{startDt} AND #{endDt}
+	        AND STUD_ID = #{studId}
+	        AND FNSH_YN = 'Y'
+	        AND SUBJ_CD NOT LIKE '%Z%'
     </select>
     <select id="getLrnExChartDay" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -705,28 +538,23 @@
             A.SUBJ_CD,
             SUM(LRN_SEC) LRN_TM,
             B.TOTAL_LRN_TM
-        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG AS A
-                 LEFT OUTER JOIN
-             (
-                 SELECT
-                     DT,SUM(LRN_SEC) AS TOTAL_LRN_TM FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-                 WHERE
-                     STUD_ID = #{studId}
-                   AND
-                     DT BETWEEN #{startDt} AND #{endDt}
-                   AND
-                     SUBJ_CD NOT LIKE '%Z%'
-                 GROUP BY
-                     DT
-             ) AS B ON A.DT = B.DT
-        WHERE
-            A.STUD_ID = #{studId}
-          AND A.DT BETWEEN #{startDt} AND #{endDt}
-          AND
-            A.SUBJ_CD NOT LIKE '%Z%'
+        FROM DAY_LRN_EX_LOG AS A
+		LEFT OUTER JOIN (
+	    	SELECT
+	        	DT,
+	        	SUM(LRN_SEC) AS TOTAL_LRN_TM 
+        	FROM DAY_LRN_EX_LOG
+		    WHERE DT BETWEEN #{startDt} AND #{endDt}
+	      		AND STUD_ID = #{studId}
+	      		AND SUBJ_CD NOT LIKE '%Z%'
+		    GROUP BY DT
+		) B ON A.DT = B.DT
+        WHERE A.DT BETWEEN #{startDt} AND #{endDt}
+			AND A.STUD_ID = #{studId} 
+			AND A.SUBJ_CD NOT LIKE '%Z%'
         GROUP BY A.DT,A.SUBJ_CD
         HAVING
-            LRN_TM <![CDATA[>]]> 0
+			LRN_TM <![CDATA[>]]> 0
         ORDER BY DT,SUBJ_CD
     </select>
     <select id="getLrnExChartDayMsg" parameterType="hashMap" resultType="resultMap">
@@ -740,18 +568,12 @@
             SUB_SUBJ_NM,' > ',
             CTGR
             ) AS MSG
-        FROM
-             hams_tutor_dashboard.DAY_LRN_EX_LOG A
-        WHERE
-            STUD_ID = #{studId}
-        AND
-              DT BETWEEN #{startDt} AND #{endDt}
-        AND
-              LRN_SEC <![CDATA[>]]> 0
-        AND
-              SUBJ_CD NOT LIKE '%Z%'
-        ORDER BY
-                DT,SUBJ_CD,SUB_SUBJ_CD
+        FROM DAY_LRN_EX_LOG A
+        WHERE DT BETWEEN #{startDt} AND #{endDt}
+        	AND STUD_ID = #{studId}
+	        AND LRN_SEC <![CDATA[>]]> 0
+	        AND SUBJ_CD NOT LIKE '%Z%'
+        ORDER BY DT,SUBJ_CD,SUB_SUBJ_CD
     </select>
     <select id="getLrnExChartSubj" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -759,12 +581,10 @@
             (SELECT SUM(LRN_SEC) FROM DAY_LRN_EX_LOG WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId} AND SUBJ_CD = A.SUBJ_CD AND SUBJ_CD NOT LIKE '%Z%' GROUP BY SUBJ_CD) AS TOTAL_LRN_TM,
             SUB_SUBJ_CD,
             SUM(LRN_SEC) AS LRN_TM
-        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG A
-        WHERE
-            STUD_ID = #{studId}
-          AND DT BETWEEN #{startDt} AND #{endDt}
-          AND
-            SUBJ_CD NOT LIKE '%Z%'
+        FROM DAY_LRN_EX_LOG A
+        WHERE DT BETWEEN #{startDt} AND #{endDt}
+       		AND STUD_ID = #{studId} 
+          	AND SUBJ_CD NOT LIKE '%Z%'
         GROUP BY SUBJ_CD, SUB_SUBJ_CD
         HAVING SUM(LRN_SEC) <![CDATA[>]]> 0
         ORDER BY SUBJ_CD,SUB_SUBJ_CD
@@ -780,11 +600,9 @@
                     CTGR
                 ) AS MSG
         FROM hams_tutor_dashboard.DAY_LRN_EX_LOG A
-        WHERE
-            STUD_ID = #{studId}
-          AND DT BETWEEN #{startDt} AND #{endDt}
-          AND
-            SUBJ_CD NOT LIKE '%Z%'
+        WHERE DT BETWEEN #{startDt} AND #{endDt}
+       		AND STUD_ID = #{studId} 
+        	AND SUBJ_CD NOT LIKE '%Z%'
         GROUP BY SUBJ_CD, SUB_SUBJ_CD,CTGR
         HAVING SUM(LRN_SEC) <![CDATA[>]]> 0
         ORDER BY SUBJ_CD,SUB_SUBJ_CD
@@ -826,12 +644,12 @@
             END AS LRN_SEC,
             STD_LRN_TM,
             CASE
-            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
-            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
-            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
-            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
-            WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
-            ELSE '안했어요'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
+	            WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
+            	ELSE '안했어요'
             END AS EX_TYPE,
             CASE
             WHEN PLAN_DT IS NOT NULL THEN
@@ -913,28 +731,17 @@
                         GROUP BY A.EXAM_CD, A.EXAM_TYPE
                     ) AA
                 GROUP BY SUBJ_CD
-            ) AS A
-            ON
-                S.STUD_ID = A.STUD_ID
-                JOIN
+		) AS A ON S.STUD_ID = A.STUD_ID
+		JOIN
             <choose>
                 <when test='isWM == "W"'>
-                    hams_tutor_dashboard.DAY_7_GRP_EXAM_RST AS B
-                    ON
-                    B.GRADE = S.GRADE
-                    AND B.DT = #{endDt}
+                    DAY_7_GRP_EXAM_RST AS B ON B.GRADE = S.GRADE AND B.DT = #{endDt}
                 </when>
                 <otherwise>
-                    hams_tutor_dashboard.MONTH_GRP_EXAM_RST AS B
-                    ON
-                    B.GRADE = S.GRADE
-                    AND B.YYMM = DATE_FORMAT(#{endDt},'%Y%m')
+                    MONTH_GRP_EXAM_RST B ON B.GRADE = S.GRADE AND B.YYMM = DATE_FORMAT(#{endDt},'%Y%m')
                 </otherwise>
             </choose>
-        GROUP BY
-            S.STUD_ID,
-            B.TOP_10_CRT_RT,
-            B.GRP_AVG_CRT_RT
+        GROUP BY S.STUD_ID, B.TOP_10_CRT_RT, B.GRP_AVG_CRT_RT
 
     </select>
     <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
@@ -952,65 +759,54 @@
             A.GUESS_QUES_CNT,
             A.MISTAKE_QUES_CNT
         FROM
-            hams_tutor_dashboard.STUD AS S
-                JOIN
-            (
-                SELECT
-                    STUD_ID,
-                    SUBJ_CD,
-                    SUM(QUES_CNT) AS ANS_QUES_CNT,
-                    COUNT(*) AS EXPL_CNT,
-                    SUM(CRT_CNT)  AS CRT_QUES_CNT,
-                    SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_NC_CNT,
-                    SUM(SKIP_QUES_CNT) AS SKIP_QUES_CNT,
-                    SUM(CUSORY_QUES_CNT)AS CUSORY_QUES_CNT,
-                    SUM(GUESS_QUES_CNT) AS GUESS_QUES_CNT,
-                    SUM(MISTAKE_QUES_CNT) AS MISTAKE_QUES_CNT
-                FROM(
-                        SELECT
-                            A.DT,
-                            A.STUD_ID,
-                            A.SUBJ_CD,
-                            A.EXAM_CD,
-                            A.EXAM_TYPE,
-                            MAX(QUES_CNT) AS QUES_CNT,
-                            MAX(CRT_CNT) AS CRT_CNT,
-                            MAX(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
-                            MAX(INCRT_NT_FNSH_CNT) AS INCRT_NT_FNSH_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'SKP' THEN 1 ELSE NULL END) AS SKIP_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'CUR' THEN 1 ELSE NULL END) AS CUSORY_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'GUC' OR QUES_PTN = 'GUI' THEN 1 ELSE NULL END) AS GUESS_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'MIS' THEN 1 ELSE NULL END) AS MISTAKE_QUES_CNT
-                        FROM hams_tutor_dashboard.EXAM_RST AS A
-						JOIN hams_tutor_dashboard.EXAM_RST_QUES_LOG AS B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
-                        WHERE A.STUD_ID = #{studId}
-                          AND A.DT BETWEEN #{startDt} AND #{endDt}
-                          AND A.DEL_YN = 'N'
-                          AND EXAM_SEC > 0
-                          -- AND A.SCORE IS NOT NULL
-                        GROUP BY A.EXAM_CD, A.EXAM_TYPE
-                    ) AA
-                GROUP BY SUBJ_CD
-            ) AS A
-            ON
-                S.STUD_ID = A.STUD_ID
-                JOIN
-                <choose>
-                    <when test='isWM == "W"'>
-                        hams_tutor_dashboard.DAY_7_GRP_EXAM_SUBJ_RST AS B
-                        ON
-                        B.GRADE = S.GRADE
-                        AND B.SUBJ_CD = A.SUBJ_CD
-                        AND B.DT = #{endDt}
-                    </when>
-                    <otherwise>
-                        hams_tutor_dashboard.MONTH_GRP_EXAM_SUBJ_RST AS B
-                        ON
-                        B.GRADE = S.GRADE
-                        AND B.SUBJ_CD = A.SUBJ_CD
-                        AND B.YYMM = DATE_FORMAT(#{endDt},'%Y%m')
-                    </otherwise>
-                </choose>
+            STUD S
+		JOIN (
+       		SELECT
+              	STUD_ID,
+              	SUBJ_CD,
+              	SUM(QUES_CNT) AS ANS_QUES_CNT,
+              	COUNT(*) AS EXPL_CNT,
+              	SUM(CRT_CNT)  AS CRT_QUES_CNT,
+              	SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_NC_CNT,
+              	SUM(SKIP_QUES_CNT) AS SKIP_QUES_CNT,
+              	SUM(CUSORY_QUES_CNT)AS CUSORY_QUES_CNT,
+              	SUM(GUESS_QUES_CNT) AS GUESS_QUES_CNT,
+              	SUM(MISTAKE_QUES_CNT) AS MISTAKE_QUES_CNT
+          	FROM(
+				SELECT
+					A.DT,
+					A.STUD_ID,
+					A.SUBJ_CD,
+					A.EXAM_CD,
+					A.EXAM_TYPE,
+					MAX(QUES_CNT) AS QUES_CNT,
+					MAX(CRT_CNT) AS CRT_CNT,
+					MAX(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
+					MAX(INCRT_NT_FNSH_CNT) AS INCRT_NT_FNSH_CNT,
+					COUNT(CASE WHEN B.QUES_PTN = 'SKP' THEN 1 ELSE NULL END) AS SKIP_QUES_CNT,
+					COUNT(CASE WHEN B.QUES_PTN = 'CUR' THEN 1 ELSE NULL END) AS CUSORY_QUES_CNT,
+					COUNT(CASE WHEN B.QUES_PTN = 'GUC' OR QUES_PTN = 'GUI' THEN 1 ELSE NULL END) AS GUESS_QUES_CNT,
+					COUNT(CASE WHEN B.QUES_PTN = 'MIS' THEN 1 ELSE NULL END) AS MISTAKE_QUES_CNT
+				FROM EXAM_RST A
+				JOIN EXAM_RST_QUES_LOG B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
+				WHERE A.STUD_ID = #{studId}
+					AND A.DT BETWEEN #{startDt} AND #{endDt}
+					AND A.DEL_YN = 'N'
+					AND EXAM_SEC > 0
+                    -- AND A.SCORE IS NOT NULL
+				GROUP BY A.EXAM_CD, A.EXAM_TYPE
+			) AA
+			GROUP BY SUBJ_CD
+		) A ON S.STUD_ID = A.STUD_ID
+		JOIN
+		<choose>
+		    <when test='isWM == "W"'>
+		        DAY_7_GRP_EXAM_SUBJ_RST B ON B.GRADE = S.GRADE AND B.SUBJ_CD = A.SUBJ_CD AND B.DT = #{endDt}
+		    </when>
+		    <otherwise>
+		        MONTH_GRP_EXAM_SUBJ_RST B ON B.GRADE = S.GRADE AND B.SUBJ_CD = A.SUBJ_CD AND B.YYMM = DATE_FORMAT(#{endDt},'%Y%m')
+		    </otherwise>
+		</choose>
     </select>
     <select id="getExamListCnt" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -1115,10 +911,8 @@
                     ATT_DT BETWEEN #{startDt} AND #{endDt}
                 </otherwise>
             </choose>
-          AND
-            STUD_ID = #{studId}
-          AND
-            LOGIN_PTN IS NOT NULL
+          AND STUD_ID = #{studId}
+          AND LOGIN_PTN IS NOT NULL
     </select>
     <select id="getAttSttChart" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -1153,8 +947,7 @@
                     ATT_DT BETWEEN #{startDt} AND #{endDt}
                 </otherwise>
             </choose>
-          AND
-            LOGIN_PTN IS NOT NULL
+          AND LOGIN_PTN IS NOT NULL
     </select>
     <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
         SELECT MSG_CD,MSG FROM hams_tutor_dashboard.COMM_MSG_CD;
