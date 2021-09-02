@@ -563,10 +563,13 @@
             SUBJ_CD,
             SUB_SUBJ_CD,
             CONCAT(
-            ' > ',
-            IFNULL(LRN_GRADE,''),CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,IFNULL(LRN_TERM,''),CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
-            SUB_SUBJ_NM,' > ',
-            CTGR
+	            ' > ',
+	            IFNULL(LRN_GRADE,''),
+	            CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,
+	            IFNULL(LRN_TERM,''),
+	            CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
+	            SUB_SUBJ_NM,' > ',
+	            CTGR
             ) AS MSG
         FROM DAY_LRN_EX_LOG A
         WHERE DT BETWEEN #{startDt} AND #{endDt}
@@ -599,7 +602,7 @@
                     SUB_SUBJ_NM,' > ',
                     CTGR
                 ) AS MSG
-        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG A
+        FROM DAY_LRN_EX_LOG A
         WHERE DT BETWEEN #{startDt} AND #{endDt}
        		AND STUD_ID = #{studId} 
         	AND SUBJ_CD NOT LIKE '%Z%'
@@ -611,72 +614,71 @@
         SELECT
             SERVICE_ID,
             SUBJ_CD,
-                CONCAT
-                (
-                    DT,
-                    '(',
-                    CASE DAYOFWEEK(DT)
-                    WHEN '1' THEN '일요일'
-                    WHEN '2' THEN '월요일'
-                    WHEN '3' THEN '화요일'
-                    WHEN '4' THEN '수요일'
-                    WHEN '5' THEN '목요일'
-                    WHEN '6' THEN '금요일'
-                    WHEN '7' THEN '토요일'
-                    END,
-                    ') ',
-                    CASE WHEN PLAN_DT IS NOT NULL AND START_DTTM IS NULL THEN '-' ELSE DATE_FORMAT(START_DTTM,'%H:%i') END,
-                    CASE WHEN START_DTTM IS NULL THEN '' ELSE ' ~ ' END,
-                    IFNULL(DATE_FORMAT(END_DTTM,'%H:%i'), '')
-                ) AS EX_DTTM,
+			CONCAT
+			(
+				DT,
+			    '(',
+			    CASE DAYOFWEEK(DT)
+				    WHEN '1' THEN '일요일'
+				    WHEN '2' THEN '월요일'
+				    WHEN '3' THEN '화요일'
+				    WHEN '4' THEN '수요일'
+				    WHEN '5' THEN '목요일'
+				    WHEN '6' THEN '금요일'
+				    WHEN '7' THEN '토요일'
+			    END,
+			    ') ',
+			    CASE WHEN PLAN_DT IS NOT NULL AND START_DTTM IS NULL THEN '-' ELSE DATE_FORMAT(START_DTTM,'%H:%i') END,
+			    CASE WHEN START_DTTM IS NULL THEN '' ELSE ' ~ ' END,
+			    IFNULL(DATE_FORMAT(END_DTTM,'%H:%i'), '')
+			) AS EX_DTTM,
             CONCAT(
-            ' > ',
-            IFNULL(LRN_GRADE,''),CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,IFNULL(LRN_TERM,''),CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
-            SUB_SUBJ_NM,' > ',
-            IFNULL(CTGR,SUB_SUBJ_NM)
+	            ' > ',
+	            IFNULL(LRN_GRADE,''),
+	            CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,
+	            IFNULL(LRN_TERM,''),
+	            CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
+	            SUB_SUBJ_NM,' > ',
+	            IFNULL(CTGR,SUB_SUBJ_NM)
             ) AS CATEGORY,
             CASE
-            WHEN (
-                    PLAN_DT IS NOT NULL
-                    AND START_DTTM IS NULL
-            )
-            THEN NULL ELSE LRN_SEC
+	            WHEN ( PLAN_DT IS NOT NULL AND START_DTTM IS NULL ) THEN NULL 
+	            ELSE LRN_SEC
             END AS LRN_SEC,
             STD_LRN_TM,
             CASE
-	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
-	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
-	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND  DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
 	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
+	            WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y' THEN '스스로'
 	            WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
             	ELSE '안했어요'
             END AS EX_TYPE,
             CASE
-            WHEN PLAN_DT IS NOT NULL THEN
-                    (
-                    CONCAT
-                        (
-                            PLAN_DT,
-                            '(',
-                            CASE DAYOFWEEK(PLAN_DT)
-                            WHEN '1' THEN '일요일'
-                            WHEN '2' THEN '월요일'
-                            WHEN '3' THEN '화요일'
-                            WHEN '4' THEN '수요일'
-                            WHEN '5' THEN '목요일'
-                            WHEN '6' THEN '금요일'
-                            WHEN '7' THEN '토요일'
-                            END,
-                            ') '
-                        )
-                    )
+            WHEN PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL THEN
+			(
+				CONCAT
+			    (
+			        PLAN_DT,
+			        '(',
+			        CASE DAYOFWEEK(PLAN_DT)
+				        WHEN '1' THEN '일요일'
+				        WHEN '2' THEN '월요일'
+				        WHEN '3' THEN '화요일'
+				        WHEN '4' THEN '수요일'
+				        WHEN '5' THEN '목요일'
+				        WHEN '6' THEN '금요일'
+				        WHEN '7' THEN '토요일'
+			        END,
+			        ') '
+			    )
+			)
             ELSE NULL
-            END AS PLAN_DT
-        FROM hams_tutor_dashboard.DAY_LRN_EX_LOG
-        WHERE
-            STUD_ID = #{studId}
-        AND
-            DT BETWEEN #{startDt} AND #{endDt};
+		END AS PLAN_DT
+        FROM DAY_LRN_EX_LOG
+        WHERE DT BETWEEN #{startDt} AND #{endDt}
+	        AND STUD_ID = #{studId};
     </select>
     <select id="getExamStt" parameterType="hashMap" resultType="resultMap">
         SELECT
@@ -691,46 +693,44 @@
             SUM(A.CUSORY_QUES_CNT) AS CUSORY_QUES_CNT,
             SUM(A.GUESS_QUES_CNT) AS GUESS_QUES_CNT,
             SUM(A.MISTAKE_QUES_CNT) AS MISTAKE_QUES_CNT
-        FROM
-            hams_tutor_dashboard.STUD AS S
-                JOIN
-            (
-                SELECT
-                    STUD_ID,
-                    SUBJ_CD,
-                    SUM(QUES_CNT) AS ANS_QUES_CNT,
-                    COUNT(*) AS EXPL_CNT,
-                    SUM(CRT_CNT)  AS CRT_QUES_CNT,
-                    SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_NC_CNT,
-                    SUM(SKIP_QUES_CNT) AS SKIP_QUES_CNT,
-                    SUM(CUSORY_QUES_CNT)AS CUSORY_QUES_CNT,
-                    SUM(GUESS_QUES_CNT) AS GUESS_QUES_CNT,
-                    SUM(MISTAKE_QUES_CNT) AS MISTAKE_QUES_CNT
-                FROM(
-                        SELECT
-                            A.DT,
-                            A.STUD_ID,
-                            A.SUBJ_CD,
-                            A.EXAM_CD,
-                            A.EXAM_TYPE,
-                            MAX(QUES_CNT) AS QUES_CNT,
-                            MAX(CRT_CNT) AS CRT_CNT,
-                            MAX(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
-                            MAX(INCRT_NT_FNSH_CNT) AS INCRT_NT_FNSH_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'SKP' THEN 1 ELSE NULL END) AS SKIP_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'CUR' THEN 1 ELSE NULL END) AS CUSORY_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'GUC' OR QUES_PTN = 'GUI' THEN 1 ELSE NULL END) AS GUESS_QUES_CNT,
-                            COUNT(CASE WHEN B.QUES_PTN = 'MIS' THEN 1 ELSE NULL END) AS MISTAKE_QUES_CNT
-                        FROM hams_tutor_dashboard.EXAM_RST AS A
-						LEFT OUTER JOIN hams_tutor_dashboard.EXAM_RST_QUES_LOG AS B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
-                        WHERE A.STUD_ID = #{studId}
-							AND A.DT BETWEEN #{startDt} AND #{endDt}
-							AND A.DEL_YN = 'N'
-							AND EXAM_SEC > 0
-                          	-- AND A.SCORE IS NOT NULL
-                        GROUP BY A.EXAM_CD, A.EXAM_TYPE
-                    ) AA
-                GROUP BY SUBJ_CD
+        FROM STUD AS S 
+        JOIN (
+              SELECT
+                  STUD_ID,
+                  SUBJ_CD,
+                  SUM(QUES_CNT) AS ANS_QUES_CNT,
+                  COUNT(*) AS EXPL_CNT,
+                  SUM(CRT_CNT)  AS CRT_QUES_CNT,
+                  SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_NC_CNT,
+                  SUM(SKIP_QUES_CNT) AS SKIP_QUES_CNT,
+                  SUM(CUSORY_QUES_CNT)AS CUSORY_QUES_CNT,
+                  SUM(GUESS_QUES_CNT) AS GUESS_QUES_CNT,
+                  SUM(MISTAKE_QUES_CNT) AS MISTAKE_QUES_CNT
+              FROM(
+				SELECT
+				    A.DT,
+				    A.STUD_ID,
+				    A.SUBJ_CD,
+				    A.EXAM_CD,
+				    A.EXAM_TYPE,
+				    MAX(QUES_CNT) AS QUES_CNT,
+				    MAX(CRT_CNT) AS CRT_CNT,
+				    MAX(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
+				    MAX(INCRT_NT_FNSH_CNT) AS INCRT_NT_FNSH_CNT,
+				    COUNT(CASE WHEN B.QUES_PTN = 'SKP' THEN 1 ELSE NULL END) AS SKIP_QUES_CNT,
+				    COUNT(CASE WHEN B.QUES_PTN = 'CUR' THEN 1 ELSE NULL END) AS CUSORY_QUES_CNT,
+				    COUNT(CASE WHEN B.QUES_PTN = 'GUC' OR QUES_PTN = 'GUI' THEN 1 ELSE NULL END) AS GUESS_QUES_CNT,
+				    COUNT(CASE WHEN B.QUES_PTN = 'MIS' THEN 1 ELSE NULL END) AS MISTAKE_QUES_CNT
+				FROM EXAM_RST AS A
+				LEFT OUTER JOIN EXAM_RST_QUES_LOG AS B ON A.STUD_ID = B.STUD_ID AND A.DT = B.DT AND A.EXAM_TYPE = B.EXAM_TYPE AND A.EXAM_CD = B.EXAM_CD
+	                	WHERE A.STUD_ID = #{studId}
+					AND A.DT BETWEEN #{startDt} AND #{endDt}
+					AND A.DEL_YN = 'N'
+					AND EXAM_SEC > 0
+	                  	-- AND A.SCORE IS NOT NULL
+				GROUP BY A.EXAM_CD, A.EXAM_TYPE
+			) AA
+        	GROUP BY SUBJ_CD
 		) AS A ON S.STUD_ID = A.STUD_ID
 		JOIN
             <choose>
