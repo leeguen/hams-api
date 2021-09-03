@@ -365,16 +365,13 @@
 				FROM (
 					SELECT
 						STUD_ID,
-						CASE
-							WHEN SUBJ_CD = 'N01' THEN 'C05'
-							WHEN SUBJ_CD = 'N02' THEN 'C02'
-							ELSE SUBJ_CD
-						END AS SUBJ_CD,
+						SUBJ_CD,
 						PLAN_CNT
 					FROM DAY_SUBJ_PLAN_STT
 					WHERE DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
 						AND STUD_ID = #{studId}
-						AND SUBJ_CD IN ('C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'N01', 'N02')
+						AND SUBJ_CD IN ('C01', 'C02', 'C03', 'C04', 'C05', 'C06')
+						-- AND SUBJ_CD IN ('C01', 'C02', 'C03', 'C04', 'C05', 'C06', 'N01', 'N02')
 				) PLAN_1
 				GROUP BY STUD_ID, SUBJ_CD
 			) PLAN
