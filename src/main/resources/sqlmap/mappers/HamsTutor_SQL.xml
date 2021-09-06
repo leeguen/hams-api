@@ -18,13 +18,11 @@
                         MONTH_ATT_LOG
                         WHERE STUD_ID = #{studId}
 	                        AND ATT_DT between #{startDt} AND #{endDt}
-	                        AND LOGIN_PTN IS NOT NULL
                     </when>
                     <otherwise>
                         DAY_ATT_LOG
                         WHERE STUD_ID = #{studId}
 	                        AND DT between #{startDt} AND #{endDt}
-	                        AND LOGIN_PTN IS NOT NULL
                     </otherwise>
                 </choose>
             ) AS ATT_RT,
@@ -62,13 +60,11 @@
                             MONTH_ATT_LOG
                         WHERE ATT_DT between #{startDt} AND #{endDt}
 	                        AND STUD_ID = #{studId}
-	                        AND LOGIN_PTN IS NOT NULL
                     </when>
                     <otherwise>
                             DAY_ATT_LOG
                         WHERE DT between #{startDt} AND #{endDt}
 	                        AND STUD_ID = #{studId}
-	                        AND LOGIN_PTN IS NOT NULL
                     </otherwise>
                 </choose>
             ) AS LOGIN_PTN
@@ -912,7 +908,6 @@
                 </otherwise>
             </choose>
           AND STUD_ID = #{studId}
-          AND LOGIN_PTN IS NOT NULL
     </select>
     <select id="getAttSttChart" parameterType="hashMap" resultType="resultMap">
         SELECT
