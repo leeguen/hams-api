@@ -413,7 +413,7 @@
 			            FROM DAY_LRN_EX_LOG
 			            WHERE DT BETWEEN #{startDt} AND #{endDt}
 				            AND STUD_ID = #{studId}
-				            AND ( PLAN_DT IS NULL OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
+				            AND ( (PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30) OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
 				            AND FNSH_YN = 'Y'
 				            AND SUBJ_CD NOT LIKE '%Z%'
 			            GROUP BY SUB_SUBJ_NM
@@ -447,7 +447,7 @@
 	            FROM DAY_LRN_EX_LOG
 	            WHERE DT BETWEEN #{startDt} AND #{endDt}
 		            AND STUD_ID = #{studId}
-		            AND ( PLAN_DT IS NULL OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
+		            AND ( (PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30) OR (PLAN_DT > 0 AND PLAN_UPD_YN = 'Y'))
 		            AND FNSH_YN = 'Y'
 		            AND SUBJ_CD NOT LIKE '%Z%'
 	            GROUP BY SUBJ_NM, SUB_SUBJ_NM
