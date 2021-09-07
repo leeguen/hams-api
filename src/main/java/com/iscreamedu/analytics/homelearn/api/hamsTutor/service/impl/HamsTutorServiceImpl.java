@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 @Service
 public class HamsTutorServiceImpl implements HamsTutorService {
@@ -229,6 +228,28 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         }
 
         data.put("commMsgCd",commMsgCdMap);
+        setResult(dataKey,data);
+
+        return result;
+    }
+    
+    @Override
+    public Map getSubjCd(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        checkRequired(paramMap);
+
+        //DB 조회
+        List<Map<String,Object>> subjCdList = (List<Map<String,Object>>)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getSubjCd");
+        List<Map<String, Object>> subjCodeInfo = new ArrayList();
+
+        if(subjCdList.size() > 0) {
+			for (Map<String,Object> item : subjCdList) {
+				subjCodeInfo.add(item);
+			}
+			
+			data.put("subjCodeInfo", subjCodeInfo);
+		}
+
         setResult(dataKey,data);
 
         return result;

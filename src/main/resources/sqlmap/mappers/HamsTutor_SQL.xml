@@ -945,6 +945,15 @@
           AND LOGIN_PTN IS NOT NULL
     </select>
     <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
-        SELECT MSG_CD,MSG FROM hams_tutor_dashboard.COMM_MSG_CD;
+        SELECT MSG_CD,MSG FROM COMM_MSG_CD;
+    </select>
+    
+    <select id="getSubjCd" parameterType="hashMap" resultType="resultMap">
+        SELECT
+			SUBJ_CD,
+		    SUBJ_NM,
+		    UPPER_SUBJ_CD
+		FROM COMM_SUBJ_CD
+		WHERE SUBJ_CD NOT LIKE 'Z%';
     </select>
 </mapper>

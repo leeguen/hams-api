@@ -23,7 +23,8 @@ public interface HamsTutorService {
     public Map getAttStt(Map<String, Object> paramMap) throws Exception;
 
     public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception;
-
     
+    public Map getSubjCd(Map<String, Object> paramMap) throws Exception;
+
 
 }

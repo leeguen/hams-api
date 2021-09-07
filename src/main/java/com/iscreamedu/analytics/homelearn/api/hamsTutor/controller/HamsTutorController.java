@@ -412,7 +412,20 @@ public class HamsTutorController {
         body = (LinkedHashMap<String, Object>) hamsTutorService.getCommMsgCd(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
-
+    
+    
+    /**
+	 * 과목 코드 정보 (HAMS-T-LA-011)
+     * @param params
+     * @return
+     * @throws Exception
+	 */
+    @GetMapping("/getSubjCd")
+    @ResponseBody
+    public ResponseEntity getSubjCd(@RequestParam Map<String,Object> params) throws Exception {
+    	body = (LinkedHashMap<String, Object>) hamsTutorService.getSubjCd(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+	}
 
 
 
