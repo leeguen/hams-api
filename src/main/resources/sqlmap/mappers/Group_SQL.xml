@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Group">
+
+    <select id="getPeriod" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getStud" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLrnBasic" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getOrgEnvConfig" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="setOrgEnvConfig" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLrnHabitChart" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getAiRecommendLrn" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getDiagnsticEvalStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getAttRtStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLrnTmList" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLrnDetail" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getAttCntStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getloginPtnStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getExRtStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getFnshLrnExStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLrnExSttCompareSub" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getALrnExStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getCrtRtStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getIncrtNoteNcStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getCrtQuesCntStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getSlvHabitStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getDayAvgLrnStt " parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getTotalLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getSubjExam" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getCompareSub" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getSubjExamList" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getIncrtNote" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getChapterStt" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getChapterLrn" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+    <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
+    </select>
+    
+</mapper>
