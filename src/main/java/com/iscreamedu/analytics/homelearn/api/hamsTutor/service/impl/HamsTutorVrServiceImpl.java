@@ -192,6 +192,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         //DB 조회
         LinkedHashMap<String,Object> visionExamChapterStt = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorVr.selectVisionExamChapterStt");
         ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterSubjList");
+        ArrayList<Map<String,Object>> termList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterTermList");
         
         LinkedHashMap<String,Object> chapter = new LinkedHashMap<>();
         
@@ -209,6 +210,17 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
         	paramMap.put("subjs", paramsSubjList);
         	
+        	ArrayList paramTermList = new ArrayList();
+        	if(termList.size() > 0) {
+        		for(Map<String, Object> termItem : termList) {
+        			paramTermList.add(termItem.get("term"));
+        		}
+        	}else {
+        		paramTermList = null;
+        	}
+        	
+        	paramMap.put("terms", paramTermList);
+        	
         	ArrayList<Map<String,Object>> chapterInfoList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterNmList");
         	ArrayList<Map<String,Object>> visionExamChapterList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectVisionExamChapterList");
         	
@@ -222,7 +234,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         		ArrayList chapterCdList = new ArrayList();
         		
         		for(Map<String, Object> chapterItem : visionExamChapterList) {
-        			if(item.get("unitNo").toString().equals(chapterItem.get("unitNo").toString())) {
+        			if(item.get("unitNo").toString().equals(chapterItem.get("unitNo").toString()) && item.get("term").toString().equals(chapterItem.get("term").toString())) {
         				chapternmList.add(chapterItem.get("unitNm").toString());
         				chapterScoreList.add(Integer.valueOf(chapterItem.get("score").toString()));
         				chapterCdList.add(chapterItem.get("unitCd"));
