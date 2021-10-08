@@ -12,35 +12,124 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
+import com.iscreamedu.analytics.homelearn.api.common.util.VersionUtil;
 import com.iscreamedu.analytics.homelearn.api.group.service.GroupService;
+import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 
+@Service
 public class GroupServiceImpl implements GroupService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupServiceImpl.class);
-    private static final String MAPPER_NAMESPACE = "Group";
+    private static final String MAPPER_NAMESPACE = "Group_";
+    private String dw_mapper_namespace;
+    private String mapper_name;
     
+    
+    private VersionUtil versionUtil;
+
+    private Map<String, Object> v_param;
+    private Map<String, Object> v_result;
     private LinkedHashMap<String, Object> result;
     private String msgKey = "msg";
     private String dataKey = "data";
 
     @Autowired
-    CommonMapperTutor mapper;
+    CommonMapperTutor mapper_1_0;
+	@Autowired
+//    CommonMapperTutor_1_5 mapper_1_5;	//차후 교체
+    CommonMapperTutor mapper_1_5;
+	@Autowired
+//    CommonMapperTutor_2.0 mapper_2_0;	//차후 교체
+    CommonMapperTutor mapper_2_0;
+//    @Autowired
+//	CommonMapper commonMapper;
     
-    @Override
-    public Map getPeriod(Map<String, Object> paramMap) throws Exception {
-    	Map<String,Object> data = new HashMap<>();
-        checkRequiredWithDt(paramMap);
-    	return result;
+    private Map<String,Object> getDWVersion(Map<String,Object> params) throws Exception {        
+    	//channel params
+    	params.put("CHANNEL","GROUP");
+        return versionUtil.getDataWareVersion(params);
     }
 
+	private Object getMapperResultData(Map<String, Object> param, String sqlRequestType, Map<String, Object> paramMap, String sqlId) {
+		
+		try {
+			v_result = getDWVersion(param);
+	    	
+	    	dw_mapper_namespace = MAPPER_NAMESPACE + v_result.get("DW_VERSION").toString();    	
+	    	mapper_name = v_result.get("MAPPER_NAME").toString();    	
+	    	
+			if (mapper_name == "CommonMapperTutor") {
+				if(sqlRequestType.toLowerCase() == "list") {
+					return mapper_1_0.getList(paramMap, dw_mapper_namespace + sqlId);
+				} else {
+					return mapper_1_0.get(paramMap, dw_mapper_namespace + sqlId);
+				}
+			} else if (mapper_name == "CommonMapperTutorTemp") {
+				//mapper_1_5
+				if(sqlRequestType.toLowerCase() == "list") {
+					return mapper_1_5.getList(paramMap, dw_mapper_namespace + sqlId);
+				} else {
+					return mapper_1_5.get(paramMap, dw_mapper_namespace + sqlId);
+				}
+			} else {
+				//mapper_2_0
+				if(sqlRequestType.toLowerCase() == "list") {
+					return mapper_2_0.getList(paramMap, dw_mapper_namespace + sqlId);
+				} else {
+					return mapper_2_0.get(paramMap, dw_mapper_namespace + sqlId);
+				}
+			}
+		} catch (Exception e) {
+			
+			ValidationUtil vu = new ValidationUtil();
+			vu.setError("db mapper result data fail");
+			Map<String, Object> tempResult = vu.getResult();
+			tempResult.put("error", e.getStackTrace());
+			LOGGER.debug(tempResult.toString());
+//			e.setStackTrace(null);
+			return tempResult; 
+		}
+	}
+	
+    @Override
+    public Map getPeriod(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "PERIOD");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"svcOpenDe"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			if(!paramMap.containsKey("currCon")) {	// 주간+월간 합산
+				Map<String,Object> data = new HashMap<>();
+				data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymmWk"));
+				data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymm"));
+				setResult(dataKey, data);
+			} else if(paramMap.get("currCon").equals("w")) {
+				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymmWk"));
+			} else if(paramMap.get("currCon").equals("m")) {
+				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymm"));	
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+    	return result;
+    }
+    
     @Override
     public Map getStud(Map<String, Object> paramMap) throws Exception {
+    	checkRequiredWithDt(paramMap);
     	return result;
     }
 
@@ -186,11 +275,15 @@ public class GroupServiceImpl implements GroupService {
     
     @Override
     public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param.put("METHOD", "COMMMSGCD");
+    	
         Map<String,Object> data = new HashMap<>();
         checkRequired(paramMap);
 
         //DB 조회
-        List<Map<String,Object>> commMsgCd = (List<Map<String,Object>>)mapper.getList(paramMap, MAPPER_NAMESPACE + ".getCommMsgCd");
+        //List<Map<String,Object>> commMsgCd = (List<Map<String,Object>>)mapper_1_0.getList(paramMap, dw_mapper_namespace + ".getCommMsgCd");
+        List<Map<String,Object>> commMsgCd = (List)getMapperResultData(v_param, "list", paramMap, ".getCommMsgCd");
         LinkedHashMap<String,Object> commMsgCdMap = new LinkedHashMap<>();
 
         for(Map item : commMsgCd) {
@@ -308,15 +401,16 @@ public class GroupServiceImpl implements GroupService {
         return false;
 
     }
-    
+
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
      * @param key
      * @param data
-     */
-    
+     * @param linkedHashMap 
+     */    
     private void setResult(String key, Object data) {
         LinkedHashMap message = new LinkedHashMap();
+        result = null;
         result = new LinkedHashMap();
 
         if(data == null
@@ -324,15 +418,20 @@ public class GroupServiceImpl implements GroupService {
                 || (data instanceof Map && ((Map)data).isEmpty())) {
             throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
         }
-        else if(resultNullCheck((Map)data)) {
-            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
-        }
-        else {
+//        else if(resultNullCheck((Map)data)) {
+//            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+//        }
+        else if(data instanceof Map && ((Map)data).containsKey("error")) {	// error 키값 존재하면 예외 처리
+            result.put(msgKey, data);
+        } else if(data instanceof Map && ((Map)data).containsKey("resultCode")) {	// resultCode 키값 존재하면 예외 처리
+        	result.put(msgKey, data);
+        } else {
             message.put("resultCode", ValidationCode.SUCCESS.getCode());
             result.put(msgKey, message);
             result.put(dataKey, data);
         }
     }
+    
 
     /**
      * encoded parameter decode

@@ -1,9 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="Group">
+<mapper namespace="Group_1.0">
 
-    <select id="getPeriod" parameterType="hashMap" resultType="resultMap">
-    </select>
+    <select id="selectGetYymmWk" parameterType="hashMap" resultType="resultMap">
+	/* Group.selectGetYymmWk : 년월, 주차 산출 */
+		SELECT 
+			CAST(SUBSTRING(YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
+			CAST(SUBSTRING(YYMM,5,2) AS SIGNED INTEGER) AS MONTH,		
+			CAST(WK AS SIGNED INTEGER) AS WEEK,
+			CONCAT(IF(#{svcOpenDe} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), DATE_FORMAT(STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d'), '%Y.%m.%d'), DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d')),'-',DATE_FORMAT(IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))), '%Y.%m.%d')) AS DTSTRA
+		FROM COMM_WK_DT
+		WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_FORMAT(#{svcOpenDe}, '%Y-%m-%d')
+			AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[<]]> DATE_FORMAT(now() + INTERVAL 3 HOUR , '%Y-%m-%d')
+	</select>
+	
+	<select id="selectGetYymm" parameterType="hashMap" resultType="resultMap">
+	/* Group.selectGetYymm : 년월 산출 */
+		SELECT 
+			CAST(SUBSTRING(A.YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
+			CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER) AS MONTH,
+			CONCAT(IF(STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d') <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
+						,DATE_FORMAT(STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d'), '%Y.%m.%d')
+						, DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d'))
+					,'-',
+					DATE_FORMAT(LAST_DAY(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))), '%Y.%m.%d')) AS DTSTRA
+		FROM COMM_WK_DT A 
+		JOIN (
+			SELECT
+				SUBSTRING_INDEX(GROUP_CONCAT(YYMM SEPARATOR '|'),'|', 1) AS START_YYMM,
+		        SUBSTRING_INDEX(GROUP_CONCAT(YYMM SEPARATOR '|'),'|', -1) AS END_YYMM
+			FROM COMM_WK_DT
+			WHERE ( 
+					DATE_FORMAT(#{svcOpenDe}, '%Y-%m-%d')
+					BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
+						and IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) 
+				)
+				OR (
+					DATE_FORMAT(NOW() + INTERVAL 3 HOUR , '%Y-%m-%d')
+					BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
+						and IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))
+				)
+		) B ON A.YYMM <![CDATA[>=]]> B.START_YYMM 
+			AND A.YYMM <![CDATA[<]]> B.END_YYMM
+		GROUP BY YYMM
+	</select>
     
     <select id="getStud" parameterType="hashMap" resultType="resultMap">
     </select>
