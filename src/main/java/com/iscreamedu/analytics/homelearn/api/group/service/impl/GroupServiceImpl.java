@@ -110,7 +110,7 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"svcOpenDe"}, paramMap);
 		
 		if(vu.isValid()) { 		
-			if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("p")) {	// 주간+월간 합산
+			if(!paramMap.containsKey("currCon")) {	// 주간+월간 합산
 				Map<String,Object> data = new HashMap<>();
 				data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymmWk"));
 				data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymm"));
