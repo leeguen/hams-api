@@ -110,15 +110,15 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"svcOpenDe"}, paramMap);
 		
 		if(vu.isValid()) { 		
-			if(!paramMap.containsKey("currCon")) {	// 주간+월간 합산
+			if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("")) {	// 주간+월간 합산
 				Map<String,Object> data = new HashMap<>();
-				data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymmWk"));
-				data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymm"));
+				data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
+				data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
 				setResult(dataKey, data);
 			} else if(paramMap.get("currCon").equals("w")) {
-				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymmWk"));
+				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
 			} else if(paramMap.get("currCon").equals("m")) {
-				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectGetYymm"));	
+				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));	
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
@@ -129,12 +129,49 @@ public class GroupServiceImpl implements GroupService {
     
     @Override
     public Map getStud(Map<String, Object> paramMap) throws Exception {
-    	checkRequiredWithDt(paramMap);
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "STUD");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			setResult(dataKey, getMapperResultData(v_param, "", paramMap, ".selectStud"));
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 
     @Override
     public Map getLrnBasic(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "LRNBASIC");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId","startDt","endDt"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+//			if(paramMap.get("currCon").equals("m")) {
+//				data.put("current", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly"));
+//	            data.put("prev", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly"));
+//	            data.put("msg",null);	//추후 메시지기획안 적용 예정	            
+//	        } else 
+//	        	data.put("current", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod"));
+//	            data.put("prev", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod")); 
+//	            data.put("msg",null);	//추후 메시지기획안 적용 예정	               
+//			}
+			setResult(dataKey,data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 

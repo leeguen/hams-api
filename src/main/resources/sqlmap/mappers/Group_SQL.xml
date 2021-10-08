@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="Group_1.0">
 
-    <select id="selectGetYymmWk" parameterType="hashMap" resultType="resultMap">
-	/* Group.selectGetYymmWk : 년월, 주차 산출 */
+    <select id="selectPeriodWeeks" parameterType="hashMap" resultType="resultMap">
+	/* selectPeriodWeeks : 년월, 주차 산출 - 기간정보 */
 		SELECT 
 			CAST(SUBSTRING(YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
 			CAST(SUBSTRING(YYMM,5,2) AS SIGNED INTEGER) AS MONTH,		
@@ -14,8 +14,8 @@
 			AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[<]]> DATE_FORMAT(now() + INTERVAL 3 HOUR , '%Y-%m-%d')
 	</select>
 	
-	<select id="selectGetYymm" parameterType="hashMap" resultType="resultMap">
-	/* Group.selectGetYymm : 년월 산출 */
+	<select id="selectPeriodMonths" parameterType="hashMap" resultType="resultMap">
+	/* selectPeriodMonths : 년월 산출 - 기간정보 */
 		SELECT 
 			CAST(SUBSTRING(A.YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
 			CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER) AS MONTH,
@@ -45,11 +45,36 @@
 		GROUP BY YYMM
 	</select>
     
-    <select id="getStud" parameterType="hashMap" resultType="resultMap">
+    <select id="selectStud" parameterType="hashMap" resultType="resultMap">
+    /* selectStud : 학습분석 메인 - 학생 정보 */
+	    SELECT studNm, gender, studId, loginId, grade, schlNm,
+			IFNULL(TIMESTAMPDIFF(DAY, lastLoginDt,now()),-1) AS daysAgo,
+			DATE_FORMAT(lastLoginDt,'%Y.%m.%d') AS lastLoginDt,
+			DATE_FORMAT(lrnStartDt,'%Y.%m.%d') AS lrnStartDt
+			FROM (
+					SELECT 
+						A.STUD_NM AS studNm,
+						A.GENDER,
+						A.STUD_ID AS studId,
+						A.LOGIN_ID AS loginId,
+						A.GRADE,
+						A.SCHL_NM AS schlNm,
+						MAX(B.DT) AS lastLoginDt, 
+						B.FIRST_LOGIN_DTTM AS lrnStartDt
+					FROM STUD A LEFT JOIN DAY_ATT_LOG B ON A.STUD_ID = B.STUD_ID AND B.LOGIN_YN = 'Y'  AND B.DT >= (NOW() - INTERVAL 7 DAY)
+					WHERE A.STUD_ID = #{studId}
+			) S	    
     </select>
     
-    <select id="getLrnBasic" parameterType="hashMap" resultType="resultMap">
-    </select>
+    <select id="selectLrnBasicPeriod" parameterType="hashMap" resultType="resultMap">
+	/* selectLrnBasicPeriod : 기관용 기간별 학습 분석 */
+	
+	</select>
+	
+	<select id="selectLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
+	/* selectLrnBasicMonthly : 기관용 월간 학습 분석 */
+	
+	</select>
     
     <select id="getOrgEnvConfig" parameterType="hashMap" resultType="resultMap">
     </select>

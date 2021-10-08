@@ -26,9 +26,10 @@ public class VersionUtil {
 	
 	// Version Change Period ( 임의로 2021-10-01 09:00:00 ~ 2021-10-06 16:00:00 으로 지정 ) 2.0 으로 전환 후
 //	private static LocalDateTime start_datetime = LocalDateTime.of(2021, 10, 1, 9, 0, 0);	
-//	private static LocalDateTime end_datetime = LocalDateTime.of(2021, 10, 6, 16, 16, 0);
+//	private static LocalDateTime end_datetime = LocalDateTime.of(2021, 10, 6, 16, 0, 0);
 	
-	private static List<String> dw_method_list = new ArrayList<>(Arrays.asList("PERIOD","OTHER"));
+	// 버전 관리 대상 메소드 목록 정의
+	private static List<String> dw_method_list = new ArrayList<>(Arrays.asList("LRNBASIC","OTHER"));
 	
 	/* 
 	 * API별 DataWare Version Check 

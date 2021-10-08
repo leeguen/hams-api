@@ -37,7 +37,8 @@ public class GroupController {
     }
     
     /**
-	 * 년월, 주차 산출
+     * HAMS-ORG-CM-001
+	 * 년월, 주차 산출 - 기간정보
 	 * @param params
 	 * @param req
 	 * @param res
@@ -46,8 +47,40 @@ public class GroupController {
 	 */
 	@RequestMapping(value="/getPeriod")
     @ResponseBody
-	public ResponseEntity getYymmWk(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+	public ResponseEntity getPeriod(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)groupService.getPeriod(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-CM-002
+	 * 학습분석 메인 - 학생 정보
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getStud")
+    @ResponseBody
+	public ResponseEntity getStududent(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getStud(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-CM-003	
+	 * 학습분석 메인 - 학습분석 기본정보
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnBasic")
+    @ResponseBody
+	public ResponseEntity getLrnBasic(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnBasic(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
