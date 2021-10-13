@@ -3,6 +3,7 @@ package com.iscreamedu.analytics.homelearn.api.group.service.impl;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -419,21 +421,228 @@ public class GroupServiceImpl implements GroupService {
 
     @Override    
     public Map getSubjExam(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "SUBJEXAM");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new HashMap<>();
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				int mm = Integer.valueOf(paramMap.get("mm").toString());
+				String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+				
+				paramMap.put("convertMm", convertMm);
+				
+				data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExam");
+			}else {
+				data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExam");
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+    	
     	return result;
     }
 
     @Override    
     public Map getCompareSub(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "COMPARESUB");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new LinkedHashMap<>();
+			Map<String, Object> dataMap = new HashMap<>();
+			Map<String, Object> positiveData = new LinkedHashMap<>();
+			Map<String, Object> positiveCurrData = new LinkedHashMap<>();
+			Map<String, Object> positivePrevData = new LinkedHashMap<>();
+			Map<String, Object> positiveMsgData = new LinkedHashMap<>();
+			Map<String, Object> negativeData = new LinkedHashMap<>();
+			Map<String, Object> negativeCurrData = new LinkedHashMap<>();
+			Map<String, Object> negativePrevData = new LinkedHashMap<>();
+			Map<String, Object> negativeMsgData = new LinkedHashMap<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				int mm = Integer.valueOf(paramMap.get("mm").toString());
+				String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+				
+				paramMap.put("convertMm", convertMm);
+				
+				dataMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCompareSub");
+				
+				positiveData.put("subjCd", dataMap.get("maxSubjCd"));
+				
+				positiveCurrData.put("dt", dataMap.get("dt").toString());
+				positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
+				positivePrevData.put("dt", dataMap.get("preDt").toString());
+				positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
+				positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+				positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+				
+				positiveData.put("current", positiveCurrData);
+				positiveData.put("prev", positivePrevData);
+				positiveData.put("msg", positiveMsgData);
+				
+				data.put("positive", positiveData);
+				
+				negativeData.put("subjCd", dataMap.get("minSubjCd"));
+				
+				negativeCurrData.put("dt", dataMap.get("dt").toString());
+				negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
+				negativePrevData.put("dt", dataMap.get("preDt").toString());
+				negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
+				negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+				negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+				
+				negativeData.put("current", negativeCurrData);
+				negativeData.put("prev", negativePrevData);
+				negativeData.put("msg", negativeMsgData);
+				
+				data.put("negative", negativeData);
+				
+			}else {
+				dataMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCompareSub");
+				
+				positiveData.put("subjCd", dataMap.get("maxSubjCd"));
+				
+				positiveCurrData.put("dt", dataMap.get("dt"));
+				positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
+				positivePrevData.put("dt", dataMap.get("preDt"));
+				positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
+				positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+				positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+				
+				positiveData.put("current", positiveCurrData);
+				positiveData.put("prev", positivePrevData);
+				positiveData.put("msg", positiveMsgData);
+				
+				data.put("positive", positiveData);
+				
+				negativeData.put("subjCd", dataMap.get("minSubjCd"));
+				
+				negativeCurrData.put("dt", dataMap.get("dt"));
+				negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
+				negativePrevData.put("dt", dataMap.get("preDt"));
+				negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
+				negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+				negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+				
+				negativeData.put("current", negativeCurrData);
+				negativeData.put("prev", negativePrevData);
+				negativeData.put("msg", negativeMsgData);
+				
+				data.put("negative", negativeData);
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 
     @Override    
     public Map getExamChart(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "EXAMCHART");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			ArrayList<Map<String,Object>> data = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				int mm = Integer.valueOf(paramMap.get("mm").toString());
+				String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+				
+				paramMap.put("convertMm", convertMm);
+				
+				data = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+				
+			}else {
+				data = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+				
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+    	
     	return result;
     }
 
     @Override    
     public Map getSubjExamList(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "SUBJEXAMLIST");
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String,Object> data = new LinkedHashMap<>();
+			Map<String,Object> dataMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> subjExamList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			data.put("examTypes", getMapperResultData(v_param, "list", paramMap, ".getExamCdList"));
+			data.put("analysisTypes", getMapperResultData(v_param, "list", paramMap, ".getQuesCdList"));
+			
+			if(currConCheck.equals("m")) {
+				int mm = Integer.valueOf(paramMap.get("mm").toString());
+				String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+				
+				paramMap.put("convertMm", convertMm);
+				
+				subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+				
+				dataMap.put("totalCnt", getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt"));
+				dataMap.put("list", subjExamList);
+				
+				data.put("examList", dataMap);				
+			}else {
+				subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+				
+				dataMap.put("totalCnt", getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt"));
+				dataMap.put("list", subjExamList);
+				
+				data.put("examList", dataMap);
+				
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 

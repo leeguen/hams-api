@@ -84,6 +84,70 @@ public class GroupController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	/**
+	 * HAMS-ORG-ES-001
+	 * 평가분석 요약 - 과목평가
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getSubjExam")
+    @ResponseBody
+	public ResponseEntity getSubjExam(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getSubjExam(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-ES-002
+	 * 평가분석 요약 - 과목비교차트
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getCompareSub")
+    @ResponseBody
+	public ResponseEntity getCompareSub(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getCompareSub(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-ES-003
+	 * 평가분석 요약 - 평가차트
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getExamChart")
+    @ResponseBody
+	public ResponseEntity getExamChart(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getExamChart(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-ED-001
+	 * 평가분석 상세 - 과목평가지 목록
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getSubjExamList")
+    @ResponseBody
+	public ResponseEntity getSubjExamList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getSubjExamList(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
     /**
      * 학습분석 메세지 코드 모음 (HAMS-T-LA-010)
      * @param params

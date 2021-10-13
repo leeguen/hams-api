@@ -221,15 +221,443 @@
     </select>
     
     <select id="getSubjExam" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    SUBJ_CD,
+		    ANS_QUES_CNT,
+		    CRT_QUES_CNT,
+		    INCRT_NOTE_CNT,
+		    INCRT_NOTE_FNSH_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(QUES_CNT) AS ANS_QUES_CNT,
+				SUM(CRT_CNT) AS CRT_QUES_CNT,
+				SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
+				SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT
+			FROM EXAM_RST
+			WHERE DT
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+				</when>
+				<otherwise>
+					BETWEEN #{startDt} AND #{endDt}
+				</otherwise>
+			</choose> 
+				AND STUD_ID = #{studId}
+		) CRT ON ST.STUD_ID = CRT.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				CASE
+					WHEN SUM(QUES_CNT) = 0 THEN 0
+					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+				END AS CRT_RT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+				</when>
+				<otherwise>
+					BETWEEN #{startDt} AND #{endDt}
+				</otherwise>
+			</choose> 
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+			ORDER BY CASE
+					WHEN SUM(QUES_CNT) = 0 THEN 0
+					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+				END DESC
+			LIMIT 1		
+		) SUBJ ON ST.STUD_ID = SUBJ.STUD_ID
+		WHERE ST.STUD_ID = #{studId};
     </select>
     
     <select id="getCompareSub" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    MAX_SUBJ_CD,
+		    MAX_CRT_RT,
+		    PRE_MAX_CRT_RT,
+		    MAX_SUB_CRT_RT,
+		    MIN_SUBJ_CD,
+		    MIN_CRT_RT,
+		    PRE_MIN_CRT_RT,
+		    MIN_SUB_CRT_RT,
+		    <choose>
+		    	<when test='currConCheck == "m"'>
+		    		CONCAT(CAST(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%m') AS UNSIGNED), '월') AS DT,
+		    	</when>
+		    	<when test='currConCheck == "w"'>
+		    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = #{endDt}) AS DT,
+		    	</when>
+		    	<otherwise>
+		    		CONCAT(#{startDt}, ' ~ ', #{endDt}) AS DT,
+		    	</otherwise>
+		    </choose>
+		    <choose>
+		    	<when test='currConCheck == "m"'>
+		    		CONCAT(CAST(DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH), '%m') AS UNSIGNED), '월') AS PRE_DT
+		    	</when>
+		    	<when test='currConCheck == "w"'>
+		    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT
+		    	</when>
+		    	<otherwise>
+		    		CONCAT(DATE_SUB(#{startDt}, INTERVAL 7 DAY), ' ~ ', DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT
+		    	</otherwise>
+		    </choose>
+		FROM STUD ST 
+		LEFT OUTER JOIN (
+			SELECT
+				SCRT.STUD_ID,
+				SCRT.SUBJ_CD AS MAX_SUBJ_CD,
+				SCRT.QUES_CNT,
+				SCRT.CRT_RT AS MAX_CRT_RT,
+				PSCRT.CRT_RT AS PRE_MAX_CRT_RT,
+				(SCRT.CRT_RT - PSCRT.CRT_RT) AS MAX_SUB_CRT_RT
+			FROM (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUM(QUES_CNT) AS QUES_CNT,
+					CASE
+						WHEN SUM(QUES_CNT) = 0 THEN 0
+						ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					END AS CRT_RT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+						BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+					</when>
+					<otherwise>
+						BETWEEN #{startDt} AND #{endDt}
+					</otherwise>
+				</choose> 
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+			) SCRT 
+			LEFT OUTER JOIN (
+				SELECT
+					DATE_SUB('2021-10-11', INTERVAL 7 DAY),
+					STUD_ID,
+					SUBJ_CD,
+					CASE
+						WHEN SUM(QUES_CNT) = 0 THEN 0
+						ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					END AS CRT_RT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>  
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+			) PSCRT ON SCRT.STUD_ID = PSCRT.STUD_ID AND SCRT.SUBJ_CD = PSCRT.SUBJ_CD
+			WHERE SCRT.CRT_RT <![CDATA[>]]> 60
+			ORDER BY SCRT.CRT_RT DESC, SCRT.QUES_CNT DESC, (SCRT.CRT_RT - PSCRT.CRT_RT) DESC, SCRT.SUBJ_CD
+			LIMIT 1
+		) MAXS ON ST.STUD_ID = MAXS.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				SCRT.STUD_ID,
+				SCRT.SUBJ_CD AS MIN_SUBJ_CD,
+				SCRT.QUES_CNT,
+				SCRT.CRT_RT AS MIN_CRT_RT,
+				PSCRT.CRT_RT AS PRE_MIN_CRT_RT,
+				(PSCRT.CRT_RT - SCRT.CRT_RT) AS MIN_SUB_CRT_RT
+			FROM (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUM(QUES_CNT) AS QUES_CNT,
+					CASE
+						WHEN SUM(QUES_CNT) = 0 THEN 0
+						ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					END AS CRT_RT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+						BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+					</when>
+					<otherwise>
+						BETWEEN #{startDt} AND #{endDt}
+					</otherwise>
+				</choose> 
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+			) SCRT 
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					CASE
+						WHEN SUM(QUES_CNT) = 0 THEN 0
+						ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					END AS CRT_RT
+				FROM EXAM_RST
+				WHERE DT
+				<choose>
+					<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>  
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+			) PSCRT ON SCRT.STUD_ID = PSCRT.STUD_ID AND SCRT.SUBJ_CD = PSCRT.SUBJ_CD
+			WHERE SCRT.CRT_RT <![CDATA[<=]]> 60
+			ORDER BY SCRT.CRT_RT, SCRT.QUES_CNT DESC, (PSCRT.CRT_RT - SCRT.CRT_RT) DESC, SCRT.SUBJ_CD
+			LIMIT 1
+		) MINS ON ST.STUD_ID = MINS.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
+		SELECT
+		    ST.SUBJ_CD,
+		    CRT_RT,
+		    PREV_CRT_RT,
+		    TOP_CRT_RT,
+		    AVG_CRT_RT,
+		    EXPL_CNT,
+		    ANS_QUES_CNT,
+		    CRT_QUES_CNT,
+		    INCRT_NOTE_NC_CNT,
+		    IMPRV_SLV_HABIT_CNT,
+		    SKIP_QUES_CNT,
+		    CURSORY_QUES_CNT,
+		    GUESS_QUES_CNT,
+		    MISTAKE_QUES_CNT
+		FROM (
+			SELECT
+				STUD_ID,
+		        GRADE,
+		        SUBJ_CD
+			FROM STUD ST
+		    CROSS JOIN COMM_SUBJ_CD CS
+			WHERE ST.STUD_ID = #{studId}  
+				AND CS.SUBJ_CD LIKE 'C%' 
+				AND CS.DEPTH = 1
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+		        COUNT(STUD_ID) AS EXPL_CNT,
+				CASE
+					WHEN SUM(QUES_CNT) = 0 THEN 0
+					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+				END AS CRT_RT,
+				SUM(QUES_CNT) AS ANS_QUES_CNT,
+				SUM(CRT_CNT) AS CRT_QUES_CNT,
+				IF(IFNULL(SUM(INCRT_NT_REG_CNT),0) = 0, 0, (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT))) AS INCRT_NOTE_NC_CNT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+				</when>
+				<otherwise>
+					BETWEEN #{startDt} AND #{endDt}
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+		        AND DEL_YN = 'N'
+			GROUP BY STUD_ID, SUBJ_CD
+		) ER ON ST.STUD_ID = ER.STUD_ID AND ST.SUBJ_CD = ER.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS IMPRV_SLV_HABIT_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'SKP', 1, NULL)) AS SKIP_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'CUR', 1, NULL)) AS CURSORY_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) IN ('GUC', 'GUI'), 1, NULL)) AS GUESS_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'MIS', 1, NULL)) AS MISTAKE_QUES_CNT
+			FROM EXAM_RST_QUES_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+				</when>
+				<otherwise>
+					BETWEEN #{startDt} AND #{endDt}
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+		) EQ ON ST.STUD_ID = EQ.STUD_ID AND ST.SUBJ_CD = EQ.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				CASE
+					WHEN SUM(QUES_CNT) = 0 THEN 0
+					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+				END AS PREV_CRT_RT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>  
+				AND STUD_ID = #{studId}
+		        AND DEL_YN = 'N'
+			GROUP BY STUD_ID, SUBJ_CD
+		) PER ON ST.STUD_ID = PER.STUD_ID AND ST.SUBJ_CD = PER.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				GRADE,
+		        SUBJ_CD,
+		        NULL AS TOP_CRT_RT,
+		        GRP_AVG_CRT_RT AS AVG_CRT_RT
+			<choose>
+				<when test='currConCheck == "m"'>
+					FROM MONTH_GRP_EXAM_SUBJ_RST
+					WHERE YYMM = CONCAT(#{yyyy},#{convertMm})
+				</when>
+				<otherwise>
+					FROM DAY_7_GRP_EXAM_SUBJ_RST
+		    		WHERE DT = #{endDt}
+				</otherwise>
+			</choose>  
+		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD  
+    </select>
+    
+    <select id="getExamCdList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			CD AS VALUE,
+			CD_NM AS NAME
+		FROM COMM_CD
+		WHERE GRP = 'EXAM';
+    </select>
+    
+    <select id="getQuesCdList" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			CASE CD
+				WHEN 'CRT' THEN 'crtQues'
+				WHEN 'GUC' THEN 'guessQues'
+				WHEN 'SKP' THEN 'skipQues'
+				WHEN 'GUI' THEN 'guessIncQues'
+				WHEN 'CUR' THEN 'cursoryQues'
+				WHEN 'INC' THEN 'incrtQues'
+				WHEN 'MIS' THEN 'mistakenQues'
+			END AS VALUE,
+			CASE CD
+				WHEN 'GUC' THEN '찍은것으로 보이는 문제(정답)'
+				WHEN 'GUI' THEN '찍은것으로 보이는 문제(오답)'
+				ELSE CD_NM
+			END AS NAME
+		FROM COMM_CD
+		WHERE GRP = 'QUES_PTN';
+    </select>
+    
+    <select id="getSubjExamListCnt" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			COUNT(STUD_ID) AS TOTAL_CNT
+		FROM (
+			SELECT
+				ER.STUD_ID
+			FROM EXAM_RST ER
+			LEFT OUTER JOIN EXAM_RST_QUES_LOG EQ ON ER.DT = EQ.DT AND ER.STUD_ID = EQ.STUD_ID AND ER.EXAM_CD = EQ.EXAM_CD AND ER.EXAM_TYPE = EQ.EXAM_TYPE AND ER.SMT_ID = EQ.SMT_ID
+			WHERE ER.DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+				</when>
+				<otherwise>
+					BETWEEN #{startDt} AND #{endDt}
+				</otherwise>
+			</choose>
+				AND ER.STUD_ID = #{studId}
+			<if test="types != null">
+					AND ER.EXAM_TYPE IN
+				<foreach collection="types" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+					AND ER.DEL_YN = 'N'
+			</if>
+			<choose>
+				<when test="search != null">	
+					AND ER.EXAM_NM LIKE CONCAT('%',#{search},'%')
+				</when>
+			</choose>
+			GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
+		) CNT
+		GROUP BY STUD_ID    
     </select>
     
     <select id="getSubjExamList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ER.SUBJ_CD,
+		    DATE_FORMAT(ER.SMT_DTTM,'%Y-%m-%d %H:%i:%s') AS SMT_DTTM,
+		    ER.EXAM_TYPE AS TYPE,
+		    ER.EXAM_CD,
+		    ER.SMT_ID,
+		    ER.STUD_ID,
+		    ER.EXAM_NM,
+		    CONCAT((SELECT IF(COUNT(*) = 1, 1, COUNT(*) + 1) FROM EXAM_RST WHERE STUD_ID = ER.STUD_ID AND EXAM_CD = ER.EXAM_CD AND SMT_ID = ER.SMT_ID),'차') AS ROUND,
+		    ER.CRT_CNT AS CRT_QUES_CNT,
+		    ER.QUES_CNT AS QUES_CNT,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CRT', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'GUC', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS GUESS_CRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'SKP', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS SKIP_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'GUI', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS GUESS_INC_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CUR', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CURSORY_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'INC', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS INCRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'MIS', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS MISTAKEN_QUES
+		FROM EXAM_RST ER
+		LEFT OUTER JOIN EXAM_RST_QUES_LOG EQ ON ER.DT = EQ.DT AND ER.STUD_ID = EQ.STUD_ID AND ER.EXAM_CD = EQ.EXAM_CD AND ER.EXAM_TYPE = EQ.EXAM_TYPE AND ER.SMT_ID = EQ.SMT_ID
+		WHERE ER.DT 
+		<choose>
+			<when test='currConCheck == "m"'>
+				BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+			</when>
+			<otherwise>
+				BETWEEN #{startDt} AND #{endDt}
+			</otherwise>
+		</choose>
+			AND ER.STUD_ID = #{studId}
+		<if test="types != null">
+				AND ER.EXAM_TYPE IN
+			<foreach collection="types" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+				AND ER.DEL_YN = 'N'
+		</if>
+		<choose>
+			<when test="search != null">	
+				AND ER.EXAM_NM LIKE CONCAT('%',#{search},'%')
+			</when>
+		</choose>
+		GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
+		ORDER BY ER.SMT_DTTM DESC
+		<choose>
+            <when test="startIdx != null">
+                LIMIT 10
+                OFFSET ${startIdx}
+            </when>
+            <otherwise>
+                LIMIT 10
+                OFFSET 0
+            </otherwise>
+        </choose>
     </select>
     
     <select id="getIncrtNote" parameterType="hashMap" resultType="resultMap">
