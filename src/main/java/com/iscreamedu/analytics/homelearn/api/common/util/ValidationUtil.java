@@ -54,7 +54,7 @@ public class ValidationUtil {
 	 * 시스템 error 처리
 	 */
     public void setError(String key) {
-		showMessage(ValidationCode.SYSTEM_ERROR, key, "error");
+		showMessage(ValidationCode.SYSTEM_ERROR, key, ValidationCode.SYSTEM_ERROR.getMessage());
     }
     
 	/**
@@ -131,7 +131,7 @@ public class ValidationUtil {
 			dateFormat.setLenient(false);
 			dateFormat.parse(value);
 		}catch(ParseException e) {
-			showMessage(ValidationCode.DATE, key, value);
+			showMessage(ValidationCode.DATE, key, value + " ( " + ValidationCode.DATE.getMessage() + " )");
 		}
 	}
 	
@@ -147,7 +147,7 @@ public class ValidationUtil {
 			dateFormat.setLenient(false);
 			dateFormat.parse(value);
 		}catch(ParseException e) {
-			showMessage(ValidationCode.DATE, key, value);
+			showMessage(ValidationCode.DATE, key, value + " ( " + ValidationCode.DATE.getMessage() + " )");
 		}
 	}
 	
