@@ -60,20 +60,101 @@
 						A.GRADE,
 						A.SCHL_NM AS schlNm,
 						MAX(B.DT) AS lastLoginDt, 
-						B.FIRST_LOGIN_DTTM AS lrnStartDt
-					FROM STUD A LEFT JOIN DAY_ATT_LOG B ON A.STUD_ID = B.STUD_ID AND B.LOGIN_YN = 'Y'  AND B.DT >= (NOW() - INTERVAL 7 DAY)
+						A.START_DT AS lrnStartDt
+					FROM STUD A LEFT JOIN DAY_ATT_LOG B ON A.STUD_ID = B.STUD_ID AND B.LOGIN_YN = 'Y'  AND B.DT  <![CDATA[>=]]>  (NOW() - INTERVAL 7 DAY)
 					WHERE A.STUD_ID = #{studId}
 			) S	    
     </select>
     
     <select id="selectLrnBasicPeriod" parameterType="hashMap" resultType="resultMap">
 	/* selectLrnBasicPeriod : 기관용 기간별 학습 분석 */
-	
+		SELECT
+		<choose>
+            <when test='currCon == "w"'>    
+			WK.dt 
+			</when>
+			<otherwise>
+			CONCAT(#{startDt}, ' ~ ', #{endDt}) As dt
+			</otherwise>
+        </choose>
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
+			, ( ATT.ATT_CNT / ATT.PERIOD * 100 ) AS attRt  	-- 출석률
+			, LRN.EX_RT AS exRt	-- 수행률
+			, ER.AVG_CRT_RT AS crtRt	-- 정답률
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal 	-- 학습분석신호
+			, LRN2.LRN_SEC	-- 학습시간
+		FROM 
+		<choose>
+            <when test='currCon == "w"'>            
+		(
+			SELECT 
+				GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
+			FROM COMM_WK_DT 
+			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
+				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt} + INTERVAL 3 HOUR , '%Y-%m-%d')				
+		) AS WK
+		,
+			</when>
+        </choose>
+		(		-- 출석률
+			SELECT 
+				COUNT(DISTINCT ATT.DT) AS ATT_CNT, 
+				DATEDIFF(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), STR_TO_DATE(#{startDt}, '%Y-%m-%d')) + 1 AS PERIOD
+			FROM DAY_ATT_LOG AS ATT
+			WHERE ATT.STUD_ID = #{studId} AND ATT.DT BETWEEN #{startDt} AND #{endDt} 
+				AND LOGIN_YN = 'Y'
+		) AS ATT
+		, (	-- 수행률
+			SELECT ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
+			FROM DAY_7_LRN_EX_STT PL 
+	        WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+        ) AS LRN 
+        , (	-- 정답률			
+        	SELECT ROUND(AVG(CRT_CNT / QUES_CNT * 100)) AS AVG_CRT_RT
+            FROM DAY_7_EXAM_STT 
+            WHERE STUD_ID = #{studId} AND DT = #{endDt}    
+        ) AS ER 
+       , (	-- 학습시간	
+    		SELECT SUM(LRN_SEC) AS LRN_SEC
+    		FROM
+    			DAY_LRN_EX_LOG 
+    		WHERE 
+            	STUD_ID = #{studId}
+            	AND DT BETWEEN #{startDt} AND #{endDt}  
+        ) AS LRN2 
 	</select>
 	
 	<select id="selectLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
 	/* selectLrnBasicMonthly : 기관용 월간 학습 분석 */
-	
+		SELECT
+			CONCAT(SUBSTRING(#{yymm},5,2),'월') AS dt
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
+			, ATT.ATT_RT AS attRt 	-- 출석률
+			, LRN.EX_RT AS exRt		-- 수행률
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal 	-- 학습분석신호
+			, ER.AVG_CRT_RT AS crtRt 	-- 정답률
+			, LRN.LRN_SEC			-- 학습시간
+		FROM 
+		(		-- 출석률
+			SELECT ATT_RT
+			FROM MONTH_ATT_STT 
+			WHERE YYMM = #{yymm}				
+				AND STUD_ID = #{studId}
+		) AS ATT
+		, (	-- 수행률, 학습시간	
+			SELECT ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			FROM MONTH_LRN_EX_STT PL 
+	       	WHERE  YYMM = #{yymm} AND STUD_ID = #{studId}
+        ) AS LRN 
+        , (	-- 정답률		
+        	SELECT ROUND(AVG(CRT_RT)) AS AVG_CRT_RT
+            FROM EXAM_RST 
+            WHERE 
+            	STUD_ID = #{studId}
+            	AND DT BETWEEN  #{startDt} AND #{endDt} 
+                AND DEL_YN = 'N' 
+                AND CRT_RT <![CDATA[>=]]> 0
+        ) AS ER 
 	</select>
     
     <select id="getOrgEnvConfig" parameterType="hashMap" resultType="resultMap">

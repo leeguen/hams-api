@@ -1,10 +1,12 @@
 package com.iscreamedu.analytics.homelearn.api.group.service.impl;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,19 +108,27 @@ public class GroupServiceImpl implements GroupService {
     	
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"svcOpenDe"}, paramMap);
 		
 		if(vu.isValid()) { 		
-			if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("")) {	// 주간+월간 합산
-				Map<String,Object> data = new HashMap<>();
-				data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
-				data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
-				setResult(dataKey, data);
-			} else if(paramMap.get("currCon").equals("w")) {
-				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
-			} else if(paramMap.get("currCon").equals("m")) {
-				setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));	
+			//2. 유효성 체크
+			vu1.isDate("svcOpenDe", paramMap.get("svcOpenDe").toString());
+
+			if(vu1.isValid()) {
+				if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("")) {	// 주간+월간 합산
+					Map<String,Object> data = new HashMap<>();
+					data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
+					data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
+					setResult(dataKey, data);
+				} else if(paramMap.get("currCon").equals("w")) {
+					setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
+				} else if(paramMap.get("currCon").equals("m")) {
+					setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));	
+				}
+			} else {
+				setResult(msgKey, vu1.getResult());
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
@@ -153,27 +163,159 @@ public class GroupServiceImpl implements GroupService {
     	
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","studId","startDt","endDt"}, paramMap);
-		
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		if(vu.isValid()) { 		
 			Map<String,Object> data = new HashMap<>();
-//			if(paramMap.get("currCon").equals("m")) {
-//				data.put("current", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly"));
-//	            data.put("prev", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly"));
-//	            data.put("msg",null);	//추후 메시지기획안 적용 예정	            
-//	        } else 
-//	        	data.put("current", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod"));
-//	            data.put("prev", getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod")); 
-//	            data.put("msg",null);	//추후 메시지기획안 적용 예정	               
-//			}
-			setResult(dataKey,data);
+            String startDate;
+			String endDate;
+			
+			if(paramMap.get("currCon").equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yymm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yymm = paramMap.get("yymm").toString();
+
+					//2. 유효성 체크
+					vu2.isYearMonth("yymm", yymm);
+					if(vu2.isValid()) {
+						startDate = yymm.substring(0,4)+"-"+yymm.substring(4,6)+"-01";
+						endDate = yymm.substring(0,4)+"-"+yymm.substring(4,6)+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
+			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
+			    		String lrnSignal = null;
+			    		if(current.size() > 0) {
+			    			if(current.containsKey("lrnSignal")) {
+			    				lrnSignal = current.get("lrnSignal").toString();
+			    				current.remove("lrnSignal");
+			    			}
+				    		data.put("current", current);
+			    		
+			                startDate = subDate(startDate,-1,false,false);
+				        	endDate = subDate(endDate,-1,false,true);
+			                paramMap.put("endDt",endDate);
+			                paramMap.put("startDt",startDate);
+			                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
+			                
+				        	data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
+				        	
+				        	resultMap = null;
+				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
+				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
+				    		prev.remove("lrnSignal");
+				        	data.put("prev", prev);
+				        	
+				        	data.put("lrnSignal", lrnSignal);
+				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
+			    		}
+						setResult(dataKey, data);
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
+			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
+			    		String lrnSignal = null;
+			    		if(current.size() > 0) {
+			    			if(current.containsKey("lrnSignal")) {
+			    				lrnSignal = current.get("lrnSignal").toString();
+			    				current.remove("lrnSignal");
+			    			}
+				    		data.put("current", current);
+			    		
+			                startDate = subDate(startDate,-7,true,false);
+				        	endDate = subDate(endDate,-7,true,false);
+			                paramMap.put("endDt",endDate);
+			                paramMap.put("startDt",startDate);
+			                
+			                data.put("prevDtCnt", "7");
+				        	
+				        	resultMap = null;
+				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
+				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
+				    		prev.remove("lrnSignal");
+				        	data.put("prev", prev);
+				        	
+				        	data.put("lrnSignal", lrnSignal);
+				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
+			    		}
+			    		setResult(dataKey, data);
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						} else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());						
+						}
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}
+			}
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
 		
     	return result;
     }
+
+	private int getCalendarLastDay(String endDate, DateFormat transFormat) {
+		try {
+			Calendar dt = Calendar.getInstance();
+			dt.setTime(transFormat.parse(endDate));
+			return dt.getActualMaximum(Calendar.DATE);
+		} catch(ParseException pe) {
+			return 0;
+		}
+	}
+
+	private String getLrnSignal(Map<String, Object> data) {
+		
+		String lrnSignal = null;
+		
+		if(!data.containsKey("current")) {
+			
+			List resultMap = (List)data.get("current");
+		
+			if(resultMap.size() > 0) { 
+				HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
+				if(current.containsKey("exRt")) {
+					LOGGER.debug("exRt: " + current.get("exRt"));
+					
+					if(Integer.valueOf(current.get("exRt").toString()) > 90) {
+						lrnSignal = "A";
+					} else if(Integer.valueOf(current.get("exRt").toString()) > 20) {
+						lrnSignal = "B";
+					} else {
+						lrnSignal = "C";
+					}	        	
+				}
+				LOGGER.debug("lrnSignal: " + lrnSignal);
+			}
+		}
+		
+		return lrnSignal;
+	}
 
     @Override
     public Map getOrgEnvConfig(Map<String, Object> paramMap) throws Exception {
@@ -350,8 +492,10 @@ public class GroupServiceImpl implements GroupService {
     //p,startDt,endDt 비교 메서드
     private void checkRequiredWithDt(Map<String,Object> params) throws Exception {
         ValidationUtilTutor vu = new ValidationUtilTutor();
-        //필수값 체크
+        //1.필수값 체크
         vu.checkRequired(new String[] {"p","startDt","endDt"},params);
+
+		//2. 유효성 체크
         vu.isDate("startDt",(String)params.get("startDt"));
         vu.isDate("endDt",(String)params.get("endDt"));
 

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.iscreamedu.analytics.homelearn.api.group.service.GroupService;
 
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/hams-org")
 public class GroupController {
 
 	@Autowired
