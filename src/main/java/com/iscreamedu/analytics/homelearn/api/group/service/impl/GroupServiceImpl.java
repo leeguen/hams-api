@@ -55,12 +55,26 @@ public class GroupServiceImpl implements GroupService {
 //    @Autowired
 //	CommonMapper commonMapper;
     
+	/***
+	 * 
+	 * @param params
+	 * @return
+	 * @throws Exception
+	 */
     private Map<String,Object> getDWVersion(Map<String,Object> params) throws Exception {        
     	//channel params
-    	params.put("CHANNEL","GROUP");
+    	params.put("CHANNEL","HAMS-ORG");
         return versionUtil.getDataWareVersion(params);
     }
-
+    
+	/***
+	 * 분기된 mapper를 통해 data 결과 추출
+	 * @param param 구분 기준 파라미터
+	 * @param sqlRequestType 리턴 타입
+	 * @param paramMap 요청 파라미터 
+	 * @param sqlId 매핑된 SQL 호출 id
+	 * @return
+	 */
 	private Object getMapperResultData(Map<String, Object> param, String sqlRequestType, Map<String, Object> paramMap, String sqlId) {
 		
 		try {
@@ -149,7 +163,9 @@ public class GroupServiceImpl implements GroupService {
     public Map getStud(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "STUD");
-    	
+
+		getStudId(paramMap);
+		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -168,7 +184,9 @@ public class GroupServiceImpl implements GroupService {
     public Map getLrnBasic(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "LRNBASIC");
-    	
+
+		getStudId(paramMap);
+		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		ValidationUtil vu1 = new ValidationUtil();
@@ -300,34 +318,6 @@ public class GroupServiceImpl implements GroupService {
 		}
 	}
 
-	private String getLrnSignal(Map<String, Object> data) {
-		
-		String lrnSignal = null;
-		
-		if(!data.containsKey("current")) {
-			
-			List resultMap = (List)data.get("current");
-		
-			if(resultMap.size() > 0) { 
-				HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
-				if(current.containsKey("exRt")) {
-					LOGGER.debug("exRt: " + current.get("exRt"));
-					
-					if(Integer.valueOf(current.get("exRt").toString()) > 90) {
-						lrnSignal = "A";
-					} else if(Integer.valueOf(current.get("exRt").toString()) > 20) {
-						lrnSignal = "B";
-					} else {
-						lrnSignal = "C";
-					}	        	
-				}
-				LOGGER.debug("lrnSignal: " + lrnSignal);
-			}
-		}
-		
-		return lrnSignal;
-	}
-
     @Override
     public Map getOrgEnvConfig(Map<String, Object> paramMap) throws Exception {
     	return result;
@@ -433,7 +423,9 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "SUBJEXAM");
-    	
+
+		getStudId(paramMap);
+		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -467,7 +459,9 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "COMPARESUB");
-    	
+
+		getStudId(paramMap);
+		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -572,7 +566,9 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "EXAMCHART");
-    	
+
+		getStudId(paramMap);
+		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -699,12 +695,7 @@ public class GroupServiceImpl implements GroupService {
         //필수값 체크
         vu.checkRequired(new String[] {"p"},params);
 
-        //복호화
-        String[] encodedArr = getDecodedParam(params.get("p").toString());
-        String encodedStudId = encodedArr[1];
-
-        //DB params
-        params.put("studId",encodedStudId);
+        getStudId(params);
     }
 
     //p,startDt,endDt 비교 메서드
@@ -718,12 +709,30 @@ public class GroupServiceImpl implements GroupService {
         vu.isDate("endDt",(String)params.get("endDt"));
 
         //복호화
-        String[] encodedArr = getDecodedParam(params.get("p").toString());
+        String[] encodedArr = getDecodedParam(params.get("s").toString());
         String encodedStudId = encodedArr[1];
 
         //DB params
         params.put("studId",encodedStudId);
     }
+
+    /***
+     * 파라미터에서 studId 추출
+     * @param params
+     * @throws Exception
+     */
+	private void getStudId(Map<String, Object> params) throws Exception {
+		//복호화
+        try {
+        	CipherUtil cp = CipherUtil.getInstance();
+        	String decodedStr = cp.AES_Decode(params.get("s").toString());
+
+            //DB params
+            params.put("studId",decodedStr);
+        } catch (Exception e) {
+            LOGGER.debug("s Parameter Incorrect");
+        }
+	}
 
     private String subDate(String paramDt,int day,boolean isW,boolean isWEnd) throws ParseException {
         Calendar cal = Calendar.getInstance();
