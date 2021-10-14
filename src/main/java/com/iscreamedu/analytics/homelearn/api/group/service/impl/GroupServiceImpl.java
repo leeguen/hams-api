@@ -119,15 +119,21 @@ public class GroupServiceImpl implements GroupService {
 			vu1.isDate("svcOpenDe", paramMap.get("svcOpenDe").toString());
 
 			if(vu1.isValid()) {
+				
 				if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("")) {	// 주간+월간 합산
 					Map<String,Object> data = new HashMap<>();
 					data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
 					data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
 					setResult(dataKey, data);
-				} else if(paramMap.get("currCon").equals("w")) {
-					setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
-				} else if(paramMap.get("currCon").equals("m")) {
-					setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));	
+				} else {
+
+					String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+					paramMap.put("currConCheck", currConCheck);
+					if(currConCheck.equals("m")) {
+						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
+					} else {
+						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));							
+					}
 				}
 			} else {
 				setResult(msgKey, vu1.getResult());
@@ -174,7 +180,10 @@ public class GroupServiceImpl implements GroupService {
             String startDate;
 			String endDate;
 			
-			if(paramMap.get("currCon").equals("m")) {	// 월간
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
 				//1-1.필수값 체크 
 				vu1.checkRequired(new String[] {"yymm"}, paramMap);
 				

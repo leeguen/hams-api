@@ -36,7 +36,9 @@ public class GroupController {
         headers.setContentType(new MediaType("application","json"));
         headers.setAccessControlAllowOrigin("*");
         headers.setAccessControlAllowCredentials(true);
+        headers.setCacheControl(CacheControl.noCache());
         headers.setCacheControl(CacheControl.noStore().mustRevalidate());
+        headers.setExpires(0);
     }
     
     /**

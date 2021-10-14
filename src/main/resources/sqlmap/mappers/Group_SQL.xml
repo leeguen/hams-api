@@ -70,7 +70,7 @@
 	/* selectLrnBasicPeriod : 기관용 기간별 학습 분석 */
 		SELECT
 		<choose>
-            <when test='currCon == "w"'>    
+            <when test='currConCheck == "w"'>    
 			WK.dt 
 			</when>
 			<otherwise>
@@ -85,7 +85,7 @@
 			, LRN2.LRN_SEC	-- 학습시간
 		FROM 
 		<choose>
-            <when test='currCon == "w"'>            
+            <when test='currConCheck == "w"'>            
 		(
 			SELECT 
 				GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
