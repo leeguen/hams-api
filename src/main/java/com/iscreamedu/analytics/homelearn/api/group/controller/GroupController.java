@@ -36,7 +36,6 @@ public class GroupController {
         headers.setAccessControlAllowOrigin("*");
         headers.setAccessControlAllowCredentials(true);
         headers.setCacheControl(CacheControl.noStore().mustRevalidate());
-        headers.setCacheControl(CacheControl.noCache());
     }
     
     /**
