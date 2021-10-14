@@ -49,7 +49,7 @@ public class VersionUtil {
 		LOGGER.debug("dw_method_list : " + dw_method_list);
 		LOGGER.debug("#####################################");
 		
-		if(paramMap.get("CHANNEL").toString().toUpperCase().equals("GROUP")) {	// 기관용
+		if(paramMap.get("CHANNEL").toString().toUpperCase().equals("HAMS-ORG")) {	// 기관용
 			
 			// 버전체크 대상 method 구분 
 			if(dw_method_list.contains(paramMap.get("METHOD"))) { 
