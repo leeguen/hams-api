@@ -7,6 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +36,7 @@ public class GroupController {
         headers.setContentType(new MediaType("application","json"));
         headers.setAccessControlAllowOrigin("*");
         headers.setAccessControlAllowCredentials(true);
+        headers.setCacheControl(CacheControl.noStore().mustRevalidate());
     }
     
     /**
