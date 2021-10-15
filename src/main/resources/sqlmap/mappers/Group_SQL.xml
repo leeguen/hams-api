@@ -8,12 +8,7 @@
 			CAST(SUBSTRING(YYMM,1,4) AS SIGNED INTEGER) AS year,
 			CAST(SUBSTRING(YYMM,5,2) AS SIGNED INTEGER) AS month,		
 			CAST(WK AS SIGNED INTEGER) AS week,
-			CONCAT(	IF(#{svcOpenDe} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
-						, DATE_FORMAT(STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d'), '%Y.%m.%d')
-						, DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d'))
-					,'-'
-					,DATE_FORMAT(IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))), '%Y.%m.%d')
-			) AS dtStr
+			CONCAT(IF(#{svcOpenDe} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), DATE_FORMAT(STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d'), '%Y.%m.%d'), DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d')),'-',DATE_FORMAT(IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))), '%Y.%m.%d')) AS dtStr
 		FROM COMM_WK_DT
 		WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_FORMAT(#{svcOpenDe}, '%Y-%m-%d')
 			AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[<]]> DATE_FORMAT(now() + INTERVAL 3 HOUR , '%Y-%m-%d')
@@ -24,8 +19,8 @@
 		SELECT 
 			CAST(SUBSTRING(A.YYMM,1,4) AS SIGNED INTEGER) AS year,
 			CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER) AS month,
-			CONCAT( IF( STR_TO_DATE(#{svcOpenDe}, '%Y-%m-%d') > STR_TO_DATE(CONCAT(SUBSTRING(A.YYMM,1,4),SUBSTRING(A.YYMM,5,2),'01'),'%Y%m%d')
-						, DATE_FORMAT(#{svcOpenDe}, '%Y.%m.%d')
+			CONCAT( IF( STR_TO_DATE('2021-04-15', '%Y-%m-%d') > STR_TO_DATE(CONCAT(SUBSTRING(A.YYMM,1,4),SUBSTRING(A.YYMM,5,2),'01'),'%Y%m%d')
+						, DATE_FORMAT('2021-04-15', '%Y.%m.%d')
 						, DATE_FORMAT(CONCAT(SUBSTRING(A.YYMM,1,4),'-',SUBSTRING(A.YYMM,5,2),'-01'),'%Y.%m.%d') )
 					,'-',
 					DATE_FORMAT(LAST_DAY(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))), '%Y.%m.%d')) AS dtStr
@@ -39,12 +34,12 @@
 					DATE_FORMAT(#{svcOpenDe}, '%Y-%m-%d')
 					BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
 						and IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) 
-				  )
-				  OR (
+				)
+				OR (
 					DATE_FORMAT(NOW() + INTERVAL 3 HOUR , '%Y-%m-%d')
 					BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
 						and IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))
-				  )
+				)
 		) B ON A.YYMM <![CDATA[>=]]> B.START_YYMM 
 			AND A.YYMM <![CDATA[<]]> B.END_YYMM
 		GROUP BY YYMM
@@ -83,15 +78,15 @@
 			</otherwise>
         </choose>
 			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
-			, ROUND( ATT.ATT_CNT / ATT.PLAN_CNT * 100 ) AS attRt  	-- 출석률 : (계획된 학습일 수 / 계획된 학습일 중 출석일 수) * 100
-			, LRN.EX_RT AS exRt-- 수행률
+			, ( ATT.ATT_CNT / ATT.PERIOD * 100 ) AS attRt  	-- 출석률
+			, LRN.EX_RT AS exRt	-- 수행률
 			, ER.AVG_CRT_RT AS crtRt	-- 정답률
-			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal	-- 학습분석신호
-			, ROUND( LRN2.LRN_SEC / ATT.ATT_CNT ) AS dayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal 	-- 학습분석신호
+			, LRN2.LRN_SEC	-- 학습시간
 		FROM 
 		<choose>
             <when test='currConCheck == "w"'>            
-		(	-- 주차
+		(
 			SELECT 
 				GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
 			FROM COMM_WK_DT 
@@ -101,31 +96,25 @@
 		,
 			</when>
         </choose>
-		(	-- 계획된 학습일 수 , 계획된 학습일 중 출석일 수
+		(		-- 출석률
 			SELECT 
-				COUNT(*) AS PLAN_CNT,
-				SUM(LOGIN) AS ATT_CNT
-			FROM
-			(
-				SELECT 
-					DISTINCT ATT.DT AS ATT_DT,
-					IF(LOGIN_YN = 'Y', 1, 0) AS LOGIN
-				FROM DAY_ATT_LOG AS ATT
-				WHERE ATT.STUD_ID = #{studId} AND ATT.DT BETWEEN #{startDt} AND #{endDt} 
-					AND PLAN_YN = 'Y'
-			) AS ATT			
+				COUNT(DISTINCT ATT.DT) AS ATT_CNT, 
+				DATEDIFF(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), STR_TO_DATE(#{startDt}, '%Y-%m-%d')) + 1 AS PERIOD
+			FROM DAY_ATT_LOG AS ATT
+			WHERE ATT.STUD_ID = #{studId} AND ATT.DT BETWEEN #{startDt} AND #{endDt} 
+				AND LOGIN_YN = 'Y'
 		) AS ATT
-		, (	-- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100  
+		, (	-- 수행률
 			SELECT ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
 			FROM DAY_7_LRN_EX_STT PL 
 	        WHERE STUD_ID = #{studId} AND DT = #{endDt}   
         ) AS LRN 
-        , (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100			
+        , (	-- 정답률			
         	SELECT ROUND(AVG(CRT_CNT / QUES_CNT * 100)) AS AVG_CRT_RT
             FROM DAY_7_EXAM_STT 
             WHERE STUD_ID = #{studId} AND DT = #{endDt}    
         ) AS ER 
-        , (	-- 선택된 기간 내에 총 학습시간
+       , (	-- 학습시간	
     		SELECT SUM(LRN_SEC) AS LRN_SEC
     		FROM
     			DAY_LRN_EX_LOG 
@@ -140,30 +129,22 @@
 		SELECT
 			CONCAT(SUBSTRING(#{yymm},5,2),'월') AS dt
 			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
-			, ROUND( ATT.ATT_CNT / ATT.PLAN_CNT * 100 ) AS attRt  	-- 출석률 : (계획된 학습일 수 / 계획된 학습일 중 출석일 수) * 100
-			, LRN.EX_RT AS exRt	-- 수행률
-			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal	-- 학습분석신호
+			, ATT.ATT_RT AS attRt 	-- 출석률
+			, LRN.EX_RT AS exRt		-- 수행률
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal 	-- 학습분석신호
 			, ER.AVG_CRT_RT AS crtRt 	-- 정답률
-			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS dayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+			, LRN.LRN_SEC			-- 학습시간
 		FROM 
-		(	-- 계획된 학습일 수 , 계획된 학습일 중 출석일 수
-			SELECT 
-				COUNT(*) AS PLAN_CNT,
-				SUM(LOGIN) AS ATT_CNT
-			FROM
-			(
-				SELECT 
-					DISTINCT ATT_DT AS ATT_DT,
-					IF(LOGIN_YN = 'Y', 1, 0) AS LOGIN
-				FROM MONTH_ATT_LOG
-				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}	
-					AND PLAN_YN = 'Y'
-			) AS ATT	
+		(		-- 출석률
+			SELECT ATT_RT
+			FROM MONTH_ATT_STT 
+			WHERE YYMM = #{yymm}				
+				AND STUD_ID = #{studId}
 		) AS ATT
 		, (	-- 수행률, 학습시간	
 			SELECT ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 			FROM MONTH_LRN_EX_STT PL 
-	       	WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+	       	WHERE  YYMM = #{yymm} AND STUD_ID = #{studId}
         ) AS LRN 
         , (	-- 정답률		
         	SELECT ROUND(AVG(CRT_RT)) AS AVG_CRT_RT
