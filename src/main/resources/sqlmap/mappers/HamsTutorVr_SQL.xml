@@ -501,6 +501,16 @@
 	</choose>
     </select>
     
+    <select id="selectVisionExamChapterTermList" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			DISTINCT
+				STUD_ID, 
+				SUBSTRING_INDEX(SUBSTRING_INDEX(EXAM_NM,']', 1),'-',-1) AS TERM
+		FROM FIRST_VS_REPORT_EXAM_UNIT_TEST_LOG
+		WHERE STUD_ID = #{studId}
+		ORDER BY SUBSTRING_INDEX(SUBSTRING_INDEX(EXAM_NM,']', 1),'-',-1);
+    </select>
+    
     <select id="selectVisionExamChapterNmList" parameterType="hashMap" resultType="resultMap">
 	<choose>
 		<when test="term == 0">
@@ -515,14 +525,17 @@
 						UI.TERM,
 						CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED) AS UNIT_NO
 				FROM FIRST_VS_REPORT_STUD FS
-				JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
+				JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND UI.TERM IN
+					<foreach collection="terms" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                </foreach>
 				WHERE FS.STUD_ID = #{studId}
 					AND UI.SUBJ_CD IN 
 					<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
 		                    #{item}
 	                </foreach>
 			) UI
-			ORDER BY UNIT_NO
+			ORDER BY TERM, UNIT_NO
 		</when>
 		<otherwise>
 			SELECT
@@ -608,14 +621,17 @@
 					        ELSE CAST(REPLACE(SUBSTRING(UI.UNIT_NO,1,2),'단','') AS SIGNED)
 				    	END AS UNIT_NO
 					FROM FIRST_VS_REPORT_STUD FS
-					JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND IF(CAST(SUBSTRING(FS.PUBLISH_YYMM,5,6) AS SIGNED) <![CDATA[<]]> 8,1,2) = UI.TERM
+					JOIN UNIT_INFO UI ON FS.GRADE = UI.GRADE AND UI.TERM IN
+						<foreach collection="terms" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+	                	</foreach>
 					WHERE FS.STUD_ID = #{studId}
 						AND UI.SUBJ_CD IN 
 						<foreach collection="subjs" item="item"  open="(" close=")" separator=",">
 		                    #{item}
 	                	</foreach>
 				) UI_2
-    			ORDER BY UNIT_NO, SUBJ_CD, EXAM_SUBJ_CD
+    			ORDER BY TERM, UNIT_NO, SUBJ_CD, EXAM_SUBJ_CD
 			) UI_1
 			LEFT OUTER JOIN (
 				SELECT
@@ -639,7 +655,7 @@
                	) UL
 				GROUP BY UL.STUD_ID, UL.UNIT_CD
 			) VER ON UI_1.STUD_ID = VER.STUD_ID AND UI_1.UNIT_CD = VER.UNIT_CD
-			ORDER BY UI_1.UNIT_NO, UI_1.SUBJ_CD
+			ORDER BY UI_1.TERM, UI_1.UNIT_NO, UI_1.SUBJ_CD
 		</when>
 		<otherwise>
 			SELECT

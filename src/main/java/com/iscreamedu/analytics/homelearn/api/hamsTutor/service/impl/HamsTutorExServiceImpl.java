@@ -257,6 +257,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 
                 for(Map<String, String> subjItem : subjList) {
                 	String subjNm = subjItem.get("subjCd");
+                	String msg = subjItem.get("msg");
+                	String subMsg = subjItem.get("subMsg");
                 	
                 	LinkedHashMap<String, Object> subjMap = new LinkedHashMap<>();
                 	ArrayList<Map<String,Object>> subjDetailList = new ArrayList<>();
@@ -282,6 +284,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 	}
 
                 	subjMap.put("subjCd", subjNm);
+                	subjMap.put("msg", msg);
+                	subjMap.put("subMsg", subMsg);
                 	subjMap.put("subjDetail", subjDetailList);
                 	
                 	aiRecommendQuestionData.add(subjMap);
