@@ -606,6 +606,8 @@ public class GroupServiceImpl implements GroupService {
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "SUBJEXAMLIST");
     	
+    	getStudId(paramMap);
+    	
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
@@ -653,6 +655,49 @@ public class GroupServiceImpl implements GroupService {
 
     @Override    
     public Map getIncrtNote(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "INCRTNOTE");
+    	
+    	getStudId(paramMap);
+    	
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String,Object> data = new LinkedHashMap<>();
+			Map<String,Object> dataMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> subjExamList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			data.put("examTypes", getMapperResultData(v_param, "", paramMap, ".getIncrtNote"));
+			
+			if(currConCheck.equals("m")) {
+				int mm = Integer.valueOf(paramMap.get("mm").toString());
+				String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+				
+				paramMap.put("convertMm", convertMm);
+				
+				data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNote");
+				
+				data.put("pageCnt", 0);
+				data.put("list", null);		
+			}else {
+				data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNote");
+				
+				data.put("pageCnt", 0);
+				data.put("list", null);
+				
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+    	
     	return result;
     }
 

@@ -661,6 +661,22 @@
     </select>
     
     <select id="getIncrtNote" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
+		    SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT,
+		    (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)) AS INCRT_NOTE_NC_CNT,
+		    NULL AS TOTAL_CNT
+		FROM EXAM_RST ER
+		WHERE DT 
+		<choose>
+			<when test='currConCheck == "m"'>
+				BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+			</when>
+			<otherwise>
+				BETWEEN #{startDt} AND #{endDt}
+			</otherwise>
+		</choose>
+			AND STUD_ID = 4995
     </select>
     
     <select id="getChapterStt" parameterType="hashMap" resultType="resultMap">

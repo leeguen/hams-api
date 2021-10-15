@@ -152,6 +152,22 @@ public class GroupController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	/**
+	 * HAMS-ORG-ES-004
+	 * 평가분석 요약 - 오답노트
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getIncrtNote")
+    @ResponseBody
+	public ResponseEntity getIncrtNote(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getIncrtNote(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
     /**
      * 학습분석 메세지 코드 모음 (HAMS-T-LA-010)
      * @param params
