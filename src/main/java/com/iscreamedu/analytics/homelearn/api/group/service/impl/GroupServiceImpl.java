@@ -231,7 +231,7 @@ public class GroupServiceImpl implements GroupService {
 			                paramMap.put("endDt",endDate);
 			                paramMap.put("startDt",startDate);
 			                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
-			                paramMap.put("mm", startDate.substring(5,7));
+			                paramMap.put("mm", Integer.valueOf(startDate.substring(5,7)).toString());
 				        	data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
 				        	
 				        	resultMap = null;
