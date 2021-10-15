@@ -138,7 +138,7 @@
 	<select id="selectLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
 	/* selectLrnBasicMonthly : 기관용 월간 학습 분석 */
 		SELECT
-			CONCAT(#{mm},'월') AS dt
+			CONCAT(SUBSTRING(#{yyyy},3,2),'년',#{mm},'월') AS dt
 			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
 			, ROUND( ATT.ATT_CNT / ATT.PLAN_CNT * 100 ) AS attRt  	-- 출석률 : (계획된 학습일 중 출석일 수 / 계획된 학습일 수) * 100
 			, LRN.EX_RT AS exRt	-- 수행률
