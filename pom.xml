@@ -62,6 +62,13 @@
 			<version>1.16</version>
 		</dependency>
 		
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1</version>
+  		</dependency>
+		
 		<!-- cache -->
         <dependency>
 		    <groupId>org.springframework.boot</groupId>
