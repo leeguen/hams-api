@@ -66,7 +66,7 @@ public class GroupServiceImpl implements GroupService {
     	params.put("CHANNEL","HAMS-ORG");
         return versionUtil.getDataWareVersion(params);
     }
-
+    
 	/***
 	 * 분기된 mapper를 통해 data 결과 추출
 	 * @param param 구분 기준 파라미터
@@ -163,7 +163,7 @@ public class GroupServiceImpl implements GroupService {
     public Map getStud(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "STUD");
-    	
+
 		getStudId(paramMap);
 		
     	//Validation
@@ -184,7 +184,7 @@ public class GroupServiceImpl implements GroupService {
     public Map getLrnBasic(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "LRNBASIC");
-    	
+
 		getStudId(paramMap);
 		
     	//Validation
@@ -203,43 +203,42 @@ public class GroupServiceImpl implements GroupService {
 			
 			if(currConCheck.equals("m")) {	// 월간
 				//1-1.필수값 체크 
-				vu1.checkRequired(new String[] {"yymm"}, paramMap);
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
 				
 				if(vu1.isValid()) { 	
-					String yymm = paramMap.get("yymm").toString();
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
 
+					paramMap.put("yymm", yymm);
+					paramMap.put("convertMm", convertMm);
 					//2. 유효성 체크
 					vu2.isYearMonth("yymm", yymm);
 					if(vu2.isValid()) {
-						startDate = yymm.substring(0,4)+"-"+yymm.substring(4,6)+"-01";
-						endDate = yymm.substring(0,4)+"-"+yymm.substring(4,6)+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
 						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
 			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
-			    		String lrnSignal = null;
 			    		if(current.size() > 0) {
-			    			if(current.containsKey("lrnSignal")) {
-			    				lrnSignal = current.get("lrnSignal").toString();
-			    				current.remove("lrnSignal");
-			    			}
 				    		data.put("current", current);
 			    		
+				    		//current 기준 prev 구하기 
 			                startDate = subDate(startDate,-1,false,false);
 				        	endDate = subDate(endDate,-1,false,true);
 			                paramMap.put("endDt",endDate);
 			                paramMap.put("startDt",startDate);
 			                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
-			                
+			                paramMap.put("mm", startDate.substring(5,7));
 				        	data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
 				        	
 				        	resultMap = null;
 				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
 				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
-				    		prev.remove("lrnSignal");
 				        	data.put("prev", prev);
 				        	
-				        	data.put("lrnSignal", lrnSignal);
 				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
 			    		}
 						setResult(dataKey, data);
@@ -254,7 +253,6 @@ public class GroupServiceImpl implements GroupService {
 				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
 				
 				if(vu.isValid()) { 	
-
 					startDate = paramMap.get("startDt").toString();
 					endDate = paramMap.get("endDt").toString();
 					
@@ -265,12 +263,7 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
 			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
-			    		String lrnSignal = null;
 			    		if(current.size() > 0) {
-			    			if(current.containsKey("lrnSignal")) {
-			    				lrnSignal = current.get("lrnSignal").toString();
-			    				current.remove("lrnSignal");
-			    			}
 				    		data.put("current", current);
 			    		
 			                startDate = subDate(startDate,-7,true,false);
@@ -283,10 +276,8 @@ public class GroupServiceImpl implements GroupService {
 				        	resultMap = null;
 				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
 				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
-				    		prev.remove("lrnSignal");
-				        	data.put("prev", prev);
+				    		data.put("prev", prev);
 				        	
-				        	data.put("lrnSignal", lrnSignal);
 				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
 			    		}
 			    		setResult(dataKey, data);
@@ -308,10 +299,16 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
-	private int getCalendarLastDay(String endDate, DateFormat transFormat) {
+    /***
+     * 해당월의 마지막날짜 추출
+     * @param curDate
+     * @param transFormat
+     * @return 오류발생시 0 리턴
+     */
+	private int getCalendarLastDay(String curDate, DateFormat transFormat) {
 		try {
 			Calendar dt = Calendar.getInstance();
-			dt.setTime(transFormat.parse(endDate));
+			dt.setTime(transFormat.parse(curDate));
 			return dt.getActualMaximum(Calendar.DATE);
 		} catch(ParseException pe) {
 			return 0;
@@ -423,7 +420,7 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "SUBJEXAM");
-    	
+
 		getStudId(paramMap);
 		
     	//Validation
@@ -459,7 +456,7 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "COMPARESUB");
-    	
+
 		getStudId(paramMap);
 		
     	//Validation
@@ -566,7 +563,7 @@ public class GroupServiceImpl implements GroupService {
     	
     	v_param = new HashMap<>();
     	v_param.put("METHOD", "EXAMCHART");
-    	
+
 		getStudId(paramMap);
 		
     	//Validation
