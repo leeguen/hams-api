@@ -199,6 +199,9 @@ public class GroupServiceImpl implements GroupService {
 			String endDate;
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			ArrayList<Map<String,Object>> positive = new ArrayList<>();
+			ArrayList<Map<String,Object>> negative = new ArrayList<>();
+			Map<String,Object> msg = new HashMap<>();
 			paramMap.put("currConCheck", currConCheck);
 			
 			if(currConCheck.equals("m")) {	// 월간
@@ -212,9 +215,8 @@ public class GroupServiceImpl implements GroupService {
 					String yymm = yyyy + convertMm;
 
 					paramMap.put("yymm", yymm);
-					paramMap.put("convertMm", convertMm);
 					//2. 유효성 체크
-					vu2.isYearMonth("yymm", yymm);
+					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
 						startDate = yyyy+"-"+convertMm+"-01";
 						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
@@ -239,7 +241,9 @@ public class GroupServiceImpl implements GroupService {
 				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
 				        	data.put("prev", prev);
 				        	
-				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
+				        	msg.put("positive", positive);
+				        	msg.put("negative", negative);
+				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	     
 			    		}
 						setResult(dataKey, data);
 					} else {
@@ -278,7 +282,9 @@ public class GroupServiceImpl implements GroupService {
 				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
 				    		data.put("prev", prev);
 				        	
-				            data.put("msg",null);	//추후 메시지기획안 적용 예정	     
+				    		msg.put("positive", positive);
+				        	msg.put("negative", negative);
+				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	  	     
 			    		}
 			    		setResult(dataKey, data);
 					} else {
