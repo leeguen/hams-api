@@ -216,9 +216,163 @@
     </select>
     
     <select id="getALrnExStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    ALRN.A_LRN_EX_CNT,
+		    PALRN.A_LRN_EX_CNT AS PREV_A_LRN_EX_CNT,
+		    NULL AS TOP_A_LRN_EX_CNT,
+		    NULL AS AVG_A_LRN_EX_CNT,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN MONTH_LRN_EX_STT ALRN ON ALRN.YYMM = CONCAT(#{yyyy},#{convertMm}) AND ST.STUD_ID = ALRN.STUD_ID
+				LEFT OUTER JOIN MONTH_LRN_EX_STT PALRN ON PALRN.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PALRN.STUD_ID
+				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = CONCAT(#{yyyy},#{convertMm}) AND ST.GRADE = GL.GRADE
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_LRN_EX_STT ALRN ON ALRN.DT = #{endDt} AND ST.STUD_ID = ALRN.STUD_ID
+				LEFT OUTER JOIN DAY_7_LRN_EX_STT PALRN ON PALRN.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PALRN.STUD_ID
+				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
+			</otherwise>
+		</choose> 
+		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="getALrnExSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			A.DT,
+		    A.PREV_DT,
+		    A.STUD_ID,
+		    A.A_LRN_CNT,
+		    PREV_A_LRN_CNT,
+		    NULL AS TOP_A_LRN_EX_CNT,
+		    NULL AS AVG_A_LRN_EX_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+				STUD_ID,
+				COUNT(CTGR) AS A_LRN_CNT
+			FROM (
+				SELECT
+					DT, 
+					STUD_ID,
+					CTGR
+				FROM DAY_LRN_EX_LOG A
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND FNSH_YN = 'Y'
+					AND ((PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]>  30) OR (PLAN_DT <![CDATA[>]]> 0 AND PLAN_UPD_YN = 'Y'))
+			) ACHART1
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				COUNT(CTGR) AS PREV_A_LRN_CNT
+			FROM (
+				SELECT
+					DT, 
+					STUD_ID,
+					CTGR
+				FROM DAY_LRN_EX_LOG A
+				WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					AND STUD_ID = #{studId}
+					AND FNSH_YN = 'Y'
+					AND ((PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]>  30) OR (PLAN_DT <![CDATA[>]]> 0 AND PLAN_UPD_YN = 'Y'))
+			) ACHART1
+			GROUP BY DT, STUD_ID
+		) PA ON A.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = CONCAT(#{yyyy},#{convertMm}) AND ST.GRADE = GL.GRADE
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
+			</otherwise>
+		</choose> 
+		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getCrtRtStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    IF(ES.QUES_CNT IS NULL, 0, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
+    		IF(PES.QUES_CNT IS NULL, 0, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
+		    NULL AS TOP_CRT_RT,
+		    NULL AS AVG_CRT_RT,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN EXAM_MONTH_STT ES ON ES.YYMM = CONCAT(#{yyyy},#{convertMm}) AND ST.STUD_ID = ES.STUD_ID
+				LEFT OUTER JOIN EXAM_MONTH_STT PES ON PES.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'), INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PES.STUD_ID
+				LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = CONCAT(#{yyyy},#{convertMm}) AND ST.GRADE = GE.GRADE
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_EXAM_STT ES ON ES.DT = #{endDt} AND ST.STUD_ID = ES.STUD_ID
+				LEFT OUTER JOIN DAY_7_EXAM_STT PES ON PES.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PES.STUD_ID
+				LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
+			</otherwise>
+		</choose> 
+		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="getCrtRtSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			E.DT,
+		    E.PREV_DT,
+		    E.STUD_ID,
+		    E.CRT_RT,
+		    PREV_CRT_RT,
+		    NULL AS TOP_CRT_RT,
+		    NULL AS AVG_CRT_RT
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+		        DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+				STUD_ID,
+		        ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					SUM(QUES_CNT) AS QUES_CNT,
+					SUM(CRT_CNT) AS CRT_CNT
+				FROM EXAM_RST
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'
+				GROUP BY DT, STUD_ID
+			) ECHART1
+		) E ON ST.STUD_ID = E.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+		        ROUND(CRT_CNT / QUES_CNT * 100) AS PREV_CRT_RT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					SUM(QUES_CNT) AS QUES_CNT,
+					SUM(CRT_CNT) AS CRT_CNT
+				FROM EXAM_RST
+				WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'
+				GROUP BY DT, STUD_ID
+			) ECHART1
+			GROUP BY DT, STUD_ID
+		) PE ON E.PREV_DT = PE.DT AND ST.STUD_ID = PE.STUD_ID
+		LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
+		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getIncrtNoteNcStt" parameterType="hashMap" resultType="resultMap">
@@ -684,7 +838,22 @@
 			SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
 		    SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT,
 		    (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)) AS INCRT_NOTE_NC_CNT,
-		    NULL AS TOTAL_CNT
+		    (
+		    	SELECT 
+			    	COUNT(*) 
+		    	FROM EXAM_RST_INCRT_NT 
+		    	WHERE DT 
+	    		<choose>
+					<when test='currConCheck == "m"'>
+						BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+					</when>
+					<otherwise>
+						BETWEEN #{startDt} AND #{endDt}
+					</otherwise>
+				</choose>
+	    		AND STUD_ID = #{studId} 
+	    		GROUP BY STUD_ID
+    		) AS TOTAL_CNT
 		FROM EXAM_RST ER
 		WHERE DT 
 		<choose>
@@ -695,7 +864,46 @@
 				BETWEEN #{startDt} AND #{endDt}
 			</otherwise>
 		</choose>
-			AND STUD_ID = 4995
+			AND STUD_ID = #{studId}
+    </select>
+    
+    <select id="getIncrtNoteList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			GRADE_TERM,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
+		    UNIT_NM,
+		    EXAM_TYPE AS TYPE,
+		    EXAM_CD,
+		    SMT_ID,
+		    STU_ID,
+		    (SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = EN.LRN_STT) AS LRN_STT,
+		    QUES_CNT,
+		    CRT_QUES_CNT,
+		    INCRT_CNT,
+		    REG_DT,
+		    SMT_DTTM
+		FROM EXAM_RST_INCRT_NT EN
+		WHERE DT 
+		<choose>
+			<when test='currConCheck == "m"'>
+				BETWEEN DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d') AND LAST_DAY(DATE_FORMAT(CONCAT(#{yyyy},#{convertMm},'01'),'%Y-%m-%d'))
+			</when>
+			<otherwise>
+				BETWEEN #{startDt} AND #{endDt}
+			</otherwise>
+		</choose>
+			AND STUD_ID = #{studId}
+		ORDER BY EN.SMT_DTTM DESC
+		<choose>
+            <when test="startIdx != null">
+                LIMIT 10
+                OFFSET ${startIdx}
+            </when>
+            <otherwise>
+                LIMIT 10
+                OFFSET 0
+            </otherwise>
+        </choose>
     </select>
     
     <select id="getChapterStt" parameterType="hashMap" resultType="resultMap">
