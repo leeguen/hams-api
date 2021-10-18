@@ -99,9 +99,41 @@ public class GroupController {
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/getLrnHabitChart")
-    @ResponseBody
+	@ResponseBody
 	public ResponseEntity getLrnHabitChart(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)groupService.getLrnHabitChart(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-010
+	 * 학습분석 상세 - 스스로 학습 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getALrnExStt")
+    @ResponseBody
+	public ResponseEntity getALrnExStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getALrnExStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-011
+	 * 학습분석 상세 - 정답률 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getCrtRtStt")
+    @ResponseBody
+	public ResponseEntity getCrtRtStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getCrtRtStt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
