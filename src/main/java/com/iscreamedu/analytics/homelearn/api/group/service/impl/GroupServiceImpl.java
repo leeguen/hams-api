@@ -136,17 +136,17 @@ public class GroupServiceImpl implements GroupService {
 				
 				if(!paramMap.containsKey("currCon") || paramMap.get("currCon").equals("")) {	// 주간+월간 합산
 					Map<String,Object> data = new HashMap<>();
-					data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));
-					data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
+					data.put("weeks", (List)getMapperResultData(v_param, "list", paramMap, ".getPeriodWeeks"));
+					data.put("months", (List)getMapperResultData(v_param, "list", paramMap, ".getPeriodMonths"));
 					setResult(dataKey, data);
 				} else {
 
 					String currConCheck = paramMap.get("currCon").toString().toLowerCase();
 					paramMap.put("currConCheck", currConCheck);
 					if(currConCheck.equals("m")) {
-						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodMonths"));
+						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".getPeriodMonths"));
 					} else {
-						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".selectPeriodWeeks"));							
+						setResult(dataKey, (List)getMapperResultData(v_param, "list", paramMap, ".getPeriodWeeks"));							
 					}
 				}
 			} else {
@@ -172,7 +172,7 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"studId"}, paramMap);
 		
 		if(vu.isValid()) { 		
-			setResult(dataKey, getMapperResultData(v_param, "", paramMap, ".selectStud"));
+			setResult(dataKey, getMapperResultData(v_param, "", paramMap, ".getStud"));
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -222,29 +222,23 @@ public class GroupServiceImpl implements GroupService {
 						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
-			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
-			    		if(current.size() > 0) {
-				    		data.put("current", current);
-			    		
-				    		//current 기준 prev 구하기 
-			                startDate = subDate(startDate,-1,false,false);
-				        	endDate = subDate(endDate,-1,false,true);
-			                paramMap.put("endDt",endDate);
-			                paramMap.put("startDt",startDate);
-			                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
-			                paramMap.put("mm", Integer.valueOf(startDate.substring(5,7)).toString());
-			                data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
-				        	
-				        	resultMap = null;
-				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicMonthly");
-				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
-				        	data.put("prev", prev);
-				        	
-				        	msg.put("positive", positive);
-				        	msg.put("negative", negative);
-				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	     
-			    		}
+						data.put("current", getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly"));
+
+						//current 기준 prev 구하기 
+		                startDate = subDate(startDate,-1,false,false);
+			        	endDate = subDate(endDate,-1,false,true);
+		                paramMap.put("endDt",endDate);
+		                paramMap.put("startDt",startDate);
+		                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
+		                paramMap.put("mm", Integer.valueOf(startDate.substring(5,7)).toString());
+		                data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
+			        	
+			        	data.put("prev", getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly"));
+			        	
+			        	msg.put("positive", positive);
+			        	msg.put("negative", negative);
+			            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
+			            
 						setResult(dataKey, data);
 					} else {
 						setResult(msgKey, vu2.getResult());				
@@ -265,27 +259,22 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						List resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
-			    		HashMap<String,Object> current = (HashMap<String,Object>)(resultMap.get(0));
-			    		if(current.size() > 0) {
-				    		data.put("current", current);
+						data.put("current", getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod"));
 			    		
-			                startDate = subDate(startDate,-7,true,false);
-				        	endDate = subDate(endDate,-7,true,false);
-			                paramMap.put("endDt",endDate);
-			                paramMap.put("startDt",startDate);
-			                
-			                data.put("prevDtCnt", "7");
-				        	
-				        	resultMap = null;
-				        	resultMap = (List)getMapperResultData(v_param, "list", paramMap, ".selectLrnBasicPeriod");
-				    		HashMap<String,Object> prev = (HashMap<String,Object>)(resultMap.get(0));
-				    		data.put("prev", prev);
-				        	
-				    		msg.put("positive", positive);
-				        	msg.put("negative", negative);
-				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	  	     
-			    		}
+						//current 기준 prev 구하기 
+		                startDate = subDate(startDate,-7,true,false);
+			        	endDate = subDate(endDate,-7,true,false);
+		                paramMap.put("endDt",endDate);
+		                paramMap.put("startDt",startDate);
+		                
+		                data.put("prevDtCnt", "7");
+			        	
+			    		data.put("prev", getMapperResultData(v_param, "list", paramMap, ".getLrnBasicPeriod"));
+			        	
+			    		msg.put("positive", positive);
+			        	msg.put("negative", negative);
+			            data.put("msg",msg);	//추후 메시지기획안 적용 예정	  
+			            
 			    		setResult(dataKey, data);
 					} else {
 						if(!vu1.isValid()) {
@@ -333,6 +322,92 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public Map getLrnHabitChart(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "LRNHABITCHART");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			ArrayList<Map<String,Object>> lrnhabitChart = new ArrayList<>();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
+						data.put("lrnhabitChart", (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList"));
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					paramMap.put("limitDtCnt", 7);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitPeriod");
+						if(data != null) {
+							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
+							data.put("lrnhabitChart", lrnhabitChart);
+						}
+						setResult(msgKey, data);
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						} else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());						
+						}				
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+	
     	return result;
     }
 
@@ -872,7 +947,11 @@ public class GroupServiceImpl implements GroupService {
         if(data == null
                 || (data instanceof List && ((List)data).size() == 0)
                 || (data instanceof Map && ((Map)data).isEmpty())) {
-            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+//            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+
+            message.put("resultCode", ValidationCode.NO_DATA.getCode());
+            message.put("result", ValidationCode.NO_DATA.getMessage());
+            result.put(msgKey, message);
         }
 //        else if(resultNullCheck((Map)data)) {
 //            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});

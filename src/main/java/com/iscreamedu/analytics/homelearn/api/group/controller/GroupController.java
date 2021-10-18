@@ -90,6 +90,22 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LS-001 
+	 * 학습분석 요약 - 학습 습관 차트
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnHabitChart")
+    @ResponseBody
+	public ResponseEntity getLrnHabitChart(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnHabitChart(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * HAMS-ORG-ES-001
 	 * 평가분석 요약 - 과목평가
 	 * @param params
