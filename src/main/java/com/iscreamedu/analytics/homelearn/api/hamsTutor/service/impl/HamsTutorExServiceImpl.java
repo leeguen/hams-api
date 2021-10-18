@@ -497,14 +497,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 	         	}else {
          			LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
          			msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
-         			msgMap.put("result", "External API Error");
+         			msgMap.put("result", "Fail");
          			setResult(msgKey, msgMap);
 	         	}
             }catch(Exception e) {
         	   LOGGER.debug(e.toString());
         	   LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
         	   msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-        	   msgMap.put("result", "External API Error");
+        	   msgMap.put("result", "Fail");
         	   setResult(msgKey, msgMap);
 			}
             
@@ -554,14 +554,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 	         	}else {
          			LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
          			msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
-         			msgMap.put("result", "External API Error");
+         			msgMap.put("result", "Fail");
          			setResult(msgKey, msgMap);
 	         	}
             	
             }catch(Exception e) {
             	LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
             	msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-            	msgMap.put("result", "External API Error");
+            	msgMap.put("result", "Fail");
             	setResult(msgKey, msgMap);
 			}
 
