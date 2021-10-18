@@ -90,6 +90,39 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LS-001 
+	 * 학습분석 요약 - 학습 습관 차트
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnHabitChart")
+	@ResponseBody
+	public ResponseEntity getLrnHabitChart(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnHabitChart(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LS-002
+	 * 학습분석 요약 - AI 학습 추천
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getAiRecommendLrn")
+	@ResponseBody
+	public ResponseEntity getAiRecommendLrn(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getAiRecommendLrn(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	
+	/**
 	 * HAMS-ORG-LD-010
 	 * 학습분석 상세 - 스스로 학습 현황
 	 * @param params
