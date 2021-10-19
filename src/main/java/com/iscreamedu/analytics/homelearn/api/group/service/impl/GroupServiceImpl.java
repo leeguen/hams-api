@@ -273,7 +273,7 @@ public class GroupServiceImpl implements GroupService {
 		                
 		                data.put("prevDtCnt", "7");
 			        	
-			    		data.put("prev", getMapperResultData(v_param, "list", paramMap, ".getLrnBasicPeriod"));
+			    		data.put("prev", getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod"));
 			        	
 			    		msg.put("positive", positive);
 			        	msg.put("negative", negative);
