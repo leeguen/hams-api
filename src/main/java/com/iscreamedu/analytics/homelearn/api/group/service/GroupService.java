@@ -24,6 +24,8 @@ public interface GroupService {
     public Map getAttRtStt(Map<String, Object> paramMap) throws Exception;
 
     public Map getLrnTmList(Map<String, Object> paramMap) throws Exception;
+
+    public Map getLrnDetail(Map<String, Object> paramMap) throws Exception;
     
     public Map getAttCntStt(Map<String, Object> paramMap) throws Exception;
     

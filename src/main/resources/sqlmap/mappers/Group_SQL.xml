@@ -320,22 +320,13 @@
 		) AS LRN2 ON LRN.DT = LRN2.DT		
 		ORDER BY DT.dt ASC
     </select>
-    
-    <select id="getAiRecommendLrn" parameterType="hashMap" resultType="resultMap">
-    </select>
-    
-    <select id="getDiagnsticEvalStt" parameterType="hashMap" resultType="resultMap">
-    </select>
-    
+        
     <select id="getAttRtStt" parameterType="hashMap" resultType="resultMap">
     </select>
     
     <select id="getLrnTmList" parameterType="hashMap" resultType="resultMap">
     </select>
-    
-    <select id="getLrnDetail" parameterType="hashMap" resultType="resultMap">
-    </select>
-    
+        
     <select id="getAttCntStt" parameterType="hashMap" resultType="resultMap">
     </select>
     

@@ -522,6 +522,35 @@ public class GroupServiceImpl implements GroupService {
         return result;
     }
 
+	/**
+	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+    @Override
+	public Map getLrnDetail(Map<String, Object> paramMap) throws Exception {
+		v_param = new HashMap<>();
+		v_param.put("METHOD", "LRNDETAIL");
+		
+		getStudId(paramMap);
+		
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId", "serviceId", "date"}, paramMap);
+		if(vu.isValid()) { 	   	
+			//홈런 API 조회
+			paramMap.put("apiName", "act-element-detail");	       	
+			setResult(dataKey,externalAPIservice.callExternalAPI(paramMap).get("data"));			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+    }
+	
+
     @Override
     public Map getAttRtStt(Map<String, Object> paramMap) throws Exception {
     	return result;

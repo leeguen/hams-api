@@ -136,6 +136,21 @@ public class GroupController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	/**
+	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnDetail")
+	@ResponseBody
+	public ResponseEntity getLrnDetail(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnDetail(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
 	
 	/**
 	 * HAMS-ORG-LD-010

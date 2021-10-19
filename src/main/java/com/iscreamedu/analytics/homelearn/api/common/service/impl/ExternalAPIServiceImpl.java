@@ -462,6 +462,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	if(apiName.equals("inspecion-present")) {
 		        		paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");		        		
+		        	} else if(apiName.equals("act-element-detail")) {
+		        		paramMap.put("stuId", paramMap.get("studId"));
+		        		paramMap.remove("studId");		        		
 		        	} else if(!apiName.equals("step-list/study-goal-text")) {
 			    		String studId = "";
 			    		String encodedStr = paramMap.get("p").toString();
