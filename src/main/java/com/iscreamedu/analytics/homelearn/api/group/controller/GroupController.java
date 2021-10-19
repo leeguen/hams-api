@@ -263,6 +263,22 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LD-015
+	 * 학습분석 상세 - 일평균 학습 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getDayAvgLrnStt")
+    @ResponseBody
+	public ResponseEntity getDayAvgLrnStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getDayAvgLrnStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * HAMS-ORG-ES-001
 	 * 평가분석 요약 - 과목평가
 	 * @param params

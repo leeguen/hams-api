@@ -1063,6 +1063,21 @@
     </select>
     
     <select id="getDayAvgLrnStt " parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+			ST.STUD_ID,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="getDayAvgLrnSttList " parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+			ST.STUD_ID,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getTotalLrnTmStt" parameterType="hashMap" resultType="resultMap">
@@ -1372,8 +1387,9 @@
     
     <select id="getSubjExamListCnt" parameterType="hashMap" resultType="resultMap">
 		SELECT
-			COUNT(STUD_ID) AS TOTAL_CNT
-		FROM (
+				COUNT(CNT.STUD_ID) AS TOTAL_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN (
 			SELECT
 				ER.STUD_ID
 			FROM EXAM_RST ER
@@ -1393,8 +1409,9 @@
 				</when>
 			</choose>
 			GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
-		) CNT
-		GROUP BY STUD_ID    
+		) CNT ON ST.STUD_ID = CNT.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
+		GROUP BY ST.STUD_ID 
     </select>
     
     <select id="getSubjExamList" parameterType="hashMap" resultType="resultMap">
@@ -1435,7 +1452,15 @@
 		GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
 		ORDER BY ER.SMT_DTTM DESC
 		<choose>
-            <when test="startIdx != null">
+            <when test="startIdx != null and endIdx != null">
+                LIMIT ${endIdx}
+                OFFSET ${startIdx}
+            </when>
+            <when test="startIdx == null and endIdx != null">
+                LIMIT ${endIdx}
+                OFFSET 0
+            </when>
+            <when test="startIdx != null and endIdx == null">
                 LIMIT 10
                 OFFSET ${startIdx}
             </when>
@@ -1484,7 +1509,15 @@
 			AND STUD_ID = #{studId}
 		ORDER BY EN.SMT_DTTM DESC
 		<choose>
-            <when test="startIdx != null">
+            <when test="startIdx != null and endIdx != null">
+                LIMIT ${endIdx}
+                OFFSET ${startIdx}
+            </when>
+            <when test="startIdx == null and endIdx != null">
+                LIMIT ${endIdx}
+                OFFSET 0
+            </when>
+            <when test="startIdx != null and endIdx == null">
                 LIMIT 10
                 OFFSET ${startIdx}
             </when>

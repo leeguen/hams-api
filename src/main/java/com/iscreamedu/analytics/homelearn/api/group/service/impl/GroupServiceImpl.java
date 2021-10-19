@@ -1957,6 +1957,7 @@ public class GroupServiceImpl implements GroupService {
 		if(vu.isValid()) {
 			Map<String,Object> data = new LinkedHashMap<>();
 			Map<String,Object> dataMap = new LinkedHashMap<>();
+			Map<String,Object> cntMap = new LinkedHashMap<>();
 			ArrayList<Map<String,Object>> subjExamList = new ArrayList<>();
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
@@ -1985,9 +1986,14 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("startDt", startDt);
 						paramMap.put("endDt", endDt);
 						
-						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+						if(paramMap.containsKey("types")) {
+							paramMap.put("types",paramMap.get("types").toString().split(","));
+						}
 						
-						dataMap.put("totalCnt", getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt"));
+						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
+						
+						dataMap.put("totalCnt", cntMap.get("totalCnt"));
 						dataMap.put("list", subjExamList);
 						
 						data.put("examList", dataMap);	
@@ -2009,9 +2015,14 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+						if(paramMap.containsKey("types")) {
+							paramMap.put("types",paramMap.get("types").toString().split(","));
+						}
 						
-						dataMap.put("totalCnt", getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt"));
+						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
+						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
+						
+						dataMap.put("totalCnt", cntMap.get("totalCnt"));
 						dataMap.put("list", subjExamList);
 						
 						data.put("examList", dataMap);
@@ -2055,7 +2066,6 @@ public class GroupServiceImpl implements GroupService {
 		
 		if(vu.isValid()) {
 			Map<String,Object> data = new LinkedHashMap<>();
-			Map<String,Object> dataMap = new LinkedHashMap<>();
 			ArrayList<Map<String,Object>> incrtNtList = new ArrayList<>();
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
@@ -2086,8 +2096,11 @@ public class GroupServiceImpl implements GroupService {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNote");
 						incrtNtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteList");
 						
-						data.put("pageCnt", 0);
-						data.put("list", incrtNtList);	
+						if(data != null) {
+							data.put("pageCnt", 0);
+							data.put("list", incrtNtList);	
+						}
+						
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2109,8 +2122,10 @@ public class GroupServiceImpl implements GroupService {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNote");
 						incrtNtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteList");
 						
-						data.put("pageCnt", 0);
-						data.put("list", incrtNtList);
+						if(data != null) {
+							data.put("pageCnt", 0);
+							data.put("list", incrtNtList);	
+						}
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
