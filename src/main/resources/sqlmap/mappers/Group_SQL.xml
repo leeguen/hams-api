@@ -372,6 +372,99 @@
     </select>
     
     <select id="getLrnTmList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			SERVICE_ID,
+		    SUBJ_CD,
+		    EX_DTTM,
+		    CATEGORY,
+		    LRN_SEC,
+		    STD_LRN_TM,
+		    CASE
+				WHEN FNSH_CNT > 0 THEN 
+					CASE
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획+'
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍+'
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에+'
+						WHEN FNSH_YN = 'N' AND PLAN_DT IS NOT NULL THEN '-'
+						ELSE '안했어요'
+					END
+				ELSE EX_TYPE
+		    END AS EX_TYPE,
+		    PLAN_DT
+		FROM (
+			SELECT
+				SERVICE_ID,
+				SUBJ_CD,
+				CONCAT
+				(
+					DT,
+					'(',
+					CASE DAYOFWEEK(DT)
+						WHEN '1' THEN '일요일'
+						WHEN '2' THEN '월요일'
+						WHEN '3' THEN '화요일'
+						WHEN '4' THEN '수요일'
+						WHEN '5' THEN '목요일'
+						WHEN '6' THEN '금요일'
+						WHEN '7' THEN '토요일'
+					END,
+					') ',
+					CASE WHEN PLAN_DT IS NOT NULL AND START_DTTM IS NULL THEN '-' ELSE DATE_FORMAT(START_DTTM,'%H:%i') END,
+					CASE WHEN START_DTTM IS NULL THEN '' ELSE ' ~ ' END,
+					IFNULL(DATE_FORMAT(END_DTTM,'%H:%i'), '')
+				) AS EX_DTTM,
+				CONCAT(
+					' > ',
+					IFNULL(LRN_GRADE,''),
+					CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,
+					IFNULL(LRN_TERM,''),
+					CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
+					SUB_SUBJ_NM,' > ',
+					IFNULL(CTGR,SUB_SUBJ_NM)
+				) AS CATEGORY,
+				CASE
+					WHEN ( PLAN_DT IS NOT NULL AND START_DTTM IS NULL ) THEN NULL 
+					ELSE LRN_SEC
+				END AS LRN_SEC,
+				STD_LRN_TM,
+				CASE 
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y' THEN '스스로'
+					WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
+					ELSE '안했어요'
+				END AS EX_TYPE,
+				CASE
+				WHEN PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL THEN
+				(
+					CONCAT
+					(
+						PLAN_DT,
+						'(',
+						CASE DAYOFWEEK(PLAN_DT)
+							WHEN '1' THEN '일요일'
+							WHEN '2' THEN '월요일'
+							WHEN '3' THEN '화요일'
+							WHEN '4' THEN '수요일'
+							WHEN '5' THEN '목요일'
+							WHEN '6' THEN '금요일'
+							WHEN '7' THEN '토요일'
+						END,
+						') '
+					)
+				)
+				ELSE NULL
+			END AS PLAN_DT,
+		    PLAN_DT AS PLAN_DAY,
+		    FNSH_YN,
+		    (SELECT COUNT(*) FROM DAY_LRN_EX_LOG WHERE PLAN_DT = DL.PLAN_DT AND STUD_ID = DL.STUD_ID AND SERVICE_ID = DL.SERVICE_ID AND DT <![CDATA[<]]> DL.DT AND FNSH_YN = 'Y') AS FNSH_CNT,
+		    (SELECT MIN(END_DTTM) FROM DAY_LRN_EX_LOG WHERE PLAN_DT = DL.PLAN_DT AND STUD_ID = DL.STUD_ID AND SERVICE_ID = DL.SERVICE_ID AND DT <![CDATA[<]]> DL.DT AND FNSH_YN = 'Y') AS END_CHECK
+			FROM DAY_LRN_EX_LOG DL
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+       			AND STUD_ID = #{studId} 
+		) DL1;
     </select>
         
     <select id="getAttCntStt" parameterType="hashMap" resultType="resultMap">

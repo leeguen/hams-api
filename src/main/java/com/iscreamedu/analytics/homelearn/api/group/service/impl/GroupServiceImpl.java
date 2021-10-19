@@ -645,6 +645,77 @@ public class GroupServiceImpl implements GroupService {
 	 */
     @Override
     public Map getLrnTmList(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "LRNTMLIST");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			String startDate;
+			String endDate;
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu.isYearMonth("yyyy, mm", yymm);
+					if(vu.isValid()) {
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+						//DB 조회
+						setResult(dataKey, getMapperResultData(v_param, "list", paramMap, ".getLrnTmList"));
+					} else {
+						setResult(msgKey, vu.getResult());
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}
+			} else {
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						setResult(dataKey, getMapperResultData(v_param, "list", paramMap, ".getLrnTmList"));
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						} else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());						
+						}				
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}			
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+	
     	return result;
     }
 
