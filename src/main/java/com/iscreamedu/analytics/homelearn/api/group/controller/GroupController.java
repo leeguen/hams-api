@@ -137,6 +137,36 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LD-002 (학습분석 상세 - 출석률현황)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getAttRtStt")
+	@ResponseBody
+	public ResponseEntity getAttRtStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getAttRtStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-003 (학습분석 상세 - 학습타임라인)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnTmList")
+	@ResponseBody
+	public ResponseEntity getLrnTmList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnTmList(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
 	 * @param params
 	 * @param req

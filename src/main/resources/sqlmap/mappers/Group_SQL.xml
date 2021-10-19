@@ -202,7 +202,7 @@
 					DISTINCT DT AS ATT_DT,
 					IF(LOGIN_YN = 'Y', 1, 0) AS LOGIN
 				FROM DAY_ATT_LOG 
-				WHERE STUD_ID = #{studId} AND DT = #{startDt} AND #{endDt}  
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}  
 					AND PLAN_YN = 'Y'
 			) AS ATT
 		) AS ATT
@@ -242,7 +242,7 @@
 			ATT_RT AS attHabit							-- 약속을 지키는 습관(출석률)
 			, LRN.EX_RT AS planHabit					-- 계획을 실천하는 습관(수행률) 
 			, EX.INCRT_NT_CNT AS incrtNoteHabit			-- 오답노트 확인 습관(오답노트수) 
-			, ALRN.SUBJ_CD AS aLrnHabitCd			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.SUBJ_CD AS aLrnHabit					-- 스스로 찾아 학습하는 습관(과목코드)
 			, EX.IMPRV_SLV_HABIT_CNT AS slvHabit		-- 문제풀이 습관(고쳐야할 문제 수) 
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS concnHabit	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
@@ -321,7 +321,54 @@
 		ORDER BY DT.dt ASC
     </select>
         
-    <select id="getAttRtStt" parameterType="hashMap" resultType="resultMap">
+    <select id="getAttRtSttPeriod" parameterType="hashMap" resultType="resultMap">
+    	SELECT  ROUND( ATT.PLAN_ATT_CNT / ATT.PLAN_CNT * 100 ) AS attRt  					-- 출석률 : (계획된 학습일 중 출석일 수 / 계획된 학습일 수) * 100
+			, ROUND( PREV_ATT.PLAN_ATT_CNT / PREV_ATT.PLAN_CNT * 100 ) AS prevAttRt  	-- 이전 출석률 : (계획된 학습일 중 출석일 수 / 계획된 학습일 수) * 100
+		FROM (	
+			SELECT 
+			    COUNT(*) AS PLAN_CNT,
+				SUM(LOGIN) AS PLAN_ATT_CNT
+			FROM
+			(
+				SELECT 
+					DISTINCT DT AS ATT_DT,
+					IF(LOGIN_YN = 'Y', 1, 0) AS LOGIN		
+				FROM DAY_ATT_LOG 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
+					AND PLAN_YN = 'Y'
+			) AS A
+		) AS ATT
+		,
+		(
+			SELECT 
+			    COUNT(*) AS PLAN_CNT,
+				SUM(LOGIN) AS PLAN_ATT_CNT
+			FROM
+			(
+				SELECT 
+					DISTINCT DT AS ATT_DT,
+					IF(LOGIN_YN = 'Y', 1, 0) AS LOGIN		
+				FROM DAY_ATT_LOG 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN  (DATE_FORMAT(#{startDt},'%Y-%m-%d') - interval 1 WEEK) AND (DATE_FORMAT(#{endDt},'%Y-%m-%d') - interval 1 WEEK)
+					AND PLAN_YN = 'Y'
+			) AS A
+		) AS PREV_ATT
+    </select>
+    
+    <select id="getAttRtSttMonthly" parameterType="hashMap" resultType="resultMap">
+    	SELECT  ATT.ATT_RT AS attRt			-- 출석률
+				, PREV_ATT.ATT_RT AS prevAttRt  -- 이전 출석률
+		FROM (	
+			SELECT ATT_RT -- , ATT_CNT, PLAN_DAY_CNT
+			FROM MONTH_ATT_STT 
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS ATT
+		,
+		(
+			SELECT ATT_RT -- , ATT_CNT, PLAN_DAY_CNT 
+			FROM MONTH_ATT_STT 
+			WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT((DATE_FORMAT(CONCAT(#{yymm},'01'),'%Y%m%d') - interval 1 MONTH), '%Y%m')
+		) AS PREV_ATT
     </select>
     
     <select id="getLrnTmList" parameterType="hashMap" resultType="resultMap">

@@ -397,7 +397,7 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
-						data.put("lrnhabitChart", (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList"));
+						data.put("lrnHabitChart", (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList"));
 						setResult(msgKey, data);			
 					} else {
 						setResult(msgKey, vu2.getResult());				
@@ -422,7 +422,7 @@ public class GroupServiceImpl implements GroupService {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitPeriod");
 						if(data != null) {
 							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
-							data.put("lrnhabitChart", lrnhabitChart);
+							data.put("lrnHabitChart", lrnhabitChart);
 						}
 						setResult(msgKey, data);
 					} else {
@@ -520,7 +520,134 @@ public class GroupServiceImpl implements GroupService {
 		}
 
         return result;
+    }	
+    
+    /**
+	 * HAMS-ORG-LD-002 (학습분석 상세 - 출석률현황)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+    @Override
+    public Map getAttRtStt(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "ATTRTSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			ArrayList<Map<String,Object>> dailyLrnStt = new ArrayList<>();
+			Map<String,Object> msg = new HashMap<>();
+			Map<String,Object> msg_summary = new HashMap<>();
+			Map<String,Object> msg_detail = new HashMap<>();
+			ArrayList<Map<String,Object>> attRtDetail = new ArrayList<>();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+//						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttMonthly");
+//						data.put("dailyLrnStt", (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList"));
+						data.put("dailyLrnStt", dailyLrnStt);
+						msg.put("summary", msg_summary);
+						msg.put("detail", msg_detail);
+						data.put("attRtMsg", msg);
+						data.put("attRtDetail", attRtDetail);
+						
+//						daily-status	
+						
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+//					paramMap.put("limitDtCnt", 7);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttPeriod");
+//						if(data != null) {
+//							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
+//							data.put("dailyLrnStt", lrnhabitChart);
+//						}
+						data.put("dailyLrnStt", dailyLrnStt);
+						msg.put("summary", msg_summary);
+						msg.put("detail", msg_detail);
+						data.put("attRtMsg", msg);
+						data.put("attRtDetail", attRtDetail);
+						
+						setResult(msgKey, data);
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						} else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());						
+						}				
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+	
+    	return result;
     }
+
+    /**
+	 * HAMS-ORG-LD-003 (학습분석 상세 - 학습타임라인)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+    @Override
+    public Map getLrnTmList(Map<String, Object> paramMap) throws Exception {
+    	return result;
+    }
+
 
 	/**
 	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
@@ -549,18 +676,7 @@ public class GroupServiceImpl implements GroupService {
 		
 		return result;
     }
-	
-
-    @Override
-    public Map getAttRtStt(Map<String, Object> paramMap) throws Exception {
-    	return result;
-    }
-
-    @Override
-    public Map getLrnTmList(Map<String, Object> paramMap) throws Exception {
-    	return result;
-    }
-
+    
     @Override    
     public Map getAttCntStt(Map<String, Object> paramMap) throws Exception {
     	return result;
