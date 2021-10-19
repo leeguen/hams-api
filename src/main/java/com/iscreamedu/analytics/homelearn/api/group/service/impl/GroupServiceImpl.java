@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
@@ -120,6 +121,13 @@ public class GroupServiceImpl implements GroupService {
 		}
 	}
 	
+	/**
+     * HAMS-ORG-CM-001
+	 * 년월, 주차 산출 - 기간정보
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override
     public Map getPeriod(Map<String, Object> paramMap) throws Exception {
     	
@@ -162,7 +170,14 @@ public class GroupServiceImpl implements GroupService {
 		
     	return result;
     }
-    
+
+	/**
+	 * HAMS-ORG-CM-002
+	 * 학습분석 메인 - 학생 정보
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override
     public Map getStud(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
@@ -183,7 +198,14 @@ public class GroupServiceImpl implements GroupService {
 		
     	return result;
     }
-
+    
+    /**
+	 * HAMS-ORG-CM-003	
+	 * 학습분석 메인 - 학습분석 기본정보
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override
     public Map getLrnBasic(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
@@ -324,6 +346,13 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+	/**
+	 * HAMS-ORG-LS-001 
+	 * 학습분석 요약 - 학습 습관 차트
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override
     public Map getLrnHabitChart(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
@@ -414,7 +443,14 @@ public class GroupServiceImpl implements GroupService {
 	
     	return result;
     }
-
+    
+    /***
+     * * HAMS-ORG-LS-002
+	 * 학습분석 요약 - AI 학습 추천
+	 * @param paramMap
+	 * @return Map
+	 * @throws Exception
+	 */
     @Override
     public Map getAiRecommendLrn(Map<String, Object> paramMap) throws Exception {
     	v_param = new HashMap<>();
@@ -425,30 +461,25 @@ public class GroupServiceImpl implements GroupService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"yymm","term","studId"}, paramMap);
-		
-    	Map<String,Object> data = new HashMap<>();
-    	
-        //DB 조회
-        ArrayList<Map<String,Object>> visionPrintAiRecommendLrn = new ArrayList<>();
-        LinkedHashMap<String,String> dummyMap = new LinkedHashMap<>();
-        LinkedHashMap<String,String> dummyMapTwo = new LinkedHashMap<>();
-        
-        ArrayList<Map<String,Object>> externalApiList = new ArrayList();
-        
-        paramMap.put("apiName", "recommand-p.");
-//        https://dev-nsem.home-learn.com/sigong/clientsvc/admsys/v1/ai/tutor/weekly/recommand/null.json
-        externalApiList =  (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(paramMap).get("data");
-        
-        if(externalApiList != null && externalApiList.size() > 0) {
-        	for(Map<String, Object> item : externalApiList) {
-        		visionPrintAiRecommendLrn.add(createRecommendMap(item.get("imgUrl").toString(), item.get("categoryNm").toString(), item.get("serviceNm").toString()));
-        	}
-        	
-        	data.put("visionPrintAiRecommendLrn",visionPrintAiRecommendLrn);
-        }
-
-        setResult(dataKey,data);
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		if(vu.isValid()) { 		    	
+	        //홈런 API 조회
+	        ArrayList<Map<String,Object>> visionPrintAiRecommendLrn = new ArrayList<>();	        
+	        ArrayList<Map<String,Object>> externalApiList = new ArrayList<>();
+	        
+	        paramMap.put("apiName", "recommand.");
+	        
+	        externalApiList =  (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(paramMap).get("data");
+	        
+	        if(externalApiList != null && externalApiList.size() > 0) {
+	        	for(Map<String, Object> item : externalApiList) {
+	        		visionPrintAiRecommendLrn.add(createRecommendMap(item.get("imgUrl").toString(), item.get("categoryNm").toString(), item.get("serviceNm").toString()));
+	        	}
+	        }	
+	        setResult(dataKey, visionPrintAiRecommendLrn);			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
 
         return result;
     }
@@ -463,9 +494,32 @@ public class GroupServiceImpl implements GroupService {
         return  resultMap;
     }
 
+    /**
+	 * HAMS-ORG-LD-001 (학습분석 상세 - 진단검사/평가현황)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override
-    public Map getDiagnsticEvalStt(Map<String, Object> paramMap) throws Exception {
-    	return result;
+    public Map getDiagnosticEvalStt(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "DIGIAGNOSTICEVALSTT");
+
+		getStudId(paramMap);
+
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		if(vu.isValid()) { 	   	
+			//홈런 API 조회
+	        paramMap.put("apiName", "inspecion-present");	       	
+	        setResult(dataKey,externalAPIservice.callExternalAPI(paramMap).get("data"));			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+
+        return result;
     }
 
     @Override

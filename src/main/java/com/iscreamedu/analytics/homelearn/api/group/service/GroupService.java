@@ -19,7 +19,7 @@ public interface GroupService {
 
     public Map getAiRecommendLrn(Map<String, Object> paramMap) throws Exception;
 
-    public Map getDiagnsticEvalStt(Map<String, Object> paramMap) throws Exception;
+    public Map getDiagnosticEvalStt(Map<String, Object> paramMap) throws Exception;
 
     public Map getAttRtStt(Map<String, Object> paramMap) throws Exception;
 

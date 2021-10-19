@@ -376,45 +376,21 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        }else if(apiName.equals("recommand/")){
 	        	try {
-		        	String studId = "";
-		    		String encodedStr = paramMap.get("p").toString();
-		    		
-		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-		    		studId = paramList[1];
-		    		paramMap.put("studId", studId);
-		    		//paramMap.put("studId", "1006753");
+
+	        		//GroupServiceImpl >> getAiRecommendLrn 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
+	        		//studId 추출 코드 예외 추가
+		        	if(!(paramMap.containsKey("studId") && !"".equals(paramMap.get("studId")))) 
+	        		{	        		
+			        	String studId = "";
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		paramMap.put("studId", studId);
+			    		//paramMap.put("studId", "1006753");
+	        		} 
 		    		
 		    		String url = TUTORRECOMMEND_API + apiName + paramMap.get("studId") + ".json";
-		        	
-		        	//파라미터 세팅
-		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-		        	
-		        	URI apiUri = builder.build().encode().toUri();  
-		        	
-		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-		        	
-		        	LOGGER.debug("code : " + responseData.get("code"));
-		        	LOGGER.debug("message : " + responseData.get("message"));
-		        	LOGGER.debug("data : " + responseData.get("data"));
-		        	
-		        	if("200".equals(responseData.get("code").toString())) {
-		        		setResult(dataKey, responseData.get("data"));
-		        	} else {
-		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
-		        		setResult(msgKey, msgMap);
-		        	}
-	        	} catch(Exception e) {
-	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
-	        		setResult(msgKey, msgMap);
-	        	}
-	        }else if(apiName.equals("recommand-p/")){
-	        	try {
-	        		//recommand 에서 p 파라미터 대신 studId 파라미터를 가지고 호출
-		        	String url = TUTORRECOMMEND_API + "recommand/" + paramMap.get("studId") + ".json";
 		        	
 		        	//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
@@ -481,8 +457,12 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        }else {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
-		        	
-		        	if(!apiName.equals("step-list/study-goal-text")) {
+		        	//GroupServiceImpl >> getDiagnosticEvalStt 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
+	        		//studId 추출 코드 예외 추가		        	
+		        	if(apiName.equals("inspecion-present")) {
+		        		paramMap.put("stuId", paramMap.get("studId"));
+		        		paramMap.remove("studId");		        		
+		        	} else if(!apiName.equals("step-list/study-goal-text")) {
 			    		String studId = "";
 			    		String encodedStr = paramMap.get("p").toString();
 			    		
