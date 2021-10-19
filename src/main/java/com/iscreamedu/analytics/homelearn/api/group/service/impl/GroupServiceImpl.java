@@ -507,7 +507,7 @@ public class GroupServiceImpl implements GroupService {
     public Map getALrnExStt(Map<String, Object> paramMap) throws Exception {
     	
     	v_param = new HashMap<>();
-    	v_param.put("METHOD", "SUBJEXAM");
+    	v_param.put("METHOD", "ALRNEXSTT");
 
 		getStudId(paramMap);
 		
@@ -544,6 +544,17 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
 						aLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getALrnExStt");
 						aLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getALrnExSttList");
 						
@@ -599,6 +610,8 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
 						aLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getALrnExStt");
 						aLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getALrnExSttList");
 						
@@ -657,7 +670,7 @@ public class GroupServiceImpl implements GroupService {
     public Map getCrtRtStt(Map<String, Object> paramMap) throws Exception {
     	
     	v_param = new HashMap<>();
-    	v_param.put("METHOD", "SUBJEXAM");
+    	v_param.put("METHOD", "CRTRTSTT");
 
 		getStudId(paramMap);
 		
@@ -694,6 +707,17 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
 						crtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtRtStt");
 						crtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtRtSttList");
 						
@@ -749,6 +773,8 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
 						crtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtRtStt");
 						crtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtRtSttList");
 						
@@ -805,16 +831,504 @@ public class GroupServiceImpl implements GroupService {
 
     @Override    
     public Map getIncrtNoteNcStt(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "INCRTNOTENCSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vuW = new ValidationUtil();
+		ValidationUtil vuM = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new LinkedHashMap<>();
+			Map<String, Object> incrtData = new HashMap<>();
+			Map<String, Object> msgMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> incrtList = new ArrayList<>();
+			ArrayList<Map<String,Object>> chartList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				if(vuM.isValid()) {
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					
+					paramMap.put("convertMm", convertMm);
+					
+					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+					
+					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
+						incrtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNoteNcStt");
+						incrtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteNcSttList");
+						
+						data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
+						data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
+						data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
+						data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
+						
+						msgMap.put("summary", incrtData.get("summary"));
+						msgMap.put("detail", incrtData.get("detail"));
+						
+						if(incrtList.size() > 0 && incrtList.get(0) != null) {
+							for(Map<String, Object> item : incrtList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+								chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
+								chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+								chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+								detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+								detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
+								detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("incrtNoteNcChart", chartList);
+						data.put("incrtNoteNcMsg", msgMap);
+						data.put("incrtNoteNcDetail", detailList);
+						
+					}else {
+						setResult(msgKey, vu1.getResult());
+					}
+					
+				}else {
+					setResult(msgKey, vuM.getResult());
+				}
+			}else {
+				vuW.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vuW.isValid()) {
+					String startDate = paramMap.get("startDt").toString();
+					String endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
+						incrtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNoteNcStt");
+						incrtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteNcSttList");
+						
+						data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
+						data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
+						data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
+						data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
+						
+						msgMap.put("summary", incrtData.get("summary"));
+						msgMap.put("detail", incrtData.get("detail"));
+						
+						if(incrtList.size() > 0 && incrtList.get(0) != null) {
+							for(Map<String, Object> item : incrtList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+								chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
+								chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+								chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+								detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+								detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
+								detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("incrtNoteNcChart", chartList);
+						data.put("incrtNoteNcMsg", msgMap);
+						data.put("incrtNoteNcDetail", detailList);
+					}else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				}else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 
     @Override    
     public Map getCrtQuesCntStt(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "CRTQUESCNTSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vuW = new ValidationUtil();
+		ValidationUtil vuM = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new LinkedHashMap<>();
+			Map<String, Object> crtQuesData = new HashMap<>();
+			Map<String, Object> msgMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> crtQuesList = new ArrayList<>();
+			ArrayList<Map<String,Object>> chartList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				if(vuM.isValid()) {
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					
+					paramMap.put("convertMm", convertMm);
+					
+					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+					
+					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
+						crtQuesData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtQuesCntStt");
+						crtQuesList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtQuesCntSttList");
+						
+						data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
+						data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
+						data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
+						data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
+						
+						msgMap.put("summary", crtQuesData.get("summary"));
+						msgMap.put("detail", crtQuesData.get("detail"));
+						
+						if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
+							for(Map<String, Object> item : crtQuesList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+								chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
+								chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+								chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+								detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+								detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
+								detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("crtQuesChart", chartList);
+						data.put("crtQuesMsg", msgMap);
+						data.put("crtQuesDetail", detailList);
+						
+					}else {
+						setResult(msgKey, vu1.getResult());
+					}
+					
+				}else {
+					setResult(msgKey, vuM.getResult());
+				}
+			}else {
+				vuW.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vuW.isValid()) {
+					String startDate = paramMap.get("startDt").toString();
+					String endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
+						crtQuesData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtQuesCntStt");
+						crtQuesList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtQuesCntSttList");
+						
+						data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
+						data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
+						data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
+						data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
+						
+						msgMap.put("summary", crtQuesData.get("summary"));
+						msgMap.put("detail", crtQuesData.get("detail"));
+						
+						if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
+							for(Map<String, Object> item : crtQuesList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+								chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
+								chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+								chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+								detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+								detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
+								detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("crtQuesChart", chartList);
+						data.put("crtQuesMsg", msgMap);
+						data.put("crtQuesDetail", detailList);
+					}else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				}else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
     	return result;
     }
 
     @Override    
     public Map getSlvHabitStt(Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "SLVHABITSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vuW = new ValidationUtil();
+		ValidationUtil vuM = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new LinkedHashMap<>();
+			Map<String, Object> slvHabitData = new HashMap<>();
+			Map<String, Object> msgMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> slvHabitList = new ArrayList<>();
+			ArrayList<Map<String,Object>> chartList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				if(vuM.isValid()) {
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					
+					paramMap.put("convertMm", convertMm);
+					
+					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+					
+					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
+						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
+						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
+						
+						
+						msgMap.put("summary", slvHabitData.get("summary"));
+						msgMap.put("detail", slvHabitData.get("detail"));
+						
+						if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
+							for(Map<String, Object> item : slvHabitList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+								chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+								chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+								chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+								chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
+								chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
+								chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
+								chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+								detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+								detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+								detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+								detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("slvHabitChart", chartList);
+						data.put("slvHabitMsg", msgMap);
+						data.put("slvHabitDetail", detailList);
+						
+					}else {
+						setResult(msgKey, vu1.getResult());
+					}
+					
+				}else {
+					setResult(msgKey, vuM.getResult());
+				}
+			}else {
+				vuW.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vuW.isValid()) {
+					String startDate = paramMap.get("startDt").toString();
+					String endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
+						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
+						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
+						
+						
+						msgMap.put("summary", slvHabitData.get("summary"));
+						msgMap.put("detail", slvHabitData.get("detail"));
+						
+						if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
+							for(Map<String, Object> item : slvHabitList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("prevDt", item.get("prevDt"));
+								chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+								chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+								chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+								chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+								chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
+								chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
+								chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
+								chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+								detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+								detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+								detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+								detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
+								
+								chartList.add(chartMap);
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("slvHabitChart", chartList);
+						data.put("slvHabitMsg", msgMap);
+						data.put("slvHabitDetail", detailList);
+					}else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				}else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+    	
     	return result;
     }
 
@@ -868,6 +1382,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExam");
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -925,7 +1446,7 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu1 = new ValidationUtil();
 		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		
 		if(vu.isValid()) {
 			Map<String, Object> data = new LinkedHashMap<>();
@@ -955,6 +1476,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						
 						dataMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCompareSub");
 						
 						positiveData.put("subjCd", dataMap.get("maxSubjCd"));
@@ -1070,7 +1598,7 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu1 = new ValidationUtil();
 		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		
 		if(vu.isValid()) {
 			ArrayList<Map<String,Object>> data = new ArrayList<>();
@@ -1091,6 +1619,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						
 						data = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -1147,7 +1682,7 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu1 = new ValidationUtil();
 		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		
 		if(vu.isValid()) {
 			Map<String,Object> data = new LinkedHashMap<>();
@@ -1173,6 +1708,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						
 						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
 						
 						dataMap.put("totalCnt", getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt"));
@@ -1239,7 +1781,7 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu1 = new ValidationUtil();
 		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","yyyy","mm","studId"}, paramMap);
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		
 		if(vu.isValid()) {
 			Map<String,Object> data = new LinkedHashMap<>();
@@ -1264,6 +1806,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNote");
 						incrtNtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteList");
 						

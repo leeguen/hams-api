@@ -155,6 +155,54 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LD-012
+	 * 학습분석 상세 - 미완료 오답노트 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getIncrtNoteNcStt")
+    @ResponseBody
+	public ResponseEntity getIncrtNoteNcStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getIncrtNoteNcStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-013
+	 * 학습분석 상세 - 맞은 문제 수 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getCrtQuesCntStt")
+    @ResponseBody
+	public ResponseEntity getCrtQuesCntStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getCrtQuesCntStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-014
+	 * 학습분석 상세 - 고쳐야 할 습관 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getSlvHabitStt")
+    @ResponseBody
+	public ResponseEntity getSlvHabitStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getSlvHabitStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * HAMS-ORG-ES-001
 	 * 평가분석 요약 - 과목평가
 	 * @param params

@@ -5,13 +5,23 @@ import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorExService;
-import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorService;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +45,9 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     
     @Autowired
 	ExternalAPIService externalAPIservice;
+    
+    @Value("${extapi.hl.tutor.new.ai.recommend.url}")
+	String NEW_RECOMMEND_API; //AI 추천 정보 API 주소
 
         @Override
         public Map getSettleInfoPredictionStt (Map<String,Object> paramMap) throws Exception {
@@ -300,48 +313,257 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         @Override
         public Map getAiRecommendCourse (Map<String,Object> paramMap) throws Exception {
             Map<String,Object> data = new HashMap<>();
+            Map<String,Object> paramData = new HashMap<>();
             checkRequired(paramMap);
             
-            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
-            LocalDate beforeDate = endDate.minusMonths(1);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+            RestTemplate restTemplate = new RestTemplate();
             
-            int beforeYymm = 0;
-            
-            beforeYymm = Integer.parseInt(endDate.format(formatter));
-        	
-            String yy = String.valueOf(beforeYymm).substring(0,4);
-            String mm = String.valueOf(beforeYymm).substring(4);
-            String startDt = yy + "-" + mm + "-01";  
-            
-        	paramMap.put("yymm", beforeYymm);
-        	paramMap.put("startDt", startDt);
+            try {
+	        	
+	        	RestTemplate recommendRestTemplate = new RestTemplate();
+	        	JSONParser parser = new JSONParser();
+	    		HttpHeaders recommendHeaders = new HttpHeaders();
+	    		
+	            String url = NEW_RECOMMEND_API + "?stud_id={stud_id}";
+	            HttpEntity<String> entity = new HttpEntity<>(recommendHeaders);
 
-            //DB 조회
-            LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
-            ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+	            paramData.put("stud_id", paramMap.get("studId"));
+	            
+	         	ResponseEntity<String> response = recommendRestTemplate.exchange(url, HttpMethod.GET, entity, String.class, paramData);
+	         	
+	         	int statusCode = Integer.valueOf(response.getStatusCode().toString());
+	         	
+	         	if(statusCode == 200) {
+	         		String convertResponse = response.getBody();
+		         	
+		         	Object obj = parser.parse(response.getBody());
+		         	ObjectMapper mapper = new ObjectMapper();
+		         	Map<String, Object> objMap = mapper.readValue(obj.toString(), Map.class);
+		         	
+		         	ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) objMap.get("subjCourseList");
+		         	
+		            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
+		            LocalDate beforeDate = endDate.minusMonths(1);
+		            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+		            
+		            int beforeYymm = 0;
+		            
+		            beforeYymm = Integer.parseInt(endDate.format(formatter));
+		        	
+		            String yy = String.valueOf(beforeYymm).substring(0,4);
+		            String mm = String.valueOf(beforeYymm).substring(4);
+		            String startDt = yy + "-" + mm + "-01";  
+		            
+		        	paramMap.put("yymm", beforeYymm);
+		        	paramMap.put("startDt", startDt);
+		
+		            //DB 조회
+		        	LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
+		            ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseRstList");
+		            ArrayList<Map<String,Object>> resultList = new ArrayList();
+		            
+		            for(Map<String, Object> item : subjList) {
+		            	Map<String, Object> courseTempMap = new LinkedHashMap<>();
+		            	
+		            	courseTempMap.put("subjCd", item.get("subjCd"));
+		            	courseTempMap.put("updated", item.get("updated"));
+		            	courseTempMap.put("updatedDt", item.get("updatedDt"));
+		            	
+		            	for(Map<String, Object> courseItem : aiRecommendCourseList) {
+		            		if(item.get("subjCd").toString().equals(courseItem.get("subjCd").toString())) {
+		            			courseTempMap.put("exRt", courseItem.get("exRt"));
+		            			courseTempMap.put("exRtType", courseItem.get("exRtType"));
+		            			courseTempMap.put("crtRt", courseItem.get("crtRt"));
+		            			courseTempMap.put("crtRtType", courseItem.get("crtRtType"));
+		            		}
+		            	}
+		            	
+		            	courseTempMap.put("comment", item.get("comment"));
+		            	courseTempMap.put("imperfect1", item.get("imperfect1"));
+		            	courseTempMap.put("courseDiv1", item.get("courseDiv1"));
+		            	courseTempMap.put("courseTitle1", item.get("courseTitle1"));
+		            	courseTempMap.put("courseNm1", item.get("courseNm1"));
+		            	courseTempMap.put("courseId1", item.get("courseId1"));
+		            	courseTempMap.put("imperfect2", item.get("imperfect2"));
+		            	courseTempMap.put("courseDiv2", item.get("courseDiv2"));
+		            	courseTempMap.put("courseTitle2", item.get("courseTitle2"));
+		            	courseTempMap.put("courseNm2", item.get("courseNm2"));
+		            	courseTempMap.put("courseId2", item.get("courseId2"));
+		            	courseTempMap.put("imperfect3", item.get("imperfect3"));
+		            	courseTempMap.put("courseDiv3", item.get("courseDiv3"));
+		            	courseTempMap.put("courseTitle3", item.get("courseTitle3"));
+		            	courseTempMap.put("courseNm3", item.get("courseNm3"));
+		            	courseTempMap.put("courseId3", item.get("courseId3"));
+		            	
+		            	resultList.add(courseTempMap);
+		            }
+		            aiRecmmendCourseMap.put("subjCourseList", resultList);
+	         		data.put("aiRecommenCourse",aiRecmmendCourseMap);
+	         		setResult(dataKey,data);
+	        	} else {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+	        		msgMap.put("result", "(" + statusCode + ")");
+	        		setResult(msgKey, msgMap);
+	        	}
+	         	
+        	} catch(Exception e) {
+        		LOGGER.debug(e.toString());
+        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+        		msgMap.put("result", "External API Error");
+        		setResult(msgKey, msgMap);
+        	}
             
-            // 테스트용 로직 -> 운영 배포 전 삭제 필요
-            if(aiRecommendCourseList.size() < 1) {
-            	int beforeYymm1 = Integer.parseInt(beforeDate.format(formatter));
-            	
-            	String yy1 = String.valueOf(beforeYymm1).substring(0,4);
-                String mm1 = String.valueOf(beforeYymm1).substring(4);
-                String startDt1 = yy1 + "-" + mm1 + "-01"; 
-            	paramMap.put("yymm", beforeYymm1);
-            	paramMap.put("startDt", startDt1);
-            	
-            	aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
-            }
+//            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
+//            LocalDate beforeDate = endDate.minusMonths(1);
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+//            
+//            int beforeYymm = 0;
+//            
+//            beforeYymm = Integer.parseInt(endDate.format(formatter));
+//        	
+//            String yy = String.valueOf(beforeYymm).substring(0,4);
+//            String mm = String.valueOf(beforeYymm).substring(4);
+//            String startDt = yy + "-" + mm + "-01";  
+//            
+//        	paramMap.put("yymm", beforeYymm);
+//        	paramMap.put("startDt", startDt);
+//
+//            //DB 조회
+//            LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
+//            ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+//            
+//            // 테스트용 로직 -> 운영 배포 전 삭제 필요
+//            if(aiRecommendCourseList.size() < 1) {
+//            	int beforeYymm1 = Integer.parseInt(beforeDate.format(formatter));
+//            	
+//            	String yy1 = String.valueOf(beforeYymm1).substring(0,4);
+//                String mm1 = String.valueOf(beforeYymm1).substring(4);
+//                String startDt1 = yy1 + "-" + mm1 + "-01"; 
+//            	paramMap.put("yymm", beforeYymm1);
+//            	paramMap.put("startDt", startDt1);
+//            	
+//            	aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseList");
+//            }
+//
+//            //DB 데이터 주입
+//            
+//            if(aiRecmmendCourseMap != null) {
+//            	aiRecmmendCourseMap.put("subjCourseList", aiRecommendCourseList);
+//            }
+//            
 
-            //DB 데이터 주입
+            //리턴
+            return result;
+
+        }
+        
+        @Override
+        public Map getAiRecommendCourseConfirm (Map<String,Object> paramMap) throws Exception {
+            Map<String,Object> data = new HashMap<>();
+            checkRequired(paramMap);
             
-            if(aiRecmmendCourseMap != null) {
-            	aiRecmmendCourseMap.put("subjCourseList", aiRecommendCourseList);
-            }
+            int studId = Integer.valueOf(paramMap.get("studId").toString());
+            String subjCd = paramMap.get("subjCd").toString();
+            JSONObject confirmJson = new JSONObject();
             
-            data.put("aiRecommenCourse",aiRecmmendCourseMap);
-            setResult(dataKey,data);
+            confirmJson.put("subjCd", subjCd);
+            confirmJson.put("checked", true);
+            
+            RestTemplate confirmRestTemplate = new RestTemplate();
+            
+            try {
+            	JSONParser parser = new JSONParser();
+            	HttpHeaders confirmHeaders = new HttpHeaders();
+            	confirmHeaders.setContentType(MediaType.APPLICATION_JSON);
+            	
+            	Map<String,Object> paramData = new HashMap<>();
+            	String url = NEW_RECOMMEND_API + "?stud_id={stud_id}";
+            	HttpEntity<?> entity = new HttpEntity<>(confirmJson, confirmHeaders);
+            	
+            	paramData.put("stud_id", paramMap.get("studId"));
+            	
+            	ResponseEntity<String> response = confirmRestTemplate.exchange(url, HttpMethod.PUT, entity, String.class, paramData);
+            	
+            	int statusCode = Integer.valueOf(response.getStatusCode().toString());
+        		Object obj = parser.parse(response.getBody());
+        		
+	         	if(statusCode == 200 || statusCode == 201) {
+	         		data.put("studId", studId);
+	         		data.put("msg", obj);
+	         		
+	         		setResult(dataKey,data);
+	         	}else {
+         			LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+         			msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+         			msgMap.put("result", "Fail");
+         			setResult(msgKey, msgMap);
+	         	}
+            }catch(Exception e) {
+        	   LOGGER.debug(e.toString());
+        	   LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+        	   msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+        	   msgMap.put("result", "Fail");
+        	   setResult(msgKey, msgMap);
+			}
+            
+
+            //리턴
+            return result;
+
+        }
+        
+        @Override
+        public Map getAiRecommendCourseApply (Map<String,Object> paramMap) throws Exception {
+            Map<String,Object> data = new HashMap<>();
+            checkRequired(paramMap);
+            
+            int studId = Integer.valueOf(paramMap.get("studId").toString());
+            String subjCd = paramMap.get("subjCd").toString();
+            int courseId = Integer.valueOf(paramMap.get("courseId").toString());
+            JSONObject confirmJson = new JSONObject();
+            
+            confirmJson.put("subjCd", subjCd);
+            confirmJson.put("courseId", courseId);
+            
+            RestTemplate confirmRestTemplate = new RestTemplate();
+            
+            try {
+            	JSONParser parser = new JSONParser();
+            	HttpHeaders confirmHeaders = new HttpHeaders();
+            	confirmHeaders.setContentType(MediaType.APPLICATION_JSON);
+            	
+            	Map<String,Object> paramData = new HashMap<>();
+            	String url = NEW_RECOMMEND_API + "?stud_id={stud_id}";
+            	HttpEntity<?> entity = new HttpEntity<>(confirmJson, confirmHeaders);
+            	
+            	paramData.put("stud_id", paramMap.get("studId"));
+            	
+            	ResponseEntity<String> response = confirmRestTemplate.exchange(url, HttpMethod.PUT, entity, String.class, paramData);
+            	
+        		int statusCode = Integer.valueOf(response.getStatusCode().toString());
+        		Object obj = parser.parse(response.getBody());
+        		
+	         	if(statusCode == 200 || statusCode == 201) {
+	         		data.put("studId", studId);
+	         		data.put("courseId", courseId);
+	         		data.put("msg", obj);
+	         		
+	         		setResult(dataKey,data);
+	         	}else {
+         			LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+         			msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+         			msgMap.put("result", "Fail");
+         			setResult(msgKey, msgMap);
+	         	}
+            	
+            }catch(Exception e) {
+            	LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+            	msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+            	msgMap.put("result", "Fail");
+            	setResult(msgKey, msgMap);
+			}
 
             //리턴
             return result;

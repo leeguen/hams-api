@@ -13,5 +13,8 @@ public interface HamsTutorExService {
     public Map getAiRecommendQuestion(Map<String, Object> paramMap) throws Exception;
     
     public Map getAiRecommendCourse(Map<String, Object> paramMap) throws Exception;
-
+    
+    public Map getAiRecommendCourseConfirm(Map<String, Object> paramMap) throws Exception;
+    
+    public Map getAiRecommendCourseApply(Map<String, Object> paramMap) throws Exception;
 }
