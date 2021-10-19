@@ -130,11 +130,11 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu = new ValidationUtil();
 		ValidationUtil vu1 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"lrnStartDt"}, paramMap);
+		vu.checkRequired(new String[] {"svcOpenDe"}, paramMap);
 		
 		if(vu.isValid()) { 		
 			//2. 유효성 체크
-			vu1.isDate("lrnStartDt", paramMap.get("lrnStartDt").toString());
+			vu1.isDate("svcOpenDe", paramMap.get("svcOpenDe").toString());
 
 			if(vu1.isValid()) {
 				

@@ -413,9 +413,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        }else if(apiName.equals("recommand-p/")){
 	        	try {
-	        		//com.iscreamedu.analytics.homelearn.api.group.service.impl GroupServiceImpl.java
-		        	//recommand 에서 p 파라미터 대신 studId 파라미터를 가지고 호출
-	        		String url = TUTORRECOMMEND_API + "recommand/" + paramMap.get("studId") + ".json";
+	        		//recommand 에서 p 파라미터 대신 studId 파라미터를 가지고 호출
+		        	String url = TUTORRECOMMEND_API + "recommand/" + paramMap.get("studId") + ".json";
 		        	
 		        	//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
