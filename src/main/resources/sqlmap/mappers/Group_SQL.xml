@@ -1452,15 +1452,15 @@
 		GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
 		ORDER BY ER.SMT_DTTM DESC
 		<choose>
-            <when test="startIdx != null and endIdx != null">
-                LIMIT ${endIdx}
+            <when test="startIdx != null and pageSize != null">
+                LIMIT ${pageSize}
                 OFFSET ${startIdx}
             </when>
-            <when test="startIdx == null and endIdx != null">
-                LIMIT ${endIdx}
+            <when test="startIdx == null and pageSize != null">
+                LIMIT ${pageSize}
                 OFFSET 0
             </when>
-            <when test="startIdx != null and endIdx == null">
+            <when test="startIdx != null and pageSize == null">
                 LIMIT 10
                 OFFSET ${startIdx}
             </when>
@@ -1509,15 +1509,15 @@
 			AND STUD_ID = #{studId}
 		ORDER BY EN.SMT_DTTM DESC
 		<choose>
-            <when test="startIdx != null and endIdx != null">
-                LIMIT ${endIdx}
+            <when test="startIdx != null and pageSize != null">
+                LIMIT ${pageSize}
                 OFFSET ${startIdx}
             </when>
-            <when test="startIdx == null and endIdx != null">
-                LIMIT ${endIdx}
+            <when test="startIdx == null and pageSize != null">
+                LIMIT ${pageSize}
                 OFFSET 0
             </when>
-            <when test="startIdx != null and endIdx == null">
+            <when test="startIdx != null and pageSize == null">
                 LIMIT 10
                 OFFSET ${startIdx}
             </when>
