@@ -318,7 +318,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             
             RestTemplate restTemplate = new RestTemplate();
             
-            try {
+        	try {
 	        	
 	        	RestTemplate recommendRestTemplate = new RestTemplate();
 	        	JSONParser parser = new JSONParser();
@@ -340,66 +340,74 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 		         	ObjectMapper mapper = new ObjectMapper();
 		         	Map<String, Object> objMap = mapper.readValue(obj.toString(), Map.class);
 		         	
-		         	ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) objMap.get("subjCourseList");
+		         	if(objMap.get("subjCourseList") != null) {
+		         		ArrayList<Map<String,Object>> subjList = (ArrayList<Map<String, Object>>) objMap.get("subjCourseList");
+		         		
+		         		LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
+		         		LocalDate beforeDate = endDate.minusMonths(1);
+		         		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
+		         		
+		         		int beforeYymm = 0;
+		         		
+		         		beforeYymm = Integer.parseInt(endDate.format(formatter));
+		         		
+		         		String yy = String.valueOf(beforeYymm).substring(0,4);
+		         		String mm = String.valueOf(beforeYymm).substring(4);
+		         		String startDt = yy + "-" + mm + "-01";  
+		         		
+		         		paramMap.put("yymm", beforeYymm);
+		         		paramMap.put("startDt", startDt);
+		         		
+		         		//DB 조회
+		         		LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
+		         		ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseRstList");
+		         		ArrayList<Map<String,Object>> resultList = new ArrayList();
+		         		
+		         		for(Map<String, Object> item : subjList) {
+		         			Map<String, Object> courseTempMap = new LinkedHashMap<>();
+		         			
+		         			courseTempMap.put("subjCd", item.get("subjCd"));
+		         			courseTempMap.put("updated", item.get("updated"));
+		         			courseTempMap.put("updatedDt", item.get("updatedDt"));
+		         			
+		         			for(Map<String, Object> courseItem : aiRecommendCourseList) {
+		         				if(item.get("subjCd").toString().equals(courseItem.get("subjCd").toString())) {
+		         					courseTempMap.put("exRt", courseItem.get("exRt"));
+		         					courseTempMap.put("exRtType", courseItem.get("exRtType"));
+		         					courseTempMap.put("crtRt", courseItem.get("crtRt"));
+		         					courseTempMap.put("crtRtType", courseItem.get("crtRtType"));
+		         				}
+		         			}
+		         			
+		         			courseTempMap.put("comment", item.get("comment"));
+		         			courseTempMap.put("imperfect1", item.get("imperfect1"));
+		         			courseTempMap.put("courseDiv1", item.get("courseDiv1"));
+		         			courseTempMap.put("courseTitle1", item.get("courseTitle1"));
+		         			courseTempMap.put("courseNm1", item.get("courseNm1"));
+		         			courseTempMap.put("courseId1", item.get("courseId1"));
+		         			courseTempMap.put("imperfect2", item.get("imperfect2"));
+		         			courseTempMap.put("courseDiv2", item.get("courseDiv2"));
+		         			courseTempMap.put("courseTitle2", item.get("courseTitle2"));
+		         			courseTempMap.put("courseNm2", item.get("courseNm2"));
+		         			courseTempMap.put("courseId2", item.get("courseId2"));
+		         			courseTempMap.put("imperfect3", item.get("imperfect3"));
+		         			courseTempMap.put("courseDiv3", item.get("courseDiv3"));
+		         			courseTempMap.put("courseTitle3", item.get("courseTitle3"));
+		         			courseTempMap.put("courseNm3", item.get("courseNm3"));
+		         			courseTempMap.put("courseId3", item.get("courseId3"));
+		         			
+		         			resultList.add(courseTempMap);
+		         		}
+		         		aiRecmmendCourseMap.put("subjCourseList", resultList);
+		         		data.put("aiRecommenCourse",aiRecmmendCourseMap);
+		         		setResult(dataKey,data);
+		         	}else {
+		         		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.NO_DATA.getCode());
+		        		msgMap.put("result", "NO_DATA");
+		        		setResult(msgKey, msgMap);
+		         	}
 		         	
-		            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
-		            LocalDate beforeDate = endDate.minusMonths(1);
-		            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
-		            
-		            int beforeYymm = 0;
-		            
-		            beforeYymm = Integer.parseInt(endDate.format(formatter));
-		        	
-		            String yy = String.valueOf(beforeYymm).substring(0,4);
-		            String mm = String.valueOf(beforeYymm).substring(4);
-		            String startDt = yy + "-" + mm + "-01";  
-		            
-		        	paramMap.put("yymm", beforeYymm);
-		        	paramMap.put("startDt", startDt);
-		
-		            //DB 조회
-		        	LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
-		            ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseRstList");
-		            ArrayList<Map<String,Object>> resultList = new ArrayList();
-		            
-		            for(Map<String, Object> item : subjList) {
-		            	Map<String, Object> courseTempMap = new LinkedHashMap<>();
-		            	
-		            	courseTempMap.put("subjCd", item.get("subjCd"));
-		            	courseTempMap.put("updated", item.get("updated"));
-		            	courseTempMap.put("updatedDt", item.get("updatedDt"));
-		            	
-		            	for(Map<String, Object> courseItem : aiRecommendCourseList) {
-		            		if(item.get("subjCd").toString().equals(courseItem.get("subjCd").toString())) {
-		            			courseTempMap.put("exRt", courseItem.get("exRt"));
-		            			courseTempMap.put("exRtType", courseItem.get("exRtType"));
-		            			courseTempMap.put("crtRt", courseItem.get("crtRt"));
-		            			courseTempMap.put("crtRtType", courseItem.get("crtRtType"));
-		            		}
-		            	}
-		            	
-		            	courseTempMap.put("comment", item.get("comment"));
-		            	courseTempMap.put("imperfect1", item.get("imperfect1"));
-		            	courseTempMap.put("courseDiv1", item.get("courseDiv1"));
-		            	courseTempMap.put("courseTitle1", item.get("courseTitle1"));
-		            	courseTempMap.put("courseNm1", item.get("courseNm1"));
-		            	courseTempMap.put("courseId1", item.get("courseId1"));
-		            	courseTempMap.put("imperfect2", item.get("imperfect2"));
-		            	courseTempMap.put("courseDiv2", item.get("courseDiv2"));
-		            	courseTempMap.put("courseTitle2", item.get("courseTitle2"));
-		            	courseTempMap.put("courseNm2", item.get("courseNm2"));
-		            	courseTempMap.put("courseId2", item.get("courseId2"));
-		            	courseTempMap.put("imperfect3", item.get("imperfect3"));
-		            	courseTempMap.put("courseDiv3", item.get("courseDiv3"));
-		            	courseTempMap.put("courseTitle3", item.get("courseTitle3"));
-		            	courseTempMap.put("courseNm3", item.get("courseNm3"));
-		            	courseTempMap.put("courseId3", item.get("courseId3"));
-		            	
-		            	resultList.add(courseTempMap);
-		            }
-		            aiRecmmendCourseMap.put("subjCourseList", resultList);
-	         		data.put("aiRecommenCourse",aiRecmmendCourseMap);
-	         		setResult(dataKey,data);
 	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
@@ -410,8 +418,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         	} catch(Exception e) {
         		LOGGER.debug(e.toString());
         		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-        		msgMap.put("result", "External API Error");
+        		msgMap.put("resultCode", ValidationCode.NO_DATA.getCode());
+        		msgMap.put("result", "NO_DATA");
         		setResult(msgKey, msgMap);
         	}
             
