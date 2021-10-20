@@ -280,6 +280,22 @@ public class GroupController {
 	
 	/**
 	 * HAMS-ORG-LD-016
+	 * 학습분석 상세 - 가장 긴 학습시간 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLongLrnTmStt")
+    @ResponseBody
+	public ResponseEntity getLongLrnTmStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLongLrnTmStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-017
 	 * 학습분석 상세 - 총 학습시간 현황
 	 * @param params
 	 * @param req

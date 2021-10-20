@@ -1107,7 +1107,6 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID, SUBJ_CD
 		) TM ON TM.DT = ST.DT AND ST.STUD_ID = TM.STUD_ID
-		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getDayAvgLrnDetailList" parameterType="hashMap" resultType="resultMap">
@@ -1149,7 +1148,6 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID, SUBJ_CD
 		) TM ON TM.DT = ST.DT AND TM.SUBJ_CD = ST.SUBJ_CD AND ST.STUD_ID = TM.STUD_ID
-		WHERE ST.STUD_ID = #{studId}
 		GROUP BY ST.DT, ST.STUD_ID
     </select>
     
@@ -1189,41 +1187,206 @@
 				AND STUD_ID = #{studId}
 			GROUP BY STUD_ID
 		) PTM ON ST.STUD_ID = PTM.STUD_ID
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
+			</otherwise>
+		</choose> 
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
     <select id="getTotalLrnTmSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
-			ST.STUD_ID,
+			ST.DT,
 		    TOTAL_LRN_TM,
 		    PREV_TOTAL_LRN_TM,
-		    NULL AS TOP_TOTAL_LRN_TM,
-		    NULL AS AVG_TOTAL_LRN_TM,
+		    NULL AS TOP_A_LRN_EX_CNT,
+		    NULL AS AVG_A_LRN_EX_CNT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+		    SELECT
+				DT,
+		        STUD_ID,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON ST.DT = GL.DT AND ST.GRADE = GL.GRADE
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    LONG_LRN_SUBJ_CD,
+		    PREV_TOTAL_LRN_TM,
 		    NULL AS SUMMARY,
 		    NULL AS DETAIL
 		FROM STUD ST
 		LEFT OUTER JOIN (
 			SELECT
 				STUD_ID,
+				SUBJ_CD AS LONG_LRN_SUBJ_CD,
 				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
 			FROM DAY_LRN_EX_LOG
-			WHERE DT BETWEEN '2021-09-01' AND '2021-09-30'
-				AND STUD_ID = 4995
-			GROUP BY STUD_ID
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+			ORDER BY SUM(IFNULL(LRN_SEC,0)) DESC 
+			LIMIT 1
 		) TM ON ST.STUD_ID = TM.STUD_ID
 		LEFT OUTER JOIN (
 			SELECT
 				STUD_ID,
+		        SUBJ_CD,
 				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
 			FROM DAY_LRN_EX_LOG
-			WHERE DT BETWEEN '2021-08-01' AND '2021-08-31'
-				AND STUD_ID = 4995
-			GROUP BY STUD_ID
-		) PTM ON ST.STUD_ID = PTM.STUD_ID
-		WHERE ST.STUD_ID = 4995
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+		) PTM ON ST.STUD_ID = PTM.STUD_ID AND TM.LONG_LRN_SUBJ_CD = PTM.SUBJ_CD
+		WHERE ST.STUD_ID = #{studId}
     </select>
     
-    <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    <select id="getLongLrnTmSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    ST.SUBJ_CD,
+		    LRN_TM,
+		    PREV_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+		) TM ON ST.STUD_ID = TM.STUD_ID AND TM.SUBJ_CD = ST.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+		) PTM ON ST.STUD_ID = PTM.STUD_ID AND ST.SUBJ_CD = PTM.SUBJ_CD
+    </select>
+    
+    <select id="getLongLrnTmDetailList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    ST.DT,
+		    SUM(IFNULL(TM.LRN_SEC, 0 )) AS TOTAL_LRN_SEC,
+		    GROUP_CONCAT(IFNULL(TM.LRN_SEC,0) ORDER BY ST.SUBJ_CD SEPARATOR ',') AS SUBJ_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND TM.SUBJ_CD = ST.SUBJ_CD AND ST.STUD_ID = TM.STUD_ID
+		GROUP BY ST.DT, ST.STUD_ID
     </select>
     
     <select id="getSubjExam" parameterType="hashMap" resultType="resultMap">
