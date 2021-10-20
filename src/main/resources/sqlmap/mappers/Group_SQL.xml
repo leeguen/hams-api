@@ -532,7 +532,7 @@
 						#{startDt} AS DT
 					FROM information_schema.`COLUMNS` A
 						   , (SELECT @ROWNUM:=0) R
-					LIMIT #{lastDay} 
+					LIMIT ${lastDay} 
 				) DTS  
 			) DE 
 			WHERE ST1.STUD_ID = #{studId}
@@ -644,7 +644,7 @@
 						#{startDt} AS DT
 					FROM information_schema.`COLUMNS` A
 						   , (SELECT @ROWNUM:=0) R
-					LIMIT #{lastDay}    
+					LIMIT ${lastDay}    
 				) DTS  
 			) DE 
 			WHERE ST1.STUD_ID = #{studId}
@@ -787,7 +787,7 @@
 						#{startDt} AS DT
 					FROM information_schema.`COLUMNS` A
 						   , (SELECT @ROWNUM:=0) R
-					LIMIT #{lastDay}    
+					LIMIT ${lastDay}    
 				) DTS  
 			) DE 
 			WHERE ST1.STUD_ID = #{studId}
@@ -918,7 +918,7 @@
 						#{startDt} AS DT
 					FROM information_schema.`COLUMNS` A
 						   , (SELECT @ROWNUM:=0) R
-					LIMIT #{lastDay}    
+					LIMIT ${lastDay}    
 				) DTS  
 			) DE 
 			WHERE ST1.STUD_ID = #{studId}
@@ -1006,7 +1006,7 @@
 						#{startDt} AS DT
 					FROM information_schema.`COLUMNS` A
 						   , (SELECT @ROWNUM:=0) R
-					LIMIT #{lastDay}    
+					LIMIT ${lastDay}    
 				) DTS  
 			) DE 
 			WHERE ST1.STUD_ID = #{studId}
@@ -1062,7 +1062,7 @@
 		ORDER BY ST.DT
     </select>
     
-    <select id="getDayAvgLrnStt " parameterType="hashMap" resultType="resultMap">
+    <select id="getDayAvgLrnStt" parameterType="hashMap" resultType="resultMap">
     	SELECT 
 			ST.STUD_ID,
 		    NULL AS SUMMARY,
@@ -1071,16 +1071,156 @@
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
-    <select id="getDayAvgLrnSttList " parameterType="hashMap" resultType="resultMap">
-    	SELECT 
+    <select id="getDayAvgLrnSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
 			ST.STUD_ID,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
-		FROM STUD ST
+		    ST.DT,
+		    TM.SUBJ_CD,
+		    TM.LRN_SEC AS LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT #{lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND ST.STUD_ID = TM.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="getDayAvgLrnDetailList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    ST.DT,
+		    SUM(IFNULL(TM.LRN_SEC, 0 )) AS TOTAL_LRN_SEC,
+		    GROUP_CONCAT(IFNULL(TM.LRN_SEC,0) ORDER BY ST.SUBJ_CD SEPARATOR ',') AS SUBJ_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND TM.SUBJ_CD = ST.SUBJ_CD AND ST.STUD_ID = TM.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
+		GROUP BY ST.DT, ST.STUD_ID
     </select>
     
     <select id="getTotalLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    TOTAL_LRN_TM,
+		    PREV_TOTAL_LRN_TM,
+		    NULL AS TOP_TOTAL_LRN_TM,
+		    NULL AS AVG_TOTAL_LRN_TM,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID
+		) TM ON ST.STUD_ID = TM.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID
+		) PTM ON ST.STUD_ID = PTM.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
+    </select>
+    
+    <select id="getTotalLrnTmSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    TOTAL_LRN_TM,
+		    PREV_TOTAL_LRN_TM,
+		    NULL AS TOP_TOTAL_LRN_TM,
+		    NULL AS AVG_TOTAL_LRN_TM,
+		    NULL AS SUMMARY,
+		    NULL AS DETAIL
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN '2021-09-01' AND '2021-09-30'
+				AND STUD_ID = 4995
+			GROUP BY STUD_ID
+		) TM ON ST.STUD_ID = TM.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN '2021-08-01' AND '2021-08-31'
+				AND STUD_ID = 4995
+			GROUP BY STUD_ID
+		) PTM ON ST.STUD_ID = PTM.STUD_ID
+		WHERE ST.STUD_ID = 4995
     </select>
     
     <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
@@ -1424,6 +1564,7 @@
 		    ER.STUD_ID,
 		    ER.EXAM_NM,
 		    CONCAT((SELECT IF(COUNT(*) = 1, 1, COUNT(*) + 1) FROM EXAM_RST WHERE STUD_ID = ER.STUD_ID AND EXAM_CD = ER.EXAM_CD AND SMT_ID = ER.SMT_ID),'차') AS ROUND,
+		    ROUND(ER.CRT_CNT / ER.QUES_CNT * 100) AS CRT_RT,
 		    ER.CRT_CNT AS CRT_QUES_CNT,
 		    ER.QUES_CNT AS QUES_CNT,
 		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CRT', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CRT_QUES,
@@ -1492,7 +1633,7 @@
     <select id="getIncrtNoteList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			GRADE_TERM,
-		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_CD,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_NM,
 		    UNIT_NM,
 		    EXAM_TYPE AS TYPE,
 		    EXAM_CD,
@@ -1501,8 +1642,8 @@
 		    (SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = EN.LRN_STT) AS LRN_STT,
 		    QUES_CNT,
 		    CRT_QUES_CNT,
-		    INCRT_CNT,
-		    REG_DT,
+		    INCRT_CNT AS REMAIN_QUES_CNT,
+		    REG_DT AS INCRT_NOTE_REG_DT,
 		    SMT_DTTM
 		FROM EXAM_RST_INCRT_NT EN
 		WHERE DT BETWEEN #{startDt} AND #{endDt}

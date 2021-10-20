@@ -279,6 +279,22 @@ public class GroupController {
 	}
 	
 	/**
+	 * HAMS-ORG-LD-016
+	 * 학습분석 상세 - 총 학습시간 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getTotalLrnTmStt")
+    @ResponseBody
+	public ResponseEntity getTotalLrnTmStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getTotalLrnTmStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
 	 * HAMS-ORG-ES-001
 	 * 평가분석 요약 - 과목평가
 	 * @param params

@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -1604,6 +1605,175 @@ public class GroupServiceImpl implements GroupService {
 
     @Override    
     public Map getDayAvgLrnStt (Map<String, Object> paramMap) throws Exception {
+    	
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "DAYAVGLRNSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vuW = new ValidationUtil();
+		ValidationUtil vuM = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			Map<String, Object> data = new LinkedHashMap<>();
+			Map<String, Object> dayAvgLrnData = new HashMap<>();
+			Map<String, Object> msgMap = new LinkedHashMap<>();
+			ArrayList<Map<String,Object>> dayAvgLrnList = new ArrayList<>();
+			ArrayList<Map<String,Object>> dayAvgLrnDetailList = new ArrayList<>();
+			ArrayList<Map<String,Object>> chartList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				if(vuM.isValid()) {
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					
+					paramMap.put("convertMm", convertMm);
+					
+					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+					
+					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
+						String startDt = yyyy + "-" + convertMm + "-01";
+						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
+						
+						paramMap.put("yyMm", yyMm);
+						paramMap.put("startDt", startDt);
+						paramMap.put("endDt", endDt);
+						paramMap.put("lastDay", lastDay);
+						
+						dayAvgLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getDayAvgLrnStt");
+						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
+						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
+						
+						msgMap.put("summary", dayAvgLrnData.get("summary"));
+						msgMap.put("detail", dayAvgLrnData.get("detail"));
+						
+						if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
+							for(Map<String, Object> item : dayAvgLrnList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("subjCd", item.get("subjCd"));
+								chartMap.put("lrnTm", item.get("lrnTm"));
+								
+								chartList.add(chartMap);
+							}
+						}
+						
+						if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
+							for(Map<String, Object> item : dayAvgLrnDetailList) {
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								List<String> subjLrnTmList = new ArrayList<>();
+								
+								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+								
+								if(lrnSec > 0) {
+									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+								}
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("subjLrnTm", subjLrnTmList);
+								
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("dayAvgLrnChart", chartList);
+						data.put("dayAvgLrnMsg", msgMap);
+						data.put("dayAvgLrnDetail", detailList);
+						
+					}else {
+						setResult(msgKey, vu1.getResult());
+					}
+					
+				}else {
+					setResult(msgKey, vuM.getResult());
+				}
+			}else {
+				vuW.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vuW.isValid()) {
+					String startDate = paramMap.get("startDt").toString();
+					String endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						paramMap.put("lastDay", 7);
+						
+						dayAvgLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getDayAvgLrnStt");
+						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
+						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
+						
+						msgMap.put("summary", dayAvgLrnData.get("summary"));
+						msgMap.put("detail", dayAvgLrnData.get("detail"));
+						
+						if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
+							for(Map<String, Object> item : dayAvgLrnList) {
+								Map<String, Object> chartMap = new LinkedHashMap<>();
+								
+								chartMap.put("dt", item.get("dt"));
+								chartMap.put("subjCd", item.get("subjCd"));
+								chartMap.put("lrnTm", item.get("lrnTm"));
+								
+								chartList.add(chartMap);
+							}
+						}
+						
+						if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
+							for(Map<String, Object> item : dayAvgLrnDetailList) {
+								Map<String, Object> detailMap = new LinkedHashMap<>();
+								List<String> subjLrnTmList = new ArrayList<>();
+								
+								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+								
+								if(lrnSec > 0) {
+									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+								}
+								
+								detailMap.put("dt", item.get("dt"));
+								detailMap.put("subjLrnTm", subjLrnTmList);
+								
+								detailList.add(detailMap);
+							}
+						}
+						
+						data.put("dayAvgLrnChart", chartList);
+						data.put("dayAvgLrnMsg", msgMap);
+						data.put("dayAvgLrnDetail", detailList);
+					}else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				}else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
+			setResult(dataKey, data);
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+    	
     	return result;
     }
 
@@ -2097,7 +2267,6 @@ public class GroupServiceImpl implements GroupService {
 						incrtNtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteList");
 						
 						if(data != null) {
-							data.put("pageCnt", 0);
 							data.put("list", incrtNtList);	
 						}
 						
@@ -2123,7 +2292,6 @@ public class GroupServiceImpl implements GroupService {
 						incrtNtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteList");
 						
 						if(data != null) {
-							data.put("pageCnt", 0);
 							data.put("list", incrtNtList);	
 						}
 					}else {
