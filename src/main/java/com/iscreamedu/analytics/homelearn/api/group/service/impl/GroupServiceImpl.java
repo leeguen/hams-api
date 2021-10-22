@@ -1489,6 +1489,8 @@ public class GroupServiceImpl implements GroupService {
 						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
 						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
 						
+						data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
+						data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
 						
 						msgMap.put("summary", slvHabitData.get("summary"));
 						msgMap.put("detail", slvHabitData.get("detail"));
@@ -1549,6 +1551,8 @@ public class GroupServiceImpl implements GroupService {
 						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
 						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
 						
+						data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
+						data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
 						
 						msgMap.put("summary", slvHabitData.get("summary"));
 						msgMap.put("detail", slvHabitData.get("detail"));
@@ -1660,6 +1664,9 @@ public class GroupServiceImpl implements GroupService {
 						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
 						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
 						
+						data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
+						data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
+						
 						msgMap.put("summary", dayAvgLrnData.get("summary"));
 						msgMap.put("detail", dayAvgLrnData.get("detail"));
 						
@@ -1721,6 +1728,9 @@ public class GroupServiceImpl implements GroupService {
 						dayAvgLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getDayAvgLrnStt");
 						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
 						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
+						
+						data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
+						data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
 						
 						msgMap.put("summary", dayAvgLrnData.get("summary"));
 						msgMap.put("detail", dayAvgLrnData.get("detail"));

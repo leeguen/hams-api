@@ -970,9 +970,47 @@
     <select id="getSlvHabitStt" parameterType="hashMap" resultType="resultMap">
     	SELECT 
 			ST.STUD_ID,
+		    SLV_HABIT_CNT,
+		    PREV_SLV_HABIT_CNT,
 		    NULL AS SUMMARY,
 		    NULL AS DETAIL
 		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				COUNT(IF(QUES_PTN IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS SLV_HABIT_CNT
+			FROM (
+				SELECT
+					STUD_ID,
+					IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+				FROM EXAM_RST_QUES_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+			) EQ
+			GROUP BY STUD_ID
+		) EN ON ST.STUD_ID = EN.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				COUNT(IF(QUES_PTN IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS PREV_SLV_HABIT_CNT
+			FROM (
+				SELECT
+					STUD_ID,
+					IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+				FROM EXAM_RST_QUES_LOG
+				WHERE DT
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+			) EQ
+			GROUP BY STUD_ID
+		) PEN ON ST.STUD_ID = PEN.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
@@ -1065,9 +1103,37 @@
     <select id="getDayAvgLrnStt" parameterType="hashMap" resultType="resultMap">
     	SELECT 
 			ST.STUD_ID,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
+		    LRN_TM,
+		    PREV_LRN_TM,
+			NULL AS SUMMARY,
+			NULL AS DETAIL
 		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID
+		) LT ON ST.STUD_ID = LT.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID
+		) PLT ON ST.STUD_ID = PLT.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
