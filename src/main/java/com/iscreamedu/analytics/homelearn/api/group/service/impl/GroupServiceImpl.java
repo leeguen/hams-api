@@ -1991,7 +1991,8 @@ public class GroupServiceImpl implements GroupService {
 						longLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmDetailList");
 						
 						data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
-						data.put("prevlongLrnSubjLrnTm", longLrnTmData.get("prevlongLrnSubjLrnTm"));
+						data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
+						data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
 						
 						msgMap.put("summary", longLrnTmData.get("summary"));
 						msgMap.put("detail", longLrnTmData.get("detail"));
@@ -2056,7 +2057,8 @@ public class GroupServiceImpl implements GroupService {
 						longLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmDetailList");
 						
 						data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
-						data.put("prevlongLrnSubjLrnTm", longLrnTmData.get("prevlongLrnSubjLrnTm"));
+						data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
+						data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
 						
 						msgMap.put("summary", longLrnTmData.get("summary"));
 						msgMap.put("detail", longLrnTmData.get("detail"));
