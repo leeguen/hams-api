@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1686,15 +1687,17 @@ public class GroupServiceImpl implements GroupService {
 							for(Map<String, Object> item : dayAvgLrnDetailList) {
 								Map<String, Object> detailMap = new LinkedHashMap<>();
 								List<String> subjLrnTmList = new ArrayList<>();
+								List<Integer> subjLrnTmIntList = new ArrayList<>();
 								
 								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
 								
 								if(lrnSec > 0) {
 									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
 								}
 								
 								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmList);
+								detailMap.put("subjLrnTm", subjLrnTmIntList);
 								
 								detailList.add(detailMap);
 							}
@@ -1751,15 +1754,17 @@ public class GroupServiceImpl implements GroupService {
 							for(Map<String, Object> item : dayAvgLrnDetailList) {
 								Map<String, Object> detailMap = new LinkedHashMap<>();
 								List<String> subjLrnTmList = new ArrayList<>();
+								List<Integer> subjLrnTmIntList = new ArrayList<>();
 								
 								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
 								
 								if(lrnSec > 0) {
 									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
 								}
 								
 								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmList);
+								detailMap.put("subjLrnTm", subjLrnTmIntList);
 								
 								detailList.add(detailMap);
 							}
@@ -2013,15 +2018,19 @@ public class GroupServiceImpl implements GroupService {
 							for(Map<String, Object> item : longLrnTmDetailList) {
 								Map<String, Object> detailMap = new LinkedHashMap<>();
 								List<String> subjLrnTmList = new ArrayList<>();
+								List<Integer> subjLrnTmIntList = new ArrayList<>();
 								
 								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
 								
 								if(lrnSec > 0) {
 									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+									
+									
 								}
 								
 								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmList);
+								detailMap.put("subjLrnTm", subjLrnTmIntList);
 								
 								detailList.add(detailMap);
 							}
@@ -2079,15 +2088,17 @@ public class GroupServiceImpl implements GroupService {
 							for(Map<String, Object> item : longLrnTmDetailList) {
 								Map<String, Object> detailMap = new LinkedHashMap<>();
 								List<String> subjLrnTmList = new ArrayList<>();
+								List<Integer> subjLrnTmIntList = new ArrayList<>();
 								
 								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
 								
 								if(lrnSec > 0) {
 									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
 								}
 								
 								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmList);
+								detailMap.put("subjLrnTm", subjLrnTmIntList);
 								
 								detailList.add(detailMap);
 							}
