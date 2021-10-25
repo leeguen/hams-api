@@ -29,7 +29,7 @@ public interface GroupService {
     
     public Map getAttCntStt(Map<String, Object> paramMap) throws Exception;
     
-    public Map getLoginPtnStt(Map<String, Object> paramMap) throws Exception;
+    public Map getloginPtnStt(Map<String, Object> paramMap) throws Exception;
     
     public Map getExRtStt(Map<String, Object> paramMap) throws Exception;
     

@@ -83,7 +83,6 @@ public class GroupServiceImpl implements GroupService {
 	 */
 	private Object getMapperResultData(Map<String, Object> param, String sqlRequestType, Map<String, Object> paramMap, String sqlId) {
 		
-		Object r_result;
 		try {
 			v_result = getDWVersion(param);
 	    	
@@ -92,33 +91,34 @@ public class GroupServiceImpl implements GroupService {
 	    	
 			if (mapper_name == "CommonMapperTutor") {
 				if(sqlRequestType.toLowerCase() == "list") {
-					r_result = mapper_1_0.getList(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_1_0.getList(paramMap, dw_mapper_namespace + sqlId);
 				} else {
-					r_result = mapper_1_0.get(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_1_0.get(paramMap, dw_mapper_namespace + sqlId);
 				}
 			} else if (mapper_name == "CommonMapperTutorTemp") {
 				//mapper_1_5
 				if(sqlRequestType.toLowerCase() == "list") {
-					r_result = mapper_1_5.getList(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_1_5.getList(paramMap, dw_mapper_namespace + sqlId);
 				} else {
-					r_result = mapper_1_5.get(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_1_5.get(paramMap, dw_mapper_namespace + sqlId);
 				}
 			} else {
 				//mapper_2_0
 				if(sqlRequestType.toLowerCase() == "list") {
-					r_result = mapper_2_0.getList(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_2_0.getList(paramMap, dw_mapper_namespace + sqlId);
 				} else {
-					r_result = mapper_2_0.get(paramMap, dw_mapper_namespace + sqlId);
+					return mapper_2_0.get(paramMap, dw_mapper_namespace + sqlId);
 				}
 			}
-			
-			return r_result;
 		} catch (Exception e) {
 			
 			ValidationUtil vu = new ValidationUtil();
 			vu.setError("db mapper result data fail");
-			LOGGER.debug(e.getMessage());
-			return null; 
+			Map<String, Object> tempResult = vu.getResult();
+			tempResult.put("error", e.getStackTrace());
+			LOGGER.debug(tempResult.toString());
+//			e.setStackTrace(null);
+			return tempResult; 
 		}
 	}
 	
@@ -286,7 +286,6 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
 						data.put("current", getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod"));
 			    		
 						//current 기준 prev 구하기 
@@ -550,11 +549,10 @@ public class GroupServiceImpl implements GroupService {
 			String endDate;
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			Map<String,Object> msg = new HashMap<>();
-			String msg_summary = null;
-			String msg_detail = null;
-			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
 			ArrayList<Map<String,Object>> dailyLrnStt = new ArrayList<>();
+			Map<String,Object> msg = new HashMap<>();
+			Map<String,Object> msg_summary = new HashMap<>();
+			Map<String,Object> msg_detail = new HashMap<>();
 			ArrayList<Map<String,Object>> attRtDetail = new ArrayList<>();
 			paramMap.put("currConCheck", currConCheck);
 			
@@ -576,40 +574,18 @@ public class GroupServiceImpl implements GroupService {
 						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+//						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
-						// 출석률 attRt
-						// 이전출석률 prevAttRt
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttMonthly");
-						if (data != null ) { 							
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttRtSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> chartMap = new LinkedHashMap<>();
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemCompareString(item.get("attYN"), "1"));
-									chartMap.put("lrnStt", item.get("lrnStt"));
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("lrnFnsh", getItemCompareString(item.get("lrnFnsh"), "1"));
-									detailMap.put("partFnsh", getItemCompareString(item.get("partFnsh"), "1"));
-									detailMap.put("lrnBefore", getItemCompareString(item.get("lrnBefore"), "1"));
-									
-									dailyLrnStt.add(chartMap);
-									attRtDetail.add(detailMap);
-								}
-							}	
-							// 일일학습정보 dailyLrnStt
-							data.put("dailyLrnStt", dailyLrnStt);
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
-							// 출석률 상세정보 attRtDetail
-							data.put("attRtDetail", attRtDetail);
-						}
+//						data.put("dailyLrnStt", (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList"));
+						data.put("dailyLrnStt", dailyLrnStt);
+						msg.put("summary", msg_summary);
+						msg.put("detail", msg_detail);
+						data.put("attRtMsg", msg);
+						data.put("attRtDetail", attRtDetail);
+						
+//						daily-status	
+						
 						setResult(msgKey, data);			
 					} else {
 						setResult(msgKey, vu2.getResult());				
@@ -628,41 +604,20 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+//					paramMap.put("limitDtCnt", 7);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						// 출석률 attRt
-						// 이전출석률 prevAttRt
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttPeriod");
-						if (data != null ) { 							
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttRtSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> chartMap = new LinkedHashMap<>();
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemCompareString(item.get("attYN"), "1"));
-									chartMap.put("lrnStt", item.get("lrnStt"));
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("lrnFnsh", getItemCompareString(item.get("lrnFnsh"), "1"));
-									detailMap.put("partFnsh", getItemCompareString(item.get("partFnsh"), "1"));
-									detailMap.put("lrnBefore", getItemCompareString(item.get("lrnBefore"), "1"));
-									
-									dailyLrnStt.add(chartMap);
-									attRtDetail.add(detailMap);
-								}
-							}	
-							// 일일학습정보 dailyLrnStt
-							data.put("dailyLrnStt", dailyLrnStt);
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
-							// 출석률 상세정보 attRtDetail
-							data.put("attRtDetail", attRtDetail);
-						}
+//						if(data != null) {
+//							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
+//							data.put("dailyLrnStt", lrnhabitChart);
+//						}
+						data.put("dailyLrnStt", dailyLrnStt);
+						msg.put("summary", msg_summary);
+						msg.put("detail", msg_detail);
+						data.put("attRtMsg", msg);
+						data.put("attRtDetail", attRtDetail);
+						
 						setResult(msgKey, data);
 					} else {
 						if(!vu1.isValid()) {
@@ -765,6 +720,7 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+
 	/**
 	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
 	 * @param paramMap
@@ -793,287 +749,13 @@ public class GroupServiceImpl implements GroupService {
 		return result;
     }
     
-    /**
-	 * HAMS-ORG-LD-005 (학습분석 상세 - 출석일 수 현황)
-	 * @param paramMap
-	 * @return
-	 * @throws Exception
-	 */
     @Override    
     public Map getAttCntStt(Map<String, Object> paramMap) throws Exception {
-    	v_param = new HashMap<>();
-    	v_param.put("METHOD", "ATTCNTSTT");
-
-		getStudId(paramMap);
-		
-    	//Validation
-		ValidationUtil vu = new ValidationUtil();
-		ValidationUtil vu1 = new ValidationUtil();
-		ValidationUtil vu2 = new ValidationUtil();
-		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
-		
-		if(vu.isValid()) { 		
-			Map<String,Object> data = new HashMap<>();
-            String startDate;
-			String endDate;
-			
-			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			Map<String,Object> msg = new HashMap<>();
-			String msg_summary = null;
-			String msg_detail = null;
-			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
-			ArrayList<Map<String,Object>> attCntDetail = new ArrayList<>();
-			paramMap.put("currConCheck", currConCheck);
-			
-			if(currConCheck.equals("m")) {	// 월간
-				//1-1.필수값 체크 
-				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-				
-				if(vu1.isValid()) { 	
-					String yyyy = paramMap.get("yyyy").toString();
-					int mm = Integer.valueOf(paramMap.get("mm").toString());
-					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-					String yymm = yyyy + convertMm;
-
-					paramMap.put("yymm", yymm);
-					//2. 유효성 체크
-					vu2.isYearMonth("yyyy, mm", yymm);
-					if(vu2.isValid()) {
-						
-						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
-						paramMap.put("startDt", startDate);
-						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
-						
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntSttMonthly");
-						if(data != null) {
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttCntSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("planDt", getItemCompareString(item.get("planDt"), "1"));
-									detailMap.put("attDt", getItemCompareString(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemCompareString(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemCompareString(item.get("avgAttDt"), "1"));
-																		
-									attCntDetail.add(detailMap);
-								}
-							}	
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
-							// 출석일 상세정보 attCntDetail
-							data.put("attCntDetail", attCntDetail);
-						}
-						setResult(msgKey, data);			
-					} else {
-						setResult(msgKey, vu2.getResult());				
-					}
-				} else {
-					setResult(msgKey, vu1.getResult());
-				}
-	        } else {	// 주간 & 기간
-	        	//1-1.필수값 체크
-				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
-				
-				if(vu.isValid()) { 	
-					startDate = paramMap.get("startDt").toString();
-					endDate = paramMap.get("endDt").toString();
-					
-					//2. 유효성 체크
-					vu1.isDate("startDt", startDate);
-					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
-					
-					if(vu1.isValid()) {
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntSttPeriod");
-						if(data != null) {
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttCntSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("planDt", getItemCompareString(item.get("planDt"),"1"));
-									detailMap.put("attDt", getItemCompareString(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemCompareString(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemCompareString(item.get("avgAttDt"), "1"));
-									
-									attCntDetail.add(detailMap);
-								}
-							}	
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
-							// 출석일 상세정보 attCntDetail
-							data.put("attCntDetail", attCntDetail);
-						}
-						setResult(msgKey, data);
-					} else {
-						setResult(msgKey, vu1.getResult());
-					}
-				} else {
-					setResult(msgKey, vu.getResult());
-				}				    		
-			}
-			
-		} else {
-			setResult(msgKey, vu.getResult());
-		}
-	
     	return result;
     }
 
-
     @Override    
-    public Map getLoginPtnStt(Map<String, Object> paramMap) throws Exception {
-    	v_param = new HashMap<>();
-    	v_param.put("METHOD", "ATTCNTSTT");
-
-		getStudId(paramMap);
-		
-    	//Validation
-		ValidationUtil vu = new ValidationUtil();
-		ValidationUtil vu1 = new ValidationUtil();
-		ValidationUtil vu2 = new ValidationUtil();
-		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
-		
-		if(vu.isValid()) { 		
-			Map<String,Object> data = new HashMap<>();
-            String startDate;
-			String endDate;
-			
-			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			Map<String,Object> msg = new HashMap<>();
-			String msg_summary = null;
-			String msg_detail = null;
-			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
-			ArrayList<Map<String,Object>> loginPtnChart = new ArrayList<>();
-			ArrayList<Map<String,Object>> loginPtnDetail = new ArrayList<>();
-			paramMap.put("currConCheck", currConCheck);
-			
-			if(currConCheck.equals("m")) {	// 월간
-				//1-1.필수값 체크 
-				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-				
-				if(vu1.isValid()) { 	
-					String yyyy = paramMap.get("yyyy").toString();
-					int mm = Integer.valueOf(paramMap.get("mm").toString());
-					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-					String yymm = yyyy + convertMm;
-
-					paramMap.put("yymm", yymm);
-					//2. 유효성 체크
-					vu2.isYearMonth("yyyy, mm", yymm);
-					if(vu2.isValid()) {
-						
-						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
-						paramMap.put("startDt", startDate);
-						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
-						
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnSttMonthly");
-						if(data != null) {
-							data.put("loginPtn", data.get("loginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
-							data.put("prevLoginPtn", data.get("prevLoginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLoginPtnSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> chartMap = new LinkedHashMap<>();
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									chartMap.put("dt", item.get("dt"));
-									chartMap.put("prevDt", item.get("prevDt"));
-									chartMap.put("loginTm", item.get("loginTm"));
-									chartMap.put("prevLoginTm", item.get("prevLoginTm"));									
-									loginPtnChart.add(chartMap);
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("loginTm", item.get("loginTm"));
-									detailMap.put("prevLoginTm", item.get("prevLoginTm"));								
-									loginPtnDetail.add(detailMap);
-								}
-							}	
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("loginPtnMsg", msg);
-							// 출석일 상세정보 attCntDetail
-							data.put("loginPtnChart", loginPtnChart);
-							data.put("loginPtnDetail", loginPtnDetail);
-						}
-						setResult(msgKey, data);			
-					} else {
-						setResult(msgKey, vu2.getResult());				
-					}
-				} else {
-					setResult(msgKey, vu1.getResult());
-				}
-	        } else {	// 주간 & 기간
-	        	//1-1.필수값 체크
-				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
-				
-				if(vu.isValid()) { 	
-					startDate = paramMap.get("startDt").toString();
-					endDate = paramMap.get("endDt").toString();
-					
-					//2. 유효성 체크
-					vu1.isDate("startDt", startDate);
-					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
-					
-					if(vu1.isValid()) {
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnSttPeriod");
-						if(data != null) {
-							data.put("loginPtn", data.get("loginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
-							data.put("prevLoginPtn", data.get("prevLoginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
-							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLoginPtnSttDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {
-								for(Map<String, Object> item : detailList) {
-									Map<String, Object> chartMap = new LinkedHashMap<>();
-									Map<String, Object> detailMap = new LinkedHashMap<>();
-									
-									chartMap.put("dt", item.get("dt"));
-									chartMap.put("prevDt", item.get("prevDt"));
-									chartMap.put("loginTm", item.get("loginTm"));
-									chartMap.put("prevLoginTm", item.get("prevLoginTm"));									
-									loginPtnChart.add(chartMap);
-									
-									detailMap.put("dt", item.get("dt"));
-									detailMap.put("loginTm", item.get("loginTm"));
-									detailMap.put("prevLoginTm", item.get("prevLoginTm"));								
-									loginPtnDetail.add(detailMap);
-								}
-							}	
-							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
-							data.put("loginPtnMsg", msg);
-							// 출석일 상세정보 attCntDetail
-							data.put("loginPtnChart", loginPtnChart);
-							data.put("loginPtnDetail", loginPtnDetail);
-						}
-						setResult(msgKey, data);
-					} else {
-						setResult(msgKey, vu1.getResult());
-					}
-				} else {
-					setResult(msgKey, vu.getResult());
-				}				    		
-			}
-			
-		} else {
-			setResult(msgKey, vu.getResult());
-		}
-	
+    public Map getloginPtnStt(Map<String, Object> paramMap) throws Exception {
     	return result;
     }
 
@@ -3157,19 +2839,5 @@ public class GroupServiceImpl implements GroupService {
 
         return decodedParamList;
     }
-    
-    /**
-     * item value 값 비교
-     * @param item
-     * @param value
-     * @return
-     */
-	private Object getItemCompareString(Object item, String value) {
-		if(item == null) {
-			return null;
-		} else {
-			return item.toString().equals(value);
-		}
-	}
 
 }
