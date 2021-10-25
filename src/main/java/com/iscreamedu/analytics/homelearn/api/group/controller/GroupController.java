@@ -122,7 +122,8 @@ public class GroupController {
 	}
 	
 	/**
-	 * HAMS-ORG-LD-001 (학습분석 상세 - 진단검사/평가현황)
+	 * HAMS-ORG-LD-001 
+	 * 학습분석 상세 - 진단검사/평가현황
 	 * @param params
 	 * @param req
 	 * @param res
@@ -137,7 +138,8 @@ public class GroupController {
 	}
 	
 	/**
-	 * HAMS-ORG-LD-002 (학습분석 상세 - 출석률현황)
+	 * HAMS-ORG-LD-002 
+	 * 학습분석 상세 - 출석률현황
 	 * @param params
 	 * @param req
 	 * @param res
@@ -152,7 +154,8 @@ public class GroupController {
 	}
 	
 	/**
-	 * HAMS-ORG-LD-003 (학습분석 상세 - 학습타임라인)
+	 * HAMS-ORG-LD-003 
+	 * 학습분석 상세 - 학습타임라인
 	 * @param params
 	 * @param req
 	 * @param res
@@ -165,9 +168,10 @@ public class GroupController {
 		body = (LinkedHashMap)groupService.getLrnTmList(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
-	
+		
 	/**
-	 * HAMS-ORG-LD-004 (학습분석 상세 - 학습상세현황)
+	 * HAMS-ORG-LD-004 
+	 * 학습분석 상세 - 학습상세현황
 	 * @param params
 	 * @param req
 	 * @param res
@@ -181,7 +185,70 @@ public class GroupController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
-	
+	/**
+	 * HAMS-ORG-LD-005 
+	 * 학습분석 상세 - 출석일 수 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getAttCntStt")
+	@ResponseBody
+	public ResponseEntity getAttCntStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getAttCntStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	 
+	/**
+	 * HAMS-ORG-LD-007 
+	 * 학습분석 상세 - 수행률 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLoginPtnStt")
+	@ResponseBody
+	public ResponseEntity getLoginPtnStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLoginPtnStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	 
+	/**
+	 * HAMS-ORG-LD-008 
+	 * 학습분석 상세 - 완료한 학습 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getFnshLrnExStt")
+	@ResponseBody
+	public ResponseEntity getFnshLrnExStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getFnshLrnExStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	 
+	/**
+	 * HAMS-ORG-LD-009 
+	 * 학습분석 상세 - 학습 수행 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getLrnExSttCompareSub")
+	@ResponseBody
+	public ResponseEntity getLrnExSttCompareSub(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getLrnExSttCompareSub(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	 
 	/**
 	 * HAMS-ORG-LD-010
 	 * 학습분석 상세 - 스스로 학습 현황
