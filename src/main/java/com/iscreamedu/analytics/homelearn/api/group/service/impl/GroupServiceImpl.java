@@ -2036,9 +2036,9 @@ public class GroupServiceImpl implements GroupService {
 							}
 						}
 						
-						data.put("longlrnTmChart", chartList);
-						data.put("longlrnTmMsg", msgMap);
-						data.put("longlrnTmDetail", detailList);
+						data.put("longLrnTmChart", chartList);
+						data.put("longLrnTmMsg", msgMap);
+						data.put("longLrnTmDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2104,9 +2104,9 @@ public class GroupServiceImpl implements GroupService {
 							}
 						}
 						
-						data.put("longlrnTmChart", chartList);
-						data.put("longlrnTmMsg", msgMap);
-						data.put("longlrnTmDetail", detailList);
+						data.put("longLrnTmChart", chartList);
+						data.put("longLrnTmMsg", msgMap);
+						data.put("longLrnTmDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
