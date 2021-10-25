@@ -590,13 +590,14 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemCompareString(item.get("attYN"), "1"));
+									chartMap.put("attYN", getItemValueCompare(item.get("attYN"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("lrnFnsh", getItemCompareString(item.get("lrnFnsh"), "1"));
-									detailMap.put("partFnsh", getItemCompareString(item.get("partFnsh"), "1"));
-									detailMap.put("lrnBefore", getItemCompareString(item.get("lrnBefore"), "1"));
+									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
+									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
+									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
 									
 									dailyLrnStt.add(chartMap);
 									attRtDetail.add(detailMap);
@@ -643,14 +644,15 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemCompareString(item.get("attYN"), "1"));
+									chartMap.put("attYn", getItemValueCompare(item.get("attYn"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("lrnFnsh", getItemCompareString(item.get("lrnFnsh"), "1"));
-									detailMap.put("partFnsh", getItemCompareString(item.get("partFnsh"), "1"));
-									detailMap.put("lrnBefore", getItemCompareString(item.get("lrnBefore"), "1"));
-									
+									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
+									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
+									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
+																		
 									dailyLrnStt.add(chartMap);
 									attRtDetail.add(detailMap);
 								}
@@ -856,10 +858,10 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("planDt", getItemCompareString(item.get("planDt"), "1"));
-									detailMap.put("attDt", getItemCompareString(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemCompareString(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemCompareString(item.get("avgAttDt"), "1"));
+									detailMap.put("planDt", getItemValueCompare(item.get("planDt"), "1"));
+									detailMap.put("attDt", getItemValueCompare(item.get("attDt"), "1"));
+									detailMap.put("topAttDt", getItemValueCompare(item.get("topAttDt"), "1"));
+									detailMap.put("avgAttDt", getItemValueCompare(item.get("avgAttDt"), "1"));
 																		
 									attCntDetail.add(detailMap);
 								}
@@ -900,10 +902,10 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("planDt", getItemCompareString(item.get("planDt"),"1"));
-									detailMap.put("attDt", getItemCompareString(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemCompareString(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemCompareString(item.get("avgAttDt"), "1"));
+									detailMap.put("planDt", getItemValueCompare(item.get("planDt"),"1"));
+									detailMap.put("attDt", getItemValueCompare(item.get("attDt"), "1"));
+									detailMap.put("topAttDt", getItemValueCompare(item.get("topAttDt"), "1"));
+									detailMap.put("avgAttDt", getItemValueCompare(item.get("avgAttDt"), "1"));
 									
 									attCntDetail.add(detailMap);
 								}
@@ -3187,11 +3189,17 @@ public class GroupServiceImpl implements GroupService {
      * @param value
      * @return
      */
-	private Object getItemCompareString(Object item, String value) {
+	private Object getItemValueCompare(Object item, Object value) {
 		if(item == null) {
 			return null;
 		} else {
-			return item.toString().equals(value);
+			if(value instanceof String) {
+				return item.toString().equals(value);
+			} else if(value instanceof Integer) {
+				return Integer.valueOf(item.toString()).equals(value);
+			} else {
+				return item.equals(value);
+			}
 		}
 	}
 

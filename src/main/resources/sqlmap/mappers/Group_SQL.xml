@@ -170,7 +170,7 @@
 			ATT.ATT_RT AS attHabit						-- 약속을 지키는 습관(출석률) 
 			, LRN.EX_RT AS planHabit					-- 계획을 실천하는 습관(수행률) 
 			, EX.INCRT_NT_CNT AS incrtNoteHabit			-- 오답노트 확인 습관(오답노트수) 
-			, ALRN.SUBJ_CD AS aLrnHabit			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.SUBJ_CD AS aLrnHabit					-- 스스로 찾아 학습하는 습관(과목코드)
 			, EX.IMPRV_SLV_HABIT_CNT AS slvHabit		-- 문제풀이 습관(고쳐야할 문제 수) 
 			, ROUND( LRN2.LRN_SEC / ATT.ATT_CNT ) AS concnHabit	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
@@ -293,16 +293,16 @@
 			, PREV_ATT.ATT_RT AS prevAttRt	-- 이전 출석률
 		FROM
 		(
-			SELECT ATT_RT
+			SELECT STUD_ID, ATT_RT
 			FROM DAY_7_ATT_STT 
 			WHERE STUD_ID = #{studId} AND DT = #{endDt}
 		) AS ATT
 		,
 		(
-			SELECT ATT_RT
+			SELECT STUD_ID, ATT_RT
 			FROM DAY_7_ATT_STT 
 			WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 1 WEEK)
-		) AS PREV_ATT
+		) AS PREV_ATT ON ATT.STUD_ID = PREV_ATT.STUD_ID
 
     </select>
     
@@ -310,22 +310,22 @@
     	SELECT  ATT.ATT_RT AS attRt				-- 출석률
 				, PREV_ATT.ATT_RT AS prevAttRt  -- 이전 출석률
 		FROM (	
-			SELECT ATT_RT 
+			SELECT STUD_ID, ATT_RT 
 			FROM MONTH_ATT_STT 
 			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
 		) AS ATT
-		,
+		LEFT OUTER JOIN
 		(
-			SELECT ATT_RT 
+			SELECT STUD_ID, ATT_RT 
 			FROM MONTH_ATT_STT 
 			WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')
-		) AS PREV_ATT
+		) AS PREV_ATT ON ATT.STUD_ID = PREV_ATT.STUD_ID
     </select>
     
     <select id="getAttRtSttDetail" parameterType="hashMap" resultType="resultMap">
     	SELECT 
 			DT.DT AS dt 			-- 날짜 
-			, IF(ATT.LOGIN_YN = 'Y', 1, 0) AS attYN  -- 출석여부 
+			, IF(ATT.LOGIN_YN = 'Y', 1, 0) AS attYn  -- 출석여부 
 			, IF(PL.PLAN_CNT > 0 AND PL.PLAN_CNT = LR.FNSH_CNT, '학습완료'
 				, IF(PL.PLAN_CNT > 0 AND LR.FNSH_CNT > 0 AND PL.PLAN_CNT > LR.FNSH_CNT,'부분완료'
 				, IF(PL.PLAN_CNT > 0 AND LR.FNSH_CNT = 0, '학습전'
@@ -588,12 +588,12 @@
 			FROM MONTH_ATT_STT 
 			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
 		) AS ATT
-		,
+		LEFT OUTER JOIN
 		(	-- 로그인패턴
 			SELECT STUD_ID, IF((LOGIN_PTN_CNT / ATT_CNT * 100) >= 50, 1, 0) AS loginPtn
 			FROM MONTH_ATT_STT 
-			WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(#{startDt},INTERVAL 1 MONTH),'%Y%m')
-		) AS PREV_ATT
+			WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')
+		) AS PREV_ATT ON ATT.STUD_ID = PREV_ATT.STUD_ID
     </select>
     
     <select id="getLoginPtnSttDetail" parameterType="hashMap" resultType="resultMap">
