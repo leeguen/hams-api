@@ -202,8 +202,8 @@ public class GroupController {
 	}
 	 
 	/**
-	 * HAMS-ORG-LD-007 
-	 * 학습분석 상세 - 수행률 현황
+	 * HAMS-ORG-LD-006
+	 * 학습분석 상세 - 로그인 패턴 현황
 	 * @param params
 	 * @param req
 	 * @param res
@@ -214,6 +214,22 @@ public class GroupController {
 	@ResponseBody
 	public ResponseEntity getLoginPtnStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)groupService.getLoginPtnStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/**
+	 * HAMS-ORG-LD-007
+	 * 학습분석 상세 - 수행률 현황
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getExRtStt")
+	@ResponseBody
+	public ResponseEntity getExRtStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getExRtStt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	 
