@@ -72,53 +72,84 @@
     </select>
     
     <select id="getLrnBasicPeriod" parameterType="hashMap" resultType="resultMap">
-	/* selectLrnBasicPeriod : 기관용 기간별 학습 분석 */
+	/* getLrnBasicPeriod : 기관용 기간별 학습 분석 */
 		SELECT
 		<choose>
             <when test='currConCheck == "w"'>    
-			WK.dt 
+			WK.dt
+			-- prev
+			, PREV_WK.dt AS prevDt 
+			,
 			</when>
 			<otherwise>
 			CONCAT(#{startDt}, ' ~ ', #{endDt}) As dt
+			, CONCAT(DATE_SUB(IFNULL(PREV_ATT.DT, PREV_LRN.DT), INTERVAL 6 DAY), ' ~ ', IFNULL(PREV_ATT.DT, PREV_LRN.DT)) AS prevDt
+			,
 			</otherwise>
         </choose>
-			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
+			CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
 			, ATT.ATT_RT AS attRt		-- 출석률
 			, LRN.EX_RT AS exRt			-- 수행률
 			, ER.AVG_CRT_RT AS crtRt	-- 정답률
-			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal	-- 학습분석신호
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', IF(LRN.EX_RT IS NULL, NULL, 'C'))) AS lrnSignal	-- 학습분석신호
 			, ROUND( LRN2.LRN_SEC / ATT.ATT_CNT ) AS dayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+			, CONCAT(DATE_FORMAT(DATE_SUB(IFNULL(PREV_ATT.DT, PREV_LRN.DT), INTERVAL 6 DAY), '%Y.%m.%d'), '-', DATE_FORMAT(IFNULL(PREV_ATT.DT, PREV_LRN.DT), '%Y.%m.%d')) AS prevDtStr
+			, PREV_ATT.ATT_RT AS prevAttRt		-- 출석률
+			, PREV_LRN.EX_RT AS prevExRt		-- 수행률
+			, IF(PREV_LRN.EX_RT > 90, 'A', IF(PREV_LRN.EX_RT > 20, 'B', IF(PREV_LRN.EX_RT IS NULL, NULL, 'C'))) AS prevLrnSignal	-- 학습분석신호
+			, PREV_ER.AVG_CRT_RT AS prevCrtRt 	-- 정답률
+			, ROUND( PREV_LRN2.LRN_SEC / PREV_ATT.ATT_CNT ) AS prevDayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
 		FROM 
 		<choose>
             <when test='currConCheck == "w"'>            
 		(	-- 주차
 			SELECT 
-				GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
+				MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
 			FROM COMM_WK_DT 
-			WHERE YYMM = #{yymm}
-				AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
-				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt} + INTERVAL 3 HOUR , '%Y-%m-%d')				
+			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
+				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt}, '%Y-%m-%d')				
 		) AS WK
+		LEFT OUTER JOIN (
+			SELECT MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS dt
+			FROM COMM_WK_DT 
+			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_SUB(#{startDt}, INTERVAL 1 WEEK)
+				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_SUB(#{endDt}, INTERVAL 1 WEEK)		
+		) AS PREV_WK ON PREV_WK.MO = DATE_SUB(WK.MO, INTERVAL 1 WEEK)
 		,
 			</when>
         </choose>
 		(	-- 출석률, 선택된 기간 내 로그인 일 수
-			SELECT ATT_RT, ATT_CNT 
+			SELECT DT, ATT_RT, ATT_CNT 
 			FROM DAY_7_ATT_STT
 			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
 		) AS ATT
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT DT, ATT_RT, ATT_CNT 
+			FROM DAY_7_ATT_STT
+			WHERE DT = DATE_SUB(#{endDt}, INTERVAL 1 WEEK) AND STUD_ID = #{studId} 			
+		) AS PREV_ATT ON PREV_ATT.DT = DATE_SUB(ATT.DT, INTERVAL 1 WEEK)
 		, (	-- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100  
-			SELECT ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
+			SELECT DT, ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
 			FROM DAY_7_LRN_EX_STT PL 
 	        WHERE STUD_ID = #{studId} AND DT = #{endDt}   
         ) AS LRN 
+        LEFT OUTER JOIN (	-- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100 
+			SELECT DT, ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT 
+			FROM DAY_7_LRN_EX_STT PL 
+	        WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 1 WEEK) 
+	    ) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 1 WEEK)    
         , (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100			
-        	SELECT ROUND(AVG(CRT_CNT / QUES_CNT * 100)) AS AVG_CRT_RT
+        	SELECT DT, ROUND(AVG(CRT_CNT / QUES_CNT * 100)) AS AVG_CRT_RT
             FROM DAY_7_EXAM_STT 
             WHERE STUD_ID = #{studId} AND DT = #{endDt}    
         ) AS ER 
+        LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
+        	SELECT DT, ROUND(AVG(CRT_CNT / QUES_CNT * 100)) AS AVG_CRT_RT
+            FROM DAY_7_EXAM_STT 
+            WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 1 WEEK) 
+        ) AS PREV_ER ON PREV_ER.DT = DATE_SUB(ER.DT, INTERVAL 1 WEEK)    
         , (	-- 선택된 기간 내에 총 학습시간
-    		SELECT SUM(LRN_SEC) AS LRN_SEC
+    		SELECT STUD_ID, SUM(LRN_SEC) AS LRN_SEC
     		FROM
     			DAY_LRN_EX_LOG 
     		WHERE 
@@ -126,6 +157,13 @@
             	AND DT BETWEEN #{startDt} AND #{endDt}  
 	      		AND SUBJ_CD NOT LIKE '%Z%'
         ) AS LRN2 
+        LEFT OUTER JOIN (	-- 이전 선택된 기간 내에 총 학습시간
+    		SELECT STUD_ID, SUM(LRN_SEC) AS LRN_SEC
+    		FROM
+    			DAY_LRN_EX_LOG 
+    		WHERE STUD_ID = #{studId} AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 WEEK) AND DATE_SUB(#{endDt} ,INTERVAL 1 WEEK)   		
+	      		AND SUBJ_CD NOT LIKE '%Z%'
+        ) AS PREV_LRN2 ON LRN2.STUD_ID = PREV_LRN2.STUD_ID
 	</select>
 	
 	<select id="getLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
@@ -135,21 +173,40 @@
 			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS dtStr
 			, ATT.ATT_RT AS attRt		-- 출석률
 			, LRN.EX_RT AS exRt			-- 수행률
-			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', 'C')) AS lrnSignal	-- 학습분석신호
+			, ER.AVG_CRT_RT AS crtRt	-- 정답률
+			, IF(LRN.EX_RT > 90, 'A', IF(LRN.EX_RT > 20, 'B', IF(LRN.EX_RT IS NULL, NULL, 'C'))) AS lrnSignal	-- 학습분석신호
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS dayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		-- prev
+			, CONCAT(SUBSTRING(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),3,2),'년',SUBSTRING(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),5,2),'월') AS prevDt
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(CONCAT(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),'01'), '%Y%m%d'), '%Y.%m.%d'), '-', DATE_FORMAT(LAST_DAY(STR_TO_DATE(CONCAT(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),'01'), '%Y%m%d')), '%Y.%m.%d')) AS prevDtStr
+			, PREV_ATT.ATT_RT AS prevAttRt		-- 출석률
+			, PREV_LRN.EX_RT AS prevExRt		-- 수행률
+			, IF(PREV_LRN.EX_RT > 90, 'A', IF(PREV_LRN.EX_RT > 20, 'B', IF(PREV_LRN.EX_RT IS NULL, NULL, 'C'))) AS prevLrnSignal	-- 학습분석신호
+			, PREV_ER.AVG_CRT_RT AS prevCrtRt 	-- 정답률
+			, ROUND( PREV_LRN.LRN_SEC / PREV_ATT.ATT_CNT ) AS prevDayLrnTm	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
 		FROM 
 		(	-- 출석률, 선택된 기간 내 로그인 일 수
-			SELECT ATT_RT, ATT_CNT
+			SELECT YYMM, ATT_RT, ATT_CNT
 			FROM MONTH_ATT_STT
 			WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
 		) AS ATT
+		LEFT OUTER JOIN (	-- 이전 출석률, 선택된 기간 내 로그인 일 수
+			SELECT YYMM, ATT_RT, ATT_CNT 
+			FROM MONTH_ATT_STT
+			WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId} 			
+		) AS PREV_ATT ON PREV_ATT.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(ATT.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m')
 		, (	-- 수행률, 학습시간	
-			SELECT ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			SELECT YYMM, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 			FROM MONTH_LRN_EX_STT PL 
 	       	WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
         ) AS LRN 
+        LEFT OUTER JOIN (	-- 이전 수행률, 학습시간	
+			SELECT YYMM, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			FROM MONTH_LRN_EX_STT PL 
+	       	WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+        ) AS PREV_LRN ON PREV_LRN.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(LRN.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m')
         , (	-- 정답률		
-        	SELECT ROUND(AVG(CRT_RT)) AS AVG_CRT_RT
+        	SELECT STUD_ID, ROUND(AVG(CRT_RT)) AS AVG_CRT_RT
             FROM EXAM_RST 
             WHERE 
             	STUD_ID = #{studId}
@@ -157,6 +214,15 @@
                 AND DEL_YN = 'N' 
                 AND CRT_RT <![CDATA[>=]]> 0
         ) AS ER 
+        LEFT OUTER JOIN (	-- 정답률		
+        	SELECT STUD_ID, ROUND(AVG(CRT_RT)) AS AVG_CRT_RT
+            FROM EXAM_RST 
+            WHERE 
+            	STUD_ID = #{studId}
+            	AND DT BETWEEN  DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+                AND DEL_YN = 'N' 
+                AND CRT_RT <![CDATA[>=]]> 0
+        ) AS PREV_ER ON ER.STUD_ID = PREV_ER.STUD_ID
 	</select>
     
     <select id="getOrgEnvConfig" parameterType="hashMap" resultType="resultMap">

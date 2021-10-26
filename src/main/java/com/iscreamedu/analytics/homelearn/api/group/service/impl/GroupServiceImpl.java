@@ -222,6 +222,7 @@ public class GroupServiceImpl implements GroupService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		if(vu.isValid()) { 		
+			Map<String,Object> cData = new HashMap<>();
 			Map<String,Object> data = new HashMap<>();
             String startDate;
 			String endDate;
@@ -250,23 +251,37 @@ public class GroupServiceImpl implements GroupService {
 						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						data.put("current", getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly"));
-
-						//current 기준 prev 구하기 
-		                startDate = subDate(startDate,-1,false,false);
-			        	endDate = subDate(endDate,-1,false,true);
-		                paramMap.put("endDt",endDate);
-		                paramMap.put("startDt",startDate);
-		                paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
-		                paramMap.put("mm", Integer.valueOf(startDate.substring(5,7)).toString());
-		                data.put("prevDtCnt", getCalendarLastDay(endDate, new SimpleDateFormat("yyyy-MM-dd")));
-			        	
-			        	data.put("prev", getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly"));
-			        	
-			        	msg.put("positive", positive);
-			        	msg.put("negative", negative);
-			            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
-			            
+						cData = (Map<String, Object>)getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly");
+						if(cData != null) {
+							Map<String, Object> currentMap = new LinkedHashMap<>();
+							Map<String, Object> prevMap = new LinkedHashMap<>();
+							
+							currentMap.put("dt", cData.get("dt"));
+							currentMap.put("dtStr", cData.get("dtStr"));
+							currentMap.put("attRt", cData.get("attRt"));
+							currentMap.put("exRt", cData.get("exRt"));
+							currentMap.put("crtRt", cData.get("crtRt"));
+							currentMap.put("lrnSignal", cData.get("lrnSignal"));
+							currentMap.put("dayLrnTm", cData.get("dayLrnTm"));
+							
+							prevMap.put("dt", cData.get("prevDt"));
+							prevMap.put("dtStr", cData.get("prevDtStr"));
+							prevMap.put("attRt", cData.get("prevAttRt"));
+							prevMap.put("exRt", cData.get("prevExRt"));
+							prevMap.put("crtRt", cData.get("prevCrtRt"));
+							prevMap.put("lrnSignal", cData.get("prevLrnSignal"));
+							prevMap.put("dayLrnTm", cData.get("prevDayLrnTm"));
+							
+							data.put("current", currentMap);
+							data.put("prev", prevMap);
+						
+							//current 기준 prev 구하기 
+			                data.put("prevDtCnt", getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
+				        	
+				        	msg.put("positive", positive);
+				        	msg.put("negative", negative);
+				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
+						}
 						setResult(dataKey, data);
 					} else {
 						setResult(msgKey, vu2.getResult());				
@@ -288,22 +303,36 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
-						data.put("current", getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod"));
-			    		
-						//current 기준 prev 구하기 
-		                startDate = subDate(startDate,-7,true,false);
-			        	endDate = subDate(endDate,-7,true,false);
-		                paramMap.put("endDt",endDate);
-		                paramMap.put("startDt",startDate);
-		                
-		                data.put("prevDtCnt", "7");
-			        	
-			    		data.put("prev", getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod"));
-			        	
-			    		msg.put("positive", positive);
-			        	msg.put("negative", negative);
-			            data.put("msg",msg);	//추후 메시지기획안 적용 예정	  
-			            
+						cData = (Map<String, Object>)getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod");
+						if(cData != null) {
+							Map<String, Object> currentMap = new LinkedHashMap<>();
+							Map<String, Object> prevMap = new LinkedHashMap<>();
+							
+							currentMap.put("dt", cData.get("dt"));
+							currentMap.put("dtStr", cData.get("dtStr"));
+							currentMap.put("attRt", cData.get("attRt"));
+							currentMap.put("exRt", cData.get("exRt"));
+							currentMap.put("crtRt", cData.get("crtRt"));
+							currentMap.put("lrnSignal", cData.get("lrnSignal"));
+							currentMap.put("dayLrnTm", cData.get("dayLrnTm"));
+							
+							prevMap.put("dt", cData.get("prevDt"));
+							prevMap.put("dtStr", cData.get("prevDtStr"));
+							prevMap.put("attRt", cData.get("prevAttRt"));
+							prevMap.put("exRt", cData.get("prevExRt"));
+							prevMap.put("crtRt", cData.get("prevCrtRt"));
+							prevMap.put("lrnSignal", cData.get("prevLrnSignal"));
+							prevMap.put("dayLrnTm", cData.get("prevDayLrnTm"));
+							
+							data.put("current", currentMap);
+							data.put("prev", prevMap);
+							
+			                data.put("prevDtCnt", "7");
+				        	
+				        	msg.put("positive", positive);
+				        	msg.put("negative", negative);
+				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
+						}
 			    		setResult(dataKey, data);
 					} else {
 						if(!vu1.isValid()) {
