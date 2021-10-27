@@ -1231,8 +1231,7 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtSttPeriod");
 						if(data != null) {
-
-							detail = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExRtSttDetail");
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExRtSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
 								for(Map<String, Object> item : detailList) {
 									Map<String, Object> chartMap = new LinkedHashMap<>();
@@ -1277,16 +1276,185 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-008 
+	 * 학습분석 상세 - 완료한 학습 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getFnshLrnExStt(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "FNSHLRNEXSTT");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			Map<String,Object> msg = new HashMap<>();
+			String msg_summary = null;
+			String msg_detail = null;
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailChart = new ArrayList<>();
+			ArrayList<Map<String,Object>> detail = new ArrayList<>();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getFnshLrnExSttMonthly");
+						if(data != null) {
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getFnshLrnExSttDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("fnshLrnCnt", item.get("fnshLrnCnt"));
+									chartMap.put("ncLrnCnt", item.get("ncLrnCnt"));
+									chartMap.put("prevFnshLrnCnt", item.get("prevFnshLrnCnt"));
+									chartMap.put("prevNcLrnCnt", item.get("prevNcLrnCnt"));									
+									detailChart.add(chartMap);
+
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("fnshLrnCnt", item.get("fnshLrnCnt"));
+									detailMap.put("prevFnshLrnCnt", item.get("prevFnshLrnCnt"));	
+									detailMap.put("topFnshLrnCnt", item.get("topFnshLrnCnt"));
+									detailMap.put("avgFnshLrnCnt", item.get("avgFnshLrnCnt"));								
+									detail.add(detailMap);
+								}
+							}	
+							// 수행률 총평 
+							msg.put("summary", msg_summary);
+							msg.put("detail", msg_detail);
+							data.put("finshLrnMsg", msg);
+							// 완료한 학습 차트 
+							data.put("fnshLrnChart", detailChart);
+							// 완료한 학습 상세정보 
+							data.put("fnshLrnDetail", detail);
+						}
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					paramMap.put("limitDtCnt", 7);
+					
+					if(vu1.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getFnshLrnExSttPeriod");
+						if(data != null) {
+
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getFnshLrnExSttDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("fnshLrnCnt", item.get("fnshLrnCnt"));
+									chartMap.put("ncLrnCnt", item.get("ncLrnCnt"));
+									chartMap.put("prevFnshLrnCnt", item.get("prevFnshLrnCnt"));
+									chartMap.put("prevNcLrnCnt", item.get("prevNcLrnCnt"));									
+									detailChart.add(chartMap);
+
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("fnshLrnCnt", item.get("fnshLrnCnt"));
+									detailMap.put("prevFnshLrnCnt", item.get("prevFnshLrnCnt"));	
+									detailMap.put("topFnshLrnCnt", item.get("topFnshLrnCnt"));
+									detailMap.put("avgFnshLrnCnt", item.get("avgFnshLrnCnt"));								
+									detail.add(detailMap);
+								}
+							}	
+							// 수행률 총평 
+							msg.put("summary", msg_summary);
+							msg.put("detail", msg_detail);
+							data.put("finshLrnMsg", msg);
+							// 완료한 학습 차트 
+							data.put("fnshLrnChart", detailChart);
+							// 완료한 학습 상세정보 
+							data.put("fnshLrnDetail", detail);
+						}
+						setResult(msgKey, data);
+					} else {
+						setResult(msgKey, vu1.getResult());
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+	
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-009 
+	 * 학습분석 상세 - 학습 수행 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getLrnExSttCompareSub(Map<String, Object> paramMap) throws Exception {
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-010
+	 * 학습분석 상세 - 스스로 학습 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getALrnExStt(Map<String, Object> paramMap) throws Exception {
     	
@@ -1450,6 +1618,13 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-011
+	 * 학습분석 상세 - 정답률 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getCrtRtStt(Map<String, Object> paramMap) throws Exception {
     	
@@ -1613,6 +1788,13 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-012
+	 * 학습분석 상세 - 미완료 오답노트 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getIncrtNoteNcStt(Map<String, Object> paramMap) throws Exception {
     	
@@ -1780,6 +1962,13 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
 
+    /**
+	 * HAMS-ORG-LD-013
+	 * 학습분석 상세 - 맞은 문제 수 현황
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
     @Override    
     public Map getCrtQuesCntStt(Map<String, Object> paramMap) throws Exception {
     	
