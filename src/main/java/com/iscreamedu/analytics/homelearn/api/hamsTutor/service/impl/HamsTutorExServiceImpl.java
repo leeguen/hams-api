@@ -376,6 +376,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 		         					courseTempMap.put("exRtType", courseItem.get("exRtType"));
 		         					courseTempMap.put("crtRt", courseItem.get("crtRt"));
 		         					courseTempMap.put("crtRtType", courseItem.get("crtRtType"));
+		         					courseTempMap.put("compre", courseItem.get("compre"));
+		         					courseTempMap.put("compreType", courseItem.get("compreType"));
 		         				}
 		         			}
 		         			
