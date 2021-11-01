@@ -8,14 +8,14 @@
 			CAST(SUBSTRING(YYMM,1,4) AS SIGNED INTEGER) AS year,
 			CAST(SUBSTRING(YYMM,5,2) AS SIGNED INTEGER) AS month,		
 			CAST(WK AS SIGNED INTEGER) AS week,
-			CONCAT(	IF(#{lrnstartDt} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
-						, DATE_FORMAT(STR_TO_DATE(#{lrnstartDt}, '%Y-%m-%d'), '%Y.%m.%d')
+			CONCAT(	IF(#{lrnStartDt} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
+						, DATE_FORMAT(STR_TO_DATE(#{lrnStartDt}, '%Y-%m-%d'), '%Y.%m.%d')
 						, DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d'))
 					,'-'
 					,DATE_FORMAT(IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))), '%Y.%m.%d')
 			) AS dtStr
 		FROM COMM_WK_DT
-		WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_FORMAT(#{lrnstartDt}, '%Y-%m-%d')
+		WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_FORMAT(#{lrnStartDt}, '%Y-%m-%d')
 			AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[<]]> DATE_FORMAT(now() + INTERVAL 3 HOUR , '%Y-%m-%d')
 	</select>
 	
@@ -24,8 +24,8 @@
 		SELECT 
 			CAST(SUBSTRING(A.YYMM,1,4) AS SIGNED INTEGER) AS year,
 			CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER) AS month,
-			CONCAT( IF( STR_TO_DATE(#{lrnstartDt}, '%Y-%m-%d') > STR_TO_DATE(CONCAT(SUBSTRING(A.YYMM,1,4),SUBSTRING(A.YYMM,5,2),'01'),'%Y%m%d')
-						, DATE_FORMAT(#{lrnstartDt}, '%Y.%m.%d')
+			CONCAT( IF( STR_TO_DATE(#{lrnStartDt}, '%Y-%m-%d') > STR_TO_DATE(CONCAT(SUBSTRING(A.YYMM,1,4),SUBSTRING(A.YYMM,5,2),'01'),'%Y%m%d')
+						, DATE_FORMAT(#{lrnStartDt}, '%Y.%m.%d')
 						, DATE_FORMAT(CONCAT(SUBSTRING(A.YYMM,1,4),'-',SUBSTRING(A.YYMM,5,2),'-01'),'%Y.%m.%d') )
 					,'-',
 					DATE_FORMAT(LAST_DAY(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))), '%Y.%m.%d')) AS dtStr
@@ -36,7 +36,7 @@
 		        SUBSTRING_INDEX(GROUP_CONCAT(YYMM SEPARATOR '|'),'|', -1) AS END_YYMM
 			FROM COMM_WK_DT
 			WHERE ( 
-					DATE_FORMAT(#{lrnstartDt}, '%Y-%m-%d')
+					DATE_FORMAT(#{lrnStartDt}, '%Y-%m-%d')
 					BETWEEN IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
 						and IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) 
 				  )
@@ -55,7 +55,7 @@
 	    SELECT studNm, gender, studId, loginId, grade, schlNm,
 			IFNULL(TIMESTAMPDIFF(DAY, lastLoginDt,now()),-1) AS daysAgo,
 			DATE_FORMAT(lastLoginDt,'%Y.%m.%d') AS lastLoginDt,
-			DATE_FORMAT(lrnstartDt,'%Y.%m.%d') AS lrnstartDt
+			DATE_FORMAT(lrnStartDt,'%Y.%m.%d') AS lrnStartDt
 			FROM (
 					SELECT 
 						A.STUD_NM AS studNm,
@@ -65,7 +65,7 @@
 						A.GRADE,
 						A.SCHL_NM AS schlNm,
 						MAX(B.DT) AS lastLoginDt, 
-						A.START_DT AS lrnstartDt
+						A.START_DT AS lrnStartDt
 					FROM STUD A LEFT JOIN DAY_ATT_LOG B ON A.STUD_ID = B.STUD_ID AND B.LOGIN_YN = 'Y'  AND B.DT  <![CDATA[>=]]>  (NOW() - INTERVAL 7 DAY)
 					WHERE A.STUD_ID = #{studId}
 			) S	    
@@ -821,18 +821,20 @@
 						, PLAN_CNT
 					FROM DAY_PLAN_STT
 					WHERE STUD_ID = #{studId} 
+						AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 					GROUP BY DT
 				) AS PL 
 				JOIN (
-					SELECT DT -- 날짜
+					SELECT DT, PLAN_DT -- 날짜
 						, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
 					FROM DAY_LRN_EX_LOG
 					WHERE STUD_ID = #{studId} 
 						AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 						AND FNSH_YN = 'Y'
-					GROUP BY DT
-				) AS LRN ON PL.DT = LRN.DT
+					GROUP BY PLAN_DT
+				) AS LRN ON PL.DT = LRN.PLAN_DT
 			) AS PREV_EX ON PREV_EX.DT = DATE_SUB(DT.dt, INTERVAL 1 MONTH)
 			LEFT OUTER JOIN 
 			(
@@ -859,14 +861,15 @@
 					GROUP BY DT
 				) AS PL 
 				JOIN (
-					SELECT DT -- 날짜
+					SELECT DT, PLAN_DT -- 날짜
 						, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
 					FROM DAY_LRN_EX_LOG
 					WHERE STUD_ID = #{studId} 
 						AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
 						AND FNSH_YN = 'Y'
-					GROUP BY DT
-				) AS LRN ON PL.DT = LRN.DT
+					GROUP BY PLAN_DT
+				) AS LRN ON PL.DT = LRN.PLAN_DT
 			) AS PREV_EX ON PREV_EX.DT = DATE_SUB(DT.dt, INTERVAL 7 DAY)
 			LEFT OUTER JOIN 
 			(
