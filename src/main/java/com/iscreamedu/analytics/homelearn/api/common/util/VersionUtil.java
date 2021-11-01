@@ -29,7 +29,7 @@ public class VersionUtil {
 //	private static LocalDateTime end_datetime = LocalDateTime.of(2021, 10, 6, 16, 0, 0);
 	
 	// 버전 관리 대상 메소드 목록 정의
-	private static List<String> dw_method_list = new ArrayList<>(Arrays.asList("LRNBASIC","OTHER"));
+	private static List<String> dw_method_list = new ArrayList<>(Arrays.asList("","OTHER"));
 	
 	/* 
 	 * API별 DataWare Version Check 
@@ -52,18 +52,18 @@ public class VersionUtil {
 		if(paramMap.get("CHANNEL").toString().toUpperCase().equals("HAMS-ORG")) {	// 기관용
 			
 			// 버전체크 대상 method 구분 
-			if(dw_method_list.contains(paramMap.get("METHOD"))) { 
-				if(today.isAfter(start_datetime) && today.isBefore(end_datetime)) {
-					strVersion = "1.5";
-					strMapperName = "CommonMapperTutor";
-				} else if(today.isAfter(end_datetime)) {
-					strVersion = "2.0";
-					strMapperName = "CommonMapperTutor";
-				} else {
+//			if(dw_method_list.contains(paramMap.get("METHOD"))) { 
+//				if(today.isAfter(start_datetime) && today.isBefore(end_datetime)) {
+//					strVersion = "1.5";
+//					strMapperName = "CommonMapperTutor";
+//				} else if(today.isAfter(end_datetime)) {
+//					strVersion = "2.0";
+//					strMapperName = "CommonMapperTutor";
+//				} else {
 					strVersion = "1.0";
 					strMapperName = "CommonMapperTutor";
-				}
-			}
+//				}
+//			}
 			
 		} 
 		Map<String, Object> result = new HashMap<>();
