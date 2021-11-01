@@ -405,7 +405,7 @@ public class GroupServiceImpl implements GroupService {
 			String endDate;
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			ArrayList<Map<String,Object>> lrnhabitChart = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
 			paramMap.put("currConCheck", currConCheck);
 			
 			if(currConCheck.equals("m")) {	// 월간
@@ -430,8 +430,10 @@ public class GroupServiceImpl implements GroupService {
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
 						if(data != null) {
-							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
-							data.put("lrnHabitChart", lrnhabitChart);
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {								
+								data.put("lrnHabitChart", detailList);
+							}
 						}
 						setResult(msgKey, data);			
 					} else {
@@ -456,8 +458,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitPeriod");
 						if(data != null) {
-							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
-							data.put("lrnHabitChart", lrnhabitChart);
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {								
+								data.put("lrnHabitChart", detailList);
+							}
 						}
 						setResult(msgKey, data);
 					} else {
@@ -622,14 +626,14 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemValueCompare(item.get("attYN"), "1"));
+									chartMap.put("attYn", getItemValueCompare(item.get("attYn"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
 									
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
 									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
 									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
-									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYn"), "1"));
 									
 									detailChart.add(chartMap);
 									detail.add(detailMap);
@@ -683,7 +687,7 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
 									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
 									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
-									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYn"), "1"));
 																		
 									detailChart.add(chartMap);
 									detail.add(detailMap);
