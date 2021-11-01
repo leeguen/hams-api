@@ -1055,7 +1055,7 @@
 						   , (SELECT @ROWNUM:=0) R
 					LIMIT ${lastDay} 
 				) DTS  
-			) 	 
+			) DE
 			WHERE ST1.STUD_ID = #{studId}
 		) ST
 		LEFT OUTER JOIN (
