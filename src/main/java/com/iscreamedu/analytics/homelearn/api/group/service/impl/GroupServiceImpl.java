@@ -405,7 +405,7 @@ public class GroupServiceImpl implements GroupService {
 			String endDate;
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			ArrayList<Map<String,Object>> lrnhabitChart = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
 			paramMap.put("currConCheck", currConCheck);
 			
 			if(currConCheck.equals("m")) {	// 월간
@@ -430,8 +430,10 @@ public class GroupServiceImpl implements GroupService {
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
 						if(data != null) {
-							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
-							data.put("lrnHabitChart", lrnhabitChart);
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {								
+								data.put("lrnHabitChart", detailList);
+							}
 						}
 						setResult(msgKey, data);			
 					} else {
@@ -456,8 +458,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitPeriod");
 						if(data != null) {
-							lrnhabitChart = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitChartList");
-							data.put("lrnHabitChart", lrnhabitChart);
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {								
+								data.put("lrnHabitChart", detailList);
+							}
 						}
 						setResult(msgKey, data);
 					} else {
@@ -622,14 +626,14 @@ public class GroupServiceImpl implements GroupService {
 									Map<String, Object> detailMap = new LinkedHashMap<>();
 									
 									chartMap.put("dt", item.get("dt"));
-									chartMap.put("attYN", getItemValueCompare(item.get("attYN"), "1"));
+									chartMap.put("attYn", getItemValueCompare(item.get("attYn"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
 									
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
 									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
 									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
-									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYn"), "1"));
 									
 									detailChart.add(chartMap);
 									detail.add(detailMap);
@@ -683,7 +687,7 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
 									detailMap.put("partFnsh", getItemValueCompare(item.get("partFnsh"), "1"));
 									detailMap.put("lrnBefore", getItemValueCompare(item.get("lrnBefore"), "1"));
-									detailMap.put("att", getItemValueCompare(item.get("attYN"), "1"));
+									detailMap.put("att", getItemValueCompare(item.get("attYn"), "1"));
 																		
 									detailChart.add(chartMap);
 									detail.add(detailMap);
@@ -733,66 +737,12 @@ public class GroupServiceImpl implements GroupService {
 		
     	//Validation
 		ValidationUtil vu = new ValidationUtil();
-		ValidationUtil vu1 = new ValidationUtil();
-		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		vu.checkRequired(new String[] {"studId", "date", "ordNm"}, paramMap);
 		
-		if(vu.isValid()) { 		
-			String startDate;
-			String endDate;
-			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			
-			if(currConCheck.equals("m")) {	// 월간
-				//1-1.필수값 체크 
-				vu.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-				
-				if(vu.isValid()) { 	
-					String yyyy = paramMap.get("yyyy").toString();
-					int mm = Integer.valueOf(paramMap.get("mm").toString());
-					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-					String yymm = yyyy + convertMm;
-
-					paramMap.put("yymm", yymm);
-					//2. 유효성 체크
-					vu.isYearMonth("yyyy, mm", yymm);
-					if(vu.isValid()) {
-						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
-						paramMap.put("startDt", startDate);
-						paramMap.put("endDt", endDate);
-						//DB 조회
-						setResult(dataKey, getMapperResultData(v_param, "list", paramMap, ".getLrnTmList"));
-					} else {
-						setResult(msgKey, vu.getResult());
-					}
-				} else {
-					setResult(msgKey, vu.getResult());
-				}
-			} else {
-				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
-				
-				if(vu.isValid()) { 	
-					startDate = paramMap.get("startDt").toString();
-					endDate = paramMap.get("endDt").toString();
-					
-					//2. 유효성 체크
-					vu1.isDate("startDt", startDate);
-					vu2.isDate("endDt", endDate);
-					
-					if(vu1.isValid() && vu2.isValid()) {
-						setResult(dataKey, getMapperResultData(v_param, "list", paramMap, ".getLrnTmList"));
-					} else {
-						if(!vu1.isValid()) {
-							setResult(msgKey, vu1.getResult());
-						} else if(!vu2.isValid()) {
-							setResult(msgKey, vu2.getResult());						
-						}				
-					}
-				} else {
-					setResult(msgKey, vu.getResult());
-				}			
-			}
+		if(vu.isValid()) { 					
+			//DB 조회
+			setResult(dataKey, getMapperResultData(v_param, "list", paramMap, ".getLrnTmList"));
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -1359,7 +1309,7 @@ public class GroupServiceImpl implements GroupService {
 							// 수행률 총평 
 							msg.put("summary", msg_summary);
 							msg.put("detail", msg_detail);
-							data.put("finshLrnMsg", msg);
+							data.put("fnshLrnMsg", msg);
 							// 완료한 학습 차트 
 							data.put("fnshLrnChart", detailChart);
 							// 완료한 학습 상세정보 
@@ -1414,7 +1364,7 @@ public class GroupServiceImpl implements GroupService {
 							// 수행률 총평 
 							msg.put("summary", msg_summary);
 							msg.put("detail", msg_detail);
-							data.put("finshLrnMsg", msg);
+							data.put("fnshLrnMsg", msg);
 							// 완료한 학습 차트 
 							data.put("fnshLrnChart", detailChart);
 							// 완료한 학습 상세정보 
@@ -1445,7 +1395,163 @@ public class GroupServiceImpl implements GroupService {
 	 */
     @Override    
     public Map getLrnExSttCompareSub(Map<String, Object> paramMap) throws Exception {
-    	return result;
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "LRNEXSTTCOMPARESUB");
+
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			Map<String,Object> msg = new HashMap<>();
+			String msg_summary = null;
+			String msg_detail = null;
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			ArrayList<Map<String,Object>> detailChart = new ArrayList<>();
+			ArrayList<Map<String,Object>> detail = new ArrayList<>();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						
+						startDate = yyyy+"-"+convertMm+"-01";
+						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						paramMap.put("startDt", startDate);
+						paramMap.put("endDt", endDate);
+						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnExSttCompareSubMonthly");
+						if(data != null) {
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnExSttCompareSubDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("bLrnExCnt", item.get("bLrnExCnt"));
+									chartMap.put("planLrnExCnt", item.get("planLrnExCnt"));
+									chartMap.put("dLrnExCnt", item.get("dLrnExCnt"));
+									chartMap.put("prevBLrnExCnt", item.get("prevBLrnExCnt"));
+									chartMap.put("prevPlanLrnExCnt", item.get("prevPlanLrnExCnt"));
+									chartMap.put("prevDLrnExCnt", item.get("prevDLrnExCnt"));									
+									detailChart.add(chartMap);
+
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("bLrnExCnt", item.get("bLrnExCnt"));
+									detailMap.put("planLrnExCnt", item.get("planLrnExCnt"));	
+									detailMap.put("dLrnExCnt", item.get("dLrnExCnt"));
+									detailMap.put("prevBLrnExCnt", item.get("prevBLrnExCnt"));	
+									detailMap.put("prevPlanLrnExCnt", item.get("prevPlanLrnExCnt"));	
+									detailMap.put("prevDLrnExCnt", item.get("prevDLrnExCnt"));								
+									detail.add(detailMap);
+								}
+							}	
+							// 학습 수행 총평
+							msg.put("summary", msg_summary);
+							msg.put("detail", msg_detail);
+							data.put("lrnExMsg", msg);
+							// 학습 수행 차트 
+							data.put("lrnExChart", detailChart);
+							// 학습 수행 상세정보
+							data.put("lrnExDetail", detail);
+						}
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					paramMap.put("limitDtCnt", 7);
+					
+					if(vu1.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnExSttCompareSubPeriod");
+						if(data != null) {
+
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnExSttCompareSubDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("bLrnExCnt", item.get("bLrnExCnt"));
+									chartMap.put("planLrnExCnt", item.get("planLrnExCnt"));
+									chartMap.put("dLrnExCnt", item.get("dLrnExCnt"));
+									chartMap.put("prevBLrnExCnt", item.get("prevBLrnExCnt"));
+									chartMap.put("prevPlanLrnExCnt", item.get("prevPlanLrnExCnt"));
+									chartMap.put("prevDLrnExCnt", item.get("prevDLrnExCnt"));									
+									detailChart.add(chartMap);
+
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("bLrnExCnt", item.get("bLrnExCnt"));
+									detailMap.put("planLrnExCnt", item.get("planLrnExCnt"));	
+									detailMap.put("dLrnExCnt", item.get("dLrnExCnt"));
+									detailMap.put("prevBLrnExCnt", item.get("prevBLrnExCnt"));	
+									detailMap.put("prevPlanLrnExCnt", item.get("prevPlanLrnExCnt"));	
+									detailMap.put("prevDLrnExCnt", item.get("prevDLrnExCnt"));									
+									detail.add(detailMap);
+								}
+							}	
+							// 학습 수행 총평
+							msg.put("summary", msg_summary);
+							msg.put("detail", msg_detail);
+							data.put("lrnExMsg", msg);
+							// 학습 수행 차트 
+							data.put("lrnExChart", detailChart);
+							// 학습 수행 상세정보
+							data.put("lrnExDetail", detail);
+						}
+						setResult(msgKey, data);
+					} else {
+						setResult(msgKey, vu1.getResult());
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
     }
 
     /**
