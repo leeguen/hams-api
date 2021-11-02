@@ -152,7 +152,20 @@ public class GroupController {
 		body = (LinkedHashMap)groupService.getAttRtStt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
-	
+
+    /**
+     * 학습분석 상세 - 출석률현황 - 일별출석히스토리 (HAMS-ORG-LD-018)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getAttHistoryDaily")
+    @ResponseBody
+    public ResponseEntity getAttHistoryDaily(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) groupService.getAttHistoryDaily(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
 	/**
 	 * HAMS-ORG-LD-003 
 	 * 학습분석 상세 - 학습타임라인
@@ -485,4 +498,6 @@ public class GroupController {
         body = (LinkedHashMap<String, Object>) groupService.getCommMsgCd(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    
 }

@@ -23,6 +23,8 @@ public interface GroupService {
 
     public Map getAttRtStt(Map<String, Object> paramMap) throws Exception;
 
+    public Map getAttHistoryDaily(Map<String, Object> paramMap) throws Exception;
+    
     public Map getLrnTmList(Map<String, Object> paramMap) throws Exception;
 
     public Map getLrnDetail(Map<String, Object> paramMap) throws Exception;
@@ -68,6 +70,5 @@ public interface GroupService {
     public Map getChapterLrn(Map<String, Object> paramMap) throws Exception;
 
     public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception;
-    
-    
+        
 }

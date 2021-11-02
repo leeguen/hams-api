@@ -723,6 +723,34 @@ public class GroupServiceImpl implements GroupService {
     }
 
     /**
+	 * HAMS-ORG-LD-018 (학습분석 상세 - 출석률현황 - 일별출석히스토리)
+	 * @param paramMap
+	 * @return
+	 * @throws Exception
+	 */
+    @Override
+    public Map getAttHistoryDaily(Map<String, Object> paramMap) throws Exception {
+    	v_param = new HashMap<>();
+		v_param.put("METHOD", "ATTHISTORYDAILY");
+		
+		getStudId(paramMap);
+		
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId", "date"}, paramMap);
+		if(vu.isValid()) { 	   	
+			//홈런 API 조회
+			paramMap.put("apiName", "connect-log-list");	       	
+			setResult(dataKey,externalAPIservice.callExternalAPI(paramMap).get("data"));			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;    
+    }
+    
+    /**
 	 * HAMS-ORG-LD-003 (학습분석 상세 - 학습타임라인)
 	 * @param paramMap
 	 * @return
@@ -1069,7 +1097,6 @@ public class GroupServiceImpl implements GroupService {
 	
     	return result;
     }
-
 
     /**
 	 * HAMS-ORG-LD-007
