@@ -495,11 +495,11 @@
     </select>
         
     <select id="getAttCntSttPeriod" parameterType="hashMap" resultType="resultMap">
-	    SELECT ATT.ATT_CNT AS ATT_RT					-- 출석률
-			, PREV_ATT.ATT_CNT AS PREV_ATT_RT			-- 이전 출석률
-			, ATT.PLAN_DAY_CNT AS PLAN_CNT			-- 계획일 수
+	    SELECT ATT.ATT_CNT 								-- 출석률
+			, PREV_ATT.ATT_CNT AS PREV_ATT_CNT			-- 이전 출석률
+			, ATT.PLAN_DAY_CNT AS PLAN_CNT				-- 계획일 수
 			, PREV_ATT.PLAN_DAY_CNT AS PREV_PLAN_CNT	-- 이전 계획일 수
-			, GRP_ATT.TOP_30_ATT_CNT AS TOP_ATT_CNT	-- 상위 출석일 수 
+			, GRP_ATT.TOP_30_ATT_CNT AS TOP_ATT_CNT		-- 상위 출석일 수 
 			, GRP_ATT.GRP_AVG_ATT_CNT AS AVG_ATT_CNT	-- 평균 출석일 수 
 		FROM 	
 		(	-- 선택된 기간 내 로그인 일 수, 계획일수
@@ -521,11 +521,11 @@
     
     
     <select id="getAttCntSttMonthly" parameterType="hashMap" resultType="resultMap">
-	    SELECT ATT.ATT_CNT AS ATT_RT					-- 출석률
-			, PREV_ATT.ATT_CNT AS PREV_ATT_RT			-- 이전 출석률
-			, ATT.PLAN_DAY_CNT AS PLAN_CNT			-- 계획일 수
+	    SELECT ATT.ATT_CNT								-- 출석률
+			, PREV_ATT.ATT_CNT AS PREV_ATT_CNT			-- 이전 출석률
+			, ATT.PLAN_DAY_CNT AS PLAN_CNT				-- 계획일 수
 			, PREV_ATT.PLAN_DAY_CNT AS PREV_PLAN_CNT	-- 이전 계획일 수
-			, GRP_ATT.TOP_30_ATT_CNT AS TOP_ATT_CNT	-- 상위 출석일 수 
+			, GRP_ATT.TOP_30_ATT_CNT AS TOP_ATT_CNT		-- 상위 출석일 수 
 			, GRP_ATT.GRP_AVG_ATT_CNT AS AVG_ATT_CNT	-- 평균 출석일 수 
 		FROM 	
 		(	-- 선택된 기간 내 로그인 일 수, 계획일수

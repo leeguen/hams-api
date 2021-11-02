@@ -848,10 +848,10 @@ public class GroupServiceImpl implements GroupService {
 									detail.add(detailMap);
 								}
 							}	
-							// 출석률 총평 attRtMsg
+							// 출석일 총평 attCntMsg
 							msg.put("summary", msg_summary);
 							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
+							data.put("attCntMsg", msg);
 							// 출석일 상세정보 attCntDetail
 							data.put("attCntDetail", detail);
 						}
@@ -892,10 +892,10 @@ public class GroupServiceImpl implements GroupService {
 									detail.add(detailMap);
 								}
 							}	
-							// 출석률 총평 attRtMsg
+							// 출석일 총평 attCntMsg
 							msg.put("summary", msg_summary);
 							msg.put("detail", msg_detail);
-							data.put("attRtMsg", msg);
+							data.put("attCntMsg", msg);
 							// 출석일 상세정보 attCntDetail
 							data.put("attCntDetail", detail);
 						}
