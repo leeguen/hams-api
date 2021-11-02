@@ -300,6 +300,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	try {
 		        	String url = HLLOGIN_API + apiName + ".json";
 		        	if(paramMap.containsKey("studId")) { 
+		        		url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/comm/" + apiName + ".json";	//임시 라이브 api test
 			        	paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");		
 		        		paramMap.remove("s");		
