@@ -486,6 +486,37 @@ public class GroupController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	/**
+	 * HAMS-ORG-ES-005 
+	 * 평가분석 요약 - 단원별 이해
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getChapterStt")
+    @ResponseBody
+	public ResponseEntity getChapterStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getChapterStt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}	
+
+	/**
+	 * HAMS-ORG-ED-002 
+	 * 평가분석 상세 - 단원별 연계학습
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getChapterLrn")
+    @ResponseBody
+	public ResponseEntity getChapterLrn(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getChapterLrn(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
     /**
      * 학습분석 메세지 코드 모음 (HAMS-T-LA-010)
      * @param params

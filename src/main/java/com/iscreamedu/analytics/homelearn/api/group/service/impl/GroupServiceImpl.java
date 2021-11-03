@@ -3530,124 +3530,111 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"currCon","studId"}, paramMap);
 		
 		if(vu.isValid()) { 		
-//			Map<String,Object> data = new HashMap<>();
-//            String startDate;
-//			String endDate;
-//			
-//			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-//			Map<String,Object> msg = new HashMap<>();
-//			String msg_summary = null;
-//			String msg_detail = null;
-//			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
-//			ArrayList<Map<String,Object>> detailChart = new ArrayList<>();
-//			ArrayList<Map<String,Object>> detail = new ArrayList<>();
-//			paramMap.put("currConCheck", currConCheck);
-//			
-//			if(currConCheck.equals("m")) {	// 월간
-//				//1-1.필수값 체크 
-//				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-//				
-//				if(vu1.isValid()) { 	
-//					String yyyy = paramMap.get("yyyy").toString();
-//					int mm = Integer.valueOf(paramMap.get("mm").toString());
-//					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-//					String yymm = yyyy + convertMm;
-//
-//					paramMap.put("yymm", yymm);
-//					//2. 유효성 체크
-//					vu2.isYearMonth("yyyy, mm", yymm);
-//					if(vu2.isValid()) {
-//						
-//						startDate = yyyy+"-"+convertMm+"-01";
-//						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
-//						paramMap.put("startDt", startDate);
-//						paramMap.put("endDt", endDate);
-//						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
-//						
-//						//data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterSttMonthly");
-//
-//
-//						if(data != null) {
-//							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
-//							if(detailList.size() > 0 && detailList.get(0) != null) {
-//								for(Map<String, Object> item : detailList) {
-//									Map<String, Object> chartMap = new LinkedHashMap<>();
-//									Map<String, Object> detailMap = new LinkedHashMap<>();
-//									
-//									chartMap.put("subjCd", item.get("subjCd"));		
-//
-//									detailMap.put("grade", item.get("grade"));
-//									detailMap.put("term", item.get("term"));
-//									detailMap.put("chapter", item.get("chapter"));
-//									detailMap.put("chapterCd", item.get("chapterCd"));
-//									detailMap.put("chapterNm", item.get("chapterNm"));
-//									detailMap.put("understandingLv", item.get("understandingLv"));
-//
-//									detailChart.add(chartMap);
-//									detail.add(detailMap);
-//								}
-//							}	
-//							data.put("chapter", detailChart);		//단원
-//							data.put("list", detail);				//목록
-//						}
-//						setResult(msgKey, data);			
-//					} else {
-//						setResult(msgKey, vu2.getResult());				
-//					}
-//				} else {
-//					setResult(msgKey, vu1.getResult());
-//				}
-//	        } else {	// 주간 & 기간
-//	        	//1-1.필수값 체크
-//				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
-//				
-//				if(vu.isValid()) { 	
-//					startDate = paramMap.get("startDt").toString();
-//					endDate = paramMap.get("endDt").toString();
-//					
-//					//2. 유효성 체크
-//					vu1.isDate("startDt", startDate);
-//					vu2.isDate("endDt", endDate);
-//					paramMap.put("limitDtCnt", 7);
-//					
-//					if(vu1.isValid() && vu2.isValid()) {
-//						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterSttPeriod");
-//						if(data != null) {
-//							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
-//							if(detailList.size() > 0 && detailList.get(0) != null) {
-//								for(Map<String, Object> item : detailList) {
-//									Map<String, Object> chartMap = new LinkedHashMap<>();
-//									Map<String, Object> detailMap = new LinkedHashMap<>();
-//									
-//									chartMap.put("subjCd", item.get("subjCd"));		
-//
-//									detailMap.put("grade", item.get("grade"));
-//									detailMap.put("term", item.get("term"));
-//									detailMap.put("chapter", item.get("chapter"));
-//									detailMap.put("chapterCd", item.get("chapterCd"));
-//									detailMap.put("chapterNm", item.get("chapterNm"));
-//									detailMap.put("understandingLv", item.get("understandingLv"));
-//
-//									detailChart.add(chartMap);
-//									detail.add(detailMap);
-//								}
-//							}	
-//							data.put("chapter", detailChart);		//단원
-//							data.put("list", detail);				//목록
-//						}
-//						setResult(msgKey, data);
-//					} else {
-//						if(!vu1.isValid()) {
-//							setResult(msgKey, vu1.getResult());
-//						}else if(!vu2.isValid()) {
-//							setResult(msgKey, vu2.getResult());
-//						}
-//					}
-//				} else {
-//					setResult(msgKey, vu.getResult());
-//				}				    		
-//			}
-//			
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			Map<String,Object> msg = new HashMap<>();
+			String msg_summary = null;
+			String msg_detail = null;
+			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
+			Map<String,Object> detailChart = new HashMap<>();
+			ArrayList<Map<String,Object>> detail = new ArrayList<>();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
+						detailChart.put("subjCd", data.get("subjCdList").toString().split("\\|"));	//과목코드
+						data.remove("subjCdList");
+								
+						if(data != null) {
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();									
+									
+									detailMap.put("grade", item.get("grade"));
+									detailMap.put("term", item.get("term"));
+									detailMap.put("chapter", item.get("chapter"));
+									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
+									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
+									detailMap.put("understandingLv", item.get("understandingLv").toString().split("\\|"));
+
+									detail.add(detailMap);
+								}
+							}	
+							detailChart.put("list", detail);		//목록
+							data.put("chapter", detailChart);		//단원							
+						}
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
+						detailChart.put("subjCd", data.get("subjCdList").toString().split("\\|"));	//과목코드
+						data.remove("subjCdList");
+						if(data != null) {
+							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
+							if(detailList.size() > 0 && detailList.get(0) != null) {
+								for(Map<String, Object> item : detailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();									
+									
+									detailMap.put("grade", item.get("grade"));
+									detailMap.put("term", item.get("term"));
+									detailMap.put("chapter", item.get("chapter"));
+									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
+									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
+									detailMap.put("understandingLv", item.get("understandingLv").toString().split("\\|"));
+	
+									detail.add(detailMap);
+								}
+							}	
+							detailChart.put("list", detail);		//목록
+							data.put("chapter", detailChart);		//단원							
+						}
+						setResult(msgKey, data);
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
 		} else {
 			setResult(msgKey, vu.getResult());
 		}

@@ -2646,9 +2646,82 @@
     </select>
     
     <select id="getChapterStt" parameterType="hashMap" resultType="resultMap">
+		<choose>
+          	<when test='currConCheck == "m"'> 
+		SELECT COUNT(EXAM_CD) AS LRN_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[>=]]> 80, 1, 0)) AS FNSH_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[<]]> 50, 1, 0)) AS SUPPLEMENTARY_CHAPTER_CNT
+			, GROUP_CONCAT(SUBJ_CD SEPARATOR '|') AS SUBJ_CD_LIST
+		FROM EXAM_MONTH_UNIT_TEST_RST
+		WHERE YYMM = #{yymm}
+			AND STUD_ID = #{studId}
+			</when>
+			<otherwise>		
+		SELECT COUNT(EXAM_CD) AS LRN_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[>=]]> 80, 1, 0)) AS FNSH_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[<]]> 50, 1, 0)) AS SUPPLEMENTARY_CHAPTER_CNT
+			, GROUP_CONCAT(SUBJ_CD SEPARATOR '|') AS SUBJ_CD_LIST
+		FROM EXAM_UNIT_TEST_RST
+		WHERE DT BETWEEN #{startDt} AND #{endDt}
+			AND STUD_ID = #{studId}
+			AND DEL_YN = 'N'
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getChapterSttDetail" parameterType="hashMap" resultType="resultMap">
+	    SELECT 
+			GRADE, TERM, CHAPTER
+			, GROUP_CONCAT(UNIT_CD SEPARATOR '|') AS CHAPTER_CD
+			, GROUP_CONCAT(UNIT_NM SEPARATOR '|') AS CHAPTER_NM
+			, GROUP_CONCAT(UNDERSTANDING_LV SEPARATOR '|') AS UNDERSTANDING_LV
+		FROM 
+		( 
+			SELECT UNIT.GRADE, UNIT.TERM, SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS CHAPTER, UNIT.UNIT_CD, UNIT.UNIT_NM, TRUE_SCORE, CRT_RT
+			, IF(TRUE_SCORE IS NULL
+				, IF(CRT_RT <![CDATA[<]]> 50
+					, 1
+					, IF(CRT_RT <![CDATA[<]]> 80
+						, 2
+						, IF(CRT_RT IS NULL
+							, NULL
+							, 3
+							)
+						)
+					)
+				, IF(TRUE_SCORE <![CDATA[<]]> 50
+					, 1
+					, IF(TRUE_SCORE <![CDATA[<]]> 80
+						, 2
+						, 3
+						)
+					)
+				) AS UNDERSTANDING_LV
+    	<choose>
+          	<when test='currConCheck == "m"'> 
+          	FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+			WHERE RST.YYMM = #{yymm}
+				AND RST.STUD_ID = #{studId}
+			</when>
+			<otherwise>	
+			FROM EXAM_UNIT_TEST_RST AS RST 
+			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+			WHERE RST.DT BETWEEN #{startDt} AND #{endDt}
+					AND RST.STUD_ID = #{studId} 
+					AND RST.DEL_YN = 'N'
+			</otherwise>
+		</choose>
+		) AS A
+		GROUP BY GRADE, TERM, CHAPTER
+		ORDER BY GRADE, TERM, CHAPTER
     </select>
     
     <select id="getChapterLrn" parameterType="hashMap" resultType="resultMap">
+  	    
+--		CHAPTER_NM
+--		, EXAM_CRT_RT
+--		, EXAM_DT
     </select>
     
     <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
