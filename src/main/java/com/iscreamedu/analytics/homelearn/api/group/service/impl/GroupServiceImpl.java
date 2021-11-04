@@ -3627,9 +3627,9 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("grade", item.get("grade"));
 									detailMap.put("term", item.get("term"));
 									detailMap.put("chapter", item.get("chapter"));
-									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
-									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
-									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|")).stream().mapToInt(Integer::parseInt).toArray());
+									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|", -1));
+									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|", -1));
+									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|", -1)).stream().mapToInt(Integer::parseInt).toArray());
 
 									detail.add(detailMap);
 								}
@@ -3669,9 +3669,9 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("grade", item.get("grade"));
 									detailMap.put("term", item.get("term"));
 									detailMap.put("chapter", item.get("chapter"));
-									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
-									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
-									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|")).stream().mapToInt(Integer::parseInt).toArray());
+									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|", -1));
+									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|", -1));
+									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|", -1)).stream().mapToInt(Integer::parseInt).toArray());
 
 									detail.add(detailMap);
 								}
