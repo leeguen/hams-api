@@ -3558,7 +3558,7 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
-						detailChart.put("subjCd", data.get("subjCdList").toString().split("\\|"));	//과목코드
+						detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
 						data.remove("subjCdList");
 								
 						if(data != null) {
@@ -3572,7 +3572,7 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("chapter", item.get("chapter"));
 									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
 									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
-									detailMap.put("understandingLv", item.get("understandingLv").toString().split("\\|"));
+									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|")).stream().mapToInt(Integer::parseInt).toArray());
 
 									detail.add(detailMap);
 								}
@@ -3601,7 +3601,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
-						detailChart.put("subjCd", data.get("subjCdList").toString().split("\\|"));	//과목코드
+						detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
 						data.remove("subjCdList");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
@@ -3614,8 +3614,8 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("chapter", item.get("chapter"));
 									detailMap.put("chapterCd", item.get("chapterCd").toString().split("\\|"));
 									detailMap.put("chapterNm", item.get("chapterNm").toString().split("\\|"));
-									detailMap.put("understandingLv", item.get("understandingLv").toString().split("\\|"));
-	
+									detailMap.put("understandingLv", Arrays.asList(item.get("understandingLv").toString().split("\\|")).stream().mapToInt(Integer::parseInt).toArray());
+
 									detail.add(detailMap);
 								}
 							}	
