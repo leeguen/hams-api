@@ -3708,17 +3708,106 @@ public class GroupServiceImpl implements GroupService {
 	 */
     @Override    
     public Map getChapterLrn(Map<String, Object> paramMap) throws Exception {
-//		priorLrn 선수학습
-//		chapterNm
-//		examCrtRt
-//		examDT
-//	currentLrn 해당단원
-//		chapterNm
-//		examCrtRt
-//		examDT
+    	v_param = new HashMap<>();
+    	v_param.put("METHOD", "CHAPTERLRN");
 
-//		data.put("followUpLrn", detail);		//후속학습
-//		data.put("supplementaryLrn", detail);	//보충학습
+		getStudId(paramMap);
+		
+    	//Validation
+		ValidationUtil vu = new ValidationUtil();
+		ValidationUtil vu1 = new ValidationUtil();
+		ValidationUtil vu2 = new ValidationUtil();
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"currCon","studId", "unitCd"}, paramMap);
+		
+		if(vu.isValid()) { 		
+			Map<String,Object> data = new HashMap<>();
+            String startDate;
+			String endDate;
+			
+			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			Map<String,Object> detail = new HashMap<>();
+			Map<String,Object> currentDetail = new HashMap<>();
+			Map<String,Object> prevDetail = new HashMap<>();
+
+			if(currConCheck.equals("m")) {	// 월간
+				//1-1.필수값 체크 
+				vu1.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+				
+				if(vu1.isValid()) { 	
+					String yyyy = paramMap.get("yyyy").toString();
+					int mm = Integer.valueOf(paramMap.get("mm").toString());
+					String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+					String yymm = yyyy + convertMm;
+
+					paramMap.put("yymm", yymm);
+					//2. 유효성 체크
+					vu2.isYearMonth("yyyy, mm", yymm);
+					if(vu2.isValid()) {
+						detail = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterLrn");
+						if(detail != null) {
+							currentDetail.put("chapterNm", detail.get("chapterNm"));
+							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
+							currentDetail.put("examDt", detail.get("examDt"));
+							prevDetail.put("chapterNm", detail.get("preChapterNm"));
+							prevDetail.put("examCrtRt", detail.get("preExamCrtRt"));
+							prevDetail.put("examDt", detail.get("preExamDt"));
+							data.put("priorLrn", prevDetail);			//선수학습		
+							data.put("currentLrn", currentDetail);		//해당단원	
+							data.put("followUpLrn", detail.get("followUpLrn").toString().split("\\|"));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().split("\\|"));		//보충학습								
+						}	
+						setResult(msgKey, data);			
+					} else {
+						setResult(msgKey, vu2.getResult());				
+					}
+				} else {
+					setResult(msgKey, vu1.getResult());
+				}
+	        } else {	// 주간 & 기간
+	        	//1-1.필수값 체크
+				vu.checkRequired(new String[] {"startDt","endDt"}, paramMap);
+				
+				if(vu.isValid()) { 	
+					startDate = paramMap.get("startDt").toString();
+					endDate = paramMap.get("endDt").toString();
+					
+					//2. 유효성 체크
+					vu1.isDate("startDt", startDate);
+					vu2.isDate("endDt", endDate);
+					
+					if(vu1.isValid() && vu2.isValid()) {
+						detail = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterLrn");
+						if(detail != null) {
+							currentDetail.put("chapterNm", detail.get("chapterNm"));
+							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
+							currentDetail.put("examDt", detail.get("examDt"));
+							prevDetail.put("chapterNm", detail.get("preChapterNm"));
+							prevDetail.put("examCrtRt", detail.get("preExamCrtRt"));
+							prevDetail.put("examDt", detail.get("preExamDt"));
+							data.put("priorLrn", prevDetail);			//선수학습		
+							data.put("currentLrn", currentDetail);		//해당단원	
+							data.put("followUpLrn", detail.get("followUpLrn").toString().split("\\|"));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().split("\\|"));		//보충학습								
+						}	
+						setResult(msgKey, data);
+					} else {
+						if(!vu1.isValid()) {
+							setResult(msgKey, vu1.getResult());
+						}else if(!vu2.isValid()) {
+							setResult(msgKey, vu2.getResult());
+						}
+					}
+				} else {
+					setResult(msgKey, vu.getResult());
+				}				    		
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+	
     	return result;
     }
     

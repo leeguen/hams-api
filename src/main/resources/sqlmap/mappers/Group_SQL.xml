@@ -2763,10 +2763,44 @@
     </select>
     
     <select id="getChapterLrn" parameterType="hashMap" resultType="resultMap">
-  	    
---		CHAPTER_NM
---		, EXAM_CRT_RT
---		, EXAM_DT
+  	    SELECT 
+			UNIT_INFO AS CHAPTER_NM
+			, RST.CRT_RT AS EXAM_CRT_RT
+			, DATE_FORMAT(RST.SMT_DTTM, '%Y-%m-%d') AS EXAM_DT
+			, PRE_UNIT_INFO AS PRE_CHAPTER_NM
+			, PREV_RST.CRT_RT AS PRE_EXAM_CRT_RT
+			, DATE_FORMAT(PREV_RST.SMT_DTTM, '%Y-%m-%d') AS PRE_EXAM_DT
+			, SUB_UNIT_INFO AS FOLLOW_UP_LRN
+			, SP_UNIT_INFO AS SUPPLEMENTARY_LRN
+		<choose>
+			<when test='currConCheck == "m"'> 
+		FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+		JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+		JOIN UNIT_LINK_INFO AS ULINK ON UNIT.UNIT_CD = ULINK.UNIT_CD
+		LEFT OUTER JOIN EXAM_MONTH_UNIT_TEST_RST AS PREV_RST 
+			ON PREV_RST.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(RST.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m') 
+				AND PREV_RST.STUD_ID = RST.STUD_ID 
+				AND PREV_RST.UNIT_CD = ULINK.PRE_UNIT_CD
+		WHERE RST.YYMM = #{yymm}
+			AND RST.STUD_ID = #{studId}	
+			AND RST.UNIT_CD = #{unitCd}
+			</when>
+			<otherwise>	
+ 		FROM EXAM_UNIT_TEST_RST AS RST 
+ 		JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+ 		JOIN UNIT_LINK_INFO AS ULINK ON UNIT.UNIT_CD = ULINK.UNIT_CD
+ 		LEFT OUTER JOIN EXAM_UNIT_TEST_RST AS PREV_RST 
+ 			ON PREV_RST.DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND #{endDt}  
+ 				AND PREV_RST.STUD_ID = RST.STUD_ID 
+ 				AND PREV_RST.DEL_YN = RST.DEL_YN 
+ 				AND PREV_RST.UNIT_CD = ULINK.PRE_UNIT_CD 
+ 		WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+ 			AND RST.STUD_ID = #{studId}
+ 			AND RST.DEL_YN = 'N'
+ 			AND RST.UNIT_CD = #{unitCd}
+			</otherwise>
+		</choose>
+		
     </select>
     
     <select id="getCommMsgCd" parameterType="hashMap" resultType="resultMap">
