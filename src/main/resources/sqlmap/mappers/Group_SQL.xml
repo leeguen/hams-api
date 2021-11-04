@@ -2687,8 +2687,6 @@
 				SUBJ_CD
 			FROM (
 				SELECT DISTINCT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
-				FROM EXAM_UNIT_TEST_RST AS RST 
-				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD				
 				<choose>
 		          	<when test='currConCheck == "m"'> 		          	
 		 		FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
@@ -2697,6 +2695,8 @@
 		 			AND RST.STUD_ID = #{studId}
 					</when>
 					<otherwise>	
+				FROM EXAM_UNIT_TEST_RST AS RST 
+				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD				
 				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
 					AND RST.STUD_ID = #{studId}
 					AND RST.DEL_YN = 'N'
@@ -2715,6 +2715,7 @@
 				FROM EXAM_UNIT_TEST_RST AS RST 
 				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
 					AND RST.STUD_ID = #{studId}
+					AND RST.DEL_YN = 'N'
 					</otherwise>
 				</choose>
 			) B	
@@ -2740,8 +2741,7 @@
 							, 3
 							)
 						)
-					) AS UNDERSTANDING_LV
-					
+					) AS UNDERSTANDING_LV					
 		    	<choose>
 		          	<when test='currConCheck == "m"'> 
 			FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
