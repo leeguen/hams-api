@@ -1664,38 +1664,40 @@ public class GroupServiceImpl implements GroupService {
 						aLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getALrnExStt");
 						aLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getALrnExSttList");
 						
-						data.put("aLrnExCnt", aLrnData.get("aLrnExCnt"));
-						data.put("prevALrnExCnt", aLrnData.get("prevALrnExCnt"));
-						data.put("topALrnExCnt", aLrnData.get("topALrnExCnt"));
-						data.put("avgALrnExCnt", aLrnData.get("avgALrnExCnt"));
-						
-						msgMap.put("summary", aLrnData.get("summary"));
-						msgMap.put("detail", aLrnData.get("detail"));
-						
-						if(aLrnList.size() > 0 && aLrnList.get(0) != null) {
-							for(Map<String, Object> item : aLrnList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("aLrnExCnt", item.get("aLrnExCnt"));
-								chartMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("aLrnExCnt", item.get("aLrnExCnt"));
-								detailMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
-								detailMap.put("topALrnExCnt", item.get("topALrnExCnt"));
-								detailMap.put("avgALrnExCnt", item.get("avgALrnExCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(aLrnData.get("aLrnExCnt") != null || aLrnData.get("prevALrnExCnt") != null) {
+							data.put("aLrnExCnt", aLrnData.get("aLrnExCnt"));
+							data.put("prevALrnExCnt", aLrnData.get("prevALrnExCnt"));
+							data.put("topALrnExCnt", aLrnData.get("topALrnExCnt"));
+							data.put("avgALrnExCnt", aLrnData.get("avgALrnExCnt"));
+							
+							msgMap.put("summary", aLrnData.get("summary"));
+							msgMap.put("detail", aLrnData.get("detail"));
+							
+							if(aLrnList.size() > 0 && aLrnList.get(0) != null) {
+								for(Map<String, Object> item : aLrnList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("aLrnExCnt", item.get("aLrnExCnt"));
+									chartMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("aLrnExCnt", item.get("aLrnExCnt"));
+									detailMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
+									detailMap.put("topALrnExCnt", item.get("topALrnExCnt"));
+									detailMap.put("avgALrnExCnt", item.get("avgALrnExCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("aLrnExChart", chartList);
+							data.put("aLrnExMsg", msgMap);
+							data.put("aLrnExDetail", detailList);
 						}
-						
-						data.put("aLrnExChart", chartList);
-						data.put("aLrnExMsg", msgMap);
-						data.put("aLrnExDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -1721,38 +1723,40 @@ public class GroupServiceImpl implements GroupService {
 						aLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getALrnExStt");
 						aLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getALrnExSttList");
 						
-						data.put("aLrnExCnt", aLrnData.get("aLrnExCnt"));
-						data.put("prevALrnExCnt", aLrnData.get("prevALrnExCnt"));
-						data.put("topALrnExCnt", aLrnData.get("topALrnExCnt"));
-						data.put("avgALrnExCnt", aLrnData.get("avgALrnExCnt"));
-						
-						msgMap.put("summary", aLrnData.get("summary"));
-						msgMap.put("detail", aLrnData.get("detail"));
-						
-						if(aLrnList.size() > 0 && aLrnList.get(0) != null) {
-							for(Map<String, Object> item : aLrnList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("aLrnExCnt", item.get("aLrnExCnt"));
-								chartMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("aLrnExCnt", item.get("aLrnExCnt"));
-								detailMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
-								detailMap.put("topALrnExCnt", item.get("topALrnExCnt"));
-								detailMap.put("avgALrnExCnt", item.get("avgALrnExCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(aLrnData.get("aLrnExCnt") != null || aLrnData.get("prevALrnExCnt") != null) {
+							data.put("aLrnExCnt", aLrnData.get("aLrnExCnt"));
+							data.put("prevALrnExCnt", aLrnData.get("prevALrnExCnt"));
+							data.put("topALrnExCnt", aLrnData.get("topALrnExCnt"));
+							data.put("avgALrnExCnt", aLrnData.get("avgALrnExCnt"));
+							
+							msgMap.put("summary", aLrnData.get("summary"));
+							msgMap.put("detail", aLrnData.get("detail"));
+							
+							if(aLrnList.size() > 0 && aLrnList.get(0) != null) {
+								for(Map<String, Object> item : aLrnList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("aLrnExCnt", item.get("aLrnExCnt"));
+									chartMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("aLrnExCnt", item.get("aLrnExCnt"));
+									detailMap.put("prevALrnExCnt", item.get("prevALrnExCnt"));
+									detailMap.put("topALrnExCnt", item.get("topALrnExCnt"));
+									detailMap.put("avgALrnExCnt", item.get("avgALrnExCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("aLrnExChart", chartList);
+							data.put("aLrnExMsg", msgMap);
+							data.put("aLrnExDetail", detailList);
 						}
-						
-						data.put("aLrnExChart", chartList);
-						data.put("aLrnExMsg", msgMap);
-						data.put("aLrnExDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -1834,39 +1838,40 @@ public class GroupServiceImpl implements GroupService {
 						crtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtRtStt");
 						crtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtRtSttList");
 						
-						data.put("crtRt", crtData.get("crtRt"));
-						data.put("prevCrtRt", crtData.get("prevCrtRt"));
-						data.put("topCrtRt", crtData.get("topCrtRt"));
-						data.put("avgCrtRt", crtData.get("avgCrtRt"));
-						
-						msgMap.put("summary", crtData.get("summary"));
-						msgMap.put("detail", crtData.get("detail"));
-						
-						if(crtList.size() > 0 && crtList.get(0) != null) {
-							for(Map<String, Object> item : crtList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("crtRt", item.get("crtRt"));
-								chartMap.put("prevCrtRt", item.get("prevCrtRt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("crtRt", item.get("crtRt"));
-								detailMap.put("prevCrtRt", item.get("prevCrtRt"));
-								detailMap.put("topCrtRt", item.get("topCrtRt"));
-								detailMap.put("avgCrtRt", item.get("avgCrtRt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(crtData.get("crtRt") != null || crtData.get("prevCrtRt") != null) {
+							data.put("crtRt", crtData.get("crtRt"));
+							data.put("prevCrtRt", crtData.get("prevCrtRt"));
+							data.put("topCrtRt", crtData.get("topCrtRt"));
+							data.put("avgCrtRt", crtData.get("avgCrtRt"));
+							
+							msgMap.put("summary", crtData.get("summary"));
+							msgMap.put("detail", crtData.get("detail"));
+							
+							if(crtList.size() > 0 && crtList.get(0) != null) {
+								for(Map<String, Object> item : crtList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("crtRt", item.get("crtRt"));
+									chartMap.put("prevCrtRt", item.get("prevCrtRt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("crtRt", item.get("crtRt"));
+									detailMap.put("prevCrtRt", item.get("prevCrtRt"));
+									detailMap.put("topCrtRt", item.get("topCrtRt"));
+									detailMap.put("avgCrtRt", item.get("avgCrtRt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("crtRtChart", chartList);
+							data.put("crtRtMsg", msgMap);
+							data.put("crtRtDetail", detailList);
 						}
-						
-						data.put("crtRtChart", chartList);
-						data.put("crtRtMsg", msgMap);
-						data.put("crtRtDetail", detailList);
-						
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -1891,38 +1896,40 @@ public class GroupServiceImpl implements GroupService {
 						crtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtRtStt");
 						crtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtRtSttList");
 						
-						data.put("crtRt", crtData.get("crtRt"));
-						data.put("prevCrtRt", crtData.get("prevCrtRt"));
-						data.put("topCrtRt", crtData.get("topCrtRt"));
-						data.put("avgCrtRt", crtData.get("avgCrtRt"));
-						
-						msgMap.put("summary", crtData.get("summary"));
-						msgMap.put("detail", crtData.get("detail"));
-						
-						if(crtList.size() > 0 && crtList.get(0) != null) {
-							for(Map<String, Object> item : crtList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("crtRt", item.get("crtRt"));
-								chartMap.put("prevCrtRt", item.get("prevCrtRt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("crtRt", item.get("crtRt"));
-								detailMap.put("prevCrtRt", item.get("prevCrtRt"));
-								detailMap.put("topCrtRt", item.get("topCrtRt"));
-								detailMap.put("avgCrtRt", item.get("avgCrtRt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(crtData.get("crtRt") != null || crtData.get("prevCrtRt") != null) {
+							data.put("crtRt", crtData.get("crtRt"));
+							data.put("prevCrtRt", crtData.get("prevCrtRt"));
+							data.put("topCrtRt", crtData.get("topCrtRt"));
+							data.put("avgCrtRt", crtData.get("avgCrtRt"));
+							
+							msgMap.put("summary", crtData.get("summary"));
+							msgMap.put("detail", crtData.get("detail"));
+							
+							if(crtList.size() > 0 && crtList.get(0) != null) {
+								for(Map<String, Object> item : crtList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("crtRt", item.get("crtRt"));
+									chartMap.put("prevCrtRt", item.get("prevCrtRt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("crtRt", item.get("crtRt"));
+									detailMap.put("prevCrtRt", item.get("prevCrtRt"));
+									detailMap.put("topCrtRt", item.get("topCrtRt"));
+									detailMap.put("avgCrtRt", item.get("avgCrtRt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("crtRtChart", chartList);
+							data.put("crtRtMsg", msgMap);
+							data.put("crtRtDetail", detailList);
 						}
-						
-						data.put("crtRtChart", chartList);
-						data.put("crtRtMsg", msgMap);
-						data.put("crtRtDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2003,41 +2010,43 @@ public class GroupServiceImpl implements GroupService {
 						
 						incrtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNoteNcStt");
 						incrtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteNcSttList");
-						
-						data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
-						data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
-						data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
-						data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
-						
-						msgMap.put("summary", incrtData.get("summary"));
-						msgMap.put("detail", incrtData.get("detail"));
-						
-						if(incrtList.size() > 0 && incrtList.get(0) != null) {
-							for(Map<String, Object> item : incrtList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
-								chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
-								chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
-								chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
-								detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
-								detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
-								detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+
+						if(incrtData.get("incrtNoteNcCnt") != null || incrtData.get("prevIncrtNoteNcCnt") != null) {
+							data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
+							data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
+							data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
+							data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
+							
+							msgMap.put("summary", incrtData.get("summary"));
+							msgMap.put("detail", incrtData.get("detail"));
+							
+							if(incrtList.size() > 0 && incrtList.get(0) != null) {
+								for(Map<String, Object> item : incrtList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+									chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
+									chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+									chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+									detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+									detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
+									detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("incrtNoteNcChart", chartList);
+							data.put("incrtNoteNcMsg", msgMap);
+							data.put("incrtNoteNcDetail", detailList);
 						}
-						
-						data.put("incrtNoteNcChart", chartList);
-						data.put("incrtNoteNcMsg", msgMap);
-						data.put("incrtNoteNcDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2063,40 +2072,42 @@ public class GroupServiceImpl implements GroupService {
 						incrtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNoteNcStt");
 						incrtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteNcSttList");
 						
-						data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
-						data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
-						data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
-						data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
-						
-						msgMap.put("summary", incrtData.get("summary"));
-						msgMap.put("detail", incrtData.get("detail"));
-						
-						if(incrtList.size() > 0 && incrtList.get(0) != null) {
-							for(Map<String, Object> item : incrtList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
-								chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
-								chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
-								chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
-								detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
-								detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
-								detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(incrtData.get("incrtNoteNcCnt") != null || incrtData.get("prevIncrtNoteNcCnt") != null) {
+							data.put("incrtNoteNcCnt", incrtData.get("incrtNoteNcCnt"));
+							data.put("prevIncrtNoteNcCnt", incrtData.get("prevIncrtNoteNcCnt"));
+							data.put("topIncrtNoteNcCnt", incrtData.get("topIncrtNoteNcCnt"));
+							data.put("avgIncrtNoteNcCnt", incrtData.get("avgIncrtNoteNcCnt"));
+							
+							msgMap.put("summary", incrtData.get("summary"));
+							msgMap.put("detail", incrtData.get("detail"));
+							
+							if(incrtList.size() > 0 && incrtList.get(0) != null) {
+								for(Map<String, Object> item : incrtList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+									chartMap.put("crtNoteNcCnt", item.get("crtNoteNcCnt"));
+									chartMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+									chartMap.put("prevCrtNoteNcCnt", item.get("prevCrtNoteNcCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("incrtNoteNcCnt", item.get("incrtNoteNcCnt"));
+									detailMap.put("prevIncrtNoteNcCnt", item.get("prevIncrtNoteNcCnt"));
+									detailMap.put("topIncrtNoteNcCnt", item.get("topIncrtNoteNcCnt"));
+									detailMap.put("avgIncrtNoteNcCnt", item.get("avgIncrtNoteNcCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("incrtNoteNcChart", chartList);
+							data.put("incrtNoteNcMsg", msgMap);
+							data.put("incrtNoteNcDetail", detailList);
 						}
-						
-						data.put("incrtNoteNcChart", chartList);
-						data.put("incrtNoteNcMsg", msgMap);
-						data.put("incrtNoteNcDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2178,40 +2189,42 @@ public class GroupServiceImpl implements GroupService {
 						crtQuesData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtQuesCntStt");
 						crtQuesList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtQuesCntSttList");
 						
-						data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
-						data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
-						data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
-						data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
-						
-						msgMap.put("summary", crtQuesData.get("summary"));
-						msgMap.put("detail", crtQuesData.get("detail"));
-						
-						if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
-							for(Map<String, Object> item : crtQuesList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
-								chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
-								chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
-								chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
-								detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
-								detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
-								detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(crtQuesData.get("crtQuesCnt") != null || crtQuesData.get("prevCrtQuesCnt") != null) {
+							data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
+							data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
+							data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
+							data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
+							
+							msgMap.put("summary", crtQuesData.get("summary"));
+							msgMap.put("detail", crtQuesData.get("detail"));
+							
+							if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
+								for(Map<String, Object> item : crtQuesList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+									chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
+									chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+									chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+									detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+									detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
+									detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("crtQuesChart", chartList);
+							data.put("crtQuesMsg", msgMap);
+							data.put("crtQuesDetail", detailList);
 						}
-						
-						data.put("crtQuesChart", chartList);
-						data.put("crtQuesMsg", msgMap);
-						data.put("crtQuesDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2237,40 +2250,42 @@ public class GroupServiceImpl implements GroupService {
 						crtQuesData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtQuesCntStt");
 						crtQuesList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtQuesCntSttList");
 						
-						data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
-						data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
-						data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
-						data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
-						
-						msgMap.put("summary", crtQuesData.get("summary"));
-						msgMap.put("detail", crtQuesData.get("detail"));
-						
-						if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
-							for(Map<String, Object> item : crtQuesList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
-								chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
-								chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
-								chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
-								detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
-								detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
-								detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(crtQuesData.get("crtQuesCnt") != null || crtQuesData.get("prevCrtQuesCnt") != null) {
+							data.put("crtQuesCnt", crtQuesData.get("crtQuesCnt"));
+							data.put("prevCrtQuesCnt", crtQuesData.get("prevCrtQuesCnt"));
+							data.put("topCrtQuesCnt", crtQuesData.get("topCrtQuesCnt"));
+							data.put("avgCrtQuesCnt", crtQuesData.get("avgCrtQuesCnt"));
+							
+							msgMap.put("summary", crtQuesData.get("summary"));
+							msgMap.put("detail", crtQuesData.get("detail"));
+							
+							if(crtQuesList.size() > 0 && crtQuesList.get(0) != null) {
+								for(Map<String, Object> item : crtQuesList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+									chartMap.put("incrtQuesCnt", item.get("incrtQuesCnt"));
+									chartMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+									chartMap.put("prevIncrtQuesCnt", item.get("prevIncrtQuesCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("crtQuesCnt", item.get("crtQuesCnt"));
+									detailMap.put("prevCrtQuesCnt", item.get("prevCrtQuesCnt"));
+									detailMap.put("topCrtQuesCnt", item.get("topCrtQuesCnt"));
+									detailMap.put("avgCrtQuesCnt", item.get("avgCrtQuesCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("crtQuesChart", chartList);
+							data.put("crtQuesMsg", msgMap);
+							data.put("crtQuesDetail", detailList);
 						}
-						
-						data.put("crtQuesChart", chartList);
-						data.put("crtQuesMsg", msgMap);
-						data.put("crtQuesDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2345,43 +2360,45 @@ public class GroupServiceImpl implements GroupService {
 						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
 						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
 						
-						data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
-						data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
-						
-						msgMap.put("summary", slvHabitData.get("summary"));
-						msgMap.put("detail", slvHabitData.get("detail"));
-						
-						if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
-							for(Map<String, Object> item : slvHabitList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
-								chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
-								chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
-								chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
-								chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
-								chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
-								chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
-								chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
-								detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
-								detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
-								detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
-								detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(slvHabitData.get("slvHabitCnt") != null || slvHabitData.get("prevSlvHabitCnt") != null) {
+							data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
+							data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
+							
+							msgMap.put("summary", slvHabitData.get("summary"));
+							msgMap.put("detail", slvHabitData.get("detail"));
+							
+							if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
+								for(Map<String, Object> item : slvHabitList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+									chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+									chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+									chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+									chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
+									chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
+									chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
+									chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+									detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+									detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+									detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+									detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("slvHabitChart", chartList);
+							data.put("slvHabitMsg", msgMap);
+							data.put("slvHabitDetail", detailList);
 						}
-						
-						data.put("slvHabitChart", chartList);
-						data.put("slvHabitMsg", msgMap);
-						data.put("slvHabitDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2407,43 +2424,45 @@ public class GroupServiceImpl implements GroupService {
 						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
 						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
 						
-						data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
-						data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
-						
-						msgMap.put("summary", slvHabitData.get("summary"));
-						msgMap.put("detail", slvHabitData.get("detail"));
-						
-						if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
-							for(Map<String, Object> item : slvHabitList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("prevDt", item.get("prevDt"));
-								chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
-								chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
-								chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
-								chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
-								chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
-								chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
-								chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
-								chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
-								detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
-								detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
-								detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
-								detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
-								
-								chartList.add(chartMap);
-								detailList.add(detailMap);
+						if(slvHabitData.get("slvHabitCnt") != null || slvHabitData.get("prevSlvHabitCnt") != null) {
+							data.put("slvHabitCnt", slvHabitData.get("slvHabitCnt"));
+							data.put("prevSlvHabitCnt", slvHabitData.get("prevSlvHabitCnt"));
+							
+							msgMap.put("summary", slvHabitData.get("summary"));
+							msgMap.put("detail", slvHabitData.get("detail"));
+							
+							if(slvHabitList.size() > 0 && slvHabitList.get(0) != null) {
+								for(Map<String, Object> item : slvHabitList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("prevDt", item.get("prevDt"));
+									chartMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+									chartMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+									chartMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+									chartMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+									chartMap.put("prevSkipQuesCnt", item.get("prevSkipQuesCnt"));
+									chartMap.put("prevCursoryQuesCnt", item.get("prevCursoryQuesCnt"));
+									chartMap.put("prevGuessQuesCnt", item.get("prevGuessQuesCnt"));
+									chartMap.put("prevMistakenQuesCnt", item.get("prevMistakenQuesCnt"));
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("skipQuesCnt", item.get("skipQuesCnt"));
+									detailMap.put("cursoryQuesCnt", item.get("cursoryQuesCnt"));
+									detailMap.put("guessQuesCnt", item.get("guessQuesCnt"));
+									detailMap.put("mistakenQuesCnt", item.get("mistakenQuesCnt"));
+									detailMap.put("slvHabitCnt", item.get("slvHabitCnt"));
+									
+									chartList.add(chartMap);
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("slvHabitChart", chartList);
+							data.put("slvHabitMsg", msgMap);
+							data.put("slvHabitDetail", detailList);
 						}
-						
-						data.put("slvHabitChart", chartList);
-						data.put("slvHabitMsg", msgMap);
-						data.put("slvHabitDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2520,47 +2539,49 @@ public class GroupServiceImpl implements GroupService {
 						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
 						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
 						
-						data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
-						data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
-						
-						msgMap.put("summary", dayAvgLrnData.get("summary"));
-						msgMap.put("detail", dayAvgLrnData.get("detail"));
-						
-						if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
-							for(Map<String, Object> item : dayAvgLrnList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("subjCd", item.get("subjCd"));
-								chartMap.put("lrnTm", item.get("lrnTm"));
-								
-								chartList.add(chartMap);
-							}
-						}
-						
-						if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
-							for(Map<String, Object> item : dayAvgLrnDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								List<String> subjLrnTmList = new ArrayList<>();
-								List<Integer> subjLrnTmIntList = new ArrayList<>();
-								
-								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
-								
-								if(lrnSec > 0) {
-									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
-									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+						if(dayAvgLrnData.get("lrnTm") != null || dayAvgLrnData.get("prevLrnTm") != null) {
+							data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
+							data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
+							
+							msgMap.put("summary", dayAvgLrnData.get("summary"));
+							msgMap.put("detail", dayAvgLrnData.get("detail"));
+							
+							if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
+								for(Map<String, Object> item : dayAvgLrnList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("subjCd", item.get("subjCd"));
+									chartMap.put("lrnTm", item.get("lrnTm"));
+									
+									chartList.add(chartMap);
 								}
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmIntList);
-								
-								detailList.add(detailMap);
 							}
+							
+							if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
+								for(Map<String, Object> item : dayAvgLrnDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									List<String> subjLrnTmList = new ArrayList<>();
+									List<Integer> subjLrnTmIntList = new ArrayList<>();
+									
+									int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+									
+									if(lrnSec > 0) {
+										subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+										subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+									}
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("subjLrnTm", subjLrnTmIntList);
+									
+									detailList.add(detailMap);
+								}
+							}
+							
+							data.put("dayAvgLrnChart", chartList);
+							data.put("dayAvgLrnMsg", msgMap);
+							data.put("dayAvgLrnDetail", detailList);
 						}
-						
-						data.put("dayAvgLrnChart", chartList);
-						data.put("dayAvgLrnMsg", msgMap);
-						data.put("dayAvgLrnDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2587,47 +2608,49 @@ public class GroupServiceImpl implements GroupService {
 						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
 						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
 						
-						data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
-						data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
-						
-						msgMap.put("summary", dayAvgLrnData.get("summary"));
-						msgMap.put("detail", dayAvgLrnData.get("detail"));
-						
-						if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
-							for(Map<String, Object> item : dayAvgLrnList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								
-								chartMap.put("dt", item.get("dt"));
-								chartMap.put("subjCd", item.get("subjCd"));
-								chartMap.put("lrnTm", item.get("lrnTm"));
-								
-								chartList.add(chartMap);
-							}
-						}
-						
-						if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
-							for(Map<String, Object> item : dayAvgLrnDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								List<String> subjLrnTmList = new ArrayList<>();
-								List<Integer> subjLrnTmIntList = new ArrayList<>();
-								
-								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
-								
-								if(lrnSec > 0) {
-									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
-									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+						if(dayAvgLrnData.get("lrnTm") != null || dayAvgLrnData.get("prevLrnTm") != null) {
+							data.put("lrnTm", dayAvgLrnData.get("lrnTm"));
+							data.put("prevLrnTm", dayAvgLrnData.get("prevLrnTm"));
+							
+							msgMap.put("summary", dayAvgLrnData.get("summary"));
+							msgMap.put("detail", dayAvgLrnData.get("detail"));
+							
+							if(dayAvgLrnList.size() > 0 && dayAvgLrnList.get(0) != null) {
+								for(Map<String, Object> item : dayAvgLrnList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									
+									chartMap.put("dt", item.get("dt"));
+									chartMap.put("subjCd", item.get("subjCd"));
+									chartMap.put("lrnTm", item.get("lrnTm"));
+									
+									chartList.add(chartMap);
 								}
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmIntList);
-								
-								detailList.add(detailMap);
 							}
+							
+							if(dayAvgLrnDetailList.size() > 0 && dayAvgLrnDetailList.get(0) != null) {
+								for(Map<String, Object> item : dayAvgLrnDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									List<String> subjLrnTmList = new ArrayList<>();
+									List<Integer> subjLrnTmIntList = new ArrayList<>();
+									
+									int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+									
+									if(lrnSec > 0) {
+										subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+										subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+									}
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("subjLrnTm", subjLrnTmIntList);
+									
+									detailList.add(detailMap);
+								}
+							}
+							
+							data.put("dayAvgLrnChart", chartList);
+							data.put("dayAvgLrnMsg", msgMap);
+							data.put("dayAvgLrnDetail", detailList);
 						}
-						
-						data.put("dayAvgLrnChart", chartList);
-						data.put("dayAvgLrnMsg", msgMap);
-						data.put("dayAvgLrnDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2701,30 +2724,32 @@ public class GroupServiceImpl implements GroupService {
 						totalLrnTmData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getTotalLrnTmStt");
 						totalLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getTotalLrnTmSttList");
 						
-						data.put("totalLrnTm", totalLrnTmData.get("totalLrnTm"));
-						data.put("prevTotalLrnTm", totalLrnTmData.get("prevTotalLrnTm"));
-						data.put("topTotalLrnTm", totalLrnTmData.get("topTotalLrnTm"));
-						data.put("avgTotalLrnTm", totalLrnTmData.get("avgTotalLrnTm"));
-						
-						msgMap.put("summary", totalLrnTmData.get("summary"));
-						msgMap.put("detail", totalLrnTmData.get("detail"));
-						
-						if(totalLrnTmDetailList.size() > 0 && totalLrnTmDetailList.get(0) != null) {
-							for(Map<String, Object> item : totalLrnTmDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("totalLrnTm", item.get("totalLrnTm"));
-								detailMap.put("prevTotalLrnTm", item.get("prevTotalLrnTm"));
-								detailMap.put("topTotalLrnTm", item.get("topTotalLrnTm"));
-								detailMap.put("avgTotalLrnTm", item.get("avgTotalLrnTm"));
-								
-								detailList.add(detailMap);
+						if(totalLrnTmData.get("totalLrnTm") != null || totalLrnTmData.get("prevTotalLrnTm") != null) {
+							data.put("totalLrnTm", totalLrnTmData.get("totalLrnTm"));
+							data.put("prevTotalLrnTm", totalLrnTmData.get("prevTotalLrnTm"));
+							data.put("topTotalLrnTm", totalLrnTmData.get("topTotalLrnTm"));
+							data.put("avgTotalLrnTm", totalLrnTmData.get("avgTotalLrnTm"));
+							
+							msgMap.put("summary", totalLrnTmData.get("summary"));
+							msgMap.put("detail", totalLrnTmData.get("detail"));
+							
+							if(totalLrnTmDetailList.size() > 0 && totalLrnTmDetailList.get(0) != null) {
+								for(Map<String, Object> item : totalLrnTmDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("totalLrnTm", item.get("totalLrnTm"));
+									detailMap.put("prevTotalLrnTm", item.get("prevTotalLrnTm"));
+									detailMap.put("topTotalLrnTm", item.get("topTotalLrnTm"));
+									detailMap.put("avgTotalLrnTm", item.get("avgTotalLrnTm"));
+									
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("totalLrnTmMsg", msgMap);
+							data.put("totalLrnTmDetail", detailList);
 						}
-						
-						data.put("totalLrnTmMsg", msgMap);
-						data.put("totalLrnTmDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2750,30 +2775,32 @@ public class GroupServiceImpl implements GroupService {
 						totalLrnTmData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getTotalLrnTmStt");
 						totalLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getTotalLrnTmSttList");
 						
-						data.put("totalLrnTm", totalLrnTmData.get("totalLrnTm"));
-						data.put("prevTotalLrnTm", totalLrnTmData.get("prevTotalLrnTm"));
-						data.put("topTotalLrnTm", totalLrnTmData.get("topTotalLrnTm"));
-						data.put("avgTotalLrnTm", totalLrnTmData.get("avgTotalLrnTm"));
-						
-						msgMap.put("summary", totalLrnTmData.get("summary"));
-						msgMap.put("detail", totalLrnTmData.get("detail"));
-						
-						if(totalLrnTmDetailList.size() > 0 && totalLrnTmDetailList.get(0) != null) {
-							for(Map<String, Object> item : totalLrnTmDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("totalLrnTm", item.get("totalLrnTm"));
-								detailMap.put("prevTotalLrnTm", item.get("prevTotalLrnTm"));
-								detailMap.put("topTotalLrnTm", item.get("topTotalLrnTm"));
-								detailMap.put("avgTotalLrnTm", item.get("avgTotalLrnTm"));
-								
-								detailList.add(detailMap);
+						if(totalLrnTmData.get("totalLrnTm") != null || totalLrnTmData.get("prevTotalLrnTm") != null) {
+							data.put("totalLrnTm", totalLrnTmData.get("totalLrnTm"));
+							data.put("prevTotalLrnTm", totalLrnTmData.get("prevTotalLrnTm"));
+							data.put("topTotalLrnTm", totalLrnTmData.get("topTotalLrnTm"));
+							data.put("avgTotalLrnTm", totalLrnTmData.get("avgTotalLrnTm"));
+							
+							msgMap.put("summary", totalLrnTmData.get("summary"));
+							msgMap.put("detail", totalLrnTmData.get("detail"));
+							
+							if(totalLrnTmDetailList.size() > 0 && totalLrnTmDetailList.get(0) != null) {
+								for(Map<String, Object> item : totalLrnTmDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("totalLrnTm", item.get("totalLrnTm"));
+									detailMap.put("prevTotalLrnTm", item.get("prevTotalLrnTm"));
+									detailMap.put("topTotalLrnTm", item.get("topTotalLrnTm"));
+									detailMap.put("avgTotalLrnTm", item.get("avgTotalLrnTm"));
+									
+									detailList.add(detailMap);
+								}
 							}
+							
+							data.put("totalLrnTmMsg", msgMap);
+							data.put("totalLrnTmDetail", detailList);
 						}
-						
-						data.put("totalLrnTmMsg", msgMap);
-						data.put("totalLrnTmDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2850,50 +2877,52 @@ public class GroupServiceImpl implements GroupService {
 						longLrnTmList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmSttList");
 						longLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmDetailList");
 						
-						data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
-						data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
-						data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
-						
-						msgMap.put("summary", longLrnTmData.get("summary"));
-						msgMap.put("detail", longLrnTmData.get("detail"));
-						
-						if(longLrnTmList.size() > 0 && longLrnTmList.get(0) != null) {
-							for(Map<String, Object> item : longLrnTmList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								
-								chartMap.put("subjCd", item.get("subjCd"));
-								chartMap.put("lrnTm", item.get("lrnTm"));
-								chartMap.put("prevLrnTm", item.get("prevLrnTm"));
-								
-								chartList.add(chartMap);
-							}
-						}
-						
-						if(longLrnTmDetailList.size() > 0 && longLrnTmDetailList.get(0) != null) {
-							for(Map<String, Object> item : longLrnTmDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								List<String> subjLrnTmList = new ArrayList<>();
-								List<Integer> subjLrnTmIntList = new ArrayList<>();
-								
-								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
-								
-								if(lrnSec > 0) {
-									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
-									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+						if(longLrnTmData.get("longLrnSubjCd") != null || longLrnTmData.get("prevLongLrnSubjLrnTm") != null) {
+							data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
+							data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
+							data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
+							
+							msgMap.put("summary", longLrnTmData.get("summary"));
+							msgMap.put("detail", longLrnTmData.get("detail"));
+							
+							if(longLrnTmList.size() > 0 && longLrnTmList.get(0) != null) {
+								for(Map<String, Object> item : longLrnTmList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
 									
+									chartMap.put("subjCd", item.get("subjCd"));
+									chartMap.put("lrnTm", item.get("lrnTm"));
+									chartMap.put("prevLrnTm", item.get("prevLrnTm"));
 									
+									chartList.add(chartMap);
 								}
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmIntList);
-								
-								detailList.add(detailMap);
 							}
+							
+							if(longLrnTmDetailList.size() > 0 && longLrnTmDetailList.get(0) != null) {
+								for(Map<String, Object> item : longLrnTmDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									List<String> subjLrnTmList = new ArrayList<>();
+									List<Integer> subjLrnTmIntList = new ArrayList<>();
+									
+									int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+									
+									if(lrnSec > 0) {
+										subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+										subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+										
+										
+									}
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("subjLrnTm", subjLrnTmIntList);
+									
+									detailList.add(detailMap);
+								}
+							}
+							
+							data.put("longLrnTmChart", chartList);
+							data.put("longLrnTmMsg", msgMap);
+							data.put("longLrnTmDetail", detailList);
 						}
-						
-						data.put("longLrnTmChart", chartList);
-						data.put("longLrnTmMsg", msgMap);
-						data.put("longLrnTmDetail", detailList);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2920,48 +2949,50 @@ public class GroupServiceImpl implements GroupService {
 						longLrnTmList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmSttList");
 						longLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmDetailList");
 						
-						data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
-						data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
-						data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
-						
-						msgMap.put("summary", longLrnTmData.get("summary"));
-						msgMap.put("detail", longLrnTmData.get("detail"));
-						
-						if(longLrnTmList.size() > 0 && longLrnTmList.get(0) != null) {
-							for(Map<String, Object> item : longLrnTmList) {
-								Map<String, Object> chartMap = new LinkedHashMap<>();
-								
-								chartMap.put("subjCd", item.get("subjCd"));
-								chartMap.put("lrnTm", item.get("lrnTm"));
-								chartMap.put("prevLrnTm", item.get("prevLrnTm"));
-								
-								chartList.add(chartMap);
-							}
-						}
-						
-						if(longLrnTmDetailList.size() > 0 && longLrnTmDetailList.get(0) != null) {
-							for(Map<String, Object> item : longLrnTmDetailList) {
-								Map<String, Object> detailMap = new LinkedHashMap<>();
-								List<String> subjLrnTmList = new ArrayList<>();
-								List<Integer> subjLrnTmIntList = new ArrayList<>();
-								
-								int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
-								
-								if(lrnSec > 0) {
-									subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
-									subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+						if(longLrnTmData.get("longLrnSubjCd") != null || longLrnTmData.get("prevLongLrnSubjLrnTm") != null) {
+							data.put("longLrnSubjCd", longLrnTmData.get("longLrnSubjCd"));
+							data.put("longLrnSubjLrnTm", longLrnTmData.get("longLrnSubjLrnTm"));
+							data.put("prevLongLrnSubjLrnTm", longLrnTmData.get("prevLongLrnSubjLrnTm"));
+							
+							msgMap.put("summary", longLrnTmData.get("summary"));
+							msgMap.put("detail", longLrnTmData.get("detail"));
+							
+							if(longLrnTmList.size() > 0 && longLrnTmList.get(0) != null) {
+								for(Map<String, Object> item : longLrnTmList) {
+									Map<String, Object> chartMap = new LinkedHashMap<>();
+									
+									chartMap.put("subjCd", item.get("subjCd"));
+									chartMap.put("lrnTm", item.get("lrnTm"));
+									chartMap.put("prevLrnTm", item.get("prevLrnTm"));
+									
+									chartList.add(chartMap);
 								}
-								
-								detailMap.put("dt", item.get("dt"));
-								detailMap.put("subjLrnTm", subjLrnTmIntList);
-								
-								detailList.add(detailMap);
 							}
+							
+							if(longLrnTmDetailList.size() > 0 && longLrnTmDetailList.get(0) != null) {
+								for(Map<String, Object> item : longLrnTmDetailList) {
+									Map<String, Object> detailMap = new LinkedHashMap<>();
+									List<String> subjLrnTmList = new ArrayList<>();
+									List<Integer> subjLrnTmIntList = new ArrayList<>();
+									
+									int lrnSec = Integer.valueOf(item.get("totalLrnSec").toString());
+									
+									if(lrnSec > 0) {
+										subjLrnTmList = Arrays.asList(item.get("subjLrnTm").toString().split(","));
+										subjLrnTmIntList = subjLrnTmList.stream().map(s -> Integer.parseInt(s)).collect(Collectors.toList());
+									}
+									
+									detailMap.put("dt", item.get("dt"));
+									detailMap.put("subjLrnTm", subjLrnTmIntList);
+									
+									detailList.add(detailMap);
+								}
+							}
+							
+							data.put("longLrnTmChart", chartList);
+							data.put("longLrnTmMsg", msgMap);
+							data.put("longLrnTmDetail", detailList);
 						}
-						
-						data.put("longLrnTmChart", chartList);
-						data.put("longLrnTmMsg", msgMap);
-						data.put("longLrnTmDetail", detailList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3119,35 +3150,37 @@ public class GroupServiceImpl implements GroupService {
 						
 						dataMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCompareSub");
 						
-						positiveData.put("subjCd", dataMap.get("maxSubjCd"));
-						
-						positiveCurrData.put("dt", dataMap.get("dt").toString());
-						positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
-						positivePrevData.put("dt", dataMap.get("preDt").toString());
-						positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
-						positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-						positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
-						
-						positiveData.put("current", positiveCurrData);
-						positiveData.put("prev", positivePrevData);
-						positiveData.put("msg", positiveMsgData);
-						
-						data.put("positive", positiveData);
-						
-						negativeData.put("subjCd", dataMap.get("minSubjCd"));
-						
-						negativeCurrData.put("dt", dataMap.get("dt").toString());
-						negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
-						negativePrevData.put("dt", dataMap.get("preDt").toString());
-						negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
-						negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-						negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
-						
-						negativeData.put("current", negativeCurrData);
-						negativeData.put("prev", negativePrevData);
-						negativeData.put("msg", negativeMsgData);
-						
-						data.put("negative", negativeData);
+						if(dataMap.get("maxSubjCd") != null || dataMap.get("minSubjCd") != null) {
+							positiveData.put("subjCd", dataMap.get("maxSubjCd"));
+							
+							positiveCurrData.put("dt", dataMap.get("dt").toString());
+							positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
+							positivePrevData.put("dt", dataMap.get("preDt").toString());
+							positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
+							positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							
+							positiveData.put("current", positiveCurrData);
+							positiveData.put("prev", positivePrevData);
+							positiveData.put("msg", positiveMsgData);
+							
+							data.put("positive", positiveData);
+							
+							negativeData.put("subjCd", dataMap.get("minSubjCd"));
+							
+							negativeCurrData.put("dt", dataMap.get("dt").toString());
+							negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
+							negativePrevData.put("dt", dataMap.get("preDt").toString());
+							negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
+							negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							
+							negativeData.put("current", negativeCurrData);
+							negativeData.put("prev", negativePrevData);
+							negativeData.put("msg", negativeMsgData);
+							
+							data.put("negative", negativeData);
+						}
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3168,35 +3201,37 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						dataMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCompareSub");
 						
-						positiveData.put("subjCd", dataMap.get("maxSubjCd"));
-						
-						positiveCurrData.put("dt", dataMap.get("dt"));
-						positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
-						positivePrevData.put("dt", dataMap.get("preDt"));
-						positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
-						positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-						positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
-						
-						positiveData.put("current", positiveCurrData);
-						positiveData.put("prev", positivePrevData);
-						positiveData.put("msg", positiveMsgData);
-						
-						data.put("positive", positiveData);
-						
-						negativeData.put("subjCd", dataMap.get("minSubjCd"));
-						
-						negativeCurrData.put("dt", dataMap.get("dt"));
-						negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
-						negativePrevData.put("dt", dataMap.get("preDt"));
-						negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
-						negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-						negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
-						
-						negativeData.put("current", negativeCurrData);
-						negativeData.put("prev", negativePrevData);
-						negativeData.put("msg", negativeMsgData);
-						
-						data.put("negative", negativeData);
+						if(dataMap.get("maxSubjCd") != null || dataMap.get("minSubjCd") != null) {
+							positiveData.put("subjCd", dataMap.get("maxSubjCd"));
+							
+							positiveCurrData.put("dt", dataMap.get("dt"));
+							positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
+							positivePrevData.put("dt", dataMap.get("preDt"));
+							positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
+							positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							
+							positiveData.put("current", positiveCurrData);
+							positiveData.put("prev", positivePrevData);
+							positiveData.put("msg", positiveMsgData);
+							
+							data.put("positive", positiveData);
+							
+							negativeData.put("subjCd", dataMap.get("minSubjCd"));
+							
+							negativeCurrData.put("dt", dataMap.get("dt"));
+							negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
+							negativePrevData.put("dt", dataMap.get("preDt"));
+							negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
+							negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							
+							negativeData.put("current", negativeCurrData);
+							negativeData.put("prev", negativePrevData);
+							negativeData.put("msg", negativeMsgData);
+							
+							data.put("negative", negativeData);
+						}
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3260,7 +3295,18 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("startDt", startDt);
 						paramMap.put("endDt", endDt);
 						
-						data = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+						ArrayList<Map<String,Object>> dataList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+						
+						int nullCheck = 0;
+						for(Map<String, Object> item : dataList) {
+							if(item == null) {
+								nullCheck++;
+							}
+						}
+						
+						if(nullCheck < 6) {
+							data = dataList;
+						}
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3279,7 +3325,18 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						data = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+						ArrayList<Map<String,Object>> dataList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExamChart");
+						
+						int nullCheck = 0;
+						for(Map<String, Object> item : dataList) {
+							if(item == null) {
+								nullCheck++;
+							}
+						}
+						
+						if(nullCheck < 6) {
+							data = dataList;
+						}
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());

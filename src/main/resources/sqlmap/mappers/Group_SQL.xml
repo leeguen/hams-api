@@ -1212,8 +1212,8 @@
     <select id="getCrtRtStt" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.STUD_ID,
-		    IF(ES.QUES_CNT IS NULL, 0, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
-    		IF(PES.QUES_CNT IS NULL, 0, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
+		    IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
+    		IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
 		    NULL AS TOP_CRT_RT,
 		    NULL AS AVG_CRT_RT,
 		    NULL AS SUMMARY,
@@ -2245,11 +2245,11 @@
     
     <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
 		SELECT
-		    ST.SUBJ_CD,
+		    IF(EXPL_CHECK IS NULL, NULL, ST.SUBJ_CD) AS SUBJ_CD,
 		    CRT_RT,
 		    PREV_CRT_RT,
-		    TOP_CRT_RT,
-		    AVG_CRT_RT,
+		    IF(EXPL_CHECK IS NULL, NULL, TOP_CRT_RT) AS TOP_CRT_RT,
+		    IF(EXPL_CHECK IS NULL, NULL, AVG_CRT_RT) AS AVG_CRT_RT,
 		    EXPL_CNT,
 		    ANS_QUES_CNT,
 		    CRT_QUES_CNT,
@@ -2340,7 +2340,15 @@
 		    		WHERE DT = #{endDt}
 				</otherwise>
 			</choose>  
-		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD  
+		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				COUNT(STUD_ID) AS EXPL_CHECK
+			FROM EXAM_RST 
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+		) CK ON ST.STUD_ID = CK.STUD_ID 
     </select>
     
     <select id="getExamCdList" parameterType="hashMap" resultType="resultMap">
