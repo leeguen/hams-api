@@ -2245,11 +2245,11 @@
     
     <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
 		SELECT
-		    IF(EXPL_CHECK IS NULL, NULL, ST.SUBJ_CD) AS SUBJ_CD,
+		    ST.SUBJ_CD,
 		    CRT_RT,
 		    PREV_CRT_RT,
-		    IF(EXPL_CHECK IS NULL, NULL, TOP_CRT_RT) AS TOP_CRT_RT,
-		    IF(EXPL_CHECK IS NULL, NULL, AVG_CRT_RT) AS AVG_CRT_RT,
+		    TOP_CRT_RT,
+		    AVG_CRT_RT,
 		    EXPL_CNT,
 		    ANS_QUES_CNT,
 		    CRT_QUES_CNT,
@@ -2340,15 +2340,7 @@
 		    		WHERE DT = #{endDt}
 				</otherwise>
 			</choose>  
-		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-				COUNT(STUD_ID) AS EXPL_CHECK
-			FROM EXAM_RST 
-			WHERE DT BETWEEN #{startDt} AND #{endDt}
-				AND STUD_ID = #{studId}
-		) CK ON ST.STUD_ID = CK.STUD_ID 
+		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD;
     </select>
     
     <select id="getExamCdList" parameterType="hashMap" resultType="resultMap">
