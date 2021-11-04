@@ -3299,7 +3299,7 @@ public class GroupServiceImpl implements GroupService {
 						
 						int nullCheck = 0;
 						for(Map<String, Object> item : dataList) {
-							if(item == null) {
+                            if(item.get("crtRt") == null && item.get("prevCrtRt") == null) {
 								nullCheck++;
 							}
 						}
@@ -3329,7 +3329,7 @@ public class GroupServiceImpl implements GroupService {
 						
 						int nullCheck = 0;
 						for(Map<String, Object> item : dataList) {
-							if(item == null) {
+                            if(item.get("crtRt") == null && item.get("prevCrtRt") == null) {
 								nullCheck++;
 							}
 						}
