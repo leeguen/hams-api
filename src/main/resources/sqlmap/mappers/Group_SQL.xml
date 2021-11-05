@@ -667,8 +667,8 @@
 		</choose>
 				, DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H:%i') AS LOGIN_TM_STR
 				, DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H:%i') AS PREV_LOGIN_TM_STR
-				, FORMAT(DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%i'), 0) AS LOGIN_TM				-- 로그인패턴
-				, FORMAT(DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%i'), 0) AS PREV_LOGIN_TM	-- 이전 로그인패턴
+				, CONVERT(DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%i'), SIGNED) AS LOGIN_TM					-- 로그인패턴
+				, CONVERT(DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%i'), SIGNED) AS PREV_LOGIN_TM	-- 이전 로그인패턴
 		FROM 
 		(
 			SELECT dt + INTERVAL lv-1 DAY AS DT
@@ -684,7 +684,7 @@
 		(	-- 로그인패턴
 			SELECT DT, FIRST_LOGIN_DTTM
 			FROM DAY_ATT_LOG 
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endtDt}		
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}		
 		) AS ATT ON DTS.DT = ATT.DT
 		LEFT OUTER JOIN
 		(	-- 로그인패턴
@@ -2704,10 +2704,10 @@
 		 		AND STUD_ID = #{studId}
 		          	</when>
 		          	<otherwise>
-				FROM EXAM_UNIT_TEST_RST AS RST 
-				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
-					AND RST.STUD_ID = #{studId}
-					AND RST.DEL_YN = 'N'
+				FROM EXAM_UNIT_TEST_RST 
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'
 					</otherwise>
 				</choose>
 			) B	
