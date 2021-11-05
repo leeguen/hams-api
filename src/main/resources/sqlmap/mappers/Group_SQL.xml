@@ -53,7 +53,7 @@
     <select id="getStud" parameterType="hashMap" resultType="resultMap">
     /* getStud : 학습분석 메인 - 학생 정보 */
 	    SELECT STUD_NM, GENDER, STUD_ID, LOGIN_ID, GRADE, SCHL_NM,
-			IFNULL(TIMESTAMPDIFF(DAY, LAST_LOGIN_DT, now()),-1) AS DAYS_AGO,
+			IFNULL(TIMESTAMPDIFF(DAY, LAST_LOGIN_DT, now()), NULL) AS DAYS_AGO,
 			DATE_FORMAT(LAST_LOGIN_DT,'%Y.%m.%d') AS LAST_LOGIN_DT,
 			DATE_FORMAT(LRN_START_DT,'%Y.%m.%d') AS LRN_START_DT
 			FROM (
