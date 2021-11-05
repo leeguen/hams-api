@@ -1015,13 +1015,13 @@ public class GroupServiceImpl implements GroupService {
 									
 									chartMap.put("dt", item.get("dt"));
 									chartMap.put("prevDt", item.get("prevDt"));
-									chartMap.put("loginTm", getConvertInteger(item.get("loginTm"), null));
-									chartMap.put("prevLoginTm", getConvertInteger(item.get("prevLoginTm"), null));									
+									chartMap.put("loginTm", item.get("loginTm"));
+									chartMap.put("prevLoginTm", item.get("prevLoginTm"));									
 									detailChart.add(chartMap);
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("loginTm", getConvertInteger(item.get("loginTm"), null));
-									detailMap.put("prevLoginTm", getConvertInteger(item.get("prevLoginTm"), null));								
+									detailMap.put("loginTm", item.get("loginTm"));
+									detailMap.put("prevLoginTm", item.get("prevLoginTm"));								
 									detail.add(detailMap);
 								}
 							}	
@@ -1067,13 +1067,13 @@ public class GroupServiceImpl implements GroupService {
 									
 									chartMap.put("dt", item.get("dt"));
 									chartMap.put("prevDt", item.get("prevDt"));
-									chartMap.put("loginTm", getConvertInteger(item.get("loginTm"), null));
-									chartMap.put("prevLoginTm", getConvertInteger(item.get("prevLoginTm"), null));									
+									chartMap.put("loginTm", item.get("loginTm"));
+									chartMap.put("prevLoginTm", item.get("prevLoginTm"));									
 									detailChart.add(chartMap);
 									
 									detailMap.put("dt", item.get("dt"));
-									detailMap.put("loginTm", getConvertInteger(item.get("loginTm"), null));
-									detailMap.put("prevLoginTm", getConvertInteger(item.get("prevLoginTm"), null));								
+									detailMap.put("loginTm", item.get("loginTm"));
+									detailMap.put("prevLoginTm", item.get("prevLoginTm"));	
 									detail.add(detailMap);
 								}
 							}	
@@ -4031,31 +4031,6 @@ public class GroupServiceImpl implements GroupService {
 		}
 	}
 	
-
-	/**
-	 * item value Integer 값으로 변경
-	 * @param item
-	 * @param defaultValue
-	 * @return
-	 */
-	private Object getConvertInteger(Object item, Object defaultValue) {
-		try {
-			if(item == null) {
-				return defaultValue;
-			} else {
-				if(item instanceof String) {
-					return Integer.valueOf(item.toString());
-				} else if(item instanceof Integer) {
-					return item;
-				} else {
-					return item;
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.debug("[getConvertInteger]", e.getMessage());
-			return defaultValue;
-		}
-	}
 
 
 }
