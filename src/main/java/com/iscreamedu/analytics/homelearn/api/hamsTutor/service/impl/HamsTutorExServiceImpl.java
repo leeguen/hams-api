@@ -400,6 +400,9 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 		         			courseTempMap.put("courseTitle3", item.get("courseTitle3"));
 		         			courseTempMap.put("courseNm3", item.get("courseNm3"));
 		         			courseTempMap.put("courseId3", item.get("courseId3"));
+		         			courseTempMap.put("prevCourseId", item.get("prevCourseId"));
+		         			courseTempMap.put("prevCourseNm", item.get("prevCourseNm"));
+		         			courseTempMap.put("prevCourseDiff", item.get("prevCourseDiff"));
 		         			
 		         			resultList.add(courseTempMap);
 		         		}
