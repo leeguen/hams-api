@@ -2672,56 +2672,37 @@
 			, GROUP_CONCAT(IFNULL(B.UNIT_NM,'') ORDER BY A.SUBJ_CD SEPARATOR '|') AS CHAPTER_NM
 			, GROUP_CONCAT(IFNULL(UNDERSTANDING_LV, 0) ORDER BY A.SUBJ_CD SEPARATOR '|') AS UNDERSTANDING_LV
 		FROM (
+		<choose>
+			<when test='currConCheck == "m"'> 		
 			SELECT 
+				YYMM,
 				GRADE,
 				TERM,
 				CHAPTER,
 				SUBJ_CD
 			FROM (
-				SELECT DISTINCT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
-				<choose>
-		          	<when test='currConCheck == "m"'> 		          	
-		 		FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
-		 		JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
-		 		WHERE RST.YYMM = #{yymm}
-		 			AND RST.STUD_ID = #{studId}
-					</when>
-					<otherwise>	
-				FROM EXAM_UNIT_TEST_RST AS RST 
-				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD				
-				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+				SELECT DISTINCT RST.YYMM, UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
+				FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+				WHERE RST.YYMM = #{yymm}
 					AND RST.STUD_ID = #{studId}
-					AND RST.DEL_YN = 'N'
-					</otherwise>
-				</choose>
 			) A
 			CROSS JOIN (
 				SELECT DISTINCT SUBJ_CD
-				<choose>
-		          	<when test='currConCheck == "m"'> 		          	
-		 		FROM EXAM_MONTH_UNIT_TEST_RST
-		 		WHERE YYMM = #{yymm}
-		 		AND STUD_ID = #{studId}
-		          	</when>
-		          	<otherwise>
-				FROM EXAM_UNIT_TEST_RST 
-				WHERE DT BETWEEN #{startDt} AND #{endDt} 
-					AND STUD_ID = #{studId}
-					AND DEL_YN = 'N'
-					</otherwise>
-				</choose>
+				FROM EXAM_MONTH_UNIT_TEST_RST
+				WHERE YYMM = #{yymm}
+				AND STUD_ID = #{studId}			
 			) B	
-			ORDER BY GRADE, TERM, CHAPTER, SUBJ_CD
 		) A 
 		LEFT OUTER JOIN (
-			SELECT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER, RST.SUBJ_CD, UNIT.UNIT_CD, UNIT.UNIT_NM, TRUE_SCORE, CRT_RT
+			SELECT RST.YYMM, UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER, RST.SUBJ_CD, UNIT.UNIT_CD, UNIT.UNIT_NM, TRUE_SCORE, CRT_RT
 				, IF(TRUE_SCORE IS NULL
 					, IF(CRT_RT <![CDATA[<]]> 50
 						, 1
 						, IF(CRT_RT <![CDATA[<]]> 80
 							, 2
 							, IF(CRT_RT IS NULL
-								, 0
+								, NULL
 								, 3
 								)
 							)
@@ -2733,25 +2714,67 @@
 							, 3
 							)
 						)
-					) AS UNDERSTANDING_LV					
-		    	<choose>
-		          	<when test='currConCheck == "m"'> 
+					) AS UNDERSTANDING_LV
 			FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
 			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
 			WHERE RST.YYMM = #{yymm} 
 				AND RST.STUD_ID = #{studId}
-		          	</when>
-					<otherwise>	
+		) B ON A.GRADE = B.GRADE AND A.TERM = B.TERM AND A.CHAPTER = B.CHAPTER AND A.SUBJ_CD = B.SUBJ_CD AND A.YYMM = B.YYMM 
+			</when>
+			<otherwise>	
+			SELECT 
+				DT,
+				GRADE,
+				TERM,
+				CHAPTER,
+				SUBJ_CD
+			FROM (
+				SELECT DISTINCT RST.DT, UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
+				FROM EXAM_UNIT_TEST_RST AS RST
+				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+					AND RST.STUD_ID = #{studId}
+					AND RST.DEL_YN = 'N'
+			) A
+			CROSS JOIN (
+				SELECT DISTINCT SUBJ_CD
+				FROM EXAM_UNIT_TEST_RST 
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'		
+			) B	
+		) A 
+		LEFT OUTER JOIN (
+			SELECT RST.DT, UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER, RST.SUBJ_CD, UNIT.UNIT_CD, UNIT.UNIT_NM, TRUE_SCORE, CRT_RT
+				, IF(TRUE_SCORE IS NULL
+					, IF(CRT_RT <![CDATA[<]]> 50
+						, 1
+						, IF(CRT_RT <![CDATA[<]]> 80
+							, 2
+							, IF(CRT_RT IS NULL
+								, NULL
+								, 3
+								)
+							)
+						)
+					, IF(TRUE_SCORE <![CDATA[<]]> 50
+						, 1
+						, IF(TRUE_SCORE <![CDATA[<]]> 80
+							, 2
+							, 3
+							)
+						)
+					) AS UNDERSTANDING_LV
 			FROM EXAM_UNIT_TEST_RST AS RST 
 			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
 			WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
 				AND RST.STUD_ID = #{studId}
-				AND RST.DEL_YN = 'N'
-					</otherwise>
-				</choose>
-		) B ON A.SUBJ_CD = B.SUBJ_CD AND A.GRADE = B.GRADE AND A.TERM = B.TERM AND A.CHAPTER = B.CHAPTER
+				AND RST.DEL_YN = 'N'	
+		) B ON A.GRADE = B.GRADE AND A.TERM = B.TERM AND A.CHAPTER = B.CHAPTER AND A.SUBJ_CD = B.SUBJ_CD AND A.DT = B.DT 
+			</otherwise>
+		</choose>		
 		GROUP BY GRADE, TERM, CHAPTER
-		ORDER BY GRADE, TERM, CHAPTER
+		ORDER BY GRADE, TERM, CHAPTER	
     </select>
     
     <select id="getChapterLrn" parameterType="hashMap" resultType="resultMap">
