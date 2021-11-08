@@ -3718,7 +3718,7 @@ public class GroupServiceImpl implements GroupService {
 		ValidationUtil vu1 = new ValidationUtil();
 		ValidationUtil vu2 = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"currCon","studId", "unitCd"}, paramMap);
+		vu.checkRequired(new String[] {"currCon","studId", "chapterCd"}, paramMap);
 		
 		if(vu.isValid()) { 		
 			Map<String,Object> data = new HashMap<>();
