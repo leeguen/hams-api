@@ -3157,8 +3157,8 @@ public class GroupServiceImpl implements GroupService {
 							positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
 							positivePrevData.put("dt", dataMap.get("preDt").toString());
 							positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
-							positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-							positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("summary", dataMap.get("maxSummary")); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("detail", dataMap.get("maxDetail")); // 메세지 기획안 확인 후 작업 예정
 							
 							positiveData.put("current", positiveCurrData);
 							positiveData.put("prev", positivePrevData);
@@ -3172,8 +3172,8 @@ public class GroupServiceImpl implements GroupService {
 							negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
 							negativePrevData.put("dt", dataMap.get("preDt").toString());
 							negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
-							negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-							negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("summary", dataMap.get("minSummary")); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("detail", dataMap.get("minDetail")); // 메세지 기획안 확인 후 작업 예정
 							
 							negativeData.put("current", negativeCurrData);
 							negativeData.put("prev", negativePrevData);
@@ -3208,8 +3208,8 @@ public class GroupServiceImpl implements GroupService {
 							positiveCurrData.put("crtRt", dataMap.get("maxCrtRt"));
 							positivePrevData.put("dt", dataMap.get("preDt"));
 							positivePrevData.put("crtRt", dataMap.get("preMaxCrtRt"));
-							positiveMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-							positiveMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("summary", dataMap.get("maxSummary")); // 메세지 기획안 확인 후 작업 예정
+							positiveMsgData.put("detail", dataMap.get("maxDetail")); // 메세지 기획안 확인 후 작업 예정
 							
 							positiveData.put("current", positiveCurrData);
 							positiveData.put("prev", positivePrevData);
@@ -3223,8 +3223,8 @@ public class GroupServiceImpl implements GroupService {
 							negativeCurrData.put("crtRt", dataMap.get("minCrtRt"));
 							negativePrevData.put("dt", dataMap.get("preDt"));
 							negativePrevData.put("crtRt", dataMap.get("preMinCrtRt"));
-							negativeMsgData.put("summary", null); // 메세지 기획안 확인 후 작업 예정
-							negativeMsgData.put("detail", null); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("summary", dataMap.get("minSummary")); // 메세지 기획안 확인 후 작업 예정
+							negativeMsgData.put("detail", dataMap.get("minDetail")); // 메세지 기획안 확인 후 작업 예정
 							
 							negativeData.put("current", negativeCurrData);
 							negativeData.put("prev", negativePrevData);
@@ -3384,9 +3384,6 @@ public class GroupServiceImpl implements GroupService {
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
 			paramMap.put("currConCheck", currConCheck);
 			
-			data.put("examTypes", getMapperResultData(v_param, "list", paramMap, ".getExamCdList"));
-			data.put("analysisTypes", getMapperResultData(v_param, "list", paramMap, ".getQuesCdList"));
-			
 			if(currConCheck.equals("m")) {
 				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
 				
@@ -3414,10 +3411,8 @@ public class GroupServiceImpl implements GroupService {
 						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
 						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
 						
-						dataMap.put("totalCnt", cntMap.get("totalCnt"));
-						dataMap.put("list", subjExamList);
-						
-						data.put("examList", dataMap);	
+						data.put("totalCnt", cntMap.get("totalCnt"));
+						data.put("list", subjExamList);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3443,10 +3438,8 @@ public class GroupServiceImpl implements GroupService {
 						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
 						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
 						
-						dataMap.put("totalCnt", cntMap.get("totalCnt"));
-						dataMap.put("list", subjExamList);
-						
-						data.put("examList", dataMap);
+						data.put("totalCnt", cntMap.get("totalCnt"));
+						data.put("list", subjExamList);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());

@@ -1106,23 +1106,113 @@
 			ST.STUD_ID,
 		    ALRN.A_LRN_EX_CNT,
 		    PALRN.A_LRN_EX_CNT AS PREV_A_LRN_EX_CNT,
-		    NULL AS TOP_A_LRN_EX_CNT,
-		    NULL AS AVG_A_LRN_EX_CNT,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
+		    TOP_30_A_LRN_CNT AS TOP_A_LRN_EX_CNT,
+			GRP_AVG_A_LRN_CNT AS AVG_A_LRN_EX_CNT,
+			CASE
+				WHEN ATT_CNT IS NULL OR ATT_CNT = 0 THEN 'MSGS1'
+		        ELSE 
+					CASE
+						WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 'MSGS2', 'MSGS3')
+		                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 'MSGS4', 'MSGS5')
+		                WHEN EX_RT<![CDATA[>]]>0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 'MSGS7', 'MSGS6')
+		            END 
+		    END AS SUMMARY,
+			CASE
+				WHEN ATT_CNT IS NULL OR ATT_CNT = 0 THEN '-'
+		        ELSE 
+					CASE
+						WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, '-', 'MSGD3')
+		                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 'MSGS4', 'MSGS5')
+		                WHEN EX_RT<![CDATA[>]]>0 THEN
+							CASE
+								WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) = 0 THEN '-'
+		                        WHEN (IFNULL(ALRN.A_LRN_EX_CNT,0) - IFNULL(PALRN.A_LRN_EX_CNT,0)) = 0 THEN 'MSGS7'
+		                        WHEN (IFNULL(ALRN.A_LRN_EX_CNT,0) - IFNULL(PALRN.A_LRN_EX_CNT,0))<![CDATA[<]]>0 THEN 'MSGS7'
+		                        ELSE 'MSGS6'
+		                    END
+		            END 
+		    END AS DETAIL,
+		    SUBJ_CD
 		FROM STUD ST
 		<choose>
 			<when test='currConCheck == "m"'>
 				LEFT OUTER JOIN MONTH_LRN_EX_STT ALRN ON ALRN.YYMM = #{yyMm} AND ST.STUD_ID = ALRN.STUD_ID
 				LEFT OUTER JOIN MONTH_LRN_EX_STT PALRN ON PALRN.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PALRN.STUD_ID
 				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						COUNT(FIRST_LOGIN_DTTM) AS ATT_CNT
+					FROM MONTH_ATT_LOG
+					WHERE YYMM = #{yyMm}
+						AND STUD_ID = #{studId}
+					GROUP BY STUD_ID
+				) MA ON ST.STUD_ID = MA.STUD_ID
 			</when>
 			<otherwise>
 				LEFT OUTER JOIN DAY_7_LRN_EX_STT ALRN ON ALRN.DT = #{endDt} AND ST.STUD_ID = ALRN.STUD_ID
 				LEFT OUTER JOIN DAY_7_LRN_EX_STT PALRN ON PALRN.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PALRN.STUD_ID
 				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+					    ATT_CNT
+					FROM DAY_7_ATT_STT
+					WHERE DT = #{endDt}
+						AND STUD_ID = #{studId}
+				) MA ON ST.STUD_ID = MA.STUD_ID
 			</otherwise>
 		</choose> 
+		LEFT OUTER JOIN (
+			SELECT
+				PLAN.STUD_ID,
+				ROUND(LRN_CNT / PLAN_CNT * 100) AS EX_RT
+			FROM (
+				SELECT
+					STUD_ID,
+					SUM(PLAN_CNT) AS PLAN_CNT
+				FROM DAY_PLAN_STT
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+			) PLAN
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					COUNT(DISTINCT SERVICE_ID) AS LRN_CNT
+				FROM DAY_LRN_EX_LOG
+				WHERE PLAN_DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND FNSH_YN = 'Y'
+					AND PLAN_UPD_YN IS NULL
+				GROUP BY STUD_ID
+			) LRN ON PLAN.STUD_ID = LRN.STUD_ID
+		) EX ON ST.STUD_ID = EX.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				SUM(A_LRN_EX_CNT) AS SUBJ_CNT
+			FROM DAY_SUBJ_A_LRN_EX_STT
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+			ORDER BY SUM(A_LRN_EX_CNT) DESC,
+				CASE SUBJ_CD
+					WHEN 'C01' THEN 1
+					WHEN 'C02' THEN 2
+					WHEN 'C03' THEN 3
+					WHEN 'C04' THEN 4
+					WHEN 'C05' THEN 5
+					WHEN 'C06' THEN 6
+					WHEN 'N04' THEN 7
+					WHEN 'N03' THEN 8
+					WHEN 'N01' THEN 9
+					WHEN 'N02' THEN 10
+					WHEN 'N05' THEN 11
+					WHEN 'N06' THEN 12
+				END
+			LIMIT 1
+		) SUBJ ON ST.STUD_ID = SUBJ.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
@@ -1132,8 +1222,8 @@
 		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
 		    A.A_LRN_EX_CNT,
 		    PREV_A_LRN_EX_CNT,
-		    NULL AS TOP_A_LRN_EX_CNT,
-		    NULL AS AVG_A_LRN_EX_CNT
+		    TOP_30_A_LRN_CNT AS TOP_A_LRN_EX_CNT,
+		    GRP_AVG_A_LRN_CNT AS AVG_A_LRN_EX_CNT
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1170,7 +1260,7 @@
 				WHERE DT BETWEEN #{startDt} AND #{endDt}
 					AND STUD_ID = #{studId}
 					AND FNSH_YN = 'Y'
-					AND ((PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]>  30) OR (PLAN_DT <![CDATA[>]]> 0 AND PLAN_UPD_YN = 'Y'))
+					AND ((PLAN_DT IS NULL AND LRN_SEC<![CDATA[>=]]>30) OR (PLAN_DT<![CDATA[>]]>0 AND PLAN_UPD_YN = 'Y'))
 			) ACHART1
 			GROUP BY DT, STUD_ID
 		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
@@ -1197,7 +1287,7 @@
 				</choose>
 					AND STUD_ID = #{studId}
 					AND FNSH_YN = 'Y'
-					AND ((PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]>  30) OR (PLAN_DT <![CDATA[>]]> 0 AND PLAN_UPD_YN = 'Y'))
+					AND ((PLAN_DT IS NULL AND LRN_SEC<![CDATA[>=]]>30) OR (PLAN_DT<![CDATA[>]]>0 AND PLAN_UPD_YN = 'Y'))
 			) ACHART1
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
@@ -1214,27 +1304,64 @@
     
     <select id="getCrtRtStt" parameterType="hashMap" resultType="resultMap">
     	SELECT
-			ST.STUD_ID,
-		    IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
-    		IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
-		    NULL AS TOP_CRT_RT,
-		    NULL AS AVG_CRT_RT,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
-		FROM STUD ST
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN EXAM_MONTH_STT ES ON ES.YYMM = #{yyMm} AND ST.STUD_ID = ES.STUD_ID
-				LEFT OUTER JOIN EXAM_MONTH_STT PES ON PES.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PES.STUD_ID
-				LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = #{yyMm} AND ST.GRADE = GE.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_EXAM_STT ES ON ES.DT = #{endDt} AND ST.STUD_ID = ES.STUD_ID
-				LEFT OUTER JOIN DAY_7_EXAM_STT PES ON PES.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PES.STUD_ID
-				LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
-			</otherwise>
-		</choose> 
-		WHERE ST.STUD_ID = #{studId}
+			STUD_ID,
+		    CRT_RT,
+		    PREV_CRT_RT,
+		    TOP_CRT_RT,
+		    AVG_CRT_RT,
+		    EXPL_CNT,
+		    PS_EXPL_CNT,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 'MSGS1'
+		        ELSE 
+					CASE
+						WHEN CRT_RT = 0 THEN 'MSGS2'
+		                WHEN CRT_RT = 100 THEN IF(DIFF<![CDATA[>]]>0, 'MSGS3', 'MSGS4')
+		                ELSE 
+							CASE
+								WHEN PS_EXPL_CNT = 0 THEN IF(DIFF != 0, 'MSGS7', 'MSGS8')
+		                        ELSE IF(DIFF != 0, 'MSGS5', 'MSGS6')
+		                    END
+		            END
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN '-'
+		        ELSE
+					CASE
+						WHEN CRT_RT = 0 THEN 'MSGD2'
+		                WHEN CRT_RT = 100 THEN 'MSGD3'
+		                ELSE
+							CASE
+								WHEN PS_EXPL_CNT = 0 THEN IF(DIFF<![CDATA[>]]>0, 'MSGD5', 'MSGD6')
+		                        ELSE 'MSGD4'
+		                    END
+		            END
+		    END AS DETAIL
+		FROM (
+	    	SELECT
+				ST.STUD_ID,
+			    IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
+	    		IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
+			    TOP_30_CRT_RT AS TOP_CRT_RT,
+				GRP_AVG_CRT_RT AS AVG_CRT_RT,
+				ES.EXPL_CNT,
+				ES.PS_EXPL_CNT,
+		        (IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) - IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100))) AS DIFF
+			FROM STUD ST
+			<choose>
+				<when test='currConCheck == "m"'>
+					LEFT OUTER JOIN EXAM_MONTH_STT ES ON ES.YYMM = #{yyMm} AND ST.STUD_ID = ES.STUD_ID
+					LEFT OUTER JOIN EXAM_MONTH_STT PES ON PES.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PES.STUD_ID
+					LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = #{yyMm} AND ST.GRADE = GE.GRADE
+				</when>
+				<otherwise>
+					LEFT OUTER JOIN DAY_7_EXAM_STT ES ON ES.DT = #{endDt} AND ST.STUD_ID = ES.STUD_ID
+					LEFT OUTER JOIN DAY_7_EXAM_STT PES ON PES.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PES.STUD_ID
+					LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
+				</otherwise>
+			</choose> 
+			WHERE ST.STUD_ID = #{studId}
+		) CRT
     </select>
     
     <select id="getCrtRtSttList" parameterType="hashMap" resultType="resultMap">
@@ -1244,8 +1371,8 @@
 		    ST.STUD_ID,
 		    E.CRT_RT,
 		    PREV_CRT_RT,
-		    NULL AS TOP_CRT_RT,
-		    NULL AS AVG_CRT_RT
+			TOP_30_CRT_RT AS TOP_CRT_RT,
+			GRP_AVG_CRT_RT AS AVG_CRT_RT
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1329,18 +1456,48 @@
 			ST.STUD_ID,
 		    INCRT_NOTE_NC_CNT,
 		    PREV_INCRT_NOTE_NC_CNT,
-		    NULL AS TOP_INCRT_NOTE_NC_CNT,
-		    NULL AS AVG_INCRT_NOTE_NC_CNT,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
+		    EXPL_CNT,
+		    PS_EXPL_CNT,
+		    NPS_EXPL_CNT,
+		    INCRT_NT_REG_CNT,
+			TOP_30_INCRT_NT_CNT AS TOP_INCRT_NOTE_NC_CNT,
+			GRP_AVG_INCRT_NT_CNT AS AVG_INCRT_NOTE_NC_CNT,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 'MSGS1'
+		        ELSE 
+					CASE
+						WHEN EXPL_CNT = PS_EXPL_CNT AND INCRT_NT_REG_CNT = 0 AND INCRT_NOTE_NC_CNT = 0 THEN 'MSGS2'
+		                WHEN PS_EXPL_CNT<![CDATA[>=]]>1 AND NPS_EXPL_CNT<![CDATA[>=]]>1 AND INCRT_NT_REG_CNT<![CDATA[>=]]>1 THEN
+							CASE
+								WHEN INCRT_NOTE_NC_CNT = 0 THEN 'MSGS3'
+		                        WHEN INCRT_NOTE_NC_CNT<![CDATA[>]]>0 THEN 'MSGS4'
+		                    END
+		            END
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN '-'
+		        ELSE 
+					CASE
+						WHEN EXPL_CNT = PS_EXPL_CNT AND INCRT_NT_REG_CNT = 0 AND INCRT_NOTE_NC_CNT = 0 THEN '-'
+		                WHEN PS_EXPL_CNT<![CDATA[>=]]>1 AND NPS_EXPL_CNT<![CDATA[>=]]>1 AND INCRT_NT_REG_CNT<![CDATA[>=]]>1 THEN
+							CASE
+								WHEN INCRT_NOTE_NC_CNT = 0 THEN 'MSGD3'
+		                        WHEN INCRT_NOTE_NC_CNT<![CDATA[>]]>0 THEN 'MSGD4'
+		                    END
+		            END
+		    END AS DETAIL
 		FROM STUD ST
 		LEFT OUTER JOIN (
 			SELECT
 				STUD_ID,
 				CASE
-					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) <![CDATA[<]]> 0 THEN 0
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
 					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
-				END AS INCRT_NOTE_NC_CNT
+				END AS INCRT_NOTE_NC_CNT,
+				SUM(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
+		        COUNT(DISTINCT EXAM_CD) AS EXPL_CNT,
+		        COUNT(IF(ROUND(CRT_CNT / QUES_CNT * 100)<![CDATA[>=]]>100, 1, NULL)) AS PS_EXPL_CNT,
+		        COUNT(IF(ROUND(CRT_CNT / QUES_CNT * 100)<![CDATA[<]]>100, 1, NULL)) AS NPS_EXPL_CNT
 			FROM EXAM_RST
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
 				AND DEL_YN = 'N'
@@ -1351,7 +1508,7 @@
 			SELECT
 				STUD_ID,
 				CASE
-					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) <![CDATA[<]]> 0 THEN 0
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
 					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
 				END AS PREV_INCRT_NOTE_NC_CNT
 			FROM EXAM_RST
@@ -1387,8 +1544,8 @@
 		    CRT_NOTE_NC_CNT,
 		    PREV_INCRT_NOTE_NC_CNT,
 		    PREV_CRT_NOTE_NC_CNT,
-		    NULL AS TOP_INCRT_NOTE_NC_CNT,
-		    NULL AS AVG_INCRT_NOTE_NC_CNT
+		    TOP_30_INCRT_NT_CNT AS TOP_INCRT_NOTE_NC_CNT,
+			GRP_AVG_INCRT_NT_CNT AS AVG_INCRT_NOTE_NC_CNT
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1416,7 +1573,7 @@
 				DT,
 				STUD_ID,
 				CASE
-					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) <![CDATA[<]]> 0 THEN 0
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
 					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
 				END AS INCRT_NOTE_NC_CNT,
 				SUM(INCRT_NT_FNSH_CNT) AS CRT_NOTE_NC_CNT
@@ -1432,7 +1589,7 @@
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
 				STUD_ID,
 				CASE
-					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT) <![CDATA[<]]> 0 THEN 0
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
 					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
 				END AS PREV_INCRT_NOTE_NC_CNT,
 				SUM(INCRT_NT_FNSH_CNT) AS PREV_CRT_NOTE_NC_CNT
@@ -1466,15 +1623,42 @@
 			ST.STUD_ID,
 		    CRT_QUES_CNT,
 		    PREV_CRT_QUES_CNT,
-		    NULL AS TOP_CRT_QUES_CNT,
-		    NULL AS AVG_CRT_QUES_CNT,
-		    NULL AS SUMMARY,
-    		NULL AS DETAIL
+		    TOP_30_CRT_CNT AS TOP_CRT_QUES_CNT,
+			GRP_AVG_CRT_CNT AS AVG_CRT_QUES_CNT,
+		    EXPL_CNT,
+		    QUES_CNT,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 'MSGS1'
+		        ELSE 
+					CASE
+						WHEN CRT_QUES_CNT<![CDATA[>]]>0 THEN
+							CASE
+								WHEN CRT_RT = 0 AND CRT_QUES_CNT = 0 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT)<![CDATA[<]]>0, 'MSGS3', 'MSGS2')
+		                        WHEN CRT_RT = 100 THEN 'MSGS4'
+		                        WHEN CRT_RT<![CDATA[<]]>100 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT) != 0, 'MSGS5', 'MSGS6')
+		                    END
+		            END
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN '-'
+		        ELSE 
+					CASE
+						WHEN CRT_QUES_CNT<![CDATA[>]]>0 THEN
+							CASE
+								WHEN CRT_RT = 0 AND CRT_QUES_CNT = 0 THEN 'MSGD2'
+		                        WHEN CRT_RT = 100 THEN 'MSGD3'
+		                        WHEN CRT_RT<![CDATA[<]]>100 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT)<![CDATA[>]]>0, 'MSGD4', 'MSGD5')
+		                    END
+		            END
+		    END AS DETAIL
 		FROM STUD ST
 		LEFT OUTER JOIN (
 			SELECT
 				STUD_ID,
-				SUM(CRT_CNT) AS CRT_QUES_CNT
+				SUM(CRT_CNT) AS CRT_QUES_CNT,
+				SUM(QUES_CNT) AS QUES_CNT,
+		        COUNT(DISTINCT EXAM_CD) AS EXPL_CNT,
+		        IF(SUM(CRT_CNT) > SUM(QUES_CNT), 100, ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )) AS CRT_RT
 			FROM EXAM_RST
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
 				AND DEL_YN = 'N'
@@ -1518,8 +1702,8 @@
 		    INCRT_QUES_CNT,
 		    PREV_CRT_QUES_CNT,
 		    PREV_INCRT_QUES_CNT,
-		    NULL AS TOP_A_LRN_EX_CNT,
-		    NULL AS AVG_A_LRN_EX_CNT
+		    TOP_30_CRT_CNT AS TOP_A_LRN_EX_CNT,
+		    GRP_AVG_CRT_CNT AS AVG_A_LRN_EX_CNT
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1591,8 +1775,22 @@
 			ST.STUD_ID,
 		    SLV_HABIT_CNT,
 		    PREV_SLV_HABIT_CNT,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
+		    EXPL_CNT,
+		    PS_EXPL_CNT,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = QUES_PTN AND GRP = 'QUES_PTN') AS PTN_NM,
+		    QUES_PTN_CNT,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 'MSGS1'
+		        WHEN EXPL_CNT<![CDATA[>=]]>1 AND EXPL_CNT = PS_EXPL_CNT THEN IF(SLV_HABIT_CNT = 0, 'MSGS2', 'MSGS3')
+		        WHEN EXPL_CNT<![CDATA[>=]]>1 AND PS_EXPL_CNT = 0 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN IF((SLV_HABIT_CNT - PREV_SLV_HABIT_CNT) != 0, 'MSGS4', 'MSGS5')
+				WHEN EXPL_CNT<![CDATA[>=]]>2 AND EXPL_CNT<![CDATA[>]]>PS_EXPL_CNT AND PS_EXPL_CNT<![CDATA[>=]]>1 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN IF((SLV_HABIT_CNT - PREV_SLV_HABIT_CNT) != 0, 'MSGS6', 'MSGS7')
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(EXPL_CNT, 0) = 0 THEN '-'
+		        WHEN EXPL_CNT<![CDATA[>=]]>1 AND EXPL_CNT = PS_EXPL_CNT THEN IF(SLV_HABIT_CNT = 0, 'MSGD2', 'MSGD3')
+		        WHEN EXPL_CNT<![CDATA[>=]]>1 AND PS_EXPL_CNT = 0 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN 'MSGD4'
+				WHEN EXPL_CNT<![CDATA[>=]]>2 AND EXPL_CNT<![CDATA[>]]>PS_EXPL_CNT AND PS_EXPL_CNT<![CDATA[>=]]>1 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN 'MSGD5'
+		    END AS DETAIL
 		FROM STUD ST
 		LEFT OUTER JOIN (
 			SELECT
@@ -1630,6 +1828,39 @@
 			) EQ
 			GROUP BY STUD_ID
 		) PEN ON ST.STUD_ID = PEN.STUD_ID
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN EXAM_MONTH_STT EM ON EM.YYMM = #{yyMm} AND ST.STUD_ID = EM.STUD_ID
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_EXAM_STT EM ON EM.DT = #{endDt} AND ST.STUD_ID = EM.STUD_ID
+			</otherwise>
+		</choose> 
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				QUES_PTN,
+				COUNT(QUES_PTN) AS QUES_PTN_CNT
+			FROM (
+				SELECT
+					STUD_ID,
+					IF(INSTR(IFNULL(QUES_PTN_IRT, QUES_PTN),'GU')<![CDATA[>]]>0, 'GUI', IFNULL(QUES_PTN_IRT, QUES_PTN)) AS QUES_PTN
+				FROM EXAM_RST_QUES_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND IFNULL(QUES_PTN_IRT, QUES_PTN) != 'CRT'
+			) QP
+			GROUP BY STUD_ID, QUES_PTN
+			ORDER BY COUNT(QUES_PTN) DESC, 
+				CASE QUES_PTN
+					WHEN 'INC' THEN 1
+					WHEN 'MIS' THEN 2
+					WHEN 'GUI' THEN 3
+					WHEN 'CUR' THEN 4
+					WHEN 'SKP' THEN 5
+				END
+			LIMIT 1
+		) QPT ON ST.STUD_ID = QPT.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
     </select>
     
@@ -1721,39 +1952,72 @@
     
     <select id="getDayAvgLrnStt" parameterType="hashMap" resultType="resultMap">
     	SELECT 
-			ST.STUD_ID,
+			STUD_ID,
 		    LRN_TM,
 		    PREV_LRN_TM,
-			NULL AS SUMMARY,
-			NULL AS DETAIL
-		FROM STUD ST
-		LEFT OUTER JOIN (
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(DIFF), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(DIFF), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+		    CASE
+				WHEN IFNULL(LRN_TM,0) = 0 THEN 'MSGS1'
+		        ELSE IF(DIFF != 0, 'MSGS2', 'MSGS3')
+		    END AS SUMMARY,
+		    CASE
+				WHEN IFNULL(LRN_TM,0) = 0 THEN '-'
+		        ELSE 'MSGD2'
+		    END AS DETAIL
+		FROM (
 			SELECT
-				STUD_ID,
-				SUM(IFNULL(LRN_SEC,0)) AS LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT BETWEEN #{startDt} AND #{endDt}
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID
-		) LT ON ST.STUD_ID = LT.STUD_ID
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-				SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT 
-			<choose>
-				<when test='currConCheck == "m"'>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
-				</when>
-				<otherwise>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-				</otherwise>
-			</choose>
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID
-		) PLT ON ST.STUD_ID = PLT.STUD_ID
-		WHERE ST.STUD_ID = #{studId}
+				ST.STUD_ID,
+				ROUND(LRN_TM / DAY_NUM) AS LRN_TM,
+				ROUND(PREV_LRN_TM / PREV_DAY_NUM) AS PREV_LRN_TM,
+				(ROUND(LRN_TM / DAY_NUM) - ROUND(PREV_LRN_TM / PREV_DAY_NUM)) AS DIFF
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IFNULL(LRN_SEC,0)) AS LRN_TM,
+					<choose>
+						<when test='currConCheck == "m"'>
+							CAST(DATE_FORMAT(LAST_DAY(#{startDt}), '%d')AS UNSIGNED) AS DAY_NUM
+						</when>
+						<otherwise>
+							7 AS DAY_NUM
+						</otherwise>
+					</choose>
+				FROM DAY_LRN_EX_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) LT ON ST.STUD_ID = LT.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM,
+					<choose>
+						<when test='currConCheck == "m"'>
+							CAST(DATE_FORMAT(LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH)), '%d')AS UNSIGNED) AS PREV_DAY_NUM
+						</when>
+						<otherwise>
+							7 AS PREV_DAY_NUM
+						</otherwise>
+					</choose>
+				FROM DAY_LRN_EX_LOG
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) PLT ON ST.STUD_ID = PLT.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) TM
     </select>
     
     <select id="getDayAvgLrnSttList" parameterType="hashMap" resultType="resultMap">
@@ -1838,49 +2102,69 @@
     
     <select id="getTotalLrnTmStt" parameterType="hashMap" resultType="resultMap">
     	SELECT
-			ST.STUD_ID,
+    		STUD_ID,
 		    TOTAL_LRN_TM,
 		    PREV_TOTAL_LRN_TM,
-		    NULL AS TOP_TOTAL_LRN_TM,
-		    NULL AS AVG_TOTAL_LRN_TM,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
-		FROM STUD ST
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT BETWEEN #{startDt} AND #{endDt}
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID
-		) TM ON ST.STUD_ID = TM.STUD_ID
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT 
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(TOTAL_LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(TOTAL_LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(DIFF), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(DIFF), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+		    DIFF,
+		    TOP_TOTAL_LRN_TM,
+		    AVG_TOTAL_LRN_TM,
+			CASE
+				WHEN IFNULL(TOTAL_LRN_TM, 0) = 0 THEN 'MSGS1'
+		        ELSE IF(DIFF != 0, 'MSGS2', 'MSGS3')
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(TOTAL_LRN_TM, 0) = 0 THEN '-'
+		        ELSE 'MSGD2'
+		    END AS DETAIL
+    	FROM (
+	    	SELECT
+				ST.STUD_ID,
+			    TOTAL_LRN_TM,
+			    PREV_TOTAL_LRN_TM,
+			    TOP_30_LRN_SEC AS TOP_TOTAL_LRN_TM,
+			    GRP_AVG_LRN_SEC AS AVG_TOTAL_LRN_TM,
+			    (TOTAL_LRN_TM - PREV_TOTAL_LRN_TM) AS DIFF
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+				FROM DAY_LRN_EX_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) TM ON ST.STUD_ID = TM.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+				FROM DAY_LRN_EX_LOG
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) PTM ON ST.STUD_ID = PTM.STUD_ID
 			<choose>
 				<when test='currConCheck == "m"'>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
 				</when>
 				<otherwise>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
 				</otherwise>
-			</choose>
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID
-		) PTM ON ST.STUD_ID = PTM.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
-			</otherwise>
-		</choose> 
-		WHERE ST.STUD_ID = #{studId}
+			</choose> 
+			WHERE ST.STUD_ID = #{studId}
+		) TTM
     </select>
     
     <select id="getTotalLrnTmSttList" parameterType="hashMap" resultType="resultMap">
@@ -1888,8 +2172,8 @@
 			ST.DT,
 		    TOTAL_LRN_TM,
 		    PREV_TOTAL_LRN_TM,
-		    NULL AS TOP_A_LRN_EX_CNT,
-		    NULL AS AVG_A_LRN_EX_CNT
+		    TOP_30_LRN_SEC AS TOP_TOTAL_LRN_TM,
+		    GRP_AVG_LRN_SEC AS AVG_TOTAL_LRN_TM
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1941,50 +2225,77 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
-		LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON ST.DT = GL.DT AND ST.GRADE = GL.GRADE
+		<choose>
+			<when test='currConCheck == "m"'>
+				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
+			</when>
+			<otherwise>
+				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
+			</otherwise>
+		</choose> 
 		ORDER BY ST.DT
     </select>
     
     <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
     	SELECT
-			ST.STUD_ID,
+    		STUD_ID,
 		    LONG_LRN_SUBJ_CD,
+		    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = LONG_LRN_SUBJ_CD) AS SUBJ_NM,
 		    LONG_LRN_SUBJ_LRN_TM,
 		    PREV_LONG_LRN_SUBJ_LRN_TM,
-		    NULL AS SUMMARY,
-		    NULL AS DETAIL
-		FROM STUD ST
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-				SUBJ_CD AS LONG_LRN_SUBJ_CD,
-				SUM(IFNULL(LRN_SEC,0)) AS LONG_LRN_SUBJ_LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT BETWEEN #{startDt} AND #{endDt}
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID, SUBJ_CD
-			ORDER BY SUM(IFNULL(LRN_SEC,0)) DESC 
-			LIMIT 1
-		) TM ON ST.STUD_ID = TM.STUD_ID
-		LEFT OUTER JOIN (
-			SELECT
-				STUD_ID,
-		        SUBJ_CD,
-				SUM(IFNULL(LRN_SEC,0)) AS PREV_LONG_LRN_SUBJ_LRN_TM
-			FROM DAY_LRN_EX_LOG
-			WHERE DT 
-			<choose>
-				<when test='currConCheck == "m"'>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
-				</when>
-				<otherwise>
-				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-				</otherwise>
-			</choose>
-				AND STUD_ID = #{studId}
-			GROUP BY STUD_ID, SUBJ_CD
-		) PTM ON ST.STUD_ID = PTM.STUD_ID AND TM.LONG_LRN_SUBJ_CD = PTM.SUBJ_CD
-		WHERE ST.STUD_ID = #{studId}
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(LONG_LRN_SUBJ_LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(LONG_LRN_SUBJ_LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+		    CAST(SUBSTRING_INDEX(SEC_TO_TIME(DIFF), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+		    CAST(DATE_FORMAT(SEC_TO_TIME(DIFF), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+		    DIFF,
+		    CASE
+				WHEN IFNULL(LONG_LRN_SUBJ_LRN_TM, 0) = 0 THEN 'MSGS1'
+		        ELSE IF(DIFF != 0, 'MSGS2', 'MSGS3')
+		    END AS SUMMARY,
+			CASE
+				WHEN IFNULL(LONG_LRN_SUBJ_LRN_TM, 0) = 0 THEN '-'
+		        ELSE 'MSGD2'
+		    END AS DETAIL
+    	FROM (
+	    	SELECT
+				ST.STUD_ID,
+				LONG_LRN_SUBJ_CD,
+				LONG_LRN_SUBJ_LRN_TM,
+				PREV_LONG_LRN_SUBJ_LRN_TM,
+		        (LONG_LRN_SUBJ_LRN_TM - PREV_LONG_LRN_SUBJ_LRN_TM) AS DIFF
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD AS LONG_LRN_SUBJ_CD,
+					SUM(IFNULL(LRN_SEC,0)) AS LONG_LRN_SUBJ_LRN_TM
+				FROM DAY_LRN_EX_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+				ORDER BY SUM(IFNULL(LRN_SEC,0)) DESC 
+				LIMIT 1
+			) TM ON ST.STUD_ID = TM.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+			        SUBJ_CD,
+					SUM(IFNULL(LRN_SEC,0)) AS PREV_LONG_LRN_SUBJ_LRN_TM
+				FROM DAY_LRN_EX_LOG
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+			) PTM ON ST.STUD_ID = PTM.STUD_ID AND TM.LONG_LRN_SUBJ_CD = PTM.SUBJ_CD
+			WHERE ST.STUD_ID = #{studId}
+		) LTM
     </select>
     
     <select id="getLongLrnTmSttList" parameterType="hashMap" resultType="resultMap">
@@ -2139,15 +2450,41 @@
 		    </choose>
 		    <choose>
 		    	<when test='currConCheck == "m"'>
-		    		CONCAT(CAST(DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%m') AS UNSIGNED), '월') AS PRE_DT
+		    		CONCAT(CAST(DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%m') AS UNSIGNED), '월') AS PRE_DT,
 		    	</when>
 		    	<when test='currConCheck == "w"'>
-		    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT
+		    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT,
 		    	</when>
 		    	<otherwise>
-		    		CONCAT(DATE_SUB(#{startDt}, INTERVAL 7 DAY), ' ~ ', DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT
+		    		CONCAT(DATE_SUB(#{startDt}, INTERVAL 7 DAY), ' ~ ', DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT,
 		    	</otherwise>
 		    </choose>
+		    CASE IFNULL(MAX_SUBJ_CD, '') 
+				WHEN 'C01' THEN 'MSGS1'
+		        WHEN 'C02' THEN 'MSGS2'
+		        WHEN 'C03' THEN 'MSGS3'
+		        WHEN 'C04' THEN 'MSGS4'
+		        WHEN 'C05' THEN 'MSGS5'
+		        WHEN 'C06' THEN 'MSGS6'
+		        ELSE 'MSGS7'
+		    END AS MAX_SUMMARY,
+		    CASE
+				WHEN MAX_SUBJ_CD IS NULL THEN 'MSGD2'
+		        ELSE 'MSGD1'
+		    END AS MAX_DETAIL,
+		    CASE IFNULL(MIN_SUBJ_CD, '') 
+				WHEN 'C01' THEN 'MSGS8'
+		        WHEN 'C02' THEN 'MSGS9'
+		        WHEN 'C03' THEN 'MSGS10'
+		        WHEN 'C04' THEN 'MSGS11'
+		        WHEN 'C05' THEN 'MSGS12'
+		        WHEN 'C06' THEN 'MSGS13'
+		        ELSE 'MSGS14'
+		    END AS MIN_SUMMARY,
+		    CASE
+				WHEN MIN_SUBJ_CD IS NULL THEN 'MSGD4'
+		        ELSE 'MSGD3'
+		    END AS MIN_DETAIL
 		FROM STUD ST 
 		LEFT OUTER JOIN (
 			SELECT
@@ -2344,34 +2681,6 @@
 				</otherwise>
 			</choose>  
 		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD;
-    </select>
-    
-    <select id="getExamCdList" parameterType="hashMap" resultType="resultMap">
-    	SELECT
-			CD AS VALUE,
-			CD_NM AS NAME
-		FROM COMM_CD
-		WHERE GRP = 'EXAM';
-    </select>
-    
-    <select id="getQuesCdList" parameterType="hashMap" resultType="resultMap">
-		SELECT
-			CASE CD
-				WHEN 'CRT' THEN 'crtQues'
-				WHEN 'GUC' THEN 'guessQues'
-				WHEN 'SKP' THEN 'skipQues'
-				WHEN 'GUI' THEN 'guessIncQues'
-				WHEN 'CUR' THEN 'cursoryQues'
-				WHEN 'INC' THEN 'incrtQues'
-				WHEN 'MIS' THEN 'mistakenQues'
-			END AS VALUE,
-			CASE CD
-				WHEN 'GUC' THEN '찍은것으로 보이는 문제(정답)'
-				WHEN 'GUI' THEN '찍은것으로 보이는 문제(오답)'
-				ELSE CD_NM
-			END AS NAME
-		FROM COMM_CD
-		WHERE GRP = 'QUES_PTN';
     </select>
     
     <select id="getSubjExamListCnt" parameterType="hashMap" resultType="resultMap">
