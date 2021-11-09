@@ -346,18 +346,19 @@ public class GroupServiceImpl implements GroupService {
 				int positive_msgNo = 13;	// ⓐ칭찬-학습태도
                 int negative_msgNo = 34;	// ⓒ처방-학습태도
                 int a_lrn_ex_cnt = Integer.valueOf(cData.get("aLrnExCnt").toString());	// 스스로학습 수행 수
-                String d = cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
+                String subj_nm_a_lrn = cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
                 int att_cnt = cData.get("attCnt") == null ? 0 : Integer.valueOf(cData.get("attCnt").toString());	// 접속 내역
                 int att_rt = cData.get("attRt") == null ? 0 : Integer.valueOf(cData.get("attRt").toString());	// 접속 내역(선택된 기간 내 로그인 일 수)
             	int d_lrn_ex_cnt = cData.get("planDLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("planDLrnExCnt").toString());
-                
+            	int ex_rt =  0;
+            	
             	try {
 	            	// ⓐ칭찬-학습태도
 	                if(cData.get("exRt") == null) {
 	                	// 노출 우선순위 - 10. 수행률 null && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
 	                	positive_msgNo = 12;
 	                } else {
-	            		int ex_rt =  Integer.valueOf(cData.get("exRt").toString());	// 수행률
+	            		ex_rt =  Integer.valueOf(cData.get("exRt").toString());	// 수행률
 	                	if(ex_rt >= 90) {				// 수행률 90 <= a <= 100
 	                		if(att_rt < 10) {
 	                			// 노출 우선순위 - 1. 수행률 90 <= a <= 100 && 나중에 했어요 개수 b < 10
@@ -413,7 +414,7 @@ public class GroupServiceImpl implements GroupService {
 	                	if(cData.get("exRt") == null) {	// 노출 우선순위 - 2. 수행률 = null				                	
 	                		negative_msgNo = 25;
 	                	} else {
-	                		int ex_rt = Integer.valueOf(cData.get("exRt").toString());	// 수행률
+	                		ex_rt = Integer.valueOf(cData.get("exRt").toString());	// 수행률
 		                	if(ex_rt == 0) {
 	                			if(a_lrn_ex_cnt == 0) {
 	                				// 노출 우선순위 - 3. 수행률 a = 0 && 스스로학습 수 b = 0
@@ -429,19 +430,19 @@ public class GroupServiceImpl implements GroupService {
 	                		}
 	                		else if(30 <= ex_rt && ex_rt < 60) {				                		
 								if(d_lrn_ex_cnt >= 10) {
-									// 노출 우선순위 - 6. 수행률 30 <= a < 60 && 나중에 했어요 개수 b >= 10
+									// 노출 우선순위 - 6. 수행률 30 <= a < 60 && 나중에 했어요 개수 c >= 10
 									negative_msgNo = 29;
 								} else {
-									// 노출 우선순위 - 7. 수행률 30 <= a < 60 && 나중에 했어요 개수 b < 10
+									// 노출 우선순위 - 7. 수행률 30 <= a < 60 && 나중에 했어요 개수 c < 10
 									negative_msgNo = 30;
 								}				                		
 	                		}
 	                		else if(60 <= ex_rt && ex_rt < 100) {			// 수행률 60 <= a < 100
 	                			if(d_lrn_ex_cnt >= 10) {
-									// 노출 우선순위 - 8. 수행률 60 <= a < 100 &&  나중에 했어요 개수 b >= 10
+									// 노출 우선순위 - 8. 수행률 60 <= a < 100 &&  나중에 했어요 개수 c >= 10
 		                			negative_msgNo = 31;
 								} else {
-									// 노출 우선순위 - 9. 수행률 60 <= a < 100 &&  나중에 했어요 개수 b < 10
+									// 노출 우선순위 - 9. 수행률 60 <= a < 100 &&  나중에 했어요 개수 c < 10
 									negative_msgNo = 32;
 								}	
 	                		} else if(ex_rt == 100){
@@ -468,11 +469,11 @@ public class GroupServiceImpl implements GroupService {
 					for(Map<String, Object> item : msgResponseMap) {
 						if(Integer.valueOf(item.get("msgNo").toString()) == positive_msgNo)
 						{
-							positive.add(item.get("msg").toString());
+							positive.add(item.get("msg").toString().replace("{a}", String.valueOf(ex_rt)).replace("{b}", String.valueOf(att_rt)).replace("{c}", String.valueOf(a_lrn_ex_cnt)).replace("{d}", subj_nm_a_lrn));
 						}
 						else if(Integer.valueOf(item.get("msgNo").toString()) == negative_msgNo)
 						{
-							negative.add(item.get("msg").toString());
+							negative.add(item.get("msg").toString().replace("{a}", String.valueOf(ex_rt)).replace("{b}", String.valueOf(a_lrn_ex_cnt)).replace("{c}", String.valueOf(d_lrn_ex_cnt)));
 						}									
 					}
 				}
