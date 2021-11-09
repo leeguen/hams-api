@@ -11,10 +11,6 @@ public interface GroupService {
 
     public Map getLrnBasic(Map<String, Object> paramMap) throws Exception;
 
-    public Map getOrgEnvConfig(Map<String, Object> paramMap) throws Exception;
-
-    public Map setOrgEnvConfig(Map<String, Object> paramMap) throws Exception;
-
     public Map getLrnHabitChart(Map<String, Object> paramMap) throws Exception;
 
     public Map getAiRecommendLrn(Map<String, Object> paramMap) throws Exception;
@@ -68,7 +64,5 @@ public interface GroupService {
     public Map getChapterStt(Map<String, Object> paramMap) throws Exception;
     
     public Map getChapterLrn(Map<String, Object> paramMap) throws Exception;
-
-    public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception;
         
 }

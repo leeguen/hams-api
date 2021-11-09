@@ -228,8 +228,8 @@ public class GroupServiceImpl implements GroupService {
 			String endDate;
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			ArrayList<Map<String,Object>> positive = new ArrayList<>();
-			ArrayList<Map<String,Object>> negative = new ArrayList<>();
+			ArrayList<String> positive = new ArrayList<>();
+			ArrayList<String> negative = new ArrayList<>();
 			Map<String,Object> msg = new HashMap<>();
 			paramMap.put("currConCheck", currConCheck);
 			
@@ -277,12 +277,10 @@ public class GroupServiceImpl implements GroupService {
 						
 							//current 기준 prev 구하기 
 			                data.put("prevDtCnt", getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
-				        	
-				        	msg.put("positive", positive);
-				        	msg.put("negative", negative);
-				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
+				        }
+						else {
+							setResult(dataKey, data);
 						}
-						setResult(dataKey, data);
 					} else {
 						setResult(msgKey, vu2.getResult());				
 					}
@@ -328,12 +326,10 @@ public class GroupServiceImpl implements GroupService {
 							data.put("prev", prevMap);
 							
 			                data.put("prevDtCnt", "7");
-				        	
-				        	msg.put("positive", positive);
-				        	msg.put("negative", negative);
-				            data.put("msg",msg);	//추후 메시지기획안 적용 예정	
 						}
-			    		setResult(dataKey, data);
+						else {
+							setResult(dataKey, data);
+						}
 					} else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -344,6 +340,147 @@ public class GroupServiceImpl implements GroupService {
 				} else {
 					setResult(msgKey, vu.getResult());
 				}
+			}
+			
+			if(cData != null) {
+				int positive_msgNo = 13;	// ⓐ칭찬-학습태도
+                int negative_msgNo = 34;	// ⓒ처방-학습태도
+                int a_lrn_ex_cnt = Integer.valueOf(cData.get("aLrnExCnt").toString());	// 스스로학습 수행 수
+                String d = cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
+                int att_cnt = cData.get("attCnt") == null ? 0 : Integer.valueOf(cData.get("attCnt").toString());	// 접속 내역
+                int att_rt = cData.get("attRt") == null ? 0 : Integer.valueOf(cData.get("attRt").toString());	// 접속 내역(선택된 기간 내 로그인 일 수)
+            	int d_lrn_ex_cnt = cData.get("planDLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("planDLrnExCnt").toString());
+                
+            	try {
+	            	// ⓐ칭찬-학습태도
+	                if(cData.get("exRt") == null) {
+	                	// 노출 우선순위 - 10. 수행률 null && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
+	                	positive_msgNo = 12;
+	                } else {
+	            		int ex_rt =  Integer.valueOf(cData.get("exRt").toString());	// 수행률
+	                	if(ex_rt >= 90) {				// 수행률 90 <= a <= 100
+	                		if(att_rt < 10) {
+	                			// 노출 우선순위 - 1. 수행률 90 <= a <= 100 && 나중에 했어요 개수 b < 10
+	                			positive_msgNo = 3;
+	            			}
+	            			else if(att_rt >= 10) {
+	            				// 노출 우선순위 - 2. 수행률 90 <= a <= 100 && 나중에 했어요 개수 b >= 10
+	            				positive_msgNo = 4;
+	            			}
+	                	}
+	                	else if(0 < ex_rt && ex_rt < 90) {	// 수행률 0 < a < 90
+	                		if(att_rt >= 80) {
+	                			if(a_lrn_ex_cnt > 0) {
+	                				// 노출 우선순위 - 3. 출석률 b >= 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 상위과목명 d
+	                				positive_msgNo = 5;
+	                			} else if(a_lrn_ex_cnt == 0) {
+		                			// 노출 우선순위 - 4. 출석률 b >= 80 && 스스로학습 수행 수 c = 0
+	                				positive_msgNo = 6;
+	                			}
+	                		} else {
+	                			if(a_lrn_ex_cnt > 0) {
+	                				// 노출 우선순위 - 5. 출석률 b < 80 && 스스로학습 수행 수 c > 0, 스스로학습 수행 수가 가장 높은 상위과목명 d
+	                				positive_msgNo = 7;
+	                			} else if(a_lrn_ex_cnt == 0) {
+	                				// 노출 우선순위 - 6. 출석률 b < 80 && 스스로학습 수행 수 c = 0
+	                				positive_msgNo = 8;
+	                			}
+	                		}
+	                	}
+	                	else if(ex_rt == 0) { 	// 수행률 a = 0 
+	                		if(att_rt >= 80) {
+		                		if(a_lrn_ex_cnt > 0) {
+		                			// 노출 우선순위 - 7. 출석률 b >= 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 상위과목명 d
+		                			positive_msgNo = 9;
+		                		} else if(a_lrn_ex_cnt == 0) {
+		                			// 노출 우선순위 - 8. 출석률 b >= 80 && 스스로학습 수행 수 c = 0
+		                			positive_msgNo = 10;
+		                		}
+	                		} else {
+	                			if(a_lrn_ex_cnt > 0) {
+	                				// 노출 우선순위 - 9. 출석률 b < 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
+	                				positive_msgNo = 11;
+	                			}
+	                		}
+	                	}
+	            	
+	                }
+	                
+	                // ⓒ처방-학습태도
+	                if(att_cnt == 0) {	// 노출 우선순위 - 1. 접속 내역 0회
+	                	negative_msgNo = 24;
+	                } else {	// 접속 내역 1회 이상
+	                	if(cData.get("exRt") == null) {	// 노출 우선순위 - 2. 수행률 = null				                	
+	                		negative_msgNo = 25;
+	                	} else {
+	                		int ex_rt = Integer.valueOf(cData.get("exRt").toString());	// 수행률
+		                	if(ex_rt == 0) {
+	                			if(a_lrn_ex_cnt == 0) {
+	                				// 노출 우선순위 - 3. 수행률 a = 0 && 스스로학습 수 b = 0
+	                				negative_msgNo = 26;
+	                			} else if(a_lrn_ex_cnt > 0) {
+			                		// 노출 우선순위 - 4. 수행률 a = 0 && 스스로학습 수 b > 0
+	                				negative_msgNo = 27;
+	                			}
+	                		}
+	                		else if(0 < ex_rt && ex_rt < 30) {
+	                			// 노출 우선순위 - 5. 수행률 0 < a < 30
+	            				negative_msgNo = 28;
+	                		}
+	                		else if(30 <= ex_rt && ex_rt < 60) {				                		
+								if(d_lrn_ex_cnt >= 10) {
+									// 노출 우선순위 - 6. 수행률 30 <= a < 60 && 나중에 했어요 개수 b >= 10
+									negative_msgNo = 29;
+								} else {
+									// 노출 우선순위 - 7. 수행률 30 <= a < 60 && 나중에 했어요 개수 b < 10
+									negative_msgNo = 30;
+								}				                		
+	                		}
+	                		else if(60 <= ex_rt && ex_rt < 100) {			// 수행률 60 <= a < 100
+	                			if(d_lrn_ex_cnt >= 10) {
+									// 노출 우선순위 - 8. 수행률 60 <= a < 100 &&  나중에 했어요 개수 b >= 10
+		                			negative_msgNo = 31;
+								} else {
+									// 노출 우선순위 - 9. 수행률 60 <= a < 100 &&  나중에 했어요 개수 b < 10
+									negative_msgNo = 32;
+								}	
+	                		} else if(ex_rt == 100){
+	                			// 노출 우선순위 - 10. 수행률 100 = a
+	                			negative_msgNo = 33;
+	                		}
+	                	}
+	                }
+            	} catch (Exception e) {
+            		LOGGER.debug(v_param.toString(), " :: error :: ", e.getMessage());
+            	}
+                
+                ArrayList<Integer> msgNoList = new ArrayList<Integer>();
+                Map<String, Object> msgRequestMap = new LinkedHashMap<>();
+                msgNoList.add(positive_msgNo);
+                msgNoList.add(negative_msgNo);
+                msgRequestMap.put("version", "1.0");
+                msgRequestMap.put("sheet", "C");
+                msgRequestMap.put("msgNo", msgNoList);
+
+    			ArrayList<Map<String,Object>> msgResponseMap = new ArrayList<>();
+    			msgResponseMap = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", msgRequestMap, ".getCommMsgTemplate");
+				if(msgResponseMap.size() > 0 && msgResponseMap.get(0) != null) {
+					for(Map<String, Object> item : msgResponseMap) {
+						if(Integer.valueOf(item.get("msgNo").toString()) == positive_msgNo)
+						{
+							positive.add(item.get("msg").toString());
+						}
+						else if(Integer.valueOf(item.get("msgNo").toString()) == negative_msgNo)
+						{
+							negative.add(item.get("msg").toString());
+						}									
+					}
+				}
+	        	msg.put("positive", positive);
+	        	msg.put("negative", negative);
+	            data.put("msg",msg);	
+	            
+	            setResult(dataKey, data);
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
@@ -367,16 +504,6 @@ public class GroupServiceImpl implements GroupService {
 			return 0;
 		}
 	}
-
-    @Override
-    public Map getOrgEnvConfig(Map<String, Object> paramMap) throws Exception {
-    	return result;
-    }
-
-    @Override
-    public Map setOrgEnvConfig(Map<String, Object> paramMap) throws Exception {
-    	return result;
-    }
 
 	/**
 	 * HAMS-ORG-LS-001 
@@ -3811,29 +3938,6 @@ public class GroupServiceImpl implements GroupService {
     	return result;
     }
     
-    @Override
-    public Map getCommMsgCd(Map<String, Object> paramMap) throws Exception {
-    	
-    	v_param.put("METHOD", "COMMMSGCD");
-    	
-        Map<String,Object> data = new HashMap<>();
-        checkRequired(paramMap);
-
-        //DB 조회
-        //List<Map<String,Object>> commMsgCd = (List<Map<String,Object>>)mapper_1_0.getList(paramMap, dw_mapper_namespace + ".getCommMsgCd");
-        List<Map<String,Object>> commMsgCd = (List)getMapperResultData(v_param, "list", paramMap, ".getCommMsgCd");
-        LinkedHashMap<String,Object> commMsgCdMap = new LinkedHashMap<>();
-
-        for(Map item : commMsgCd) {
-            commMsgCdMap.put(item.get("msgCd").toString(),item.get("msg"));
-        }
-
-        data.put("commMsgCd",commMsgCdMap);
-        setResult(dataKey,data);
-
-        return result;
-    }
-    
     //p,startDt,endDt 비교 메서드
     private void checkRequired(Map<String,Object> params) throws Exception {
         ValidationUtilTutor vu = new ValidationUtilTutor();
@@ -4030,7 +4134,4 @@ public class GroupServiceImpl implements GroupService {
 			}
 		}
 	}
-	
-
-
 }
