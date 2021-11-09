@@ -345,8 +345,8 @@ public class GroupServiceImpl implements GroupService {
 			if(cData != null) {
 				int positive_msgNo = 13;	// ⓐ칭찬-학습태도
                 int negative_msgNo = 34;	// ⓒ처방-학습태도
-                int a_lrn_ex_cnt = Integer.valueOf(cData.get("aLrnExCnt").toString());	// 스스로학습 수행 수
-                String subj_nm_a_lrn = cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
+                int a_lrn_ex_cnt = cData.get("aLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("aLrnExCnt").toString());	// 스스로학습 수행 수
+                String subj_nm_a_lrn = cData.get("subjNmALrn") == null ? "" : cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
                 int att_cnt = cData.get("attCnt") == null ? 0 : Integer.valueOf(cData.get("attCnt").toString());	// 접속 내역
                 int att_rt = cData.get("attRt") == null ? 0 : Integer.valueOf(cData.get("attRt").toString());	// 접속 내역(선택된 기간 내 로그인 일 수)
             	int d_lrn_ex_cnt = cData.get("planDLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("planDLrnExCnt").toString());
@@ -355,8 +355,10 @@ public class GroupServiceImpl implements GroupService {
             	try {
 	            	// ⓐ칭찬-학습태도
 	                if(cData.get("exRt") == null) {
-	                	// 노출 우선순위 - 10. 수행률 null && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
-	                	positive_msgNo = 12;
+	                	if(a_lrn_ex_cnt > 0) {
+		                	// 노출 우선순위 - 10. 수행률 null && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
+		                	positive_msgNo = 12;
+	                	}
 	                } else {
 	            		ex_rt =  Integer.valueOf(cData.get("exRt").toString());	// 수행률
 	                	if(ex_rt >= 90) {				// 수행률 90 <= a <= 100
