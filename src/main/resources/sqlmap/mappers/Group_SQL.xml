@@ -115,19 +115,19 @@
             , (IFNULL(ER.CUR_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
 		FROM 
 		(	
-			SELECT '4995' AS STUD_ID 
+			SELECT #{studId} AS STUD_ID 
 		) AS S 		
 		<choose>
             <when test='currConCheck == "w"'>            
 		LEFT OUTER JOIN ( -- 주차
-			SELECT '4995' AS STUD_ID
+			SELECT #{studId} AS STUD_ID
 				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
 			FROM COMM_WK_DT 
 			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
 				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt}, '%Y-%m-%d')				
 		) AS WK ON WK.STUD_ID = S.STUD_ID   
 		LEFT OUTER JOIN (
-			SELECT '4995' AS STUD_ID 
+			SELECT #{studId} AS STUD_ID 
 				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
 			FROM COMM_WK_DT 
 			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_SUB(#{startDt}, INTERVAL 7 DAY)
