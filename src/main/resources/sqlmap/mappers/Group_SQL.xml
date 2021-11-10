@@ -2283,6 +2283,7 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID, SUBJ_CD
 		) TM ON TM.DT = ST.DT AND ST.STUD_ID = TM.STUD_ID
+		ORDER BY ST.DT, TM.SUBJ_CD
     </select>
     
     <select id="getDayAvgLrnDetailList" parameterType="hashMap" resultType="resultMap">
