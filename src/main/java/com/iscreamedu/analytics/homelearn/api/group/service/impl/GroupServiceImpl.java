@@ -343,50 +343,57 @@ public class GroupServiceImpl implements GroupService {
 			}
 			
 			if(cData != null) {
-				int positive_msgNo = 13;	// ⓐ칭찬-학습태도
-                int negative_msgNo = 34;	// ⓒ처방-학습태도
-                int a_lrn_ex_cnt = cData.get("aLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("aLrnExCnt").toString());	// 스스로학습 수행 수
-                String subj_nm_a_lrn = cData.get("subjNmALrn") == null ? "" : cData.get("subjNmALrn").toString();				// 스스로학습 수행 수가 가장 높은 하위과목명
-                int att_cnt = cData.get("attCnt") == null ? 0 : Integer.valueOf(cData.get("attCnt").toString());	// 접속 내역
-                int att_rt = cData.get("attRt") == null ? 0 : Integer.valueOf(cData.get("attRt").toString());	// 접속 내역(선택된 기간 내 로그인 일 수)
-            	int d_lrn_ex_cnt = cData.get("planDLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("planDLrnExCnt").toString());
-            	int ex_rt =  0;
-            	
+				int[] positive_msgNo = {13, 23} ;	// 칭찬-학습태도, 평가
+                int[] negative_msgNo = {34, 233};	// 처방-학습태도, 평가
+                int a_lrn_ex_cnt = cData.get("aLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("aLrnExCnt").toString());			// 스스로학습 수행 수
+                String subj_nm_a_lrn = cData.get("subjNmALrn") == null ? "" : cData.get("subjNmALrn").toString();					// 스스로학습 수행 수가 가장 높은 하위과목명
+                int att_cnt = cData.get("attCnt") == null ? 0 : Integer.valueOf(cData.get("attCnt").toString());					// 접속 내역
+                int att_rt = cData.get("attRt") == null ? 0 : Integer.valueOf(cData.get("attRt").toString());						// 접속 내역(선택된 기간 내 로그인 일 수)
+            	int d_lrn_ex_cnt = cData.get("planDLrnExCnt") == null ? 0 : Integer.valueOf(cData.get("planDLrnExCnt").toString());	// 나중에 했어요 개수
+            	int ex_rt = 0;																										// 수행률 ( !! null 도 체크 !!)
+            	int crt_rt = cData.get("crtRt") == null ? 0 : Integer.valueOf(cData.get("crtRt").toString());						// 정답률
+    			int expl_cnt = cData.get("explCnt") == null ? 0 : Integer.valueOf(cData.get("explCnt").toString());					// 완료한 평가지 개수	
+            	int ps_expl_cnt = cData.get("psExplCnt") == null ? 0 : Integer.valueOf(cData.get("psExplCnt").toString());			// 100점인 평가지 개수
+            	int guess_ques_cnt = cData.get("guessQuesCnt") == null ? 0 : Integer.valueOf(cData.get("guessQuesCnt").toString());			// 찍은 것으로 보이는 문제 수
+            	int incrt_nt_cnt = cData.get("incrtNtCnt") == null ? 0 : Integer.valueOf(cData.get("incrtNtCnt").toString());		// 오답노트 미완료 건수
+            	int imprv_slv_habit_cnt = cData.get("imprvSlvHabitCnt") == null ? 0 : Integer.valueOf(cData.get("imprvSlvHabitCnt").toString());		// 고쳐야 할 문제풀이 습관 건수
+            	int skip_ques_cnt = cData.get("skipQuestCnt") == null ? 0 : Integer.valueOf(cData.get("skipQuestCnt").toString());	//  건너뛴 문제 수
+            	int cm_habit_cnt = cData.get("cmHabitCnt") == null ? 0 : Integer.valueOf(cData.get("cmHabitCnt").toString());		//  급하게 풀어 틀린 문제 수 + 실수한 문제 수 
             	try {
 	            	// ⓐ칭찬-학습태도
 	                if(cData.get("exRt") == null) {
 	                	if(a_lrn_ex_cnt > 0) {
 		                	// 노출 우선순위 - 10. 수행률 null && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
-		                	positive_msgNo = 12;
+		                	positive_msgNo[0] = 12;
 	                	}
 	                } else {
 	            		ex_rt =  Integer.valueOf(cData.get("exRt").toString());	// 수행률
 	                	if(ex_rt >= 90) {				// 수행률 90 <= a <= 100
 	                		if(att_rt < 10) {
 	                			// 노출 우선순위 - 1. 수행률 90 <= a <= 100 && 나중에 했어요 개수 b < 10
-	                			positive_msgNo = 3;
+	                			positive_msgNo[0] = 3;
 	            			}
 	            			else if(att_rt >= 10) {
 	            				// 노출 우선순위 - 2. 수행률 90 <= a <= 100 && 나중에 했어요 개수 b >= 10
-	            				positive_msgNo = 4;
+	            				positive_msgNo[0] = 4;
 	            			}
 	                	}
 	                	else if(0 < ex_rt && ex_rt < 90) {	// 수행률 0 < a < 90
 	                		if(att_rt >= 80) {
 	                			if(a_lrn_ex_cnt > 0) {
 	                				// 노출 우선순위 - 3. 출석률 b >= 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 상위과목명 d
-	                				positive_msgNo = 5;
+	                				positive_msgNo[0] = 5;
 	                			} else if(a_lrn_ex_cnt == 0) {
 		                			// 노출 우선순위 - 4. 출석률 b >= 80 && 스스로학습 수행 수 c = 0
-	                				positive_msgNo = 6;
+	                				positive_msgNo[0] = 6;
 	                			}
 	                		} else {
 	                			if(a_lrn_ex_cnt > 0) {
 	                				// 노출 우선순위 - 5. 출석률 b < 80 && 스스로학습 수행 수 c > 0, 스스로학습 수행 수가 가장 높은 상위과목명 d
-	                				positive_msgNo = 7;
+	                				positive_msgNo[0] = 7;
 	                			} else if(a_lrn_ex_cnt == 0) {
 	                				// 노출 우선순위 - 6. 출석률 b < 80 && 스스로학습 수행 수 c = 0
-	                				positive_msgNo = 8;
+	                				positive_msgNo[0] = 8;
 	                			}
 	                		}
 	                	}
@@ -394,73 +401,202 @@ public class GroupServiceImpl implements GroupService {
 	                		if(att_rt >= 80) {
 		                		if(a_lrn_ex_cnt > 0) {
 		                			// 노출 우선순위 - 7. 출석률 b >= 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 상위과목명 d
-		                			positive_msgNo = 9;
+		                			positive_msgNo[0] = 9;
 		                		} else if(a_lrn_ex_cnt == 0) {
 		                			// 노출 우선순위 - 8. 출석률 b >= 80 && 스스로학습 수행 수 c = 0
-		                			positive_msgNo = 10;
+		                			positive_msgNo[0] = 10;
 		                		}
 	                		} else {
 	                			if(a_lrn_ex_cnt > 0) {
 	                				// 노출 우선순위 - 9. 출석률 b < 80 && 스스로학습 수행 수 c > 0 && 스스로학습 수행 수가 가장 높은 하위과목명 d
-	                				positive_msgNo = 11;
+	                				positive_msgNo[0] = 11;
 	                			}
 	                		}
 	                	}
 	            	
 	                }
+	                // ⓑ칭찬-평가
+	                if(expl_cnt >= 1) {	                	
+	                	if(ps_expl_cnt == 100 && expl_cnt == ps_expl_cnt) { // 완료한 평가지 개수 a >= 1 && 모든 평가지의 점수가 100점일 경우
+	                		if(guess_ques_cnt > 0) {
+	                			// 노출 우선순위 - 1. 완료한 평가지 개수 a >= 1 && 모든 평가지의 점수가 100점일 경우 && 찍은 것으로 보이는 문제 수 c > 0
+	                			positive_msgNo[1] = 14;
+	                		} else if(guess_ques_cnt == 0) {
+	                			// 노출 우선순위 - 2. 찍은 것으로 보이는 문제 수 c = 0
+	                			positive_msgNo[1] = 16;
+	                		}
+	                	}
+	                	else {
+	                		if(ps_expl_cnt == 0) {	// 100점인 평가지 b= 0개 
+	                			if(crt_rt >= 80) {	// 전체 정답률 f >= 80
+	                				// 노출 우선순위 - 5. 완료한 평가지 개수 a >= 1 && 100점인 평가지 b= 0개 
+	                				//	&& 전체 정답률 f >= 80
+	                				positive_msgNo[1] = 18;
+	                			} else if(crt_rt >= 50) {	// 전체 정답률 f >= 50 
+	                				if(incrt_nt_cnt == 0) {
+	                					// 노출 우선순위 - 6. 완료한 평가지 개수 a >= 1 && 100점인 평가지 b= 0개 
+	                					// 	&& 전체 정답률 f >= 50 && 오답노트 미완료 건수 d = 0
+		                				positive_msgNo[1] = 19;
+	                				} else if(incrt_nt_cnt > 0 && imprv_slv_habit_cnt <= 5) {
+	                					// 노출 우선순위 - 7. 완료한 평가지 개수 a >= 1 && 100점인 평가지 b= 0개 
+	                					// 	&& 전체 정답률 f >= 50 && 오답노트 미완료 건수 d > 0 && 고쳐야 할 문제풀이 습관 건수 e <= 5
+	                					positive_msgNo[1] = 20;
+	                				}
+	                			} else {	// 전체 정답률 f < 50
+	                				if(incrt_nt_cnt == 0) {
+	                					// 노출 우선순위 - 8. 완료한 평가지 개수 a >= 1 && 100점인 평가지 b= 0개 
+	                					// 	&& 전체 정답률 f < 50 && 오답노트 미완료 건수 d = 0
+		                				positive_msgNo[1] = 21;
+	                				} else if(incrt_nt_cnt > 0 && imprv_slv_habit_cnt <= 5) {
+	                					// 노출 우선순위 - 9. 완료한 평가지 개수 a >= 1 && 100점인 평가지 b= 0개 
+	                					// 	&& 전체 정답률 f < 50 && 오답노트 미완료 건수 d > 0 && 고쳐야 할 문제풀이 습관 건수 e <= 5
+	                					positive_msgNo[1] = 22;
+	                				}
+	                				
+	                			}
+	                		}
+	                	}
+	                } else if(expl_cnt >= 2) {	// 완료한 평가지 개수 a >= 2 
+	                	if(expl_cnt > ps_expl_cnt && ps_expl_cnt >= 1) {	// 100점인 평가지 개수 b,   	a > b >= 1   
+	                		if(incrt_nt_cnt > 0) {
+		                		// 노출 우선순위 - 3. 완료한 평가지 개수 a >= 2 
+		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
+		                		// 				&& 오답노트 미완료 건수 c > 0
+			                	positive_msgNo[1] = 16;
+	                		} else if(incrt_nt_cnt == 0) {
+		                		// 노출 우선순위 - 4. 완료한 평가지 개수 a >= 2 
+		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
+		                		// 				&& 오답노트 미완료 건수 c = 0
+	                			positive_msgNo[1] = 17;
+	                		}
+	                	}	                	
+	                } 
 	                
 	                // ⓒ처방-학습태도
 	                if(att_cnt == 0) {	// 노출 우선순위 - 1. 접속 내역 0회
-	                	negative_msgNo = 24;
+	                	negative_msgNo[0] = 24 ;
 	                } else {	// 접속 내역 1회 이상
 	                	if(cData.get("exRt") == null) {	// 노출 우선순위 - 2. 수행률 = null				                	
-	                		negative_msgNo = 25;
+	                		negative_msgNo[0] = 25;
 	                	} else {
 	                		ex_rt = Integer.valueOf(cData.get("exRt").toString());	// 수행률
 		                	if(ex_rt == 0) {
 	                			if(a_lrn_ex_cnt == 0) {
 	                				// 노출 우선순위 - 3. 수행률 a = 0 && 스스로학습 수 b = 0
-	                				negative_msgNo = 26;
+	                				negative_msgNo[0] = 26;
 	                			} else if(a_lrn_ex_cnt > 0) {
 			                		// 노출 우선순위 - 4. 수행률 a = 0 && 스스로학습 수 b > 0
-	                				negative_msgNo = 27;
+	                				negative_msgNo[0] = 27;
 	                			}
 	                		}
 	                		else if(0 < ex_rt && ex_rt < 30) {
 	                			// 노출 우선순위 - 5. 수행률 0 < a < 30
-	            				negative_msgNo = 28;
+	            				negative_msgNo[0] = 28;
 	                		}
 	                		else if(30 <= ex_rt && ex_rt < 60) {				                		
 								if(d_lrn_ex_cnt >= 10) {
 									// 노출 우선순위 - 6. 수행률 30 <= a < 60 && 나중에 했어요 개수 c >= 10
-									negative_msgNo = 29;
+									negative_msgNo[0] = 29;
 								} else {
 									// 노출 우선순위 - 7. 수행률 30 <= a < 60 && 나중에 했어요 개수 c < 10
-									negative_msgNo = 30;
+									negative_msgNo[0] = 30;
 								}				                		
 	                		}
 	                		else if(60 <= ex_rt && ex_rt < 100) {			// 수행률 60 <= a < 100
 	                			if(d_lrn_ex_cnt >= 10) {
 									// 노출 우선순위 - 8. 수행률 60 <= a < 100 &&  나중에 했어요 개수 c >= 10
-		                			negative_msgNo = 31;
+		                			negative_msgNo[0] = 31;
 								} else {
 									// 노출 우선순위 - 9. 수행률 60 <= a < 100 &&  나중에 했어요 개수 c < 10
-									negative_msgNo = 32;
+									negative_msgNo[0] = 32;
 								}	
 	                		} else if(ex_rt == 100){
 	                			// 노출 우선순위 - 10. 수행률 100 = a
-	                			negative_msgNo = 33;
+	                			negative_msgNo[0] = 33;
 	                		}
 	                	}
 	                }
+	                
+	                // ⓒ처방-평가
+	                if(expl_cnt == 0) {
+	                	// 노출 우선순위 - 1. 평가 내역이 없는 경우
+	                	negative_msgNo[1] = 35;
+	                } else if(expl_cnt >= 1) {	
+	                	if(crt_rt < 100) {
+	                		if(ps_expl_cnt == 0) {
+		                		if(incrt_nt_cnt > 0) {
+				                	// 노출 우선순위 - 2. 완료한 평가지 개수 a >= 1
+				                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c = 0
+			                		// && 오답노트 미완료 건수 d > 0
+		                			negative_msgNo[1] = 36;
+		                		} else if(incrt_nt_cnt == 0) {
+		                			if(imprv_slv_habit_cnt > 5) {
+		                				if(skip_ques_cnt > 1) {
+			                				// 노출 우선순위 - 3. 완료한 평가지 개수 a >= 1
+			    		                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c = 0
+			    	                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                				// && 건너뛴 문제 수 f > 1	 
+		    	                			negative_msgNo[1] = 37; 
+		                				} else if(cm_habit_cnt > 1) {
+			                				// 노출 우선순위 - 4. 완료한 평가지 개수 a >= 1
+			    		                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c = 0
+			    	                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                				// && 급하게 풀어 틀린 문제 수 f + 실수한 문제 수 g, f + g > 1
+		    	                			negative_msgNo[1] = 38; 
+		                				} else if(guess_ques_cnt > 1) {
+			                				// 노출 우선순위 - 5. 완료한 평가지 개수 a >= 1
+			    		                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c = 0
+			    	                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                				// && 찍은 것으로 보이는 문제 수 f > 1
+		    	                			negative_msgNo[1] = 39; 
+		                				}	
+		                			}
+		                		}
+		                	} else if(ps_expl_cnt > 0) {
+		                		if(incrt_nt_cnt > 0) {
+				                	// 노출 우선순위 - 6. 완료한 평가지 개수 a >= 1
+				                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c > 0
+			                		// && 오답노트 미완료 건수 d > 0
+		                			negative_msgNo[1] = 228; 
+		                		} else if(incrt_nt_cnt == 0 && imprv_slv_habit_cnt > 5) {
+		                			if(skip_ques_cnt > 1) {
+					                	// 노출 우선순위 - 7. 완료한 평가지 개수 a >= 1
+					                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c > 0
+				                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                			// && 건너뛴 문제 수 f > 1
+			                			negative_msgNo[1] = 229; 
+		                			} else if(cm_habit_cnt > 1) {		                			
+					                	// 노출 우선순위 - 8. 완료한 평가지 개수 a >= 1
+					                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c > 0
+				                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                			// && 급하게 풀어 틀린 문제 수 f + 실수한 문제 수 g, f + g > 1
+			                			negative_msgNo[1] = 230; 
+		                			} else if(guess_ques_cnt > 1) {
+					                	// 노출 우선순위 - 9. 완료한 평가지 개수 a >= 1
+					                	// && 전과목 정답률 b < 100 && 100점인 평가지 개수 c > 0
+				                		// && 오답노트 미완료 건수 d = 0 && 고쳐야 할 문제풀이 습관 건수 e > 5
+			                			// && 찍은 것으로 보이는 문제 수 f > 1
+			                			negative_msgNo[1] = 231; 
+		                			}
+		                		}
+		                	}
+	                	} else if(crt_rt == 100 && guess_ques_cnt > 0) {
+	                		// 노출 우선순위 - 10. 완료한 평가지 개수 a >= 1
+	                		// && 전과목 정답률 b = 100	찍은 것으로 보이는 문제 수 c > 0
+	                		negative_msgNo[1] = 232; 
+	                	}
+	                }
+	                
             	} catch (Exception e) {
             		LOGGER.debug(v_param.toString(), " :: error :: ", e.getMessage());
             	}
                 
                 ArrayList<Integer> msgNoList = new ArrayList<Integer>();
                 Map<String, Object> msgRequestMap = new LinkedHashMap<>();
-                msgNoList.add(positive_msgNo);
-                msgNoList.add(negative_msgNo);
+                msgNoList.add(positive_msgNo[0]);	// ⓐ칭찬-학습태도
+                msgNoList.add(positive_msgNo[1]);	// ⓑ칭찬-평가
+                msgNoList.add(negative_msgNo[0]);	// ⓒ처방-학습태도
+                msgNoList.add(negative_msgNo[1]);	// ⓒ처방-평가
                 msgRequestMap.put("version", "1.0");
                 msgRequestMap.put("sheet", "C");
                 msgRequestMap.put("msgNo", msgNoList);
@@ -468,14 +604,26 @@ public class GroupServiceImpl implements GroupService {
     			ArrayList<Map<String,Object>> msgResponseMap = new ArrayList<>();
     			msgResponseMap = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", msgRequestMap, ".getCommMsgTemplate");
 				if(msgResponseMap.size() > 0 && msgResponseMap.get(0) != null) {
+					// 학습태도
 					for(Map<String, Object> item : msgResponseMap) {
-						if(Integer.valueOf(item.get("msgNo").toString()) == positive_msgNo)
+						if(Integer.valueOf(item.get("msgNo").toString()) == positive_msgNo[0])
 						{
 							positive.add(item.get("msg").toString().replace("{a}", String.valueOf(ex_rt)).replace("{b}", String.valueOf(att_rt)).replace("{c}", String.valueOf(a_lrn_ex_cnt)).replace("{d}", subj_nm_a_lrn));
 						}
-						else if(Integer.valueOf(item.get("msgNo").toString()) == negative_msgNo)
+						else if(Integer.valueOf(item.get("msgNo").toString()) == negative_msgNo[0])
 						{
 							negative.add(item.get("msg").toString().replace("{a}", String.valueOf(ex_rt)).replace("{b}", String.valueOf(a_lrn_ex_cnt)).replace("{c}", String.valueOf(d_lrn_ex_cnt)));
+						}									
+					}
+					// 평가
+					for(Map<String, Object> item : msgResponseMap) {
+						if(Integer.valueOf(item.get("msgNo").toString()) == positive_msgNo[1])
+						{
+							positive.add(item.get("msg").toString().replace("{a}", String.valueOf(expl_cnt)).replace("{b}", String.valueOf(ps_expl_cnt)).replace("{c}", String.valueOf(incrt_nt_cnt)).replace("{d}", String.valueOf(crt_rt)).replace("{e}", String.valueOf(imprv_slv_habit_cnt)));
+						}
+						else if(Integer.valueOf(item.get("msgNo").toString()) == negative_msgNo[1])
+						{
+							negative.add(item.get("msg").toString().replace("{a}", String.valueOf(expl_cnt)).replace("{b}", String.valueOf(crt_rt)).replace("{c}", String.valueOf(ps_expl_cnt)).replace("{d}", String.valueOf(incrt_nt_cnt)).replace("{e}", String.valueOf(imprv_slv_habit_cnt)).replace("{f}", String.valueOf(skip_ques_cnt)).replace("{f+g}", String.valueOf(cm_habit_cnt)).replace("{a-c}", String.valueOf(expl_cnt-ps_expl_cnt)).replace("{h}", String.valueOf(guess_ques_cnt)));
 						}									
 					}
 				}
