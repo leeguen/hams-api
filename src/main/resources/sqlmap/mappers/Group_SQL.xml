@@ -1369,14 +1369,7 @@
 			) ACHART1
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
-			</otherwise>
-		</choose> 
+		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
     
@@ -1552,14 +1545,7 @@
 			) ECHART1
 			GROUP BY DT, STUD_ID
 		) PE ON ST.PREV_NUMS = PE.PREV_NUMS1 AND ST.STUD_ID = PE.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = #{yyMm} AND ST.GRADE = GE.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
-			</otherwise>
-		</choose> 
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
     </select>
     
     <select id="getIncrtNoteNcStt" parameterType="hashMap" resultType="resultMap">
@@ -1748,14 +1734,7 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = #{yyMm} AND ST.GRADE = GE.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
-			</otherwise>
-		</choose> 
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
     
@@ -1869,8 +1848,8 @@
 		    INCRT_QUES_CNT,
 		    PREV_CRT_QUES_CNT,
 		    PREV_INCRT_QUES_CNT,
-		    TOP_30_CRT_CNT AS TOP_A_LRN_EX_CNT,
-		    GRP_AVG_CRT_CNT AS AVG_A_LRN_EX_CNT
+		    TOP_30_CRT_CNT AS TOP_CRT_QUES_CNT,
+		    GRP_AVG_CRT_CNT AS AVG_CRT_QUES_CNT
 		FROM (
 			SELECT 
 				ST1.STUD_ID,
@@ -1926,14 +1905,7 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_EXAM_RST GE ON GE.YYMM = #{yyMm} AND ST.GRADE = GE.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_EXAM_RST GE ON GE.DT = #{endDt} AND ST.GRADE = GE.GRADE
-			</otherwise>
-		</choose> 
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
     
@@ -2476,14 +2448,7 @@
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
 		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
-		<choose>
-			<when test='currConCheck == "m"'>
-				LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
-			</when>
-			<otherwise>
-				LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
-			</otherwise>
-		</choose> 
+		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
     
