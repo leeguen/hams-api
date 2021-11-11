@@ -413,14 +413,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 		         		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 		        		msgMap.put("resultCode", ValidationCode.NO_DATA.getCode());
 		        		msgMap.put("result", "NO_DATA");
-		        		setResult(msgKey, msgMap);
+		        		setResult2(msgKey, msgMap);
 		         	}
 		         	
 	        	} else {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
 	        		msgMap.put("result", "(" + statusCode + ")");
-	        		setResult(msgKey, msgMap);
+	        		setResult2(msgKey, msgMap);
 	        	}
 	         	
         	} catch(Exception e) {
@@ -428,7 +428,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
         		msgMap.put("resultCode", ValidationCode.NO_DATA.getCode());
         		msgMap.put("result", "NO_DATA");
-        		setResult(msgKey, msgMap);
+        		setResult2(msgKey, msgMap);
         	}
             
 //            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
@@ -864,6 +864,34 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             message.put("resultCode", ValidationCode.SUCCESS.getCode());
             result.put(msgKey, message);
             result.put(dataKey, data);
+        }
+    }
+    
+    /**
+     * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
+     * @param key
+     * @param data
+     */
+    private void setResult2(String key, Object data) {
+        result = new LinkedHashMap();
+        
+        if(key.equals(dataKey)) {
+            LinkedHashMap message = new LinkedHashMap();            
+            if(data == null 
+                    || (data instanceof List && ((List)data).size() == 0) 
+                    || (data instanceof Map && ((Map)data).isEmpty())) {
+                //조회결과가 없는 경우 메시지만 나감.
+                message.put("resultCode", ValidationCode.NO_DATA.getCode());
+                result.put(msgKey, message);
+            } else {
+                //정상데이터, 정상메시지
+                message.put("resultCode", ValidationCode.SUCCESS.getCode());
+                result.put(msgKey, message);
+                
+                result.put(dataKey, data);
+            }
+        } else {
+            result.put(msgKey, data); //validation 걸린 메시지, 데이터 없음
         }
     }
 
