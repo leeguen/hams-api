@@ -689,7 +689,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     	int crtRt = (msgData.get("crtRt") != null) ? Integer.valueOf(msgData.get("crtRt").toString()) : 0;
     	int incrtNtCnt = (msgData.get("incrtNtCnt") != null) ? Integer.valueOf(msgData.get("incrtNtCnt").toString()) : -1;
     	int ptnRt = (msgData.get("ptnRt") != null) ? Integer.valueOf(msgData.get("ptnRt").toString()) : 0;
-    	int slvCnt = (msgData.get("slvCnt") != null) ? Integer.valueOf(msgData.get("slvCnt").toString()) : 0;
+    	int slvCnt = (msgData.get("slvCnt") != null) ? Integer.valueOf(msgData.get("slvCnt").toString()) : -1;
     	
     	if(exRt >= 90 && exRt <= 100) {
     		if(dLrnCnt > 0 && dLrnCnt <= 3) {
@@ -735,7 +735,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     		msgCdList.add("CPG0010");
     	}
     	
-    	if(slvCnt <= 5 && msgCdList.size() < 6) {
+    	if(slvCnt <= 5 && slvCnt > -1 && msgCdList.size() < 6) {
     		msgCdList.add("CPG0011");
     	}
     	
