@@ -154,6 +154,10 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         				positiveMsgCdList.add("CPG0012");
         				positivePointCnt += 1;
         			}
+        			
+        			if(positivePointCnt == 1 && positiveMsgCdList.contains("CPG0013")) {
+        				positivePointCnt = 0;
+        			}
                 }
                 
                 if(negativePointCnt == 0) {
