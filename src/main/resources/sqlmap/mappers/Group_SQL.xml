@@ -108,10 +108,8 @@
 			, ER.PS_EXPL_CNT		-- 100점인 평가지 개수
 			, IFNULL(ER.GUC_QUES_CNT, 0) AS GUESS_QUES_CNT			-- 찍은 것으로 보이는 문제 수
             , IFNULL(ER.INCRT_NT_CNT, 0) AS INCRT_NT_CNT			-- 오답노트 미완료 건수
---             , (IFNULL(ER.SKP_QUES_CNT,0) + IFNULL(ER.GUC_QUES_CNT,0) 
---             	+ IFNULL(ER.MISTAKE_QUES_CNT,0) + IFNULL(ER.CUR_QUES_CNT,0) + IFNULL(ER.INCRT_QUES_CNT,0)) 
-            , ER.IMPRV_SLV_HABIT_CNT AS IMPRV_SLV_HABIT_CNT	-- 고쳐야 할 문제풀이 습관 건수
-    		, IFNULL(ER.SKP_QUES_CNT, 0) AS SKIP_QUES_CNT		-- 건너뛴 문제 수
+            , ER.IMPRV_SLV_HABIT_CNT AS IMPRV_SLV_HABIT_CNT			-- 고쳐야 할 문제풀이 습관 건수
+    		, IFNULL(ER.SKP_QUES_CNT, 0) AS SKIP_QUES_CNT			-- 건너뛴 문제 수
             , (IFNULL(ER.CUR_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
 		FROM 
 		(	
@@ -214,10 +212,11 @@
 			, ATT.ATT_CNT			-- 선택된 기간 내 로그인 일 수
 			, IFNULL(ER.EXPL_CNT,0) AS EXPL_CNT					-- 완료한 평가지 개수
             , IFNULL(ER.PS_EXPL_CNT,0) AS PS_EXPL_CNT			-- 100점인 평가지 개수
-            , (IFNULL(ER.GUESS_CRT_QUES_CNT,0) + IFNULL(ER.GUESS_INCRT_QUES_CNT,0)) AS GUESS_QUES_CNT			-- 찍은 것으로 보이는 문제 수
-            , (IFNULL(ER.INCRT_NT_REG_CNT,0) - IFNULL(ER.INCRT_NT_FNSH_CNT,0)) AS UN_INCRT_NT_FNSH_CNT			-- 오답노트 미완료 건수
+			, (IFNULL(ER.GUESS_CRT_QUES_CNT,0) + IFNULL(ER.GUESS_INCRT_QUES_CNT,0)) AS GUESS_QUES_CNT			-- 찍은 것으로 보이는 문제 수
+            , (IFNULL(ER.INCRT_NT_REG_CNT,0) - IFNULL(ER.INCRT_NT_FNSH_CNT,0)) AS INCRT_NT_CNT					-- 오답노트 미완료 건수
             , (IFNULL(ER.SKIP_QUES_CNT,0) + IFNULL(ER.GUESS_CRT_QUES_CNT,0) + IFNULL(ER.GUESS_INCRT_QUES_CNT,0) 
-            	+ IFNULL(ER.MISTAKE_QUES_CNT,0) + IFNULL(ER.CURSORY_QUES_CNT,0) + IFNULL(ER.INCRT_QUES_CNT,0)) AS PROBLEM_HABIT_CNT	-- 고쳐야 할 문제풀이 습관 건수
+            	+ IFNULL(ER.MISTAKE_QUES_CNT,0) + IFNULL(ER.CURSORY_QUES_CNT,0)
+            ) AS IMPRV_SLV_HABIT_CNT	-- 고쳐야 할 문제풀이 습관 건수
     		, IFNULL(ER.SKIP_QUES_CNT, 0) AS SKIP_QUES_CNT		-- 건너뛴 문제 수
             , (IFNULL(ER.CURSORY_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_PROBLEM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
 		FROM 
@@ -260,7 +259,6 @@
                     , GUESS_INCRT_QUES_CNT
                     , MISTAKE_QUES_CNT
                     , CURSORY_QUES_CNT
-                    , INCRT_QUES_CNT
             FROM EXAM_MONTH_STT 
             WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
         ) AS ER ON ER.STUD_ID = S.STUD_ID 
@@ -2985,7 +2983,7 @@
 			SELECT
 				GRADE,
 		        SUBJ_CD,
-		        NULL AS TOP_CRT_RT,
+		        TOP_30_CRT_RT AS TOP_CRT_RT,
 		        GRP_AVG_CRT_RT AS AVG_CRT_RT
 			<choose>
 				<when test='currConCheck == "m"'>
