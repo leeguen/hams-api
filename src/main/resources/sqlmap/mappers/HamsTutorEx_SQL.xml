@@ -178,7 +178,21 @@
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
 				AND STUD_ID = #{studId}
 			GROUP BY STUD_ID, SUBJ_CD, SUB_SUBJ_CD
-			ORDER BY SUM(A_LRN_EX_CNT) DESC
+			ORDER BY SUM(A_LRN_EX_CNT) DESC,
+				CASE SUBJ_CD
+				    WHEN 'C01' THEN 1
+				    WHEN 'C02' THEN 2
+				    WHEN 'C03' THEN 3
+				    WHEN 'C04' THEN 4
+				    WHEN 'C05' THEN 5
+				    WHEN 'C06' THEN 6
+				    WHEN 'N04' THEN 7
+				    WHEN 'N03' THEN 8
+				    WHEN 'N01' THEN 9
+				    WHEN 'N02' THEN 10
+				    WHEN 'N05' THEN 11
+				    WHEN 'N06' THEN 12
+				END
 			LIMIT 1
 		) ALRN ON ST.STUD_ID = ALRN.STUD_ID
 		WHERE ST.STUD_ID = #{studId}
