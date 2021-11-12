@@ -285,73 +285,116 @@
 			ATT.ATT_RT AS ATT_HABIT						-- 약속을 지키는 습관(출석률) 
 			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
 			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
-			, ALRN.SUBJ_CD AS A_LRN_HABIT				-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.AVG_SUBJ_CNT AS A_LRN_HABIT			-- 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
 			, EX.IMPRV_SLV_HABIT_CNT AS SLV_HABIT		-- 문제풀이 습관(고쳐야할 문제 수) 
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
-		(	-- 출석률, 선택된 기간 내 로그인 일 수
-			SELECT ATT_RT, ATT_CNT 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT STUD_ID, ATT_RT, ATT_CNT 
 			FROM DAY_7_ATT_STT
 			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
-		) AS ATT
-		, (	-- 수행률, 학습시간	
-			SELECT ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT, LRN_SEC
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 수행률, 학습시간	
+			SELECT STUD_ID, ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT, LRN_SEC
 			FROM DAY_7_LRN_EX_STT PL 
 		    WHERE STUD_ID = #{studId} AND DT = #{endDt} 
-		) AS LRN 
-		, ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
-			SELECT INCRT_NT_CNT, IMPRV_SLV_HABIT_CNT
+		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
+			SELECT STUD_ID, INCRT_NT_CNT, IMPRV_SLV_HABIT_CNT
 			FROM DAY_7_EXAM_STT
 			WHERE STUD_ID = #{studId} AND DT = #{endDt} 
-		) AS EX 
-		, (	-- 스스로 찾아 학습하는 습관(과목코드) 
-			SELECT SUBJ_CD
-			FROM DAY_SUBJ_A_LRN_EX_STT
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
-			ORDER BY A_LRN_EX_CNT DESC
+		) AS EX ON EX.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 스스로 찾아 학습하는 습관(과목코드), 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
+					, ALRN2.AVG_SUBJ_CNT
+			FROM DAY_SUBJ_A_LRN_EX_STT AS ALRN1
+			JOIN
+			( 
+				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
+				FROM DAY_SUBJ_A_LRN_EX_STT 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
+			WHERE ALRN1.STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
+											WHEN 'C01' THEN 1
+											WHEN 'C02' THEN 2
+											WHEN 'C03' THEN 3
+											WHEN 'C04' THEN 4
+											WHEN 'C05' THEN 5
+											WHEN 'C06' THEN 6
+											WHEN 'N04' THEN 7
+											WHEN 'N03' THEN 8
+											WHEN 'N01' THEN 9
+											WHEN 'N02' THEN 10
+											WHEN 'N05' THEN 11
+											WHEN 'N06' THEN 12
+										END
 			LIMIT 1 
-		) AS ALRN
-		, ( -- 학습시간	
-			SELECT SUM(LRN_SEC) AS LRN_SEC
-			FROM DAY_LRN_EX_LOG 
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}	
-				AND SUBJ_CD NOT LIKE '%Z%'
-		) AS LRN2 
+		) AS ALRN ON ALRN.STUD_ID = S.STUD_ID 
     </select>
     
     <select id="getLrnHabitMonthly" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			ATT_RT AS ATT_HABIT							-- 약속을 지키는 습관(출석률)
 			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
-			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT			-- 오답노트 확인 습관(오답노트수) 
-			, ALRN.SUBJ_CD AS A_LRN_HABIT					-- 스스로 찾아 학습하는 습관(과목코드)
+			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
+			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.AVG_SUBJ_CNT AS A_LRN_HABIT			-- 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
 			, EX.IMPRV_SLV_HABIT_CNT AS SLV_HABIT		-- 문제풀이 습관(고쳐야할 문제 수) 
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
-		(	-- 출석률, 선택된 기간 내 로그인 일 수
-			SELECT ATT_RT, ATT_CNT 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT STUD_ID, ATT_RT, ATT_CNT 
 			FROM MONTH_ATT_STT 
-			WHERE STUD_ID = #{studId}  AND YYMM = #{yymm}
-		) AS ATT
-		, (	-- 수행률, 학습시간	
-			SELECT ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 수행률, 학습시간	
+			SELECT STUD_ID, ROUND(AVG(PLAN_LRN_EX_CNT/PLAN_CNT * 100)) AS EX_RT
 					, LRN_SEC
 			FROM MONTH_LRN_EX_STT PL 
-		    WHERE STUD_ID = #{studId}  AND YYMM = #{yymm}
-		) AS LRN 
-		, ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
-			SELECT ( IFNULL(INCRT_NT_REG_CNT, 0) - IFNULL(INCRT_NT_FNSH_CNT, 0) ) AS INCRT_NT_CNT
+		    WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
+			SELECT STUD_ID
+				, ( IFNULL(INCRT_NT_REG_CNT, 0) - IFNULL(INCRT_NT_FNSH_CNT, 0) ) AS INCRT_NT_CNT
 				, ( IFNULL(SKIP_QUES_CNT,0) + IFNULL(CURSORY_QUES_CNT,0) + IFNULL(GUESS_INCRT_QUES_CNT,0) + IFNULL(MISTAKE_QUES_CNT,0) ) AS IMPRV_SLV_HABIT_CNT
 			FROM EXAM_MONTH_STT
-			WHERE STUD_ID = #{studId}  AND YYMM = #{yymm}
-		) AS EX 
-		, (	-- 스스로 찾아 학습하는 습관(과목코드) 
-			SELECT SUBJ_CD
-			FROM MONTH_SUBJ_A_LRN_EX_STT
-			WHERE STUD_ID = #{studId}  AND YYMM = #{yymm}
-			ORDER BY A_LRN_EX_CNT DESC
-			LIMIT 1 
-		) AS ALRN    
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS EX ON EX.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 스스로 찾아 학습하는 습관(과목코드) , 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
+					, ALRN2.AVG_SUBJ_CNT
+			FROM MONTH_SUBJ_A_LRN_EX_STT AS ALRN1
+			JOIN
+			( 
+				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
+				FROM DAY_SUBJ_A_LRN_EX_STT 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
+			WHERE ALRN1.STUD_ID = #{studId} AND YYMM = #{yymm}
+			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
+											WHEN 'C01' THEN 1
+											WHEN 'C02' THEN 2
+											WHEN 'C03' THEN 3
+											WHEN 'C04' THEN 4
+											WHEN 'C05' THEN 5
+											WHEN 'C06' THEN 6
+											WHEN 'N04' THEN 7
+											WHEN 'N03' THEN 8
+											WHEN 'N01' THEN 9
+											WHEN 'N02' THEN 10
+											WHEN 'N05' THEN 11
+											WHEN 'N06' THEN 12
+										END
+			LIMIT 1 		
+		) AS ALRN ON ALRN.STUD_ID = S.STUD_ID 
     </select>
     
     <select id="getLrnHabitDetail" parameterType="hashMap" resultType="resultMap">
