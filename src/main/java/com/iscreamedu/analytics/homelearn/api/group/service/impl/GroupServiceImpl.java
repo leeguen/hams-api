@@ -895,7 +895,7 @@ public class GroupServiceImpl implements GroupService {
 						
 						// 출석률 attRt
 						// 이전출석률 prevAttRt
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttMonthly");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtStt");
 						if (data != null ) { 							
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttRtSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -920,13 +920,15 @@ public class GroupServiceImpl implements GroupService {
 							// 일일학습정보 dailyLrnStt
 							data.put("dailyLrnStt", detailChart);
 							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("attRtMsg", msg);
+							data.remove("summary");
+							data.remove("detail");
 							// 출석률 상세정보 
 							data.put("attRtDetail", detail);
-						}
-						setResult(msgKey, data);			
+						} 
+						setResult(msgKey, data);							
 					} else {
 						setResult(msgKey, vu2.getResult());				
 					}
@@ -949,7 +951,7 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						// 출석률 attRt
 						// 이전출석률 prevAttRt
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtSttPeriod");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttRtStt");
 						if (data != null ) { 							
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttRtSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -973,14 +975,17 @@ public class GroupServiceImpl implements GroupService {
 							}	
 							// 일일학습정보 dailyLrnStt
 							data.put("dailyLrnStt", detailChart);
+							
 							// 출석률 총평 attRtMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("attRtMsg", msg);
+							data.remove("summary");
+							data.remove("detail");
 							// 출석률 상세정보 
 							data.put("attRtDetail", detail);
-						}
-						setResult(msgKey, data);
+						} 
+						setResult(msgKey, data);						
 					} else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
