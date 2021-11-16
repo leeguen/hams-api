@@ -1116,8 +1116,6 @@ public class GroupServiceImpl implements GroupService {
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
 			Map<String,Object> msg = new HashMap<>();
-			String msg_summary = null;
-			String msg_detail = null;
 			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
 			ArrayList<Map<String,Object>> detail = new ArrayList<>();
 			paramMap.put("currConCheck", currConCheck);
@@ -1143,7 +1141,7 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("endDt", endDate);
 						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntSttMonthly");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntStt");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttCntSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -1160,11 +1158,15 @@ public class GroupServiceImpl implements GroupService {
 								}
 							}	
 							// 출석일 총평 attCntMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
+							
 							data.put("attCntMsg", msg);
 							// 출석일 상세정보 attCntDetail
 							data.put("attCntDetail", detail);
+							
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);			
 					} else {
@@ -1187,7 +1189,7 @@ public class GroupServiceImpl implements GroupService {
 					paramMap.put("limitDtCnt", 7);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntSttPeriod");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntStt");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getAttCntSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -1204,11 +1206,15 @@ public class GroupServiceImpl implements GroupService {
 								}
 							}	
 							// 출석일 총평 attCntMsg
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
+							
 							data.put("attCntMsg", msg);
 							// 출석일 상세정보 attCntDetail
 							data.put("attCntDetail", detail);
+							
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);
 					} else {
@@ -1286,7 +1292,7 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("endDt", endDate);
 						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnSttMonthly");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnStt");
 						if(data != null) {
 							data.put("loginPtn", data.get("loginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
 							data.put("prevLoginPtn", data.get("prevLoginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
@@ -1309,13 +1315,16 @@ public class GroupServiceImpl implements GroupService {
 								}
 							}	
 							// 로그인 패턴 총평 
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("loginPtnMsg", msg);
 							// 로그인패턴차트 
 							data.put("loginPtnChart", detailChart);
 							// 로그인 패턴 상세정보 
 							data.put("loginPtnDetail", detail);
+							
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);			
 					} else {
@@ -1338,7 +1347,7 @@ public class GroupServiceImpl implements GroupService {
 					paramMap.put("limitDtCnt", 7);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnSttPeriod");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnStt");
 						if(data != null) {
 							data.put("loginPtn", data.get("loginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
 							data.put("prevLoginPtn", data.get("prevLoginPtn").toString().equals("1") ? "규칙적" : "불규칙적");
@@ -1361,13 +1370,16 @@ public class GroupServiceImpl implements GroupService {
 								}
 							}	
 							// 로그인 패턴 총평 
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("loginPtnMsg", msg);
 							// 로그인패턴차트 
 							data.put("loginPtnChart", detailChart);
 							// 로그인 패턴 상세정보 
 							data.put("loginPtnDetail", detail);
+							
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);
 					} else {
