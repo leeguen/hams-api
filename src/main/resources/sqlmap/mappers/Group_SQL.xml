@@ -1291,7 +1291,7 @@
 		<choose>
             <when test='currConCheck == "m"'>  
 					, #{yymm} AS YYMM
-					, DATE_FORMAT(DATE_SUB('2021-09-01', INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+					, DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
 				FROM STUD
 				WHERE STUD_ID = #{studId}
 			) AS S
@@ -1308,7 +1308,7 @@
 						, PLAN_LRN_EX_CNT
 				FROM MONTH_LRN_EX_STT
 				WHERE YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
-			) AS PREV_LRN ON PREV_LRN.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
+			) AS PREV_LRN ON PREV_LRN.YYMM = S.PREV_YYMM AND LRN.STUD_ID = S.STUD_ID
 			LEFT OUTER JOIN (	
 				SELECT YYMM, GRADE, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
 				FROM MONTH_GRP_LRN_EX_STT
@@ -1430,56 +1430,150 @@
 		ORDER BY DTS.DT
     </select>    
     
-    <select id="getLrnExSttCompareSubPeriod" parameterType="hashMap" resultType="resultMap">
+    <select id="getLrnExSttCompareSub" parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+    		B_LRN_EX_CNT
+			, PREV_B_LRN_EX_CNT
+			, TOP_B_LRN_EX_CNT
+			, AVG_B_LRN_EX_CNT 
+			, REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(SUMMARY.MSG 
+							, '{m}', PLAN_CNT)
+							, '{n}', B_LRN_EX_CNT)
+							, '{x}', ABS(DIFF))
+							, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS SUMMARY
+			, REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(DETAIL.MSG
+							, '{m}', PLAN_CNT)
+							, '{n}', B_LRN_EX_CNT)
+							, '{x}', ABS(DIFF)) 
+							, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS DETAIL
+	FROM 
+    (
     	SELECT 
     		LRN.PLAN_A_LRN_EX_CNT AS B_LRN_EX_CNT
 			, PREV_LRN.PLAN_A_LRN_EX_CNT AS PREV_B_LRN_EX_CNT
 			, GRP_LRN.TOP_30_LRN_CNT AS TOP_B_LRN_EX_CNT
 			, GRP_LRN. GRP_AVG_LRN_CNT AS AVG_B_LRN_EX_CNT
+			-- msg
+			, LRN.PLAN_CNT 
+			, IFNULL(LRN.PLAN_A_LRN_EX_CNT - PREV_LRN.PLAN_A_LRN_EX_CNT, 0) AS DIFF	--  차
+			, CASE 
+					WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 117
+					WHEN ATT.ATT_CNT >=  1 THEN
+						CASE 
+							WHEN LRN.EX_RT IS NULL AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 119
+							WHEN LRN.EX_RT = 0 AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 121
+							WHEN LRN.EX_RT > 0 THEN 
+								CASE 
+									WHEN LRN.PLAN_A_LRN_EX_CNT > 0 THEN 
+										CASE 
+											WHEN LRN.PLAN_A_LRN_EX_CNT IS NULL 
+												OR LRN.PLAN_A_LRN_EX_CNT = PREV_LRN.PLAN_A_LRN_EX_CNT 
+												THEN 124
+											ELSE 123
+										END
+									WHEN LRN.PLAN_A_LRN_EX_CNT = 0 THEN 126
+								END								
+						END							
+			END SUMMARY
+			, CASE 
+					WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 118
+					WHEN ATT.ATT_CNT >=  1 THEN
+						CASE 
+							WHEN LRN.EX_RT IS NULL AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 120
+							WHEN LRN.EX_RT = 0 AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 122
+							WHEN LRN.EX_RT > 0 THEN 
+								CASE 
+									WHEN LRN.PLAN_A_LRN_EX_CNT > 0 THEN 125
+									WHEN LRN.PLAN_A_LRN_EX_CNT = 0 THEN 127
+								END
+						END		
+			END DETAIL
 		FROM 
 		(
-			SELECT DT, STUD_ID 
+			SELECT STUD_ID
+				, GRADE
+		<choose>
+	      	<when test='currConCheck == "m"'>  
+	      		, #{yymm} AS YYMM
+				, DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+			FROM STUD
+			WHERE STUD_ID = #{studId}
+		) AS S
+		LEFT OUTER JOIN (
+			SELECT YYMM, STUD_ID 
+					, PLAN_CNT
 					, PLAN_A_LRN_EX_CNT
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT				
+			FROM MONTH_LRN_EX_STT
+			WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+		) AS LRN ON LRN.YYMM = S.YYMM AND LRN.STUD_ID = S.STUD_ID
+		LEFT OUTER JOIN (	
+			SELECT YYMM, STUD_ID 
+					, PLAN_A_LRN_EX_CNT
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+			FROM MONTH_LRN_EX_STT
+			WHERE YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+		) AS PREV_LRN ON PREV_LRN.YYMM = S.PREV_YYMM AND PREV_LRN.STUD_ID = S.STUD_ID
+		LEFT OUTER JOIN (	
+			SELECT YYMM, GRADE, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
+			FROM MONTH_GRP_LRN_EX_STT
+			WHERE YYMM = #{yymm}
+		) AS GRP_LRN ON GRP_LRN.YYMM = S.YYMM AND GRP_LRN.GRADE = S.GRADE
+		LEFT OUTER JOIN (
+			SELECT YYMM
+				, STUD_ID
+				, ATT_CNT
+			FROM MONTH_ATT_STT
+			WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+		) AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
+			</when>
+			<otherwise>
+				, #{endDt} AS DT
+				, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
+			FROM STUD
+			WHERE STUD_ID = #{studId}
+		) AS S
+		LEFT OUTER JOIN (	
+			SELECT DT, STUD_ID 
+					, PLAN_CNT
+					, PLAN_A_LRN_EX_CNT
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
 			FROM DAY_7_LRN_EX_STT
-			WHERE STUD_ID = #{studId} AND DT = #{endDt}		
-		) AS LRN
+			WHERE STUD_ID = #{studId} AND DT = #{endDt}
+		) AS LRN ON LRN.DT = S.DT AND LRN.STUD_ID = S.STUD_ID
 		LEFT OUTER JOIN (	
 			SELECT DT, STUD_ID 
 					, PLAN_A_LRN_EX_CNT
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
 			FROM DAY_7_LRN_EX_STT
 			WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-		) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 7 DAY)
+		) AS PREV_LRN ON PREV_LRN.DT = S.PREV_DT AND PREV_LRN.STUD_ID = S.STUD_ID
 		LEFT OUTER JOIN (	
-			SELECT DT, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
+			SELECT DT, GRADE, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
 			FROM DAY_7_GRP_LRN_EX_STT
-			WHERE DT = #{endDt} AND GRADE = (SELECT GRADE FROM STUD WHERE STUD_ID = #{studId})
-		) AS GRP_LRN ON LRN.DT = GRP_LRN.DT	
-    </select>
-    
-    <select id="getLrnExSttCompareSubMonthly" parameterType="hashMap" resultType="resultMap">
-    	SELECT 
-    		LRN.PLAN_A_LRN_EX_CNT AS B_LRN_EX_CNT
-			, PREV_LRN.PLAN_A_LRN_EX_CNT AS PREV_B_LRN_EX_CNT
-			, GRP_LRN.TOP_30_LRN_CNT AS TOP_B_LRN_EX_CNT
-			, GRP_LRN. GRP_AVG_LRN_CNT AS AVG_B_LRN_EX_CNT
-		FROM 
-		(
-			SELECT YYMM, STUD_ID 
-					, PLAN_A_LRN_EX_CNT
-			FROM MONTH_LRN_EX_STT
-			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
-		) AS LRN
-		LEFT OUTER JOIN (	
-			SELECT YYMM, STUD_ID 
-					, PLAN_A_LRN_EX_CNT
-			FROM MONTH_LRN_EX_STT
-			WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
-		) AS PREV_LRN ON PREV_LRN.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
-		LEFT OUTER JOIN (	
-			SELECT YYMM, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
-			FROM MONTH_GRP_LRN_EX_STT
-			WHERE YYMM = #{yymm} AND GRADE = (SELECT GRADE FROM STUD WHERE STUD_ID = #{studId})
-		) AS GRP_LRN ON LRN.YYMM = GRP_LRN.YYMM	
+			WHERE DT = #{endDt} 
+		) AS GRP_LRN ON GRP_LRN.DT = S.DT AND GRP_LRN.GRADE = S.GRADE
+		LEFT OUTER JOIN (
+			SELECT DT
+				, STUD_ID
+				, ATT_CNT
+			FROM DAY_7_ATT_STT
+			WHERE DT = #{endDt} AND STUD_ID = #{studId}
+		) AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
+			</otherwise>
+		</choose>
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D'
+			 											AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' 
+														AND DETAIL.MSG_NO = A.DETAIL
+	    
     </select>
     
     <select id="getLrnExSttCompareSubDetail" parameterType="hashMap" resultType="resultMap">
