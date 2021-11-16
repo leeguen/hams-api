@@ -1121,32 +1121,40 @@
 	</select>
         
     <select id="getExRtSttDetail" parameterType="hashMap" resultType="resultMap">
-    	SELECT DTS.DT		-- 날짜
-    	<choose>
-            <when test='currConCheck == "m"'>  
-			, DATE_SUB(DTS.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
-			</when>
-			<otherwise>
-		 	, DATE_SUB(DTS.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
-		 	</otherwise>
-		 </choose>
-			, EX.EX_RT 						-- 수행률
-			, PREV_EX.EX_RT AS PREV_EX_RT		-- 이전 수행률 
+    	SELECT DTS.DT								-- 날짜
+		    , DTS.PREV_DT							-- 이전날짜 			
+			, EX.EX_RT 								-- 수행률
+			, PREV_EX.EX_RT AS PREV_EX_RT			-- 이전 수행률 
 			, GRP_EX.TOP_30_EX_RT AS TOP_EX_RT		-- 상위수행률 
 			, GRP_EX.GRP_AVG_EX_RT AS AVG_EX_RT		-- 평균수행률
 		FROM 
 		(
-			SELECT dt + INTERVAL lv-1 DAY AS DT
-			FROM (
-			    SELECT @ROWNUM:=@ROWNUM+1 AS lv
-			            , #{startDt} dt
-			FROM information_schema.`COLUMNS` A
-			           , (SELECT @ROWNUM:=0) R
-			    LIMIT #{limitDtCnt}   
-			) a  
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+		<choose>
+            <when test='currConCheck == "m"'>    
+ 					, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT			-- 이전날짜 
+			</when>
+			<otherwise>
+		 			, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
+		 	</otherwise>
+		 </choose>		
+			FROM STUD AS S
+			CROSS JOIN (
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt}   
+				)  AS A  
+			) AS DTA 
+			WHERE S.STUD_ID = #{studId}
 		) AS DTS 
 		LEFT OUTER JOIN (	
-			SELECT PL.DT
+			SELECT PL.DT, PL.STUD_ID
 				, CASE
 		            WHEN PL.PLAN_CNT = 0 THEN 0
 		            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
@@ -1155,6 +1163,7 @@
 			FROM
 			(                  
 				SELECT DT -- 날짜
+					, STUD_ID
 					, PLAN_CNT
 				FROM DAY_PLAN_STT
 				WHERE STUD_ID = #{studId}
@@ -1171,82 +1180,56 @@
 					AND PLAN_UPD_YN IS NULL
 				GROUP BY PLAN_DT
 			) AS LRN ON PL.DT = LRN.PLAN_DT
-		) AS EX ON DTS.DT = EX.DT
+		) AS EX ON EX.DT = DTS.DT AND EX.STUD_ID = DTS.STUD_ID
 		LEFT OUTER JOIN
 		(	
+			SELECT PL.DT, PL.STUD_ID
+				, CASE
+		            WHEN PL.PLAN_CNT = 0 THEN 0
+		            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
+		            ELSE ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100)
+		        END AS EX_RT
+			FROM
+			(                  
+				SELECT DT -- 날짜
+					, STUD_ID
+					, PLAN_CNT
+				FROM DAY_PLAN_STT
+				WHERE STUD_ID = #{studId} 					
 		<choose>
-            <when test='currConCheck == "m"'>    
-				SELECT PL.DT
-					, CASE
-			            WHEN PL.PLAN_CNT = 0 THEN 0
-			            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
-			            ELSE ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100)
-			        END AS EX_RT
-				FROM
-				(                  
-					SELECT DT -- 날짜
-						, PLAN_CNT
-					FROM DAY_PLAN_STT
-					WHERE STUD_ID = #{studId} 
-						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
-					GROUP BY DT
-				) AS PL 
-				JOIN (
-					SELECT DT, PLAN_DT -- 날짜
-						, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
-					FROM DAY_LRN_EX_LOG
-					WHERE STUD_ID = #{studId} 
-						AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
-						AND FNSH_YN = 'Y'
-						AND PLAN_UPD_YN IS NULL
-					GROUP BY PLAN_DT
-				) AS LRN ON PL.DT = LRN.PLAN_DT
-			) AS PREV_EX ON PREV_EX.DT = DATE_SUB(DTS.DT, INTERVAL 1 MONTH)
-			LEFT OUTER JOIN 
-			(
-				SELECT DT, TOP_30_EX_RT, GRP_AVG_EX_RT
-				FROM DAY_GRP_LRN_EX_STT
-				WHERE DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
-						AND GRADE = (SELECT GRADE FROM STUD WHERE STUD_ID = #{studId} )
-			) AS GRP_EX ON DTS.DT = GRP_EX.DT
+	           <when test='currConCheck == "m"'>    
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 			</when>
-			<otherwise>
-				SELECT PL.DT
-					, CASE
-			            WHEN PL.PLAN_CNT = 0 THEN 0
-			            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
-			            ELSE ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100)
-			        END AS EX_RT
-				FROM
-				(                  
-					SELECT DT -- 날짜
-						, PLAN_CNT
-					FROM DAY_PLAN_STT
-					WHERE STUD_ID = #{studId} 
-						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-					GROUP BY DT
-				) AS PL 
-				JOIN (
-					SELECT DT, PLAN_DT -- 날짜
-						, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
-					FROM DAY_LRN_EX_LOG
-					WHERE STUD_ID = #{studId} 
-						AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-						AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-						AND FNSH_YN = 'Y'
-						AND PLAN_UPD_YN IS NULL
-					GROUP BY PLAN_DT
-				) AS LRN ON PL.DT = LRN.PLAN_DT
-			) AS PREV_EX ON PREV_EX.DT = DATE_SUB(DTS.DT, INTERVAL 7 DAY)
-			LEFT OUTER JOIN 
-			(
-				SELECT DT, TOP_30_EX_RT, GRP_AVG_EX_RT
-				FROM DAY_GRP_LRN_EX_STT
-				WHERE DT BETWEEN #{startDt} AND #{endDt}
-						AND GRADE = (SELECT GRADE FROM STUD WHERE STUD_ID = #{studId})
-			) AS GRP_EX ON DTS.DT = GRP_EX.DT
+			<otherwise>	
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{startDt}, INTERVAL 7 DAY)
 			</otherwise>
 		</choose>
+				GROUP BY DT
+			) AS PL 
+			JOIN (
+				SELECT DT, PLAN_DT -- 날짜
+					, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
+				FROM DAY_LRN_EX_LOG
+				WHERE STUD_ID = #{studId} 								
+		<choose>
+	           <when test='currConCheck == "m"'>    
+					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+			</when>
+			<otherwise>	
+					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{startDt}, INTERVAL 7 DAY)
+			</otherwise>
+		</choose>
+					AND FNSH_YN = 'Y'
+					AND PLAN_UPD_YN IS NULL
+				GROUP BY PLAN_DT
+			) AS LRN ON PL.DT = LRN.PLAN_DT
+		) AS PREV_EX ON PREV_EX.DT = DTS.PREV_DT AND PREV_EX.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN 
+		(
+			SELECT DT, GRADE, TOP_30_EX_RT, GRP_AVG_EX_RT
+			FROM DAY_GRP_LRN_EX_STT
+			WHERE DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
+		) AS GRP_EX ON GRP_EX.DT = DTS.DT AND GRP_EX.GRADE = DTS.GRADE
 		ORDER BY DTS.DT
     </select>
     
