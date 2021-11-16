@@ -3153,7 +3153,8 @@
 		    		WHERE DT = #{endDt}
 				</otherwise>
 			</choose>  
-		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD;
+		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD
+		ORDER BY ST.SUBJ_CD;
     </select>
     
     <select id="getSubjExamListCnt" parameterType="hashMap" resultType="resultMap">
