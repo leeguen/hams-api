@@ -1430,8 +1430,6 @@ public class GroupServiceImpl implements GroupService {
 			
 			String currConCheck = paramMap.get("currCon").toString().toLowerCase();
 			Map<String,Object> msg = new HashMap<>();
-			String msg_summary = null;
-			String msg_detail = null;
 			ArrayList<Map<String,Object>> detailList = new ArrayList<>();
 			ArrayList<Map<String,Object>> detailChart = new ArrayList<>();
 			ArrayList<Map<String,Object>> detail = new ArrayList<>();
@@ -1458,7 +1456,7 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("endDt", endDate);
 						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtSttMonthly");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtStt");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExRtSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -1479,15 +1477,18 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("avgExRt", item.get("avgExRt"));								
 									detail.add(detailMap);
 								}
-							}	
+							}								
 							// 수행률 총평 
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("exRtMsg", msg);
 							// 수행률차트 
 							data.put("exRtChart", detailChart);
 							// 수행률 상세정보 
 							data.put("exRtDetail", detail);
+
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);			
 					} else {
@@ -1510,7 +1511,7 @@ public class GroupServiceImpl implements GroupService {
 					paramMap.put("limitDtCnt", 7);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtSttPeriod");
+						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtStt");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getExRtSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
@@ -1531,15 +1532,18 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("avgExRt", item.get("avgExRt"));								
 									detail.add(detailMap);
 								}
-							}	
+							}								
 							// 수행률 총평 
-							msg.put("summary", msg_summary);
-							msg.put("detail", msg_detail);
+							msg.put("summary", data.get("summary"));
+							msg.put("detail", data.get("detail"));
 							data.put("exRtMsg", msg);
 							// 수행률차트 
 							data.put("exRtChart", detailChart);
 							// 수행률 상세정보 
 							data.put("exRtDetail", detail);
+
+							data.remove("summary");
+							data.remove("detail");
 						}
 						setResult(msgKey, data);
 					} else {
