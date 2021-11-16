@@ -772,6 +772,7 @@
 						, #{yymm} AS YYMM
 						, DATE_FORMAT(DATE_SUB(#{startDt},INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
 				FROM STUD 
+				WHERE STUD_ID = #{studId}
 			) AS S
 			LEFT OUTER JOIN MONTH_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
 				AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
@@ -791,8 +792,6 @@
 				AS PREV_ATT ON PREV_ATT.DT = S.PREV_DT AND PREV_ATT.STUD_ID = ATT.STUD_ID 
 			LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT 	-- 상위 출석일수, 평균 출석일수		
 				AS GRP_ATT ON GRP_ATT.DT = S.DT AND GRP_ATT.GRADE = S.GRADE
-			LEFT OUTER JOIN DAY_7_LRN_EX_STT		-- 계획된 학습일수
-				AS LRN ON LRN.DT = S.DT AND LRN.STUD_ID = S.STUD_ID
 			</otherwise>
 		</choose>
 			WHERE S.STUD_ID = #{studId}			
@@ -825,7 +824,7 @@
 					LIMIT #{limitDtCnt} 
 				) AS A	
 			) AS DTA	
-			WHERE S.STUD_ID = #{studId} AND DTA.DT BETWEEN #{startDt} AND #{endDt} 
+			WHERE S.STUD_ID = #{studId} 
 		) AS DTS 
 		LEFT OUTER JOIN (
 			SELECT 
@@ -1382,30 +1381,38 @@
     
     <select id="getFnshLrnExSttDetail" parameterType="hashMap" resultType="resultMap">
 	    SELECT DTS.DT		-- 날짜
-    	<choose>
-	      	<when test='currConCheck == "m"'>  
-			, DATE_SUB(DTS.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
- 			</when>
- 			<otherwise>
-		 	, DATE_SUB(DTS.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
- 		 	</otherwise>
- 		 </choose>
-			, LRN.PLAN_LRN_EX_CNT AS FNSH_LRN_CNT	-- 완료한 학습 수
-			, LRN.NC_PLAN_LRN_EX_CNT AS NC_LRN_CNT	-- 미완료 학습 수 
-			, PREV_LRN.PLAN_LRN_EX_CNT AS PREV_FNSH_LRN_CNT	-- 이전 완료한 학습 수 
-			, PREV_LRN.NC_PLAN_LRN_EX_CNT AS PREV_NC_LRN_CNT	-- 이전 미완료 학습 수
-			, GRP_LRN.TOP_30_LRN_CNT AS TOP_FNSH_LRN_CNT		-- 상위 완료한 학습 수 
-			, GRP_LRN.GRP_AVG_LRN_CNT AS AVG_FNSH_LRN_CNT	-- 평균 완료한 학습 수  
+    			, DTS.PREV_DT	-- 이전날짜 
+	 			, LRN.PLAN_LRN_EX_CNT AS FNSH_LRN_CNT	-- 완료한 학습 수
+				, LRN.NC_PLAN_LRN_EX_CNT AS NC_LRN_CNT	-- 미완료 학습 수 
+				, PREV_LRN.PLAN_LRN_EX_CNT AS PREV_FNSH_LRN_CNT	-- 이전 완료한 학습 수 
+				, PREV_LRN.NC_PLAN_LRN_EX_CNT AS PREV_NC_LRN_CNT	-- 이전 미완료 학습 수
+				, GRP_LRN.TOP_30_LRN_CNT AS TOP_FNSH_LRN_CNT		-- 상위 완료한 학습 수 
+				, GRP_LRN.GRP_AVG_LRN_CNT AS AVG_FNSH_LRN_CNT	-- 평균 완료한 학습 수  
 		FROM 
 		(
-			SELECT dt + INTERVAL lv-1 DAY AS DT
-			FROM (
-			    SELECT @ROWNUM:=@ROWNUM+1 AS lv
-			            , #{startDt} dt
-			FROM information_schema.`COLUMNS` A
-			           , (SELECT @ROWNUM:=0) R
-			    LIMIT #{limitDtCnt} 
-			) a  
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+			<choose>
+	      		<when test='currConCheck == "m"'>  
+					, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT
+				</when>
+ 				<otherwise>
+		 			, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
+	 		 	</otherwise>
+	 		</choose>
+			FROM STUD AS S
+			CROSS JOIN (
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt} 
+				) AS A  
+			) AS DTA 
+			WHERE S.STUD_ID = #{studId} 
 		) AS DTS 
 		LEFT OUTER JOIN (	
 			SELECT DT, STUD_ID 					
@@ -1415,7 +1422,7 @@
 			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
 				AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL
 			GROUP BY DT
-		) AS LRN ON LRN.dt = DTS.DT
+		) AS LRN ON LRN.DT = DTS.DT AND LRN.STUD_ID = DTS.STUD_ID
 		LEFT OUTER JOIN (	
 			SELECT DT, STUD_ID 
 					, SUM(IF(FNSH_YN = 'Y',1,0)) AS PLAN_LRN_EX_CNT
@@ -1431,19 +1438,12 @@
 		</choose>
 				AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL
 			GROUP BY DT
- 		<choose>
-	      	<when test='currConCheck == "m"'>  
-	    ) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 1 MONTH)
-			</when>
-	 		<otherwise>
-		) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 7 DAY)
-			</otherwise>
-		</choose>
+ 		) AS PREV_LRN ON PREV_LRN.DT = DTS.PREV_DT AND LRN.STUD_ID = DTS.STUD_ID
 		LEFT OUTER JOIN (	
-			SELECT DT, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
+			SELECT DT, GRADE, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
 			FROM DAY_GRP_LRN_EX_STT
-			WHERE DT BETWEEN #{startDt} AND #{endDt} AND GRADE = (SELECT GRADE FROM STUD WHERE STUD_ID = #{studId})
-		) AS GRP_LRN ON LRN.DT = GRP_LRN.DT
+			WHERE DT BETWEEN #{startDt} AND #{endDt} 
+		) AS GRP_LRN ON GRP_LRN.DT = DTS.DT AND GRP_LRN.GRADE = DTS.GRADE
 		ORDER BY DTS.DT
     </select>    
     
