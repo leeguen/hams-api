@@ -251,6 +251,10 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 			}else if(item.get("guideMsgList").toString().contains("\r")) {
                 				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\r"));
                     			item.put("guideMsgList", msgList);
+                			}else {
+                				List<String> msgList = new ArrayList<String>();
+                				msgList.add(item.get("guideMsgList").toString());
+                				item.put("guideMsgList", msgList);
                 			}
                 		}
                 	}
