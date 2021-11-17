@@ -3915,10 +3915,11 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
-						detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
-						data.remove("subjCdList");
-								
 						if(data != null) {
+							if(data.get("subjCdList") != null) {
+								detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
+								data.remove("subjCdList");
+							}
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
 								for(Map<String, Object> item : detailList) {
@@ -3958,9 +3959,12 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterStt");
-						detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
-						data.remove("subjCdList");
 						if(data != null) {
+							if(data.get("subjCdList") != null) {
+								detailChart.put("subjCd", Arrays.asList(data.get("subjCdList").toString().split("\\|")));	//과목코드
+								data.remove("subjCdList");
+							}
+						
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getChapterSttDetail");
 							if(detailList.size() > 0 && detailList.get(0) != null) {
 								for(Map<String, Object> item : detailList) {
