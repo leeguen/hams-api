@@ -604,13 +604,7 @@
 				GROUP BY DT, STUD_ID, SERVICE_ID
 			) A GROUP BY DT, STUD_ID
 		) AS LR ON LR.DT = DTS.DT AND LR.STUD_ID = DTS.STUD_ID
-		LEFT OUTER JOIN 
-		(
-			SELECT DT, STUD_ID, LOGIN_YN
-			FROM DAY_ATT_LOG
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 			
-			GROUP BY DT
-		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN DAY_ATT_LOG AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
 		ORDER BY DTS.DT 
     </select>
     
@@ -831,23 +825,22 @@
 			WHERE S.STUD_ID = #{studId} 
 		) AS DTS 
 		LEFT OUTER JOIN (
-			SELECT 
-				DT -- 날짜
+			SELECT DISTINCT DT -- 날짜
 				, STUD_ID		
 				, IF(PLAN_YN = 'Y', 1, 0) AS PLAN_DT	-- 학습계획일
 				, IF(LOGIN_YN = 'Y', 1, 0) AS ATT_DT	-- 출석일
 			FROM DAY_ATT_LOG
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId}
 		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
 		LEFT OUTER JOIN ( 		
-			SELECT DT
+			SELECT DISTINCT DT
 				, GRADE
 				, TOP_30_ATT_CNT	-- 상위
 				, GRP_AVG_ATT_CNT	-- 평균
 			FROM DAY_GRP_LRN_EX_STT 
-			WHERE DT BETWEEN #{startDt} AND #{endDt} 
-		) AS GRADE_ATT ON GRADE_ATT.GRADE = DTS.GRADE AND GRADE_ATT.DT = DTS.DT
-		WHERE DTS.STUD_ID = #{studId} AND DTS.DT BETWEEN #{startDt} AND #{endDt} 
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+		) AS GRADE_ATT ON GRADE_ATT.DT = DTS.DT AND GRADE_ATT.GRADE = DTS.GRADE 
+		GROUP BY DTS.DT
 	</select>
 	
     <select id="getLoginPtnStt" parameterType="hashMap" resultType="resultMap">
@@ -908,51 +901,57 @@
 	</select>
     
     <select id="getLoginPtnSttDetail" parameterType="hashMap" resultType="resultMap">
-   		SELECT DTS.DT	
-		<choose>
-          	<when test='currConCheck == "m"'>  
-				, DATE_SUB(DTS.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
-			</when>
-			<otherwise>
-				, DATE_SUB(DTS.DT, INTERVAL 7 DAY) AS PREV_DT		-- 이전날짜 
-			</otherwise>
-		</choose>
+   		SELECT DISTINCT DTS.DT	
+				, DTS.PREV_DT		-- 이전날짜 
 				, DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H:%i') AS LOGIN_TM_STR
 				, DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H:%i') AS PREV_LOGIN_TM_STR
 				, CONVERT(DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%i'), SIGNED) AS LOGIN_TM					-- 로그인패턴
 				, CONVERT(DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H') * 60 + DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%i'), SIGNED) AS PREV_LOGIN_TM	-- 이전 로그인패턴
 		FROM 
 		(
-			SELECT dt + INTERVAL lv-1 DAY AS DT
-			FROM (
-			    SELECT @ROWNUM:=@ROWNUM+1 AS lv
-			            , #{startDt} dt
-				FROM information_schema.`COLUMNS` A
-			           , (SELECT @ROWNUM:=0) R
-			    LIMIT #{limitDtCnt}   
-			) a  
+			SELECT
+				DTA.DT
+				<choose>
+          	<when test='currConCheck == "m"'>  
+				, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
+			</when>
+			<otherwise>
+				, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT		-- 이전날짜 
+			</otherwise>
+		</choose>
+				, #{studId} AS STUD_ID
+			FROM 
+			(
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+					FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt}   
+				) a
+			) AS DTA  
 		) AS DTS 
 		LEFT OUTER JOIN
 		(	-- 로그인패턴
-			SELECT DT, FIRST_LOGIN_DTTM
+			SELECT DISTINCT DT, STUD_ID, FIRST_LOGIN_DTTM
 			FROM DAY_ATT_LOG 
-			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}		
-		) AS ATT ON DTS.DT = ATT.DT
+			WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId} AND LOGIN_YN = 'Y'
+		) AS ATT ON ATT.DT = DTS.DT 
 		LEFT OUTER JOIN
 		(	-- 로그인패턴
-			SELECT DT, FIRST_LOGIN_DTTM
-				FROM DAY_ATT_LOG 
+			SELECT DISTINCT DT, STUD_ID, FIRST_LOGIN_DTTM
+			FROM DAY_ATT_LOG 
 		<choose>
             <when test='currConCheck == "m"'>    
-				WHERE STUD_ID = #{studId} AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
-		) AS PREV_ATT ON PREV_ATT.DT = DATE_SUB(DTS.DT, INTERVAL 1 MONTH) 
+			WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 			</when>
 			<otherwise>
-				WHERE STUD_ID = #{studId} AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
-		) AS PREV_ATT ON PREV_ATT.DT = DATE_SUB(DTS.DT, INTERVAL 7 DAY)
+			WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
 			</otherwise>
 		</choose>
-		ORDER BY DTS.DT
+				AND STUD_ID = #{studId} AND LOGIN_YN = 'Y'
+		) AS PREV_ATT ON PREV_ATT.DT = DTS.PREV_DT 
     </select>
     
     <select id="getExRtStt" parameterType="hashMap" resultType="resultMap">
