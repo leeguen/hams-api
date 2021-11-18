@@ -2005,6 +2005,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("aLrnExMsg", msgMap);
 							data.put("aLrnExDetail", detailList);
 						}
+						setResult(dataKey, data);
 						
 					}else {
 						setResult(msgKey, vu1.getResult());
@@ -2064,6 +2065,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("aLrnExMsg", msgMap);
 							data.put("aLrnExDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2075,7 +2077,7 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
+			
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -2179,6 +2181,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("crtRtMsg", msgMap);
 							data.put("crtRtDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2237,6 +2240,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("crtRtMsg", msgMap);
 							data.put("crtRtDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2248,7 +2252,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -2354,7 +2357,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("incrtNoteNcMsg", msgMap);
 							data.put("incrtNoteNcDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2415,6 +2418,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("incrtNoteNcMsg", msgMap);
 							data.put("incrtNoteNcDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2426,7 +2430,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -2532,7 +2535,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("crtQuesMsg", msgMap);
 							data.put("crtQuesDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2593,6 +2596,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("crtQuesMsg", msgMap);
 							data.put("crtQuesDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2604,7 +2608,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -2706,7 +2709,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("slvHabitMsg", msgMap);
 							data.put("slvHabitDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2770,6 +2773,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("slvHabitMsg", msgMap);
 							data.put("slvHabitDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2781,7 +2785,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -2889,7 +2892,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("dayAvgLrnMsg", msgMap);
 							data.put("dayAvgLrnDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -2958,6 +2961,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("dayAvgLrnMsg", msgMap);
 							data.put("dayAvgLrnDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -2969,7 +2973,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3057,7 +3060,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("totalLrnTmMsg", msgMap);
 							data.put("totalLrnTmDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3108,6 +3111,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("totalLrnTmMsg", msgMap);
 							data.put("totalLrnTmDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3119,7 +3123,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3230,7 +3233,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("longLrnTmMsg", msgMap);
 							data.put("longLrnTmDetail", detailList);
 						}
-						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3300,6 +3303,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("longLrnTmMsg", msgMap);
 							data.put("longLrnTmDetail", detailList);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3311,7 +3315,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3362,6 +3365,7 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("endDt", endDt);
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExam");
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3381,6 +3385,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExam");
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3392,8 +3397,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3488,6 +3491,7 @@ public class GroupServiceImpl implements GroupService {
 							
 							data.put("negative", negativeData);
 						}
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3539,6 +3543,7 @@ public class GroupServiceImpl implements GroupService {
 							
 							data.put("negative", negativeData);
 						}
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3550,8 +3555,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3614,6 +3617,8 @@ public class GroupServiceImpl implements GroupService {
 						if(nullCheck < 6) {
 							data = dataList;
 						}
+						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3644,6 +3649,8 @@ public class GroupServiceImpl implements GroupService {
 						if(nullCheck < 6) {
 							data = dataList;
 						}
+						
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3656,8 +3663,6 @@ public class GroupServiceImpl implements GroupService {
 				}
 				
 			}
-			
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3718,8 +3723,12 @@ public class GroupServiceImpl implements GroupService {
 						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
 						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
 						
-						data.put("totalCnt", cntMap.get("totalCnt"));
-						data.put("list", subjExamList);
+						if(subjExamList.size() > 0) {
+							data.put("totalCnt", cntMap.get("totalCnt"));
+							data.put("list", subjExamList);
+						}
+						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3745,8 +3754,12 @@ public class GroupServiceImpl implements GroupService {
 						subjExamList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getSubjExamList");
 						cntMap = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSubjExamListCnt");
 						
-						data.put("totalCnt", cntMap.get("totalCnt"));
-						data.put("list", subjExamList);
+						if(subjExamList.size() > 0) {
+							data.put("totalCnt", cntMap.get("totalCnt"));
+							data.put("list", subjExamList);
+						}
+						
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3759,8 +3772,6 @@ public class GroupServiceImpl implements GroupService {
 				}
 				
 			}
-			
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -3821,6 +3832,7 @@ public class GroupServiceImpl implements GroupService {
 							data.put("list", incrtNtList);	
 						}
 						
+						setResult(dataKey, data);
 					}else {
 						setResult(msgKey, vu1.getResult());
 					}
@@ -3845,6 +3857,8 @@ public class GroupServiceImpl implements GroupService {
 						if(data != null) {
 							data.put("list", incrtNtList);	
 						}
+						
+						setResult(dataKey, data);
 					}else {
 						if(!vu1.isValid()) {
 							setResult(msgKey, vu1.getResult());
@@ -3856,8 +3870,6 @@ public class GroupServiceImpl implements GroupService {
 					setResult(msgKey, vuW.getResult());
 				}
 			}
-			
-			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
