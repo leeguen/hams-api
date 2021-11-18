@@ -3900,6 +3900,7 @@
  			AND RST.UNIT_CD = #{chapterCd}
 			</otherwise>
 		</choose>		
+		GROUP BY RST.UNIT_CD
     </select>
     
     <select id="getCommMsgTemplate" parameterType="hashMap" resultType="resultMap">
