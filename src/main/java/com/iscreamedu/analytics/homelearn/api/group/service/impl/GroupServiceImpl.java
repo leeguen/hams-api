@@ -4072,8 +4072,8 @@ public class GroupServiceImpl implements GroupService {
 							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
 							data.put("priorLrn", prevDetail);			//선수학습		
 							data.put("currentLrn", currentDetail);		//해당단원	
-							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
-							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
+							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? Arrays.asList() : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? Arrays.asList() : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
 						}	
 						setResult(msgKey, data);			
 					} else {
@@ -4106,8 +4106,8 @@ public class GroupServiceImpl implements GroupService {
 							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
 							data.put("priorLrn", prevDetail);			//선수학습		
 							data.put("currentLrn", currentDetail);		//해당단원	
-							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
-							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
+							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? Arrays.asList() : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? Arrays.asList() : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
 						}	
 						setResult(msgKey, data);
 					} else {
