@@ -565,7 +565,7 @@
     	SELECT 
 			DTS.DT										-- 날짜 
 			, IF(ATT.LOGIN_YN = 'Y', 1, 0) AS ATT_YN  	-- 출석여부 
-			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[<=]]> LR.FNSH_CNT, '학습완료'
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT = LR.FNSH_CNT, '학습완료'
 				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[>]]> LR.FNSH_CNT, '부분완료'
 				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT = 0, '학습전'
 				, NULL))) AS LRN_STT -- 학습현황 (학습완료, 부분완료, 학습전)
@@ -600,7 +600,7 @@
 					, SUM(IF(FNSH_YN = 'Y', 1, 0)) AS FNSH_CNT
 				FROM DAY_LRN_EX_LOG 
 				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
-					AND SERVICE_ID IS NOT NULL
+					AND SERVICE_ID IS NOT NULL AND PLAN_UPD_YN IS NULL
 				GROUP BY DT, STUD_ID, SERVICE_ID
 			) A GROUP BY DT, STUD_ID
 		) AS LR ON LR.DT = DTS.DT AND LR.STUD_ID = DTS.STUD_ID
