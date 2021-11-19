@@ -4063,16 +4063,17 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						detail = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterLrn");
 						if(detail != null) {
-							currentDetail.put("chapterNm", detail.get("chapterNm"));
+							// Mybatis null 관련 오류 발생으로 예외 처리 함.
+							currentDetail.put("chapterNm", detail.get("chapterNm").toString().equals("") ? null : detail.get("chapterNm"));
 							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
 							currentDetail.put("examDt", detail.get("examDt"));
-							prevDetail.put("chapterNm", detail.get("preChapterNm"));
-							prevDetail.put("examCrtRt", detail.get("preExamCrtRt"));
-							prevDetail.put("examDt", detail.get("preExamDt"));
+							prevDetail.put("chapterNm", detail.get("preChapterNm").toString().equals("") ? null : detail.get("preChapterNm"));
+							prevDetail.put("examCrtRt", detail.get("preExamCrtRt").toString().equals("") ? null : detail.get("preExamCrtRt"));
+							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
 							data.put("priorLrn", prevDetail);			//선수학습		
 							data.put("currentLrn", currentDetail);		//해당단원	
-							data.put("followUpLrn", detail.get("followUpLrn").toString().split("\\|"));		//후속학습		
-							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().split("\\|"));		//보충학습								
+							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
 						}	
 						setResult(msgKey, data);			
 					} else {
@@ -4096,16 +4097,17 @@ public class GroupServiceImpl implements GroupService {
 					if(vu1.isValid() && vu2.isValid()) {
 						detail = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getChapterLrn");
 						if(detail != null) {
-							currentDetail.put("chapterNm", detail.get("chapterNm"));
+							// Mybatis null 관련 오류 발생으로 예외 처리 함.
+							currentDetail.put("chapterNm", detail.get("chapterNm").toString().equals("") ? null : detail.get("chapterNm"));
 							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
 							currentDetail.put("examDt", detail.get("examDt"));
-							prevDetail.put("chapterNm", detail.get("preChapterNm"));
-							prevDetail.put("examCrtRt", detail.get("preExamCrtRt"));
-							prevDetail.put("examDt", detail.get("preExamDt"));
+							prevDetail.put("chapterNm", detail.get("preChapterNm").toString().equals("") ? null : detail.get("preChapterNm"));
+							prevDetail.put("examCrtRt", detail.get("preExamCrtRt").toString().equals("") ? null : detail.get("preExamCrtRt"));
+							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
 							data.put("priorLrn", prevDetail);			//선수학습		
 							data.put("currentLrn", currentDetail);		//해당단원	
-							data.put("followUpLrn", detail.get("followUpLrn").toString().split("\\|"));		//후속학습		
-							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().split("\\|"));		//보충학습								
+							data.put("followUpLrn", detail.get("followUpLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("followUpLrn").toString().split("\\|")));		//후속학습		
+							data.put("supplementaryLrn", detail.get("supplementaryLrn").toString().equals("") ? (List)null : Arrays.asList(detail.get("supplementaryLrn").toString().split("\\|")));		//보충학습								
 						}	
 						setResult(msgKey, data);
 					} else {
