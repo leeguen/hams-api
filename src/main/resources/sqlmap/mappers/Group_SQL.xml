@@ -565,7 +565,7 @@
     	SELECT 
 			DTS.DT										-- 날짜 
 			, IF(ATT.LOGIN_YN = 'Y', 1, 0) AS ATT_YN  	-- 출석여부 
-			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT = LR.FNSH_CNT, '학습완료'
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[<=]]> LR.FNSH_CNT, '학습완료'
 				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[>]]> LR.FNSH_CNT, '부분완료'
 				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT = 0, '학습전'
 				, NULL))) AS LRN_STT -- 학습현황 (학습완료, 부분완료, 학습전)
@@ -604,7 +604,11 @@
 				GROUP BY DT, STUD_ID, SERVICE_ID
 			) A GROUP BY DT, STUD_ID
 		) AS LR ON LR.DT = DTS.DT AND LR.STUD_ID = DTS.STUD_ID
-		LEFT OUTER JOIN DAY_ATT_LOG AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT DT, STUD_ID, LOGIN_YN 
+			FROM DAY_ATT_LOG 
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
+		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
 		ORDER BY DTS.DT 
     </select>
     
