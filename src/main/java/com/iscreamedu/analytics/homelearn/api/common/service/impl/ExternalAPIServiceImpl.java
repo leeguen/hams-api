@@ -466,11 +466,13 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	String url = HL_API + apiName + ".json";
 		        	//GroupServiceImpl >> getDiagnosticEvalStt 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
 	        		//studId 추출 코드 예외 추가		        	
-		        	if(apiName.equals("inspecion-present")) {
+		        	if(apiName.equals("inspecion-present") && paramMap.containsKey("studId")) {
+		        		url = "https://dev-nsem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";
 		        		paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");		
 		        		paramMap.remove("s");		
-		        	} else if(apiName.equals("act-element-detail")) {
+		        	} else if(apiName.equals("act-element-detail") && paramMap.containsKey("studId")) {
+		        		url = "https://dev-nsem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";
 		        		paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");	
 		        		paramMap.remove("s");	        		
