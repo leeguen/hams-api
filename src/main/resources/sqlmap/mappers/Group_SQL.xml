@@ -159,9 +159,9 @@
                 , INCRT_NT_CNT
                 , SKP_QUES_CNT 
                 , GUC_QUES_CNT
-                , 0 AS MISTAKE_QUES_CNT
+                , MISTAKE_QUES_CNT
                 , CUR_QUES_CNT
-                , 0 AS INCRT_QUES_CNT
+                , INCRT_QUES_CNT
                 , IMPRV_SLV_HABIT_CNT
             FROM DAY_7_EXAM_STT 
             WHERE STUD_ID = #{studId} AND DT = #{endDt}    
