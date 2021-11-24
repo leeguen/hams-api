@@ -51,9 +51,16 @@
 						A.LOGIN_ID,
 						A.GRADE,
 						A.SCHL_NM,
-						(SELECT DT FROM DAY_ATT_LOG WHERE STUD_ID  = #{studId} AND LOGIN_YN = 'Y' ORDER BY DT DESC LIMIT 1)  AS LAST_LOGIN_DT, 
-						A.START_DT AS LRN_START_DT
+						C.DT AS LAST_LOGIN_DT, 
+						MIN(B.START_DT) AS LRN_START_DT
 					FROM STUD A 
+					JOIN STUD_LOG B ON B.STUD_ID = A.STUD_ID
+					LEFT OUTER JOIN (
+						SELECT DT, STUD_ID 
+						FROM DAY_ATT_LOG 
+						WHERE STUD_ID  = #{studId} AND LOGIN_YN = 'Y' 
+						ORDER BY DT DESC LIMIT 1
+					) AS C ON C.STUD_ID = A.STUD_ID
 					WHERE A.STUD_ID = #{studId}
 			) S	    
     </select>
