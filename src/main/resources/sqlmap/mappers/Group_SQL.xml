@@ -39,10 +39,11 @@
     
     <select id="getStud" parameterType="hashMap" resultType="resultMap">
     /* getStud : 학습분석 메인 - 학생 정보 */
+    /* 학습시작일 기준 : 2020-10-01 이전 최초 시작일일 경우 2020-10-01 부터 조회 가능 예외처리 */
 	    SELECT STUD_NM, GENDER, STUD_ID, LOGIN_ID, GRADE, SCHL_NM,
 			IFNULL(TIMESTAMPDIFF(DAY, LAST_LOGIN_DT, now()), NULL) AS DAYS_AGO,
 			DATE_FORMAT(LAST_LOGIN_DT,'%Y.%m.%d') AS LAST_LOGIN_DT,
-			DATE_FORMAT(LRN_START_DT,'%Y.%m.%d') AS LRN_START_DT
+			DATE_FORMAT(IF(LRN_START_DT <![CDATA[<]]> '2020-10-01', '2020-10-01', LRN_START_DT),'%Y.%m.%d') AS LRN_START_DT
 			FROM (
 					SELECT 
 						A.STUD_NM,
