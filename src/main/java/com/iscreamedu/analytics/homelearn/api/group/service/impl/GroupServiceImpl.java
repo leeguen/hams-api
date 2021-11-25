@@ -416,8 +416,22 @@ public class GroupServiceImpl implements GroupService {
 	            	
 	                }
 	                // ⓑ칭찬-평가
-	                if(expl_cnt >= 1) {	                	
-	                	if(ps_expl_cnt == 100 && expl_cnt == ps_expl_cnt) { // 완료한 평가지 개수 a >= 1 && 모든 평가지의 점수가 100점일 경우
+	                if(expl_cnt >= 2) {	// 완료한 평가지 개수 a >= 2 
+	                	if(expl_cnt > ps_expl_cnt && ps_expl_cnt >= 1) {	// 100점인 평가지 개수 b,   	a > b >= 1   
+	                		if(incrt_nt_cnt > 0) {
+		                		// 노출 우선순위 - 3. 완료한 평가지 개수 a >= 2 
+		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
+		                		// 				&& 오답노트 미완료 건수 c > 0
+			                	positive_msgNo[1] = 16;
+	                		} else if(incrt_nt_cnt == 0) {
+		                		// 노출 우선순위 - 4. 완료한 평가지 개수 a >= 2 
+		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
+		                		// 				&& 오답노트 미완료 건수 c = 0
+	                			positive_msgNo[1] = 17;
+	                		}
+	                	}	                	
+	                } else if(expl_cnt >= 1) {	                	
+	                	if(expl_cnt == ps_expl_cnt) { // 완료한 평가지 개수 a >= 1 && 모든 평가지의 점수가 100점일 경우
 	                		if(guess_ques_cnt > 0) {
 	                			// 노출 우선순위 - 1. 완료한 평가지 개수 a >= 1 && 모든 평가지의 점수가 100점일 경우 && 찍은 것으로 보이는 문제 수 c > 0
 	                			positive_msgNo[1] = 14;
@@ -456,20 +470,6 @@ public class GroupServiceImpl implements GroupService {
 	                			}
 	                		}
 	                	}
-	                } else if(expl_cnt >= 2) {	// 완료한 평가지 개수 a >= 2 
-	                	if(expl_cnt > ps_expl_cnt && ps_expl_cnt >= 1) {	// 100점인 평가지 개수 b,   	a > b >= 1   
-	                		if(incrt_nt_cnt > 0) {
-		                		// 노출 우선순위 - 3. 완료한 평가지 개수 a >= 2 
-		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
-		                		// 				&& 오답노트 미완료 건수 c > 0
-			                	positive_msgNo[1] = 16;
-	                		} else if(incrt_nt_cnt == 0) {
-		                		// 노출 우선순위 - 4. 완료한 평가지 개수 a >= 2 
-		                		//				&& 100점인 평가지 개수 b,   	a > b >= 1   
-		                		// 				&& 오답노트 미완료 건수 c = 0
-	                			positive_msgNo[1] = 17;
-	                		}
-	                	}	                	
 	                } 
 	                
 	                // ⓒ처방-학습태도
