@@ -1205,11 +1205,11 @@
 				FROM DAY_PLAN_STT
 				WHERE STUD_ID = #{studId} 					
 		<choose>
-	           <when test='currConCheck == "m"'>    
+	        <when test='currConCheck == "m"'>    
 					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 			</when>
 			<otherwise>	
-					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{startDt}, INTERVAL 7 DAY)
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
 			</otherwise>
 		</choose>
 				GROUP BY DT
@@ -1220,11 +1220,11 @@
 				FROM DAY_LRN_EX_LOG
 				WHERE STUD_ID = #{studId} 								
 		<choose>
-	           <when test='currConCheck == "m"'>    
+	        <when test='currConCheck == "m"'>    
 					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
 			</when>
 			<otherwise>	
-					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{startDt}, INTERVAL 7 DAY)
+					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
 			</otherwise>
 		</choose>
 					AND FNSH_YN = 'Y'
@@ -1237,8 +1237,8 @@
 		LEFT OUTER JOIN 
 		(
 			SELECT DT, GRADE, TOP_30_EX_RT, GRP_AVG_EX_RT
-			FROM DAY_GRP_LRN_EX_STT
-			WHERE DT BETWEEN #{startDt} AND LAST_DAY(#{startDt})
+			FROM DAY_GRP_LRN_EX_STT						
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
 		) AS GRP_EX ON GRP_EX.DT = DTS.DT AND GRP_EX.GRADE = DTS.GRADE
 		ORDER BY DTS.DT
     </select>
