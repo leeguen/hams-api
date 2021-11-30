@@ -1686,8 +1686,8 @@
 		    	WHEN A_LRN_EX_CNT IS NULL THEN DE.MSG
 		    	ELSE
 		    		REPLACE(
-		    			REPLACE(DE.MSG, '{b}', SUBJ_NM),
-		    		'{학생이름}', STUD_NM
+		    			REPLACE(DE.MSG, '{b}', IFNULL(SUBJ_NM,'')),
+		    		'{학생이름}', IFNULL(STUD_NM,'')
 	    			)
 		    END AS DETAIL
 		FROM (
@@ -1815,7 +1815,7 @@
     <select id="getALrnExSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.DT,
-		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
+		    ST.PREV_DT,
 		    A.A_LRN_EX_CNT,
 		    PREV_A_LRN_EX_CNT,
 		    TOP_30_A_LRN_CNT AS TOP_A_LRN_EX_CNT,
@@ -1825,7 +1825,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+				<choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -1894,7 +1901,7 @@
 	                )
 			) ACHART1
 			GROUP BY DT, STUD_ID
-		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
 		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
@@ -1913,10 +1920,10 @@
 						REPLACE(
 							REPLACE(
 								REPLACE(
-									REPLACE(SU.MSG,'{a}', EXPL_CNT),
-								'{b}',CRT_RT),
-							'{n}',ABS(DIFF)),
-						'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')),
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(CRT_RT,0)),
+							'{n}',IFNULL(ABS(DIFF),'')),
+						'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
 					'{c}', PS_EXPL_CNT
 				    )
 		    END AS SUMMARY,
@@ -1924,8 +1931,8 @@
 		    	WHEN CRT_RT IS NULL THEN DE.MSG
 		    	ELSE 
 				    REPLACE(
-						REPLACE(DE.MSG, '{a}', EXPL_CNT),
-					'{a-c}', EXPL_CNT - PS_EXPL_CNT
+						REPLACE(DE.MSG, '{a}', IFNULL(EXPL_CNT,0)),
+					'{a-c}', IFNULL(EXPL_CNT,0) - IFNULL(PS_EXPL_CNT,0) 
 					)
 			END AS DETAIL
 		FROM (
@@ -1997,7 +2004,7 @@
     <select id="getCrtRtSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.DT,
-		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
+		    ST.PREV_DT,
 		    ST.STUD_ID,
 		    E.CRT_RT,
 		    PREV_CRT_RT,
@@ -2008,7 +2015,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -2034,8 +2048,8 @@
 				SELECT
 					DT,
 					STUD_ID,
-					SUM(QUES_CNT) AS QUES_CNT,
-					SUM(CRT_CNT) AS CRT_CNT
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_CNT
 				FROM EXAM_RST
 				WHERE DT BETWEEN #{startDt} AND #{endDt}
 					AND STUD_ID = #{studId}
@@ -2053,8 +2067,8 @@
 				SELECT
 					DT,
 					STUD_ID,
-					SUM(QUES_CNT) AS QUES_CNT,
-					SUM(CRT_CNT) AS CRT_CNT
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_CNT
 				FROM EXAM_RST
 				WHERE DT 
 				<choose>
@@ -2070,7 +2084,7 @@
 				GROUP BY DT, STUD_ID
 			) ECHART1
 			GROUP BY DT, STUD_ID
-		) PE ON ST.PREV_NUMS = PE.PREV_NUMS1 AND ST.STUD_ID = PE.STUD_ID
+		) PE ON ST.PREV_DT = PE.DT AND ST.STUD_ID = PE.STUD_ID
 		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
     </select>
     
@@ -2087,17 +2101,17 @@
 					REPLACE(
 						REPLACE(
 							REPLACE(
-								REPLACE(SU.MSG, '{a}', EXPL_CNT),
-							'{b}', INCRT_NT_REG_CNT),
-						'{c}', INCRT_NOTE_NC_CNT),
-					'{a-d}', EXPL_CNT - PS_EXPL_CNT
+								REPLACE(SU.MSG, '{a}', IFNULL(EXPL_CNT,0)),
+							'{b}', IFNULL(INCRT_NT_REG_CNT,0)),
+						'{c}', IFNULL(INCRT_NOTE_NC_CNT,0)),
+					'{a-d}', IFNULL(EXPL_CNT,0) - IFNULL(PS_EXPL_CNT,0)
 					)
 			END AS SUMMARY,
 			CASE
 				WHEN INCRT_NOTE_NC_CNT IS NULL THEN DE.MSG
 				ELSE 
 				    REPLACE(
-						REPLACE(DE.MSG,'{b}', INCRT_NT_REG_CNT),
+						REPLACE(DE.MSG,'{b}', IFNULL(INCRT_NT_REG_CNT,0)),
 				    '{c}', INCRT_NOTE_NC_CNT
 					) 
 			END AS DETAIL
@@ -2192,7 +2206,7 @@
     <select id="getIncrtNoteNcSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.DT,
-		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
+		    PREV_DT,
 		    INCRT_NOTE_NC_CNT,
 		    CRT_NOTE_NC_CNT,
 		    PREV_INCRT_NOTE_NC_CNT,
@@ -2204,7 +2218,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -2259,7 +2280,7 @@
 				AND DEL_YN = 'N'
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
-		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
 		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
@@ -2278,11 +2299,11 @@
 						REPLACE(
 							REPLACE(
 								REPLACE(
-									REPLACE(SU.MSG,'{a}',EXPL_CNT),
-								'{b}', QUES_CNT),
-							'{d}', CRT_QUES_CNT),
-						'{n}', DIFF),
-					'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(QUES_CNT,0)),
+							'{d}', IFNULL(CRT_QUES_CNT,0)),
+						'{n}', IFNULL(DIFF,0)),
+					'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -2324,10 +2345,14 @@
 			LEFT OUTER JOIN (
 				SELECT
 					STUD_ID,
-					SUM(CRT_CNT) AS CRT_QUES_CNT,
-					SUM(QUES_CNT) AS QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
 			        COUNT(DISTINCT EXAM_CD) AS EXPL_CNT,
-			        IF(SUM(CRT_CNT) > SUM(QUES_CNT), 100, ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )) AS CRT_RT
+			        IF(
+			        	SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) > SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)), 
+			        	100, 
+			        	ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+		        	) AS CRT_RT
 				FROM EXAM_RST
 				WHERE DT BETWEEN #{startDt} AND #{endDt}
 					AND DEL_YN = 'N'
@@ -2337,7 +2362,7 @@
 			LEFT OUTER JOIN (
 				SELECT
 					STUD_ID,
-					SUM(CRT_CNT) AS PREV_CRT_QUES_CNT
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS PREV_CRT_QUES_CNT
 				FROM EXAM_RST
 				WHERE DT 
 				<choose>
@@ -2369,7 +2394,7 @@
     <select id="getCrtQuesCntSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.DT,
-		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
+		    ST.PREV_DT,
 		    CRT_QUES_CNT,
 		    INCRT_QUES_CNT,
 		    PREV_CRT_QUES_CNT,
@@ -2381,7 +2406,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -2402,8 +2434,8 @@
 			SELECT
 				DT,
 				STUD_ID,
-				SUM(CRT_CNT) AS CRT_QUES_CNT,
-		        SUM(INCRT_CNT) AS INCRT_QUES_CNT
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+		        SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_INCRT_CNT, INCRT_CNT)) AS INCRT_QUES_CNT
 			FROM EXAM_RST
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
 				AND DEL_YN = 'N'
@@ -2415,8 +2447,8 @@
 				DT,
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
 				STUD_ID,
-				SUM(CRT_CNT) AS PREV_CRT_QUES_CNT,
-		        SUM(INCRT_CNT) AS PREV_INCRT_QUES_CNT
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS PREV_CRT_QUES_CNT,
+		        SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_INCRT_CNT, INCRT_CNT)) AS PREV_INCRT_QUES_CNT
 			FROM EXAM_RST
 			WHERE DT 
 			<choose>
@@ -2430,7 +2462,7 @@
 				AND DEL_YN = 'N'
 				AND STUD_ID = #{studId}
 			GROUP BY DT, STUD_ID
-		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
 		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
@@ -2447,11 +2479,11 @@
 						REPLACE(
 							REPLACE(
 								REPLACE(
-									REPLACE(SU.MSG,'{a}',EXPL_CNT),
-								'{b}', PS_EXPL_CNT),
-							'{c}', SLV_HABIT_CNT),
-						'{n}', DIFF),
-					'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(PS_EXPL_CNT,0)),
+							'{c}', IFNULL(SLV_HABIT_CNT,0)),
+						'{n}', IFNULL(DIFF,0)),
+					'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 			CASE
@@ -2461,8 +2493,8 @@
 				    REPLACE(
 						REPLACE(
 							REPLACE(DE.MSG, '{c}', SLV_HABIT_CNT),
-						'{d}', PTN_NM),
-					'{e}', QUES_PTN_CNT
+						'{d}', IFNULL(PTN_NM, '')),
+					'{e}', IFNULL(QUES_PTN_CNT,0)
 					) 
 			END AS DETAIL
 		FROM (
@@ -2566,7 +2598,7 @@
     <select id="getSlvHabitSttList" parameterType="hashMap" resultType="resultMap">
     	SELECT
 			ST.DT,
-		    IF(ST.DT = DATE_ADD(ST.PREV_DT, INTERVAL 1 MONTH), ST.PREV_DT, NULL) AS PREV_DT,
+		    ST.PREV_DT,
 		    SLV_HABIT_CNT,
 		    SKIP_QUES_CNT,
 		    CURSORY_QUES_CNT,
@@ -2581,7 +2613,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -2645,7 +2684,7 @@
 					AND STUD_ID = #{studId}
 			) EQ
 			GROUP BY DT, STUD_ID
-		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
 		ORDER BY ST.DT
     </select>
     
@@ -2661,11 +2700,11 @@
 						REPLACE(
 							REPLACE(
 								REPLACE(
-									REPLACE(SU.MSG, '{a}', CONVERT_HOUR),
-								'{b}', CONVERT_MINUTE),
-							'{n}', CONVERT_DIFF_HOUR),
-						'{m}', CONVERT_DIFF_MINUTE),
-					'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')
+									REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR, 0)),
+								'{b}', IFNULL(CONVERT_MINUTE,0)),
+							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+					'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -2842,11 +2881,11 @@
 						REPLACE(
 							REPLACE(
 								REPLACE(
-									REPLACE(SU.MSG, '{a}', CONVERT_HOUR),
-								'{b}', CONVERT_MINUTE),
-							'{n}', CONVERT_DIFF_HOUR),
-						'{m}', CONVERT_DIFF_MINUTE),
-					'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')
+									REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR,0)),
+								'{b}', IFNULL(CONVERT_MINUTE,0)),
+							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+					'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -2934,7 +2973,14 @@
 				ST1.STUD_ID,
 		        ST1.GRADE,
 				DE.DT,
-		        DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
 		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
 			FROM STUD ST1
 			CROSS JOIN (
@@ -2981,7 +3027,7 @@
 				AND STUD_ID = #{studId}
 				AND SUBJ_CD NOT LIKE '%Z%'
 			GROUP BY DT, STUD_ID
-		) PA ON ST.PREV_NUMS = PA.PREV_NUMS1 AND ST.STUD_ID = PA.STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
 		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
 		ORDER BY ST.DT
     </select>
@@ -3000,17 +3046,17 @@
 							REPLACE(
 								REPLACE(
 									REPLACE(
-										REPLACE(SU.MSG, '{a}', CONVERT_HOUR),
-									'{b}', CONVERT_MINUTE),
-								'{n}', CONVERT_DIFF_HOUR),
-							'{m}', CONVERT_DIFF_MINUTE),
-						'{상승/하락}', IF(DIFF<![CDATA[<]]>0, '하락', '상승')),
+										REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR,0)),
+									'{b}', IFNULL(CONVERT_MINUTE,0)),
+								'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+							'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+						'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
 					'{x}', SUBJ_NM
 					) 
 			END AS SUMMARY,
 			CASE
 				WHEN LONG_LRN_SUBJ_CD IS NULL THEN DE.MSG
-				ELSE REPLACE(DE.MSG,'{x}', SUBJ_NM)
+				ELSE REPLACE(DE.MSG,'{x}', IFNULL(SUBJ_NM,''))
 			END AS DETAIL
 		FROM (
 	    	SELECT
@@ -3181,8 +3227,8 @@
 		LEFT OUTER JOIN (
 			SELECT
 				STUD_ID,
-				SUM(QUES_CNT) AS ANS_QUES_CNT,
-				SUM(CRT_CNT) AS CRT_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS ANS_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
 				SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
 				SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT
 			FROM EXAM_RST
@@ -3194,16 +3240,16 @@
 				STUD_ID,
 				SUBJ_CD,
 				CASE
-					WHEN SUM(QUES_CNT) = 0 THEN 0
-					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 				END AS CRT_RT
 			FROM EXAM_RST
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
 				AND STUD_ID = #{studId}
 			GROUP BY STUD_ID, SUBJ_CD
 			ORDER BY CASE
-					WHEN SUM(QUES_CNT) = 0 THEN 0
-					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 				END DESC
 			LIMIT 1		
 		) SUBJ ON ST.STUD_ID = SUBJ.STUD_ID
@@ -3313,10 +3359,10 @@
 					SELECT
 						STUD_ID,
 						SUBJ_CD,
-						SUM(QUES_CNT) AS QUES_CNT,
+						SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
 						CASE
-							WHEN SUM(QUES_CNT) = 0 THEN 0
-							ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 						END AS CRT_RT
 					FROM EXAM_RST
 					WHERE DT BETWEEN #{startDt} AND #{endDt}
@@ -3328,8 +3374,8 @@
 						STUD_ID,
 						SUBJ_CD,
 						CASE
-							WHEN SUM(QUES_CNT) = 0 THEN 0
-							ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 						END AS CRT_RT
 					FROM EXAM_RST
 					WHERE DT 
@@ -3360,10 +3406,10 @@
 					SELECT
 						STUD_ID,
 						SUBJ_CD,
-						SUM(QUES_CNT) AS QUES_CNT,
+						SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
 						CASE
-							WHEN SUM(QUES_CNT) = 0 THEN 0
-							ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 						END AS CRT_RT
 					FROM EXAM_RST
 					WHERE DT BETWEEN #{startDt} AND #{endDt}
@@ -3375,8 +3421,8 @@
 						STUD_ID,
 						SUBJ_CD,
 						CASE
-							WHEN SUM(QUES_CNT) = 0 THEN 0
-							ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 						END AS CRT_RT
 					FROM EXAM_RST
 					WHERE DT
@@ -3436,11 +3482,11 @@
 				SUBJ_CD,
 		        COUNT(STUD_ID) AS EXPL_CNT,
 				CASE
-					WHEN SUM(QUES_CNT) = 0 THEN 0
-					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 				END AS CRT_RT,
-				SUM(QUES_CNT) AS ANS_QUES_CNT,
-				SUM(CRT_CNT) AS CRT_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS ANS_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
 				IF(IFNULL(SUM(INCRT_NT_REG_CNT),0) = 0, 0, (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT))) AS INCRT_NOTE_NC_CNT
 			FROM EXAM_RST
 			WHERE DT BETWEEN #{startDt} AND #{endDt}
@@ -3467,8 +3513,8 @@
 				STUD_ID,
 				SUBJ_CD,
 				CASE
-					WHEN SUM(QUES_CNT) = 0 THEN 0
-					ELSE ROUND(SUM(CRT_CNT) / SUM(QUES_CNT) * 100)
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
 				END AS PREV_CRT_RT
 			FROM EXAM_RST
 			WHERE DT 
@@ -3544,8 +3590,8 @@
 		    ER.EXAM_NM,
 		    CONCAT((SELECT IF(COUNT(*) = 1, 1, COUNT(*) + 1) FROM EXAM_RST WHERE STUD_ID = ER.STUD_ID AND EXAM_CD = ER.EXAM_CD AND SMT_ID = ER.SMT_ID),'차') AS ROUND,
 		    ROUND(ER.CRT_CNT / ER.QUES_CNT * 100) AS CRT_RT,
-		    ER.CRT_CNT AS CRT_QUES_CNT,
-		    ER.QUES_CNT AS QUES_CNT,
+		    IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_CRT_CNT, ER.CRT_CNT) AS CRT_QUES_CNT,
+			IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_QUES_CNT, ER.QUES_CNT) AS QUES_CNT,
 		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CRT', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CRT_QUES,
 		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'GUC', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS GUESS_CRT_QUES,
 		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'SKP', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS SKIP_QUES,
