@@ -1162,9 +1162,10 @@
 		LEFT OUTER JOIN (	
 			SELECT PL.DT, PL.STUD_ID
 				, CASE
+					WHEN PL.PLAN_CNT IS NULL THEN NULL
 		            WHEN PL.PLAN_CNT = 0 THEN 0
-		            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
-		            ELSE ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100)
+		            WHEN ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
+		            ELSE ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100)
 		        END AS EX_RT
 			FROM
 			(                  
@@ -1176,7 +1177,7 @@
 					AND DT BETWEEN #{startDt} AND #{endDt}
 				GROUP BY DT
 			) AS PL 
-			JOIN (
+			LEFT OUTER JOIN (
 				SELECT DT, PLAN_DT -- 날짜
 					, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
 				FROM DAY_LRN_EX_LOG
@@ -1193,9 +1194,10 @@
 		(	
 			SELECT PL.DT, PL.STUD_ID
 				, CASE
+					WHEN PL.PLAN_CNT IS NULL THEN NULL
 		            WHEN PL.PLAN_CNT = 0 THEN 0
-		            WHEN ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
-		            ELSE ROUND(LRN.LRN_EX_CNT / PL.PLAN_CNT * 100)
+		            WHEN ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
+		            ELSE ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100)
 		        END AS EX_RT
 			FROM
 			(                  
@@ -1214,7 +1216,7 @@
 		</choose>
 				GROUP BY DT
 			) AS PL 
-			JOIN (
+			LEFT OUTER JOIN (
 				SELECT DT, PLAN_DT -- 날짜
 					, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
 				FROM DAY_LRN_EX_LOG
