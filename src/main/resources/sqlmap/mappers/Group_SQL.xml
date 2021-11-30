@@ -1944,7 +1944,7 @@
 									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
 								'{b}', IFNULL(CRT_RT,0)),
 							'{n}',IFNULL(ABS(DIFF),'')),
-						'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
+						'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
 					'{c}', PS_EXPL_CNT
 				    )
 		    END AS SUMMARY,
@@ -1974,8 +1974,8 @@
 							WHEN CRT_RT = 100 THEN IF(DIFF<![CDATA[>]]>0, 147, 148)
 							ELSE 
 								CASE
-									WHEN PS_EXPL_CNT = 0 THEN IF(DIFF != 0, 150, 151)
-									ELSE IF(DIFF != 0, 153, 154)
+									WHEN PS_EXPL_CNT = 0 THEN IF(DIFF != 0, 153, 154)
+									ELSE IF(DIFF != 0, 150, 151)
 								END
 						END
 				END AS SUMMARY,
@@ -2324,7 +2324,7 @@
 								'{b}', IFNULL(QUES_CNT,0)),
 							'{d}', IFNULL(CRT_QUES_CNT,0)),
 						'{n}', IFNULL(DIFF,0)),
-					'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -2504,7 +2504,7 @@
 								'{b}', IFNULL(PS_EXPL_CNT,0)),
 							'{c}', IFNULL(SLV_HABIT_CNT,0)),
 						'{n}', IFNULL(DIFF,0)),
-					'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 			CASE
@@ -2725,7 +2725,7 @@
 								'{b}', IFNULL(CONVERT_MINUTE,0)),
 							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
 						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
-					'{상승/하락}', IFNULL(DIFF,IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -2906,7 +2906,7 @@
 								'{b}', IFNULL(CONVERT_MINUTE,0)),
 							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
 						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
-					'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
 					) 
 			END AS SUMMARY,
 		    DE.MSG AS DETAIL
@@ -3071,7 +3071,7 @@
 									'{b}', IFNULL(CONVERT_MINUTE,0)),
 								'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
 							'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
-						'{상승/하락}', IFNULL(DIFF, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
+						'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
 					'{x}', SUBJ_NM
 					) 
 			END AS SUMMARY,
