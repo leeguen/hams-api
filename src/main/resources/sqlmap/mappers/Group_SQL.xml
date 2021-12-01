@@ -482,12 +482,12 @@
 							END 
 						WHEN 40 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 90 THEN 				
 							CASE 
-								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = PREV_ATT.ATT_RT THEN 62	-- 이전 대비 값이 같거나 없을 경우
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN 62	-- 이전 대비 값이 같거나 없을 경우
 								ELSE 61																		-- 이전 대비 + /- 시		
 							END 
 						WHEN 90 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<=]]> 100 THEN 			
 							CASE 
-								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = PREV_ATT.ATT_RT THEN 57	-- 이전 대비 값이 같거나 없을 경우
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN 57	-- 이전 대비 값이 같거나 없을 경우
 								ELSE 56																		-- 이전 대비 + /- 시	
 							END 		
 				    END AS SUMMARY
@@ -507,13 +507,13 @@
 							END 
 						WHEN 40 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 90 THEN 				
 							CASE 
-								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = PREV_ATT.ATT_RT 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT 
 									OR PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 64			-- 이전 대비 - 시 or 이전 대비 값이 같거나 없을 경우
 								ELSE 63												-- 이전 대비 + 시		
 							END 
 						WHEN 90 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<=]]> 100 THEN 			
 							CASE 
-								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = PREV_ATT.ATT_RT THEN	-- 60	-- 이전 대비 값이 같거나 없을 경우
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN	-- 60	-- 이전 대비 값이 같거나 없을 경우
 									CASE 
 										WHEN ATT.ATT_RT = 100 THEN 222 	-- 100% 일 때
 										ELSE 223						-- 100% 아닐 때
