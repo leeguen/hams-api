@@ -1725,7 +1725,7 @@
 						CASE
 							WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 130, 132)
 			                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 134, 136)
-			                WHEN EX_RT<![CDATA[>]]>0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 141, 138)
+			                WHEN EX_RT <![CDATA[>]]> 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 141, 138)
 			            END 
 			    END AS SUMMARY,
 				CASE
@@ -1734,12 +1734,15 @@
 						CASE
 							WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 131, 133)
 			                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 135, 137)
-			                WHEN EX_RT<![CDATA[>]]>0 THEN
+			                WHEN EX_RT <![CDATA[>]]> 0 THEN
 								CASE
 									WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) = 0 THEN 142
-			                        WHEN (IFNULL(ALRN.A_LRN_EX_CNT,0) - IFNULL(PALRN.A_LRN_EX_CNT,0)) = 0 THEN 140
-			                        WHEN (IFNULL(ALRN.A_LRN_EX_CNT,0) - IFNULL(PALRN.A_LRN_EX_CNT,0))<![CDATA[<]]>0 THEN 140
-			                        ELSE 139
+			                        WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) <![CDATA[>]]> 0 THEN
+			                        	CASE 
+			                        		WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) = IFNULL(PALRN.A_LRN_EX_CNT,0) OR IFNULL(PALRN.A_LRN_EX_CNT,0) = 0 THEN 140
+			                        		WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) <![CDATA[<]]> IFNULL(PALRN.A_LRN_EX_CNT,0)  THEN 140
+			                        		ELSE 139
+			                        	END		                        
 			                    END
 			            END 
 			    END AS DETAIL,
