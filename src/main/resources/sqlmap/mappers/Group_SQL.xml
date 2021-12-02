@@ -653,13 +653,15 @@
 					IFNULL(DATE_FORMAT(END_DTTM,'%H:%i'), '')
 				) AS EX_TM,
 				CONCAT(
+					SUBJ_NM,
+					' > ',
+					SUB_SUBJ_NM,
 					' > ',
 					IFNULL(LRN_GRADE,''),
 					CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,
 					IFNULL(LRN_TERM,''),
 					CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
-					SUB_SUBJ_NM,' > ',
-					IFNULL(CTGR,SUB_SUBJ_NM)
+					IFNULL(CTGR,SUB_SUBJ_NM)				
 				) AS CATEGORY,
 				CASE
 					WHEN ( PLAN_DT IS NOT NULL AND START_DTTM IS NULL ) THEN NULL 
