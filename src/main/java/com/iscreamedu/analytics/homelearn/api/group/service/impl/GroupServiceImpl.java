@@ -35,7 +35,7 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 public class GroupServiceImpl implements GroupService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupServiceImpl.class);
-    private static final String MAPPER_NAMESPACE = "Group_";
+    private static final String MAPPER_NAMESPACE = "AiReport_";
     private String dw_mapper_namespace;
     private String mapper_name;
     
