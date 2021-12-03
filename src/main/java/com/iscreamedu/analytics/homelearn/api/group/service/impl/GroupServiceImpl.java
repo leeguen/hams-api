@@ -801,12 +801,12 @@ public class GroupServiceImpl implements GroupService {
         return result;
     }
 
-    private LinkedHashMap<String, Object> createRecommendMap(String thumUrl, String ctgr1, String ctgr2) {
+    private LinkedHashMap<String, Object> createRecommendMap(String thumUrl, String categoryNm, String serviceNm) {
         LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
 
         resultMap.put("thumUrl",thumUrl);
-        resultMap.put("ctgr1",ctgr1);
-        resultMap.put("ctgr2",ctgr2);
+        resultMap.put("categoryNm",categoryNm);
+        resultMap.put("serviceNm",serviceNm);
 
         return  resultMap;
     }
