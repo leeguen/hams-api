@@ -300,7 +300,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	try {
 		        	String url = HLLOGIN_API + apiName + ".json";
 		        	if(paramMap.containsKey("studId")) { 
-		        		url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/comm/" + apiName + ".json";	//임시 라이브 api test
+//		        		url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/comm/" + apiName + ".json";	//임시 라이브 api test
 			        	paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");		
 		        		paramMap.remove("s");		
@@ -388,7 +388,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		//GroupServiceImpl >> getAiRecommendLrn 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
 	        		//studId 추출 코드 예외 추가
 	        		if(paramMap.containsKey("studId") && paramMap.containsKey("s")) {
-	        			url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/ai/tutor/weekly/" + apiName;
+//	        			url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/ai/tutor/weekly/" + apiName;	//임시 라이브 api test
  		        		paramMap.remove("s");	   	
 	        		} else if(paramMap.containsKey("p")) 
 	        		{	        		
@@ -472,12 +472,12 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	//GroupServiceImpl >> getDiagnosticEvalStt 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
 	        		//studId 추출 코드 예외 추가		        	
 		        	if(apiName.equals("inspecion-present") && paramMap.containsKey("studId")) {
-		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";
+//		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";		//임시 라이브 api test
 		        		paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");		
 		        		paramMap.remove("s");		
 		        	} else if(apiName.equals("act-element-detail") && paramMap.containsKey("studId")) {
-		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";
+//		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";		//임시 라이브 api test
 		        		paramMap.put("stuId", paramMap.get("studId"));
 		        		paramMap.remove("studId");	
 		        		paramMap.remove("s");	        		
