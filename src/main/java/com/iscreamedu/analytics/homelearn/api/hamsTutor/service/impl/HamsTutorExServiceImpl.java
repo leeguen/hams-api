@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
@@ -42,6 +43,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
     @Autowired
     CommonMapperTutor commonMapperTutor;
+    @Autowired
+    CommonMapperLrnDm commonMapperLrnDm;
     
     @Autowired
 	ExternalAPIService externalAPIservice;
@@ -56,13 +59,25 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
             //DB 조회
             ArrayList<Map<String,Object>> settleInfoPredictionStt = new ArrayList();
+
+            ArrayList<Map<String,Object>> predictionCdList = new ArrayList();
+            ArrayList<Map<String,Object>> predictionCnt = new ArrayList();
+            ArrayList<Map<String,Object>> predictionStudList = new ArrayList();
             
             String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
             paramMap.put("dt", today);
             
-            ArrayList<Map<String,Object>> predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
-            ArrayList<Map<String,Object>> predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
-            ArrayList<Map<String,Object>> predictionStudList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionList");
+            if(paramMap.containsKey("schType") && paramMap.get("schType").toString().toLowerCase().equals("ms")) {
+            	paramMap.put("dt", today.replace("-",""));
+            	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCd");
+                predictionCnt = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCount");
+                predictionStudList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionList");
+            } else {
+            	paramMap.put("dt", today);
+            	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
+                predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
+                predictionStudList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionList");
+            }
             
             for(Map<String, Object> cdItem : predictionCdList) {
             	LinkedHashMap<String, Object> predictionMap = new LinkedHashMap<>();
@@ -438,7 +453,6 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         		msgMap.put("result", "NO_DATA");
         		setResult2(msgKey, msgMap);
         	}
-            
 //            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
 //            LocalDate beforeDate = endDate.minusMonths(1);
 //            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMM");
@@ -876,33 +890,33 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     }
     
     /**
-	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
-	 * @param key
-	 * @param data
-	 */
-	private void setResult2(String key, Object data) {
-		result = new LinkedHashMap();
-		
-		if(key.equals(dataKey)) {
-			LinkedHashMap message = new LinkedHashMap();			
-			if(data == null 
-					|| (data instanceof List && ((List)data).size() == 0) 
-					|| (data instanceof Map && ((Map)data).isEmpty())) {
-				//조회결과가 없는 경우 메시지만 나감.
-				message.put("resultCode", ValidationCode.NO_DATA.getCode());
-				result.put(msgKey, message);
-			} else {
-				//정상데이터, 정상메시지
-				message.put("resultCode", ValidationCode.SUCCESS.getCode());
-				result.put(msgKey, message);
-				
-				result.put(dataKey, data);
-			}
-		} else {
-			result.put(msgKey, data); //validation 걸린 메시지, 데이터 없음
-		}
-	}
-    
+     * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
+     * @param key
+     * @param data
+     */
+    private void setResult2(String key, Object data) {
+        result = new LinkedHashMap();
+        
+        if(key.equals(dataKey)) {
+            LinkedHashMap message = new LinkedHashMap();            
+            if(data == null 
+                    || (data instanceof List && ((List)data).size() == 0) 
+                    || (data instanceof Map && ((Map)data).isEmpty())) {
+                //조회결과가 없는 경우 메시지만 나감.
+                message.put("resultCode", ValidationCode.NO_DATA.getCode());
+                result.put(msgKey, message);
+            } else {
+                //정상데이터, 정상메시지
+                message.put("resultCode", ValidationCode.SUCCESS.getCode());
+                result.put(msgKey, message);
+                
+                result.put(dataKey, data);
+            }
+        } else {
+            result.put(msgKey, data); //validation 걸린 메시지, 데이터 없음
+        }
+    }
+
     /**
      * encoded parameter decode
      */
