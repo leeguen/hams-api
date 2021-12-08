@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
@@ -42,6 +43,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
     @Autowired
     CommonMapperTutor commonMapperTutor;
+    @Autowired
+    CommonMapperLrnDm commonMapperLrnDm;
     
     @Autowired
 	ExternalAPIService externalAPIservice;
@@ -56,13 +59,25 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
             //DB 조회
             ArrayList<Map<String,Object>> settleInfoPredictionStt = new ArrayList();
+
+            ArrayList<Map<String,Object>> predictionCdList = new ArrayList();
+            ArrayList<Map<String,Object>> predictionCnt = new ArrayList();
+            ArrayList<Map<String,Object>> predictionStudList = new ArrayList();
             
             String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
             paramMap.put("dt", today);
             
-            ArrayList<Map<String,Object>> predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
-            ArrayList<Map<String,Object>> predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
-            ArrayList<Map<String,Object>> predictionStudList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionList");
+            if(paramMap.containsKey("schType") && paramMap.get("schType").toString().toLowerCase().equals("ms")) {
+            	paramMap.put("dt", today.replace("-",""));
+            	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCd");
+                predictionCnt = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCount");
+                predictionStudList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionList");
+            } else {
+            	paramMap.put("dt", today);
+            	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
+                predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
+                predictionStudList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionList");
+            }
             
             for(Map<String, Object> cdItem : predictionCdList) {
             	LinkedHashMap<String, Object> predictionMap = new LinkedHashMap<>();
