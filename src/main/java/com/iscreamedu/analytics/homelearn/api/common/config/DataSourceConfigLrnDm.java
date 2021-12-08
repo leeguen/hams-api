@@ -20,7 +20,7 @@ public class DataSourceConfigLrnDm {
 
     //dataSource 생성
     @Bean(name = "lrnDmDatasource")
-    @ConfigurationProperties("spring.datasource.hikari.lrndmartdb")
+    @ConfigurationProperties("spring.datasource.hikari.lrndmtdb")
     public DataSource martdbDataSource() {
         return DataSourceBuilder.create().type(HikariDataSource.class).build();
     }
