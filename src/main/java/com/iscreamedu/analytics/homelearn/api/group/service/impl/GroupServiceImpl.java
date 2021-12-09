@@ -4065,8 +4065,8 @@ public class GroupServiceImpl implements GroupService {
 						if(detail != null) {
 							// Mybatis null 관련 오류 발생으로 예외 처리 함.
 							currentDetail.put("chapterNm", detail.get("chapterNm").toString().equals("") ? null : detail.get("chapterNm"));
-							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
-							currentDetail.put("examDt", detail.get("examDt"));
+							currentDetail.put("examCrtRt", detail.get("examCrtRt").toString().equals("") ? null : detail.get("examCrtRt"));
+							currentDetail.put("examDt", detail.get("examDt").toString().equals("") ? null : detail.get("examDt"));
 							prevDetail.put("chapterNm", detail.get("preChapterNm").toString().equals("") ? null : detail.get("preChapterNm"));
 							prevDetail.put("examCrtRt", detail.get("preExamCrtRt").toString().equals("") ? null : detail.get("preExamCrtRt"));
 							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
@@ -4099,8 +4099,8 @@ public class GroupServiceImpl implements GroupService {
 						if(detail != null) {
 							// Mybatis null 관련 오류 발생으로 예외 처리 함.
 							currentDetail.put("chapterNm", detail.get("chapterNm").toString().equals("") ? null : detail.get("chapterNm"));
-							currentDetail.put("examCrtRt", detail.get("examCrtRt"));
-							currentDetail.put("examDt", detail.get("examDt"));
+							currentDetail.put("examCrtRt", detail.get("examCrtRt").toString().equals("") ? null : detail.get("examCrtRt"));
+							currentDetail.put("examDt", detail.get("examDt").toString().equals("") ? null : detail.get("examDt"));
 							prevDetail.put("chapterNm", detail.get("preChapterNm").toString().equals("") ? null : detail.get("preChapterNm"));
 							prevDetail.put("examCrtRt", detail.get("preExamCrtRt").toString().equals("") ? null : detail.get("preExamCrtRt"));
 							prevDetail.put("examDt", detail.get("preExamDt").toString().equals("") ? null : detail.get("preExamDt"));
