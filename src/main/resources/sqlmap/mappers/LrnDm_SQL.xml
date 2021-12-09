@@ -14,7 +14,10 @@
 		select f1.scr_typ_key::TEXT as prediction_type
 			, count(f1.stud_key) as prediction_cnt
 		from lrndmt.mt_ft_stud_hst_dly f1		
-		where f1.dt_key = #{dt}::INTEGER		
+		where f1.dt_key = (select max(dt_key)								
+						from lrndmt.mt_ft_stud_hst_dly 
+						where dt_key >= #{dt}::INTEGER		
+						and tchr_key = #{tchrId}::INTEGER)
 			and f1.tchr_key = #{tchrId}::INTEGER		
 		group by f1.scr_typ_key
     </select>
@@ -24,7 +27,10 @@
 			, d1.scr_typ_key::TEXT as prediction_type
 		from lrndmt.mt_ft_stud_hst_dly f1
 		inner join lrndmt.mt_dm_scr_typ d1 on f1.scr_typ_key = d1.scr_typ_key 	
-		where f1.dt_key = #{dt}::INTEGER
+		where f1.dt_key = (select max(dt_key)								
+						from lrndmt.mt_ft_stud_hst_dly 
+						where dt_key >= #{dt}::INTEGER		
+						and tchr_key = #{tchrId}::INTEGER)
 			and f1.tchr_key = #{tchrId}::INTEGER	
 	 	order by f1.scr_typ_key, f1.stud_key			
     </select>

@@ -64,15 +64,17 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             ArrayList<Map<String,Object>> predictionCnt = new ArrayList();
             ArrayList<Map<String,Object>> predictionStudList = new ArrayList();
             
-            String today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
-            paramMap.put("dt", today);
+            String today = null;
             
             if(paramMap.containsKey("schType") && paramMap.get("schType").toString().toLowerCase().equals("ms")) {
+            	// 이틀전 기준 최근 정보로 조회
+            	today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(2).toString();
             	paramMap.put("dt", today.replace("-",""));
             	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCd");
                 predictionCnt = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionCount");
                 predictionStudList = (ArrayList<Map<String, Object>>) commonMapperLrnDm.getList(paramMap, "LrnDm.selectPredictionList");
             } else {
+            	today = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
             	paramMap.put("dt", today);
             	predictionCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCd");
                 predictionCnt = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectPredictionCount");
