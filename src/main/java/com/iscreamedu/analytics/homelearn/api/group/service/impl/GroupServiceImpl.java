@@ -913,6 +913,7 @@ public class GroupServiceImpl implements GroupService {
 									chartMap.put("dt", item.get("dt"));
 									chartMap.put("attYn", getItemValueCompare(item.get("attYn"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
+									chartMap.put("lrnTmYn", getItemValueCompare(item.get("lrnTmYn"), "1"));
 									
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
@@ -969,6 +970,7 @@ public class GroupServiceImpl implements GroupService {
 									chartMap.put("dt", item.get("dt"));
 									chartMap.put("attYn", getItemValueCompare(item.get("attYn"), "1"));
 									chartMap.put("lrnStt", item.get("lrnStt"));
+									chartMap.put("lrnTmYn", getItemValueCompare(item.get("lrnTmYn"), "1"));
 									
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("lrnFnsh", getItemValueCompare(item.get("lrnFnsh"), "1"));
