@@ -830,8 +830,15 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) { 	   	
 			//홈런 API 조회
-	        paramMap.put("apiName", "inspecion-present");	       	
-	        setResult(dataKey,externalAPIservice.callExternalAPI(paramMap).get("data"));			
+	        paramMap.put("apiName", "inspecion-present");	
+	        
+	        Map<String,Object> resultMap = new LinkedHashMap<>();
+	        Map<String,Object> data = (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+	        resultMap.put("studyInspecDivision", data.get("studyInspecDivision"));
+	        resultMap.put("parentNurtureInspecDivision", data.get("parentNurtureInspecDivision"));
+	        resultMap.put("multiInspecDivision", data.get("multiInspecDivision"));
+
+	        setResult(dataKey, resultMap);			
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
