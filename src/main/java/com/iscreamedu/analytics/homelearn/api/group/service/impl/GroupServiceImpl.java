@@ -3607,10 +3607,13 @@ public class GroupServiceImpl implements GroupService {
 					vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 					
 					if(vu1.isValid()) {
+						String yyMm = yyyy + convertMm;
+						
 						String startDt = yyyy + "-" + convertMm + "-01";
 						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
+						paramMap.put("yyMm", yyMm);
 						paramMap.put("startDt", startDt);
 						paramMap.put("endDt", endDt);
 						
