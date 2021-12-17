@@ -1160,8 +1160,6 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("planDt", getItemValueCompare(item.get("planDt"), "1"));
 									detailMap.put("attDt", getItemValueCompare(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemValueCompare(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemValueCompare(item.get("avgAttDt"), "1"));
 																		
 									detail.add(detailMap);
 								}
@@ -1208,8 +1206,6 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("planDt", getItemValueCompare(item.get("planDt"),"1"));
 									detailMap.put("attDt", getItemValueCompare(item.get("attDt"), "1"));
-									detailMap.put("topAttDt", getItemValueCompare(item.get("topAttDt"), "1"));
-									detailMap.put("avgAttDt", getItemValueCompare(item.get("avgAttDt"), "1"));
 									
 									detail.add(detailMap);
 								}
@@ -1482,7 +1478,6 @@ public class GroupServiceImpl implements GroupService {
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("exRt", item.get("exRt"));
 									detailMap.put("prevExRt", item.get("prevExRt"));	
-									detailMap.put("topExRt", item.get("topExRt"));
 									detailMap.put("avgExRt", item.get("avgExRt"));								
 									detail.add(detailMap);
 								}
@@ -1536,8 +1531,7 @@ public class GroupServiceImpl implements GroupService {
 									
 									detailMap.put("dt", item.get("dt"));
 									detailMap.put("exRt", item.get("exRt"));
-									detailMap.put("prevExRt", item.get("prevExRt"));	
-									detailMap.put("topExRt", item.get("topExRt"));
+									detailMap.put("prevExRt", item.get("prevExRt"));
 									detailMap.put("avgExRt", item.get("avgExRt"));								
 									detail.add(detailMap);
 								}
