@@ -2998,14 +2998,16 @@
 						AND SUBJ_CD NOT LIKE '%Z%'
 					GROUP BY STUD_ID
 				) PTM ON ST.STUD_ID = PTM.STUD_ID
-				<choose>
-					<when test='currConCheck == "m"'>
-						LEFT OUTER JOIN MONTH_GRP_LRN_EX_STT GL ON GL.YYMM = #{yyMm} AND ST.GRADE = GL.GRADE
-					</when>
-					<otherwise>
-						LEFT OUTER JOIN DAY_7_GRP_LRN_EX_STT GL ON GL.DT = #{endDt} AND ST.GRADE = GL.GRADE
-					</otherwise>
-				</choose> 
+				LEFT OUTER JOIN (
+					SELECT
+						ST.STUD_ID,
+						ROUND(SUM(TOP_30_LRN_SEC)) AS TOP_30_LRN_SEC,
+						ROUND(SUM(GRP_AVG_LRN_SEC)) AS GRP_AVG_LRN_SEC
+					FROM STUD ST
+					LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+					WHERE ST.STUD_ID = #{studId}
+					GROUP BY ST.STUD_ID
+				) GRP ON ST.STUD_ID = GRP.STUD_ID
 				WHERE ST.STUD_ID = #{studId}
 			) TTM1
 		) TTM
