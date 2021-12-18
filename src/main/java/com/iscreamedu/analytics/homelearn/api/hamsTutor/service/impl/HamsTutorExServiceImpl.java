@@ -59,7 +59,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
             //DB 조회
             ArrayList<Map<String,Object>> settleInfoPredictionStt = new ArrayList();
-
+            
             ArrayList<Map<String,Object>> predictionCdList = new ArrayList();
             ArrayList<Map<String,Object>> predictionCnt = new ArrayList();
             ArrayList<Map<String,Object>> predictionStudList = new ArrayList();
