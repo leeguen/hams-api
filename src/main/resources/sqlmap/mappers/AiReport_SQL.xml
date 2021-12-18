@@ -1,0 +1,4059 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AiReport_1.0">
+
+    <select id="getPeriodWeeks" parameterType="hashMap" resultType="resultMap">
+	/* getPeriodWeeks : 년월, 주차 산출 - 기간정보 */
+		SELECT 
+			CAST(SUBSTRING(YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
+			CAST(SUBSTRING(YYMM,5,2) AS SIGNED INTEGER) AS MONTH,		
+			CAST(WK AS SIGNED INTEGER) AS WEEK,
+			CONCAT(	IF(#{lrnStartDt} <![CDATA[>]]> IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))
+						, DATE_FORMAT(STR_TO_DATE(#{lrnStartDt}, '%Y-%m-%d'), '%Y.%m.%d')
+						, DATE_FORMAT(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))), '%Y.%m.%d'))
+					,'-'
+					,DATE_FORMAT(IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))), '%Y.%m.%d')
+			) AS DT_STR
+		FROM COMM_WK_DT
+		WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_FORMAT(#{lrnStartDt}, '%Y-%m-%d')
+			AND IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[<]]> DATE_FORMAT(now() + INTERVAL 3 HOUR , '%Y-%m-%d')
+	</select>
+	
+	<select id="getPeriodMonths" parameterType="hashMap" resultType="resultMap">
+	/* getPeriodMonths : 년월 산출 - 기간정보 */
+		SELECT 
+			CAST(SUBSTRING(A.YYMM,1,4) AS SIGNED INTEGER) AS YEAR,
+			CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER) AS MONTH,
+			CASE WHEN STR_TO_DATE(#{lrnStartDt}, '%Y-%m-%d') <![CDATA[>]]>  STR_TO_DATE(CONCAT(SUBSTRING(A.YYMM,1,4),SUBSTRING(A.YYMM,5,2),'01'),'%Y%m%d')
+				THEN CONCAT(DATE_FORMAT(#{lrnStartDt}, '%Y.%m.%d')
+								, '-', DATE_FORMAT(LAST_DAY(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))), '%Y.%m.%d')) 
+			ELSE CONCAT(DATE_FORMAT(CONCAT(SUBSTRING(A.YYMM,1,4),'-',SUBSTRING(A.YYMM,5,2),'-01'),'%Y.%m.%d')
+					,'-', DATE_FORMAT(LAST_DAY(IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU))))))), '%Y.%m.%d'))
+			END 
+			AS DT_STR		
+		FROM COMM_WK_DT A 
+		WHERE A.YYMM <![CDATA[>=]]> DATE_FORMAT(#{lrnStartDt}, '%Y%m')
+			AND A.YYMM <![CDATA[<]]> DATE_FORMAT(NOW() + INTERVAL 3 HOUR , '%Y%m')
+		GROUP BY YYMM
+	</select>
+    
+    <select id="getStud" parameterType="hashMap" resultType="resultMap">
+    /* getStud : 학습분석 메인 - 학생 정보 */
+    /* 학습시작일 기준 : 2020-10-01 이전 최초 시작일일 경우 2020-10-01 부터 조회 가능 예외처리 */
+	    SELECT STUD_NM, GENDER, STUD_ID, LOGIN_ID, GRADE, SCHL_NM,
+			IFNULL(TIMESTAMPDIFF(DAY, LAST_LOGIN_DT, now()), NULL) AS DAYS_AGO,
+			DATE_FORMAT(LAST_LOGIN_DT,'%Y.%m.%d') AS LAST_LOGIN_DT,
+			DATE_FORMAT(IF(LRN_START_DT <![CDATA[<]]> '2020-10-01', '2020-10-01', LRN_START_DT),'%Y.%m.%d') AS LRN_START_DT
+			FROM (
+					SELECT 
+						A.STUD_NM,
+						A.GENDER,
+						A.STUD_ID,
+						A.LOGIN_ID,
+						A.GRADE,
+						A.SCHL_NM,
+						C.DT AS LAST_LOGIN_DT, 
+						MIN(B.START_DT) AS LRN_START_DT
+					FROM STUD A 
+					JOIN STUD_LOG B ON B.STUD_ID = A.STUD_ID
+					LEFT OUTER JOIN (
+						SELECT DT, STUD_ID 
+						FROM DAY_ATT_LOG 
+						WHERE STUD_ID  = #{studId} AND LOGIN_YN = 'Y' 
+						ORDER BY DT DESC LIMIT 1
+					) AS C ON C.STUD_ID = A.STUD_ID
+					WHERE A.STUD_ID = #{studId}
+			) S	    
+    </select>
+    
+    <select id="getLrnBasicPeriod" parameterType="hashMap" resultType="resultMap">
+	/* getLrnBasicPeriod : 기관용 기간별 학습 분석 */
+		SELECT
+		<choose>
+            <when test='currConCheck == "w"'>    
+			WK.DT
+		-- prev
+			, PREV_WK.dt AS PREV_DT 
+			,
+			</when>
+			<otherwise>
+			CONCAT(#{startDt}, ' ~ ', #{endDt}) AS DT
+			, CONCAT(DATE_SUB(IFNULL(PREV_ATT.DT, PREV_LRN.DT), INTERVAL 6 DAY), ' ~ ', IFNULL(PREV_ATT.DT, PREV_LRN.DT)) AS PREV_DT
+			,
+			</otherwise>
+        </choose>
+			CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS DT_STR
+			, ATT.ATT_RT		-- 출석률
+			, LRN.EX_RT			-- 수행률
+			, ER.AVG_CRT_RT AS CRT_RT	-- 정답률
+			, IF(LRN.EX_RT <![CDATA[>]]> 90, 'A', IF(LRN.EX_RT <![CDATA[>]]> 20, 'B', IF(LRN.EX_RT IS NULL, NULL, 'C'))) AS LRN_SIGNAL	-- 학습분석신호
+			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+			, CONCAT(DATE_FORMAT(DATE_SUB(IFNULL(PREV_ATT.DT, PREV_LRN.DT), INTERVAL 6 DAY), '%Y.%m.%d'), '-', DATE_FORMAT(IFNULL(PREV_ATT.DT, PREV_LRN.DT), '%Y.%m.%d')) AS PREV_DT_STR
+			, PREV_ATT.ATT_RT AS PREV_ATT_RT		-- 출석률
+			, PREV_LRN.EX_RT AS PREV_EX_RT			-- 수행률
+			, IF(PREV_LRN.EX_RT <![CDATA[>]]> 90, 'A', IF(PREV_LRN.EX_RT <![CDATA[>]]> 20, 'B', IF(PREV_LRN.EX_RT IS NULL, NULL, 'C'))) AS PREV_LRN_SIGNAL	-- 학습분석신호
+			, PREV_ER.AVG_CRT_RT AS PREV_CRT_RT 	-- 정답률
+			, ROUND( PREV_LRN.LRN_SEC / PREV_ATT.ATT_CNT ) AS PREV_DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		-- msg	
+			, LRN.A_LRN_EX_CNT		-- 스스로학습 수행 수 
+			, LRN_A.SUBJ_NM_A_LRN	-- 스스로학습 수행 수가 가장 높은 하위과목명
+			, LRN.PLAN_D_LRN_EX_CNT -- 나중에 했어요 개수
+			, ATT.ATT_CNT			-- 선택된 기간 내 로그인 일 수
+			, ER.EXPL_CNT			-- 완료한 평가지 개수
+			, ER.PS_EXPL_CNT		-- 100점인 평가지 개수
+			, IFNULL(ER.GUC_QUES_CNT, 0) AS GUESS_QUES_CNT			-- 찍은 것으로 보이는 문제 수
+            , IFNULL(ER.INCRT_NT_CNT, 0) AS INCRT_NT_CNT			-- 오답노트 미완료 건수
+            , ER.IMPRV_SLV_HABIT_CNT AS IMPRV_SLV_HABIT_CNT			-- 고쳐야 할 문제풀이 습관 건수
+    		, IFNULL(ER.SKP_QUES_CNT, 0) AS SKIP_QUES_CNT			-- 건너뛴 문제 수
+            , (IFNULL(ER.CUR_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
+		FROM 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S 		
+		<choose>
+            <when test='currConCheck == "w"'>            
+		LEFT OUTER JOIN ( -- 주차
+			SELECT #{studId} AS STUD_ID
+				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
+			FROM COMM_WK_DT 
+			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
+				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt}, '%Y-%m-%d')				
+		) AS WK ON WK.STUD_ID = S.STUD_ID   
+		LEFT OUTER JOIN (
+			SELECT #{studId} AS STUD_ID 
+				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
+			FROM COMM_WK_DT 
+			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_SUB(#{startDt}, INTERVAL 7 DAY)
+				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_SUB(#{endDt}, INTERVAL 7 DAY)		
+		) AS PREV_WK ON PREV_WK.MO = DATE_SUB(WK.MO, INTERVAL 7 DAY) AND PREV_WK.STUD_ID = S.STUD_ID  
+			</when>
+        </choose>
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT DT, STUD_ID, ATT_RT, ATT_CNT 
+			FROM DAY_7_ATT_STT
+			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT DT, STUD_ID, ATT_RT, ATT_CNT 
+			FROM DAY_7_ATT_STT
+			WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND STUD_ID = #{studId} 			
+		) AS PREV_ATT ON PREV_ATT.DT = DATE_SUB(ATT.DT, INTERVAL 7 DAY) AND PREV_ATT.STUD_ID = S.STUD_ID
+		LEFT OUTER JOIN ( -- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100, 선택된 기간 내에 총 학습시간, 스스로학습 수행 수, 나중에 했어요 개수
+			SELECT DT, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+				, A_LRN_EX_CNT, PLAN_D_LRN_EX_CNT
+			FROM DAY_7_LRN_EX_STT PL 
+	        WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+        ) AS LRN ON LRN.STUD_ID = S.STUD_ID
+        LEFT OUTER JOIN (	-- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100, 선택된 기간 내에 총 학습시간
+			SELECT DT, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			FROM DAY_7_LRN_EX_STT PL 
+	        WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+	    ) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 7 DAY) AND PREV_LRN.STUD_ID = S.STUD_ID    
+        LEFT OUTER JOIN ( 	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100, 완료한 평가지 개수, 100점인 평가지 개수			
+        	SELECT DT, STUD_ID
+        		, CASE
+                    WHEN QUES_CNT = 0 OR CRT_CNT = 0 THEN 0
+                    ELSE ROUND( CRT_CNT / QUES_CNT * 100 )
+	            END AS AVG_CRT_RT
+                , EXPL_CNT
+                , PS_EXPL_CNT
+                , INCRT_NT_CNT
+                , SKP_QUES_CNT 
+                , GUC_QUES_CNT
+                , MISTAKE_QUES_CNT
+                , CUR_QUES_CNT
+                , INCRT_QUES_CNT
+                , IMPRV_SLV_HABIT_CNT
+            FROM DAY_7_EXAM_STT 
+            WHERE STUD_ID = #{studId} AND DT = #{endDt}    
+        ) AS ER ON ER.STUD_ID = S.STUD_ID   
+        LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
+        	SELECT DT, STUD_ID,  ROUND(CRT_CNT / QUES_CNT * 100) AS AVG_CRT_RT
+            FROM DAY_7_EXAM_STT 
+            WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+        ) AS PREV_ER ON PREV_ER.DT = DATE_SUB(ER.DT, INTERVAL 7 DAY) AND PREV_ER.STUD_ID = S.STUD_ID   
+        LEFT OUTER JOIN (   -- 스스로학습 수행 수가 가장 높은 하위과목명 	
+        	SELECT EX.STUD_ID, CD.SUBJ_NM AS SUBJ_NM_A_LRN 
+        	FROM DAY_SUBJ_A_LRN_EX_STT AS EX 
+        	JOIN COMM_SUBJ_CD AS CD 
+        	ON CD.SUBJ_CD = EX.SUB_SUBJ_CD
+	        WHERE EX.DT BETWEEN #{startDt} AND #{endDt} AND EX.STUD_ID = #{studId} 
+		    ORDER BY EX.A_LRN_EX_CNT DESC LIMIT 1        	
+	    ) AS LRN_A ON LRN_A.STUD_ID = S.STUD_ID   
+	</select>
+	
+	<select id="getLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
+	/* getLrnBasicMonthly : 기관용 월간 학습 분석 */
+		SELECT
+		    CONCAT(SUBSTRING(#{yyyy},3,2),'년',#{mm},'월') AS DT
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS DT_STR
+			, ATT.ATT_RT		-- 출석률
+			, LRN.EX_RT			-- 수행률
+			, ER.AVG_CRT_RT AS CRT_RT	-- 정답률
+			, IF(LRN.EX_RT <![CDATA[>]]> 90, 'A', IF(LRN.EX_RT <![CDATA[>]]> 20, 'B', IF(LRN.EX_RT IS NULL, NULL, 'C'))) AS LRN_SIGNAL	-- 학습분석신호
+			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		-- prev
+			, CONCAT(SUBSTRING(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),3,2),'년',SUBSTRING(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),5,2),'월') AS PREV_DT
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(CONCAT(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),'01'), '%Y%m%d'), '%Y.%m.%d'), '-', DATE_FORMAT(LAST_DAY(STR_TO_DATE(CONCAT(IFNULL(PREV_ATT.YYMM, PREV_LRN.YYMM),'01'), '%Y%m%d')), '%Y.%m.%d')) AS PREV_DT_STR
+			, PREV_ATT.ATT_RT AS PREV_ATT_RT		-- 출석률
+			, PREV_LRN.EX_RT AS PREV_EX_RT		-- 수행률
+			, IF(PREV_LRN.EX_RT <![CDATA[>]]> 90, 'A', IF(PREV_LRN.EX_RT <![CDATA[>]]> 20, 'B', IF(PREV_LRN.EX_RT IS NULL, NULL, 'C'))) AS PREV_LRN_SIGNAL	-- 학습분석신호
+			, PREV_ER.AVG_CRT_RT AS PREV_CRT_RT 	-- 정답률
+			, ROUND( PREV_LRN.LRN_SEC / PREV_ATT.ATT_CNT ) AS PREV_DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		-- msg	
+			, LRN.A_LRN_EX_CNT		-- 스스로학습 수행 수 
+			, LRN_A.SUBJ_NM_A_LRN	-- 스스로학습 수행 수가 가장 높은 하위과목명
+			, LRN.PLAN_D_LRN_EX_CNT -- 나중에 했어요 개수
+			, ATT.ATT_CNT			-- 선택된 기간 내 로그인 일 수
+			, IFNULL(ER.EXPL_CNT,0) AS EXPL_CNT					-- 완료한 평가지 개수
+            , IFNULL(ER.PS_EXPL_CNT,0) AS PS_EXPL_CNT			-- 100점인 평가지 개수
+			, (IFNULL(ER.GUESS_CRT_QUES_CNT,0) + IFNULL(ER.GUESS_INCRT_QUES_CNT,0)) AS GUESS_QUES_CNT			-- 찍은 것으로 보이는 문제 수
+            , (IFNULL(ER.INCRT_NT_REG_CNT,0) - IFNULL(ER.INCRT_NT_FNSH_CNT,0)) AS INCRT_NT_CNT					-- 오답노트 미완료 건수
+            , (IFNULL(ER.SKIP_QUES_CNT,0) + IFNULL(ER.GUESS_CRT_QUES_CNT,0) + IFNULL(ER.GUESS_INCRT_QUES_CNT,0) 
+            	+ IFNULL(ER.MISTAKE_QUES_CNT,0) + IFNULL(ER.CURSORY_QUES_CNT,0)
+            ) AS IMPRV_SLV_HABIT_CNT	-- 고쳐야 할 문제풀이 습관 건수
+    		, IFNULL(ER.SKIP_QUES_CNT, 0) AS SKIP_QUES_CNT		-- 건너뛴 문제 수
+            , (IFNULL(ER.CURSORY_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_PROBLEM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
+		FROM 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT YYMM, STUD_ID, ATT_RT, ATT_CNT
+			FROM MONTH_ATT_STT
+			WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 이전 출석률, 선택된 기간 내 로그인 일 수
+			SELECT YYMM, STUD_ID, ATT_RT, ATT_CNT 
+			FROM MONTH_ATT_STT
+			WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId} 			
+		) AS PREV_ATT ON PREV_ATT.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(ATT.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m') AND PREV_ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 수행률, 학습시간, 스스로학습 수행 수, 나중에 했어요 개수
+			SELECT YYMM, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+				, A_LRN_EX_CNT, PLAN_D_LRN_EX_CNT
+			FROM MONTH_LRN_EX_STT PL 
+	       	WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+        ) AS LRN ON LRN.STUD_ID = S.STUD_ID 
+        LEFT OUTER JOIN (	-- 이전 수행률, 학습시간	
+			SELECT YYMM, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			FROM MONTH_LRN_EX_STT PL 
+	       	WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+        ) AS PREV_LRN ON PREV_LRN.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(LRN.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m') AND PREV_LRN.STUD_ID = S.STUD_ID 
+        LEFT OUTER JOIN (	-- 정답률, 완료한 평가지 개수, 100점인 평가지 개수
+        	SELECT STUD_ID
+        			, CASE
+	                    WHEN QUES_CNT = 0 OR CRT_CNT = 0 THEN 0
+	                    ELSE ROUND( CRT_CNT / QUES_CNT * 100 )
+	                END AS AVG_CRT_RT
+                    , EXPL_CNT
+                    , PS_EXPL_CNT
+                    , INCRT_NT_REG_CNT
+                    , INCRT_NT_FNSH_CNT
+                    , SKIP_QUES_CNT
+                    , GUESS_CRT_QUES_CNT
+                    , GUESS_INCRT_QUES_CNT
+                    , MISTAKE_QUES_CNT
+                    , CURSORY_QUES_CNT
+            FROM EXAM_MONTH_STT 
+            WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+        ) AS ER ON ER.STUD_ID = S.STUD_ID 
+        LEFT OUTER JOIN (	-- 정답률		
+        	SELECT STUD_ID, CASE
+                                WHEN SUM(QUES_CNT) = 0 THEN 0
+                                ELSE ROUND( SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )
+                            END AS AVG_CRT_RT
+            FROM EXAM_MONTH_STT 
+            WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+        ) AS PREV_ER ON PREV_ER.STUD_ID = S.STUD_ID
+        LEFT OUTER JOIN (    -- 스스로학습 수행 수가 가장 높은 하위과목명 	
+        	SELECT EX.STUD_ID, CD.SUBJ_NM AS SUBJ_NM_A_LRN
+        	FROM MONTH_SUBJ_A_LRN_EX_STT AS EX 
+        	JOIN COMM_SUBJ_CD AS CD 
+        	ON CD.SUBJ_CD = EX.SUB_SUBJ_CD
+	        WHERE EX.YYMM = #{yymm} AND EX.STUD_ID = #{studId} 
+		    ORDER BY EX.A_LRN_EX_CNT DESC LIMIT 1        	
+	    ) AS LRN_A ON LRN_A.STUD_ID = S.STUD_ID
+	</select>
+    
+    <select id="getLrnHabitPeriod" parameterType="hashMap" resultType="resultMap">
+	    SELECT
+			ATT.ATT_RT AS ATT_HABIT						-- 약속을 지키는 습관(출석률) 
+			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
+			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
+			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.AVG_SUBJ_CNT AS A_LRN_HABIT			-- 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			, EX.IMPRV_SLV_HABIT_CNT AS SLV_HABIT		-- 문제풀이 습관(고쳐야할 문제 수) 
+			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
+		FROM 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT STUD_ID, ATT_RT, ATT_CNT 
+			FROM DAY_7_ATT_STT
+			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 수행률, 학습시간	
+			SELECT STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
+			FROM DAY_7_LRN_EX_STT PL 
+		    WHERE STUD_ID = #{studId} AND DT = #{endDt} 
+		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
+			SELECT STUD_ID, INCRT_NT_CNT, IMPRV_SLV_HABIT_CNT
+			FROM DAY_7_EXAM_STT
+			WHERE STUD_ID = #{studId} AND DT = #{endDt} 
+		) AS EX ON EX.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 스스로 찾아 학습하는 습관(과목코드), 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
+					, ALRN2.AVG_SUBJ_CNT
+			FROM DAY_SUBJ_A_LRN_EX_STT AS ALRN1
+			JOIN
+			( 
+				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
+				FROM DAY_SUBJ_A_LRN_EX_STT 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
+			WHERE ALRN1.STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
+											WHEN 'C01' THEN 1
+											WHEN 'C02' THEN 2
+											WHEN 'C03' THEN 3
+											WHEN 'C04' THEN 4
+											WHEN 'C05' THEN 5
+											WHEN 'C06' THEN 6
+											WHEN 'N04' THEN 7
+											WHEN 'N03' THEN 8
+											WHEN 'N01' THEN 9
+											WHEN 'N02' THEN 10
+											WHEN 'N05' THEN 11
+											WHEN 'N06' THEN 12
+										END -- 스스로학습 과목 노출 우선순위
+			LIMIT 1 
+		) AS ALRN ON ALRN.STUD_ID = S.STUD_ID 
+    </select>
+    
+    <select id="getLrnHabitMonthly" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			ATT_RT AS ATT_HABIT							-- 약속을 지키는 습관(출석률)
+			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
+			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
+			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
+			, ALRN.AVG_SUBJ_CNT AS A_LRN_HABIT			-- 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			, EX.IMPRV_SLV_HABIT_CNT AS SLV_HABIT		-- 문제풀이 습관(고쳐야할 문제 수) 
+			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
+		FROM 
+		(	
+			SELECT #{studId} AS STUD_ID 
+		) AS S
+		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
+			SELECT STUD_ID, ATT_RT, ATT_CNT 
+			FROM MONTH_ATT_STT 
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN (	-- 수행률, 학습시간	
+			SELECT STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT
+					, LRN_SEC
+			FROM MONTH_LRN_EX_STT PL 
+		    WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
+			SELECT STUD_ID
+				, ( IFNULL(INCRT_NT_REG_CNT, 0) - IFNULL(INCRT_NT_FNSH_CNT, 0) ) AS INCRT_NT_CNT
+				, ( IFNULL(SKIP_QUES_CNT,0) + IFNULL(CURSORY_QUES_CNT,0) + IFNULL(GUESS_INCRT_QUES_CNT,0) + IFNULL(MISTAKE_QUES_CNT,0) ) AS IMPRV_SLV_HABIT_CNT
+			FROM EXAM_MONTH_STT
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) AS EX ON EX.STUD_ID = S.STUD_ID 
+		LEFT OUTER JOIN ( -- 스스로 찾아 학습하는 습관(과목코드) , 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
+			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
+					, ALRN2.AVG_SUBJ_CNT
+			FROM MONTH_SUBJ_A_LRN_EX_STT AS ALRN1
+			JOIN
+			( 
+				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
+				FROM DAY_SUBJ_A_LRN_EX_STT 
+				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
+			WHERE ALRN1.STUD_ID = #{studId} AND YYMM = #{yymm}
+			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
+											WHEN 'C01' THEN 1
+											WHEN 'C02' THEN 2
+											WHEN 'C03' THEN 3
+											WHEN 'C04' THEN 4
+											WHEN 'C05' THEN 5
+											WHEN 'C06' THEN 6
+											WHEN 'N04' THEN 7
+											WHEN 'N03' THEN 8
+											WHEN 'N01' THEN 9
+											WHEN 'N02' THEN 10
+											WHEN 'N05' THEN 11
+											WHEN 'N06' THEN 12
+										END	-- 스스로학습 과목 노출 우선순위
+			LIMIT 1 		
+		) AS ALRN ON ALRN.STUD_ID = S.STUD_ID 
+    </select>
+    
+    <select id="getLrnHabitDetail" parameterType="hashMap" resultType="resultMap">
+	    SELECT
+			STR_TO_DATE(DTS.DT, '%Y-%m-%d') AS DT
+			, ROUND( LRN.FNSH_PLAN_EX_CNT / LRN.PLAN_EX_CNT * 100 )  AS EX_RT	-- 수행률
+			, ER.CRT_RT AS CRT_RT		-- 정답률
+			, LRN2.LRN_SEC AS DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		FROM 
+		(
+			SELECT dt + INTERVAL lv-1 DAY AS DT
+			FROM (
+			    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+			            , #{startDt} dt
+			FROM information_schema.`COLUMNS` A
+			           , (SELECT @ROWNUM:=0) R
+			    LIMIT #{limitDtCnt}   
+			) a  
+		) AS DTS 
+		LEFT OUTER JOIN (	-- 수행률
+			SELECT 
+			 	PLAN_DT,
+			 	COUNT(*) AS PLAN_EX_CNT,
+				SUM(IF(FNSH_YN = 'Y', 1, 0)) AS FNSH_PLAN_EX_CNT
+			FROM DAY_LRN_EX_LOG  
+		    WHERE STUD_ID = #{studId} AND PLAN_DT BETWEEN #{startDt} AND #{endDt} 
+		    	AND PLAN_UPD_YN IS NULL
+				AND SERVICE_ID IS NOT NULL
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY PLAN_DT
+		) AS LRN ON LRN.PLAN_DT = DTS.DT
+		LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
+			SELECT DT,  
+				CASE
+		            WHEN SUM(QUES_CNT) = 0 THEN 0
+		            WHEN SUM(DESCPT_QUES_CNT) <![CDATA[>]]> 0
+		            	THEN ROUND( SUM(CRT_CNT + DESCPT_CRT_CNT) / SUM(QUES_CNT + DESCPT_QUES_CNT) * 100 ) 
+		        	ELSE ROUND( SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )
+		        END AS CRT_RT
+		    FROM EXAM_RST
+		    WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} AND DEL_YN = 'N'
+			GROUP BY DT
+		) AS ER ON ER.DT = DTS.DT
+		LEFT OUTER JOIN (	-- 학습시간	
+			SELECT DT, SUM(LRN_SEC) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG 
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 				
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT
+		) AS LRN2 ON LRN2.DT = DTS.DT	
+		ORDER BY DTS.DT ASC
+    </select>
+        
+    <select id="getAttRtStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+    			ATT_RT							-- 출석률
+				, PREV_ATT_RT  					-- 이전 출석률
+				, REPLACE(
+					REPLACE(
+						REPLACE(
+							REPLACE(SUMMARY.MSG 
+									, '{a}', ATT_RT)
+									, '{m}', ABS(DIFF))
+								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승'))
+								    , '{0}', '0') AS SUMMARY					
+				, REPLACE(
+					REPLACE(
+						REPLACE(
+							REPLACE(DETAIL.MSG
+									, '{a}', ATT_RT)
+									, '{m}', ABS(DIFF))
+								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승'))
+								    , '{0}', '0') AS DETAIL						
+		FROM (		
+	    	SELECT  ATT.ATT_RT											-- 출석률
+					, PREV_ATT.ATT_RT AS PREV_ATT_RT  					-- 이전 출석률
+					, IFNULL(ATT.ATT_RT - PREV_ATT.ATT_RT, 0) AS DIFF	-- 이전 대비 출석률 차
+					, CASE
+						WHEN ATT.ATT_RT IS NULL THEN 73					-- 출석률 null
+						WHEN ATT.ATT_RT = 0 THEN 						-- 출석률 a = 0
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT 
+									OR PREV_ATT.ATT_RT <![CDATA[<]]> ATT.ATT_RT THEN 69 		-- 이전 대비 + 시 or 이전 대비 값이 같거나 없을 경우
+								WHEN PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 70			-- 이전 대비 – 시								 
+							END 
+						WHEN 0 <![CDATA[<]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 40 THEN 				
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN 66 		-- 이전 대비 값이 같거나 없을 경우
+								ELSE 65 																	-- 이전 대비 + /- 시					 
+							END 
+						WHEN 40 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 90 THEN 				
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN 62	-- 이전 대비 값이 같거나 없을 경우
+								ELSE 61																		-- 이전 대비 + /- 시		
+							END 
+						WHEN 90 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<=]]> 100 THEN 			
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN 57	-- 이전 대비 값이 같거나 없을 경우
+								ELSE 56																		-- 이전 대비 + /- 시	
+							END 		
+				    END AS SUMMARY
+				    , CASE
+						WHEN ATT.ATT_RT IS NULL THEN 74					-- 출석률 null
+						WHEN ATT.ATT_RT = 0 THEN 						-- 출석률 a = 0
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT 
+									OR PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 72 		-- 이전 대비 - 시 or 이전 대비 값이 같거나 없을 경우
+								WHEN PREV_ATT.ATT_RT <![CDATA[<]]> ATT.ATT_RT THEN 71			-- 이전 대비 + 시								 
+							END 
+						WHEN 0 <![CDATA[<]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 40 THEN 				
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT 
+									OR PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 68 		-- 이전 대비 - 시 or 이전 대비 값이 같거나 없을 경우
+								ELSE 67 											-- 이전 대비 + 시					 
+							END 
+						WHEN 40 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<]]> 90 THEN 				
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT 
+									OR PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 64			-- 이전 대비 - 시 or 이전 대비 값이 같거나 없을 경우
+								ELSE 63												-- 이전 대비 + 시		
+							END 
+						WHEN 90 <![CDATA[<=]]> ATT.ATT_RT AND ATT.ATT_RT <![CDATA[<=]]> 100 THEN 			
+							CASE 
+								WHEN PREV_ATT.ATT_RT IS NULL OR PREV_ATT.ATT_RT = ATT.ATT_RT THEN	-- 60	-- 이전 대비 값이 같거나 없을 경우
+									CASE 
+										WHEN ATT.ATT_RT = 100 THEN 222 	-- 100% 일 때
+										ELSE 223						-- 100% 아닐 때
+									END 
+								WHEN PREV_ATT.ATT_RT <![CDATA[>]]> ATT.ATT_RT THEN 59			-- 이전 대비 - 시
+								ELSE 58															-- 이전 대비 + 시
+							END 		
+				   	END AS DETAIL
+			FROM 
+			(	
+				SELECT #{studId} AS STUD_ID 
+			) AS S
+			LEFT OUTER JOIN (	
+				SELECT STUD_ID, ATT_RT 				
+			<choose>
+					<when test='currConCheck == "m"'>					
+				FROM MONTH_ATT_STT 
+				WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+					</when>
+					<otherwise>
+				FROM DAY_7_ATT_STT 
+				WHERE STUD_ID = #{studId} AND DT = #{endDt}
+					</otherwise>
+			</choose>
+			) AS ATT ON ATT.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN
+			(
+				SELECT STUD_ID, ATT_RT
+			<choose>
+					<when test='currConCheck == "m"'>					
+				FROM MONTH_ATT_STT 
+				WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')
+					</when>
+					<otherwise>
+				FROM DAY_7_ATT_STT 
+				WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)	
+					</otherwise>
+			</choose> 
+			) AS PREV_ATT ON PREV_ATT.STUD_ID = S.STUD_ID
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D' AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' AND DETAIL.MSG_NO = A.DETAIL
+    </select>
+    
+    <select id="getAttRtSttDetail" parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+			DTS.DT										-- 날짜 
+			, IF(ATT.LOGIN_YN = 'Y', 1, 0) AS ATT_YN  	-- 출석여부 
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT = LR.FNSH_CNT, '학습완료'
+				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[>]]> LR.FNSH_CNT, '부분완료'
+				, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND IFNULL(LR.FNSH_CNT, 0) = 0, '학습전'
+				, NULL))) AS LRN_STT -- 학습현황 (학습완료, 부분완료, 학습전)
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT = LR.FNSH_CNT, 1, 0) AS LRN_FNSH						-- 학습완료 
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND LR.FNSH_CNT <![CDATA[>]]> 0 AND PL.PLAN_CNT <![CDATA[>]]> LR.FNSH_CNT, 1, 0) AS PART_FNSH	-- 부분완료
+			, IF(PL.PLAN_CNT <![CDATA[>]]> 0 AND IFNULL(LR.FNSH_CNT, 0) = 0, 1, 0) AS LRN_BEFORE								-- 학습전
+			, IF(LRTM.LRTM_CNT <![CDATA[>]]> 0, 1, 0) AS LRN_TM_YN		-- 타임라인 노출여부
+		FROM 
+		(
+			SELECT dt + INTERVAL lv-1 DAY AS DT
+				, #{studId} AS STUD_ID
+			FROM (
+			    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+			            , #{startDt} dt
+			FROM information_schema.`COLUMNS` A
+			           , (SELECT @ROWNUM:=0) R
+			    LIMIT #{limitDtCnt}   
+			) a  
+		) AS DTS 
+		LEFT OUTER JOIN 
+		( 
+			SELECT DT, STUD_ID, PLAN_CNT
+			FROM DAY_PLAN_STT 
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+		) AS PL ON PL.DT = DTS.DT AND PL.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN 
+		(
+			SELECT 
+				PLAN_DT, STUD_ID, SUM(FNSH_CNT) AS FNSH_CNT
+			FROM ( 
+				SELECT 
+					 PLAN_DT, STUD_ID, SERVICE_ID
+					, SUM(IF(FNSH_YN = 'Y', 1, 0)) AS FNSH_CNT
+				FROM DAY_LRN_EX_LOG 
+				WHERE STUD_ID = #{studId} AND PLAN_DT BETWEEN #{startDt} AND #{endDt} 
+					AND SERVICE_ID IS NOT NULL AND PLAN_UPD_YN IS NULL
+					AND SUBJ_CD NOT LIKE '%Z%'
+				GROUP BY PLAN_DT, STUD_ID, SERVICE_ID
+			) A GROUP BY PLAN_DT, STUD_ID
+		) AS LR ON LR.PLAN_DT = DTS.DT AND LR.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT DT, STUD_ID, LOGIN_YN 
+			FROM DAY_ATT_LOG 
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
+		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN 
+		(
+			SELECT 
+				 DT, STUD_ID, COUNT(*) AS LRTM_CNT
+			FROM DAY_LRN_EX_LOG 
+			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
+				AND SERVICE_ID IS NOT NULL AND PLAN_UPD_YN IS NULL
+			GROUP BY DT, STUD_ID
+		) AS LRTM ON LRTM.DT = DTS.DT AND LRTM.STUD_ID = DTS.STUD_ID
+		ORDER BY DTS.DT 
+    </select>
+    
+    <select id="getLrnTmList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			SERVICE_ID,
+		    SUBJ_CD,
+		    EX_TM,
+		    CATEGORY,
+		    LRN_SEC,
+		    STD_LRN_TM,
+		    CASE
+				WHEN FNSH_CNT > 0 THEN 
+					CASE
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획+'
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍+'
+						WHEN FNSH_YN = 'Y' AND DATE_FORMAT(END_CHECK,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에+'
+						WHEN FNSH_YN = 'N' AND PLAN_DT IS NOT NULL THEN '-'
+						ELSE '안했어요'
+					END
+				ELSE EX_TYPE
+		    END AS EX_TYPE,
+		    PLAN_DT
+		FROM (
+			SELECT
+				SERVICE_ID,
+				SUBJ_CD,
+				CONCAT
+				(
+					DT,
+					'(',
+					CASE DAYOFWEEK(DT)
+						WHEN '1' THEN '일요일'
+						WHEN '2' THEN '월요일'
+						WHEN '3' THEN '화요일'
+						WHEN '4' THEN '수요일'
+						WHEN '5' THEN '목요일'
+						WHEN '6' THEN '금요일'
+						WHEN '7' THEN '토요일'
+					END,
+					') ',
+					CASE WHEN PLAN_DT IS NOT NULL AND START_DTTM IS NULL THEN '-' ELSE DATE_FORMAT(START_DTTM,'%H:%i') END,
+					CASE WHEN START_DTTM IS NULL THEN '' ELSE ' ~ ' END,
+					IFNULL(DATE_FORMAT(END_DTTM,'%H:%i'), '')
+				) AS EX_TM,
+				CONCAT(
+					SUBJ_NM,
+					' > ',
+					SUB_SUBJ_NM,
+					' > ',
+					IFNULL(LRN_GRADE,''),
+					CASE WHEN LRN_GRADE IS NOT NULL THEN '학년' ELSE '' END,
+					IFNULL(LRN_TERM,''),
+					CASE WHEN LRN_TERM IS NOT NULL THEN ' 학기 > ' ELSE '' END,
+					IFNULL(CTGR,SUB_SUBJ_NM)				
+				) AS CATEGORY,
+				CASE
+					WHEN ( PLAN_DT IS NOT NULL AND START_DTTM IS NULL ) THEN NULL 
+					ELSE LRN_SEC
+				END AS LRN_SEC,
+				STD_LRN_TM,
+				CASE 
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') = DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '계획'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[<]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '일찍'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL AND DATE_FORMAT(END_DTTM,'%Y%m%d') <![CDATA[>]]> DATE_FORMAT(PLAN_DT,'%Y%m%d') THEN '나중에'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[>=]]> 30 THEN '스스로'
+					WHEN FNSH_YN = 'Y' AND PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y' THEN '스스로'
+					WHEN FNSH_YN = 'N' OR  (FNSH_YN = 'Y' AND PLAN_DT IS NULL AND LRN_SEC <![CDATA[<]]> 30) THEN '학습중'
+					ELSE '안했어요'
+				END AS EX_TYPE,
+				CASE
+					WHEN PLAN_DT IS NOT NULL AND PLAN_UPD_YN IS NULL THEN PLAN_DT
+					ELSE NULL
+				END AS PLAN_DT,
+			    PLAN_DT AS PLAN_DAY,
+			    FNSH_YN,
+			    (SELECT COUNT(*) FROM DAY_LRN_EX_LOG WHERE PLAN_DT = DL.PLAN_DT AND STUD_ID = DL.STUD_ID AND SERVICE_ID = DL.SERVICE_ID AND DT <![CDATA[<]]> DL.DT AND FNSH_YN = 'Y' AND SUBJ_CD NOT LIKE '%Z%') AS FNSH_CNT,
+			    (SELECT MIN(END_DTTM) FROM DAY_LRN_EX_LOG WHERE PLAN_DT = DL.PLAN_DT AND STUD_ID = DL.STUD_ID AND SERVICE_ID = DL.SERVICE_ID AND DT <![CDATA[<]]> DL.DT AND FNSH_YN = 'Y' AND SUBJ_CD NOT LIKE '%Z%') AS END_CHECK
+				FROM DAY_LRN_EX_LOG DL
+				WHERE DT = #{date}
+       				AND STUD_ID = #{studId}    
+       				AND SUBJ_CD NOT LIKE '%Z%'
+      	<if test="ordNm != null and ordNm != ''">
+			<choose>
+				<when test="ordNm == 'planDt'">
+					ORDER BY PLAN_DT ASC
+				</when>
+				<otherwise>
+					ORDER BY IF(INSTR(EX_TM, '-') > 0, '23:59 ~ 24:00', IFNULL(EX_TM,'23:59 ~ 24:00')) ASC
+				</otherwise>
+			</choose>
+		</if>    		
+		) DL1;
+    </select>
+    
+    <select id="getAttCntStt" parameterType="hashMap" resultType="resultMap">
+	    SELECT
+			ATT_CNT				-- 출석일 수: 계획된 학습일 중 출석일 수 
+			, PREV_ATT_CNT		-- 이전 출석일 수 : 계획된 학습일 중 출석일 수 
+			, PLAN_CNT			-- 계획일 수
+			, PREV_PLAN_CNT		-- 이전 계획일 수
+			, REPLACE(
+					REPLACE(
+						REPLACE(
+							REPLACE(SUMMARY.MSG 
+									, '{m}', PLAN_CNT)
+									, '{n}', ATT_CNT)
+									, '{x}', ABS(DIFF))
+								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS SUMMARY					
+				, REPLACE(
+					REPLACE(
+						REPLACE(
+							REPLACE(DETAIL.MSG
+									, '{m}', PLAN_CNT)
+									, '{n}', ATT_CNT)
+									, '{x}', ABS(DIFF))
+								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS DETAIL			
+		FROM (
+			SELECT 
+					IFNULL(ATT.PLAN_ATT_CNT, 0) AS ATT_CNT							-- 출석일 수: 계획된 학습일 중 출석일 수 
+					, IFNULL(PREV_ATT.PLAN_ATT_CNT, 0) AS PREV_ATT_CNT				-- 이전 출석일 수 : 계획된 학습일 중 출석일 수 
+					, IFNULL(ATT.PLAN_DAY_CNT, 0) AS PLAN_CNT						-- 계획일 수
+					, IFNULL(PREV_ATT.PLAN_DAY_CNT, 0) AS PREV_PLAN_CNT				-- 이전 계획일 수
+			, IFNULL(ATT.PLAN_ATT_CNT - PREV_ATT.PLAN_ATT_CNT, 0) AS DIFF			-- 이전 대비 출석일수 차
+			, CASE 
+				WHEN ATT.PLAN_ATT_CNT IS NULL THEN	-- 출석일 수 null
+					83
+			 	WHEN IFNULL(ATT.PLAN_DAY_CNT, 0) - IFNULL(PREV_ATT.PLAN_ATT_CNT, 0) = 0 THEN	
+					79
+			 	WHEN IFNULL(ATT.PLAN_DAY_CNT, 0) - IFNULL(PREV_ATT.PLAN_ATT_CNT, 0) <![CDATA[>=]]> 1 THEN	
+					CASE WHEN PREV_ATT.PLAN_ATT_CNT IS NULL OR ATT.PLAN_ATT_CNT = PREV_ATT.PLAN_ATT_CNT THEN 	-- 이전 대비 값이 같거나 없을 경우
+						76
+					ELSE 	-- 이전 대비 + /- 시
+						75
+					END
+				END AS SUMMARY
+			, CASE 
+				WHEN ATT.PLAN_ATT_CNT IS NULL THEN	-- 출석일 수 null
+			 		84
+				WHEN IFNULL(ATT.PLAN_DAY_CNT, 0) - IFNULL(ATT.PLAN_ATT_CNT, 0) = 0 THEN	
+					CASE WHEN PREV_ATT.PLAN_ATT_CNT IS NULL OR ATT.PLAN_ATT_CNT = PREV_ATT.PLAN_ATT_CNT THEN 	-- 이전 대비 값이 같거나 없을 경우
+						82
+					WHEN ATT.PLAN_ATT_CNT <![CDATA[>]]> PREV_ATT.PLAN_ATT_CNT THEN	-- 이전 대비 + 시
+						80
+					ELSE 	-- 이전 대비 - 시
+						81
+					END
+				WHEN IFNULL(ATT.PLAN_DAY_CNT, 0) - IFNULL(ATT.PLAN_ATT_CNT, 0) <![CDATA[>=]]> 1 THEN	
+					CASE 
+						WHEN PREV_ATT.PLAN_ATT_CNT IS NULL OR ATT.PLAN_ATT_CNT = PREV_ATT.PLAN_ATT_CNT OR ATT.PLAN_ATT_CNT <![CDATA[>]]> PREV_ATT.PLAN_ATT_CNT THEN 	-- 이전 대비 값이 같거나 없을 경우 or 이전 대비 + 시
+							77
+						ELSE	-- 이전 대비 - 시
+							78
+						END
+				END AS DETAIL	
+			FROM 
+			(
+				SELECT STUD_ID
+						, GRADE
+		<choose>
+          	<when test='currConCheck == "m"'>  
+						, #{yymm} AS YYMM
+						, DATE_FORMAT(DATE_SUB(#{startDt},INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+				FROM STUD 
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN MONTH_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
+				AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN MONTH_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
+				AS PREV_ATT ON PREV_ATT.YYMM = S.PREV_YYMM AND PREV_ATT.STUD_ID = S.STUD_ID	
+			</when>
+			<otherwise>
+						, #{endDt} AS DT
+						, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
+				FROM STUD 
+			) AS S
+			LEFT OUTER JOIN DAY_7_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
+				AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN DAY_7_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
+				AS PREV_ATT ON PREV_ATT.DT = S.PREV_DT AND PREV_ATT.STUD_ID = ATT.STUD_ID 
+			</otherwise>
+		</choose>
+			WHERE S.STUD_ID = #{studId}			
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D'
+			 											AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' 
+														AND DETAIL.MSG_NO = A.DETAIL
+    </select>
+    
+	<select id="getAttCntSttDetail" parameterType="hashMap" resultType="resultMap">
+		SELECT DTS.DT			-- 날짜
+			, ATT.PLAN_DT		-- 학습계획일
+			, ATT.ATT_DT		-- 출석일
+		FROM 
+		(
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+			FROM STUD AS S	
+			CROSS JOIN 
+			(	SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+					LIMIT #{limitDtCnt} 
+				) AS A	
+			) AS DTA	
+			WHERE S.STUD_ID = #{studId} 
+		) AS DTS 
+		LEFT OUTER JOIN (
+			SELECT DISTINCT DT -- 날짜
+				, STUD_ID		
+				, IF(PLAN_YN = 'Y', 1, 0) AS PLAN_DT	-- 학습계획일
+				, IF(LOGIN_YN = 'Y', 1, 0) AS ATT_DT	-- 출석일
+			FROM DAY_ATT_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId}
+		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
+		GROUP BY DTS.DT
+	</select>
+	
+    <select id="getLoginPtnStt" parameterType="hashMap" resultType="resultMap">
+   		SELECT LOGIN_PTN
+				, PREV_LOGIN_PTN
+				, SUMMARY.MSG AS SUMMARY
+				, DETAIL.MSG AS DETAIL
+		FROM (
+			SELECT LOGIN_PTN
+					, PREV_LOGIN_PTN
+					, CASE 
+						WHEN LOGIN_PTN = 1 THEN
+							85				
+						WHEN LOGIN_PTN = 0 THEN 
+							88
+					END AS SUMMARY
+					, CASE 
+						WHEN LOGIN_PTN = 1 THEN
+							CASE		
+								WHEN PREV_LOGIN_PTN = 0 THEN
+									86
+								WHEN PREV_LOGIN_PTN = 1 THEN
+									87
+							END
+						WHEN LOGIN_PTN = 0 THEN 
+							CASE		
+								WHEN PREV_LOGIN_PTN = 0 THEN
+									90
+								WHEN PREV_LOGIN_PTN = 1 THEN
+									89
+							END
+					END AS DETAIL
+			FROM 
+			(
+		<choose>
+          	<when test='currConCheck == "m"'>  
+				SELECT IF((ATT.LOGIN_PTN_CNT / ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS LOGIN_PTN					-- 로그인패턴
+					, IF((PREV_ATT.LOGIN_PTN_CNT / PREV_ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS PREV_LOGIN_PTN	-- 이전 로그인패턴
+				FROM MONTH_ATT_STT AS ATT
+				LEFT OUTER JOIN MONTH_ATT_STT AS PREV_ATT 
+					ON ATT.STUD_ID = PREV_ATT.STUD_ID
+					AND PREV_ATT.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')
+				WHERE ATT.STUD_ID = #{studId} AND ATT.YYMM = #{yymm}				
+			</when>
+			<otherwise>
+				SELECT IF((ATT.LOGIN_PTN_CNT / ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS LOGIN_PTN					-- 로그인패턴
+					, IF((PREV_ATT.LOGIN_PTN_CNT / PREV_ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS PREV_LOGIN_PTN	-- 이전 로그인패턴
+				FROM DAY_7_ATT_STT AS ATT
+				LEFT OUTER JOIN DAY_7_ATT_STT AS PREV_ATT 
+					ON ATT.STUD_ID = PREV_ATT.STUD_ID AND PREV_ATT.DT = (DATE_FORMAT(ATT.DT,'%Y-%m-%d') - interval 7 DAY)
+				WHERE ATT.STUD_ID = #{studId} AND ATT.DT = #{endDt} 
+			</otherwise>
+		</choose>
+			) A WHERE NOT (LOGIN_PTN IS NULL AND PREV_LOGIN_PTN IS NULL)
+		) A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D' AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' AND DETAIL.MSG_NO = A.DETAIL
+	</select>
+    
+    <select id="getLoginPtnSttDetail" parameterType="hashMap" resultType="resultMap">
+   		SELECT DISTINCT DTS.DT	
+				, DTS.PREV_DT		-- 이전날짜 
+				, DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H:%i') AS LOGIN_TM_STR
+				, DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H:%i') AS PREV_LOGIN_TM_STR
+				, CONVERT(DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%H') * 3600 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%i') * 60 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%S'), SIGNED) AS LOGIN_TM					-- 로그인패턴
+				, CONVERT(DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%H') * 3600 + DATE_FORMAT(PREV_ATT.FIRST_LOGIN_DTTM,'%i') * 60 + DATE_FORMAT(ATT.FIRST_LOGIN_DTTM,'%S'), SIGNED) AS PREV_LOGIN_TM	-- 이전 로그인패턴
+		FROM 
+		(
+			SELECT
+				DTA.DT
+				<choose>
+          	<when test='currConCheck == "m"'>  
+				, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
+			</when>
+			<otherwise>
+				, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT		-- 이전날짜 
+			</otherwise>
+		</choose>
+				, #{studId} AS STUD_ID
+			FROM 
+			(
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+					FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt}   
+				) a
+			) AS DTA  
+		) AS DTS 
+		LEFT OUTER JOIN
+		(	-- 로그인패턴
+			SELECT DISTINCT DT, STUD_ID, FIRST_LOGIN_DTTM
+			FROM DAY_ATT_LOG 
+			WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId} AND LOGIN_YN = 'Y'
+		) AS ATT ON ATT.DT = DTS.DT 
+		LEFT OUTER JOIN
+		(	-- 로그인패턴
+			SELECT DISTINCT DT, STUD_ID, FIRST_LOGIN_DTTM
+			FROM DAY_ATT_LOG 
+		<choose>
+            <when test='currConCheck == "m"'>    
+			WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+			</when>
+			<otherwise>
+			WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+			</otherwise>
+		</choose>
+				AND STUD_ID = #{studId} AND LOGIN_YN = 'Y'
+		) AS PREV_ATT ON PREV_ATT.DT = DTS.PREV_DT 
+    </select>
+    
+    <select id="getExRtStt" parameterType="hashMap" resultType="resultMap">
+		SELECT EX_RT
+				, PREV_EX_RT
+				, AVG_EX_RT		-- 평균 수행률
+				, REPLACE(
+						REPLACE(
+							REPLACE(SUMMARY.MSG 
+									, '{a}', EX_RT)
+									, '{m}', ABS(DIFF))
+									, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS SUMMARY					
+				, REPLACE(
+						REPLACE(
+							REPLACE(DETAIL.MSG
+									, '{a}', EX_RT)
+									, '{m}', ABS(DIFF))
+									, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS DETAIL			
+		FROM (
+			SELECT EX.EX_RT AS EX_RT
+				, PREV_EX.EX_RT AS PREV_EX_RT
+				, GRP_EX.AVG_EX_RT AS AVG_EX_RT		-- 평균 수행률
+			-- msg
+				, IFNULL(EX.EX_RT - PREV_EX.EX_RT, 0) AS DIFF	-- 수행률 차
+				, CASE 
+						WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN
+							91
+						WHEN ATT.ATT_CNT <![CDATA[>=]]> 1 THEN
+							CASE 
+								WHEN EX.EX_RT IS NULL THEN
+									108
+								WHEN EX.EX_RT = 100 THEN
+									CASE 
+										WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT OR EX.EX_RT <![CDATA[<]]> PREV_EX.EX_RT THEN
+											94
+										ELSE
+											93
+									END
+								WHEN 60 <![CDATA[<=]]> EX.EX_RT THEN
+									CASE 
+										WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT THEN
+											98
+										ELSE
+											97
+									END
+								WHEN 30 <![CDATA[<=]]> EX.EX_RT THEN
+									CASE WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT THEN
+										102
+									ELSE
+										101
+									END
+								ELSE
+									CASE WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT THEN
+										106
+									ELSE
+										105
+									END
+							END							
+				END SUMMARY
+				, CASE 
+						WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN
+							92
+						WHEN ATT.ATT_CNT <![CDATA[>=]]> 1 THEN
+							CASE 
+								WHEN EX.EX_RT IS NULL THEN
+									109
+								WHEN EX.EX_RT = 100 THEN
+									CASE 
+										WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT OR EX.EX_RT <![CDATA[>]]> PREV_EX.EX_RT THEN
+											95
+										ELSE
+											96
+									END
+								WHEN 60 <![CDATA[<=]]> EX.EX_RT THEN
+									CASE 
+										WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT OR EX.EX_RT <![CDATA[<]]> PREV_EX.EX_RT THEN
+											100
+										ELSE
+											99
+									END
+								WHEN 30 <![CDATA[<=]]> EX.EX_RT THEN							
+									CASE WHEN PREV_EX.EX_RT IS NULL OR EX.EX_RT = PREV_EX.EX_RT OR EX.EX_RT <![CDATA[<]]> PREV_EX.EX_RT THEN
+										104
+									ELSE
+										103
+									END
+								ELSE
+									107
+							END		
+				END DETAIL
+			FROM
+			(	
+				SELECT STUD_ID
+					, GRADE
+		<choose>
+            <when test='currConCheck == "m"'>  
+            	, #{yymm} AS YYMM
+				, DATE_FORMAT(DATE_SUB(#{startDt},INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+				FROM STUD
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN (
+				SELECT YYMM
+					, STUD_ID 
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+				FROM MONTH_LRN_EX_STT 	
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS EX ON EX.YYMM = S.YYMM	AND EX.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT YYMM
+					, STUD_ID 
+					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+				FROM MONTH_LRN_EX_STT 	
+				WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt},INTERVAL 1 MONTH),'%Y%m') AND STUD_ID = #{studId}
+			) AS PREV_EX ON EX.STUD_ID = PREV_EX.STUD_ID AND PREV_EX.YYMM = S.PREV_YYMM
+			LEFT OUTER JOIN (
+				SELECT YYMM
+					, STUD_ID
+					, ATT_CNT
+				FROM MONTH_ATT_STT
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
+			</when>
+			<otherwise>
+ 					, #{endDt} AS DT
+ 					, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
+ 				FROM STUD
+ 				WHERE STUD_ID = #{studId}
+ 			) AS S
+ 			LEFT OUTER JOIN (
+ 				SELECT DT
+ 						, STUD_ID
+ 						, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+ 				FROM DAY_7_LRN_EX_STT EX	
+ 				WHERE DT = #{endDt} AND STUD_ID = #{studId}
+ 			) AS EX ON EX.DT = S.DT	AND EX.STUD_ID = S.STUD_ID
+ 			LEFT OUTER JOIN (
+ 				SELECT DT
+ 					, STUD_ID 
+ 					, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+ 				FROM DAY_7_LRN_EX_STT EX	
+ 				WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND STUD_ID = #{studId}
+ 			) AS PREV_EX ON PREV_EX.DT = S.PREV_DT AND EX.STUD_ID = PREV_EX.STUD_ID  
+ 			LEFT OUTER JOIN (
+ 				SELECT DT
+ 					, STUD_ID
+ 					, ATT_CNT
+ 				FROM DAY_7_ATT_STT
+ 				WHERE DT = #{endDt} AND STUD_ID = #{studId}
+ 			) AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
+			</otherwise>
+		</choose>
+			LEFT OUTER JOIN ( 	 -- 상위 수행률, 평균 수행률 
+ 				SELECT GRADE, ROUND(AVG(GRP_AVG_EX_RT)) AS AVG_EX_RT		
+ 				FROM DAY_GRP_LRN_EX_STT
+ 				WHERE DT BETWEEN #{startDt} AND #{endDt}  
+ 				GROUP BY GRADE
+ 			) AS GRP_EX ON GRP_EX.GRADE = S.GRADE 			
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D'
+			 											AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' 
+														AND DETAIL.MSG_NO = A.DETAIL
+	</select>
+        
+    <select id="getExRtSttDetail" parameterType="hashMap" resultType="resultMap">
+    	SELECT DTS.DT								-- 날짜
+		    , DTS.PREV_DT							-- 이전날짜 			
+			, EX.EX_RT 								-- 수행률
+			, PREV_EX.EX_RT AS PREV_EX_RT			-- 이전 수행률 
+			, GRP_EX.TOP_30_EX_RT AS TOP_EX_RT		-- 상위수행률 
+			, GRP_EX.GRP_AVG_EX_RT AS AVG_EX_RT		-- 평균수행률
+		FROM 
+		(
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+		<choose>
+            <when test='currConCheck == "m"'>    
+ 					, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT			-- 이전날짜 
+			</when>
+			<otherwise>
+		 			, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
+		 	</otherwise>
+		 </choose>		
+			FROM STUD AS S
+			CROSS JOIN (
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt}   
+				)  AS A  
+			) AS DTA 
+			WHERE S.STUD_ID = #{studId}
+		) AS DTS 
+		LEFT OUTER JOIN (	
+			SELECT PL.DT, PL.STUD_ID
+				, CASE
+					WHEN PL.PLAN_CNT IS NULL THEN NULL
+		            WHEN PL.PLAN_CNT = 0 THEN 0
+		            WHEN ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
+		            ELSE ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100)
+		        END AS EX_RT
+			FROM
+			(                  
+				SELECT DT -- 날짜
+					, STUD_ID
+					, PLAN_CNT
+				FROM DAY_PLAN_STT
+				WHERE STUD_ID = #{studId}
+					AND DT BETWEEN #{startDt} AND #{endDt}
+				GROUP BY DT
+			) AS PL 
+			LEFT OUTER JOIN (
+				SELECT DT, PLAN_DT -- 날짜
+					, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
+				FROM DAY_LRN_EX_LOG
+				WHERE STUD_ID = #{studId}
+					AND PLAN_DT BETWEEN #{startDt} AND #{endDt}
+					AND FNSH_YN = 'Y'
+					AND PLAN_UPD_YN IS NULL
+					AND SERVICE_ID IS NOT NULL
+					AND SUBJ_CD NOT LIKE '%Z%'
+				GROUP BY PLAN_DT
+			) AS LRN ON PL.DT = LRN.PLAN_DT
+		) AS EX ON EX.DT = DTS.DT AND EX.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN
+		(	
+			SELECT PL.DT, PL.STUD_ID
+				, CASE
+					WHEN PL.PLAN_CNT IS NULL THEN NULL
+		            WHEN PL.PLAN_CNT = 0 THEN 0
+		            WHEN ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100) <![CDATA[>]]> 100 THEN 100
+		            ELSE ROUND(IFNULL(LRN.LRN_EX_CNT, 0) / PL.PLAN_CNT * 100)
+		        END AS EX_RT
+			FROM
+			(                  
+				SELECT DT -- 날짜
+					, STUD_ID
+					, PLAN_CNT
+				FROM DAY_PLAN_STT
+				WHERE STUD_ID = #{studId} 					
+		<choose>
+	        <when test='currConCheck == "m"'>    
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+			</when>
+			<otherwise>	
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+			</otherwise>
+		</choose>
+				GROUP BY DT
+			) AS PL 
+			LEFT OUTER JOIN (
+				SELECT DT, PLAN_DT -- 날짜
+					, COUNT(DISTINCT SERVICE_ID) AS LRN_EX_CNT
+				FROM DAY_LRN_EX_LOG
+				WHERE STUD_ID = #{studId} 								
+		<choose>
+	        <when test='currConCheck == "m"'>    
+					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+			</when>
+			<otherwise>	
+					AND PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+			</otherwise>
+		</choose>
+					AND FNSH_YN = 'Y'
+					AND PLAN_UPD_YN IS NULL
+					AND SERVICE_ID IS NOT NULL
+					AND SUBJ_CD NOT LIKE '%Z%'
+				GROUP BY PLAN_DT
+			) AS LRN ON PL.DT = LRN.PLAN_DT
+		) AS PREV_EX ON PREV_EX.DT = DTS.PREV_DT AND PREV_EX.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN 
+		(
+			SELECT DT, GRADE, TOP_30_EX_RT, GRP_AVG_EX_RT
+			FROM DAY_GRP_LRN_EX_STT						
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+		) AS GRP_EX ON GRP_EX.DT = DTS.DT AND GRP_EX.GRADE = DTS.GRADE
+		ORDER BY DTS.DT
+    </select>
+    
+    <select id="getFnshLrnExStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+			FNSH_LRN_CNT
+			, PREV_FNSH_LRN_CNT
+			, TOP_FNSH_LRN_CNT
+			, AVG_FNSH_LRN_CNT
+		-- msg
+			, REPLACE(
+					REPLACE(
+						REPLACE(SUMMARY.MSG 
+								, '{m}', PLAN_CNT)
+								, '{n}', FNSH_LRN_CNT)
+								, '{m-n}', PLAN_CNT-FNSH_LRN_CNT) AS SUMMARY
+			, REPLACE(
+					REPLACE(
+						REPLACE(DETAIL.MSG
+								, '{m}', PLAN_CNT)
+								, '{n}', FNSH_LRN_CNT)
+								, '{m-n}', PLAN_CNT-FNSH_LRN_CNT) AS DETAIL
+		FROM
+		(	
+			SELECT 
+				LRN.PLAN_LRN_EX_CNT AS FNSH_LRN_CNT
+				, PREV_LRN.PLAN_LRN_EX_CNT AS PREV_FNSH_LRN_CNT
+				, GRP_LRN.TOP_FNSH_LRN_CNT AS TOP_FNSH_LRN_CNT
+				, GRP_LRN.AVG_FNSH_LRN_CNT AS AVG_FNSH_LRN_CNT
+			-- msg
+				, LRN.PLAN_CNT 
+				, CASE 
+						WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 110
+						WHEN ATT.ATT_CNT <![CDATA[>=]]>  1 THEN
+							CASE 
+								WHEN LRN.PLAN_CNT - LRN.PLAN_LRN_EX_CNT <![CDATA[>=]]> 1 THEN 112
+								WHEN LRN.PLAN_CNT - LRN.PLAN_LRN_EX_CNT = 0 THEN 114
+							END							
+				END SUMMARY
+				, CASE 
+						WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 111
+						WHEN ATT.ATT_CNT <![CDATA[>=]]>  1 THEN
+							CASE 
+								WHEN LRN.PLAN_CNT - LRN.PLAN_LRN_EX_CNT <![CDATA[>=]]> 1 THEN 113
+								WHEN LRN.PLAN_CNT - LRN.PLAN_LRN_EX_CNT = 0 THEN 
+									CASE 
+										WHEN PREV_LRN.PLAN_LRN_EX_CNT IS NULL 
+											OR LRN.PLAN_LRN_EX_CNT = PREV_LRN.PLAN_LRN_EX_CNT 
+											OR LRN.PLAN_LRN_EX_CNT <![CDATA[<]]> PREV_LRN.PLAN_LRN_EX_CNT 
+										THEN 116
+									ELSE 115
+									END
+							END		
+				END DETAIL
+			FROM 
+			(	
+				SELECT STUD_ID
+					, GRADE
+		<choose>
+            <when test='currConCheck == "m"'>  
+					, #{yymm} AS YYMM
+					, DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+				FROM STUD
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN (
+				SELECT YYMM, STUD_ID 
+						, PLAN_CNT
+						, PLAN_LRN_EX_CNT
+						, PLAN_A_LRN_EX_CNT
+				FROM MONTH_LRN_EX_STT
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS LRN ON LRN.YYMM = S.YYMM AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (	
+				SELECT YYMM, STUD_ID 
+						, PLAN_LRN_EX_CNT
+				FROM MONTH_LRN_EX_STT
+				WHERE YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+			) AS PREV_LRN ON PREV_LRN.YYMM = S.PREV_YYMM AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT YYMM
+					, STUD_ID
+					, ATT_CNT
+				FROM MONTH_ATT_STT
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
+			</when>
+			<otherwise>
+					, #{endDt} AS DT
+					, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
+				FROM STUD
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN (
+				SELECT DT, STUD_ID 
+						, PLAN_CNT
+						, PLAN_LRN_EX_CNT
+				FROM DAY_7_LRN_EX_STT
+				WHERE DT = #{endDt} AND STUD_ID = #{studId}
+			) AS LRN ON LRN.DT = S.DT AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (	
+				SELECT DT, STUD_ID 
+						, PLAN_LRN_EX_CNT
+				FROM DAY_7_LRN_EX_STT
+				WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND STUD_ID = #{studId}
+			) AS PREV_LRN ON PREV_LRN.DT = S.PREV_DT AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT DT
+					, STUD_ID
+					, ATT_CNT
+				FROM DAY_7_ATT_STT
+				WHERE DT = #{endDt} AND STUD_ID = #{studId}
+			) AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
+			</otherwise>
+		</choose>			
+			LEFT OUTER JOIN (	
+				SELECT GRADE, ROUND(AVG(TOP_30_LRN_CNT)) AS TOP_FNSH_LRN_CNT, ROUND(AVG(GRP_AVG_LRN_CNT)) AS AVG_FNSH_LRN_CNT
+				FROM DAY_GRP_LRN_EX_STT
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+				GROUP BY GRADE
+			) AS GRP_LRN ON GRP_LRN.GRADE = S.GRADE
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D'
+			 											AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' 
+														AND DETAIL.MSG_NO = A.DETAIL
+    </select>
+    
+    <select id="getFnshLrnExSttDetail" parameterType="hashMap" resultType="resultMap">
+	    SELECT DTS.DT		-- 날짜
+    			, DTS.PREV_DT	-- 이전날짜 
+	 			, LRN.PLAN_LRN_EX_CNT AS FNSH_LRN_CNT	-- 완료한 학습 수
+				, LRN.NC_PLAN_LRN_EX_CNT AS NC_LRN_CNT	-- 미완료 학습 수 
+				, PREV_LRN.PLAN_LRN_EX_CNT AS PREV_FNSH_LRN_CNT	-- 이전 완료한 학습 수 
+				, PREV_LRN.NC_PLAN_LRN_EX_CNT AS PREV_NC_LRN_CNT	-- 이전 미완료 학습 수
+				, GRP_LRN.TOP_30_LRN_CNT AS TOP_FNSH_LRN_CNT		-- 상위 완료한 학습 수 
+				, GRP_LRN.GRP_AVG_LRN_CNT AS AVG_FNSH_LRN_CNT	-- 평균 완료한 학습 수  
+		FROM 
+		(
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+			<choose>
+	      		<when test='currConCheck == "m"'>  
+					, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT
+				</when>
+ 				<otherwise>
+		 			, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT			-- 이전날짜 
+	 		 	</otherwise>
+	 		</choose>
+			FROM STUD AS S
+			CROSS JOIN (
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt} 
+				) AS A  
+			) AS DTA 
+			WHERE S.STUD_ID = #{studId} 
+		) AS DTS 
+		LEFT OUTER JOIN (	
+			SELECT PL.DT -- 날짜
+				, PL.STUD_ID
+				, IFNULL(PLAN_LRN_EX_CNT, 0) AS PLAN_LRN_EX_CNT
+				, PLAN_CNT - IFNULL(PLAN_LRN_EX_CNT, 0) AS NC_PLAN_LRN_EX_CNT 
+			FROM DAY_PLAN_STT AS PL
+			LEFT OUTER JOIN (
+				SELECT PLAN_DT, STUD_ID, COUNT(DISTINCT SERVICE_ID) AS PLAN_LRN_EX_CNT
+				FROM DAY_LRN_EX_LOG AS L
+				WHERE STUD_ID = #{studId} AND PLAN_DT BETWEEN #{startDt} AND #{endDt}
+					AND PLAN_UPD_YN IS NULL
+					AND SERVICE_ID IS NOT NULL
+					AND FNSH_YN = 'Y'
+					AND SUBJ_CD NOT LIKE '%Z%'
+				GROUP BY L.PLAN_DT
+			) AS LR ON LR.PLAN_DT = PL.DT AND LR.STUD_ID = PL.STUD_ID
+			WHERE PL.STUD_ID = #{studId}
+				AND PL.DT BETWEEN #{startDt} AND #{endDt}
+			GROUP BY PL.DT
+		) AS LRN ON LRN.DT = DTS.DT AND LRN.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (	
+			SELECT PL.DT -- 날짜
+				, PL.STUD_ID
+				, IFNULL(PLAN_LRN_EX_CNT, 0) AS PLAN_LRN_EX_CNT
+				, PLAN_CNT - IFNULL(PLAN_LRN_EX_CNT, 0) AS NC_PLAN_LRN_EX_CNT 
+			FROM DAY_PLAN_STT AS PL
+			LEFT OUTER JOIN (
+				SELECT PLAN_DT, STUD_ID, COUNT(DISTINCT SERVICE_ID) AS PLAN_LRN_EX_CNT
+				FROM DAY_LRN_EX_LOG AS L
+		<choose>
+	      	<when test='currConCheck == "m"'>  
+ 				WHERE PLAN_DT BETWEEN DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH))
+			</when>
+	 		<otherwise>
+ 				WHERE PLAN_DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND LAST_DAY(DATE_SUB(#{endDt}, INTERVAL 7 DAY))
+			</otherwise>
+		</choose>
+					AND STUD_ID = #{studId} 
+					AND PLAN_UPD_YN IS NULL
+					AND SERVICE_ID IS NOT NULL
+					AND FNSH_YN = 'Y'		
+					AND SUBJ_CD NOT LIKE '%Z%'		
+				GROUP BY L.PLAN_DT
+			) AS LR ON LR.PLAN_DT = PL.DT AND LR.STUD_ID = PL.STUD_ID
+			WHERE PL.STUD_ID = #{studId}
+				<choose>
+			      	<when test='currConCheck == "m"'>  
+		 			AND PL.DT BETWEEN DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH))
+					</when>
+			 		<otherwise>
+		 			AND PL.DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND LAST_DAY(DATE_SUB(#{endDt}, INTERVAL 7 DAY))
+					</otherwise>
+				</choose>
+			GROUP BY PL.DT
+ 		) AS PREV_LRN ON PREV_LRN.DT = DTS.PREV_DT AND LRN.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (	
+			SELECT DT, GRADE, TOP_30_LRN_CNT, GRP_AVG_LRN_CNT
+			FROM DAY_GRP_LRN_EX_STT
+			WHERE DT BETWEEN #{startDt} AND #{endDt} 
+		) AS GRP_LRN ON GRP_LRN.DT = DTS.DT AND GRP_LRN.GRADE = DTS.GRADE
+		ORDER BY DTS.DT
+    </select>    
+    
+    <select id="getLrnExSttCompareSub" parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+    		B_LRN_EX_CNT
+			, PREV_B_LRN_EX_CNT
+			, REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(SUMMARY.MSG 
+							, '{m}', PLAN_CNT)
+							, '{n}', B_LRN_EX_CNT)
+							, '{x}', ABS(DIFF))
+							, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS SUMMARY
+			, REPLACE(
+				REPLACE(
+					REPLACE(
+						REPLACE(DETAIL.MSG
+							, '{m}', PLAN_CNT)
+							, '{n}', B_LRN_EX_CNT)
+							, '{x}', ABS(DIFF)) 
+							, '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승')) AS DETAIL
+	FROM 
+    (
+    	SELECT 
+    		LRN.PLAN_A_LRN_EX_CNT AS B_LRN_EX_CNT
+			, PREV_LRN.PLAN_A_LRN_EX_CNT AS PREV_B_LRN_EX_CNT
+			-- msg
+			, LRN.PLAN_CNT 
+			, IFNULL(LRN.PLAN_A_LRN_EX_CNT - PREV_LRN.PLAN_A_LRN_EX_CNT, 0) AS DIFF	--  차
+			, CASE 
+					WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 117
+					WHEN ATT.ATT_CNT >=  1 THEN
+						CASE 
+							WHEN LRN.EX_RT IS NULL AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 119
+							WHEN LRN.EX_RT = 0 AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 121
+							WHEN LRN.EX_RT > 0 THEN 
+								CASE 
+									WHEN LRN.PLAN_A_LRN_EX_CNT > 0 THEN 
+										CASE 
+											WHEN LRN.PLAN_A_LRN_EX_CNT IS NULL 
+												OR LRN.PLAN_A_LRN_EX_CNT = PREV_LRN.PLAN_A_LRN_EX_CNT 
+												THEN 124
+											ELSE 123
+										END
+									WHEN LRN.PLAN_A_LRN_EX_CNT = 0 THEN 126
+								END								
+						END							
+			END SUMMARY
+			, CASE 
+					WHEN ATT.ATT_CNT IS NULL OR ATT.ATT_CNT = 0 THEN 118
+					WHEN ATT.ATT_CNT >=  1 THEN
+						CASE 
+							WHEN LRN.EX_RT IS NULL AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 120
+							WHEN LRN.EX_RT = 0 AND LRN.PLAN_A_LRN_EX_CNT = 0 THEN 122
+							WHEN LRN.EX_RT > 0 THEN 
+								CASE 
+									WHEN LRN.PLAN_A_LRN_EX_CNT > 0 THEN 125
+									WHEN LRN.PLAN_A_LRN_EX_CNT = 0 THEN 127
+								END
+						END		
+			END DETAIL
+		FROM 
+		(
+				SELECT STUD_ID
+					, GRADE
+		<choose>
+	      	<when test='currConCheck == "m"'>  
+		      		, #{yymm} AS YYMM
+					, DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH),'%Y%m') AS PREV_YYMM
+				FROM STUD
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN (
+				SELECT YYMM, STUD_ID 
+						, PLAN_CNT
+						, PLAN_A_LRN_EX_CNT
+						, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT				
+				FROM MONTH_LRN_EX_STT
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS LRN ON LRN.YYMM = S.YYMM AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (	
+				SELECT YYMM, STUD_ID 
+						, PLAN_A_LRN_EX_CNT
+						, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+				FROM MONTH_LRN_EX_STT
+				WHERE YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+			) AS PREV_LRN ON PREV_LRN.YYMM = S.PREV_YYMM AND PREV_LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT YYMM
+					, STUD_ID
+					, ATT_CNT
+				FROM MONTH_ATT_STT
+				WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			) AS ATT ON ATT.YYMM = S.YYMM AND ATT.STUD_ID = S.STUD_ID
+			</when>
+			<otherwise>
+					, #{endDt} AS DT
+					, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
+				FROM STUD
+				WHERE STUD_ID = #{studId}
+			) AS S
+			LEFT OUTER JOIN (	
+				SELECT DT, STUD_ID 
+						, PLAN_CNT
+						, PLAN_A_LRN_EX_CNT
+						, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+				FROM DAY_7_LRN_EX_STT
+				WHERE STUD_ID = #{studId} AND DT = #{endDt}
+			) AS LRN ON LRN.DT = S.DT AND LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (	
+				SELECT DT, STUD_ID 
+						, PLAN_A_LRN_EX_CNT
+						, ROUND( PLAN_LRN_EX_CNT / PLAN_CNT * 100 ) AS EX_RT 
+				FROM DAY_7_LRN_EX_STT
+				WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+			) AS PREV_LRN ON PREV_LRN.DT = S.PREV_DT AND PREV_LRN.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT DT
+					, STUD_ID
+					, ATT_CNT
+				FROM DAY_7_ATT_STT
+				WHERE DT = #{endDt} AND STUD_ID = #{studId}
+			) AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
+			</otherwise>
+		</choose>
+		) AS A
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS SUMMARY ON SUMMARY.CHANNEL = 'O' AND SUMMARY.MSG_VERSION = '1.0' AND SUMMARY.MSG_SHEET = 'D'
+			 											AND SUMMARY.MSG_NO = A.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE AS DETAIL ON DETAIL.CHANNEL = 'O' AND DETAIL.MSG_VERSION = '1.0' AND DETAIL.MSG_SHEET = 'D' 
+														AND DETAIL.MSG_NO = A.DETAIL
+	    
+    </select>
+    
+    <select id="getLrnExSttCompareSubDetail" parameterType="hashMap" resultType="resultMap">
+		SELECT 
+    		DTS.DT
+			, DTS.PREV_DT AS PREV_DT
+			, LRN.PLAN_A_LRN_EX_CNT AS B_LRN_EX_CNT
+			, LRN.PLAN_T_LRN_EX_CNT AS PLAN_LRN_EX_CNT
+			, LRN.PLAN_D_LRN_EX_CNT AS D_LRN_EX_CNT
+			, PREV_LRN.PLAN_A_LRN_EX_CNT AS PREV_B_LRN_EX_CNT
+			, PREV_LRN.PLAN_T_LRN_EX_CNT AS PREV_PLAN_LRN_EX_CNT
+			, PREV_LRN.PLAN_D_LRN_EX_CNT AS PREV_D_LRN_EX_CNT
+		FROM 
+		(
+			SELECT
+				DTA.DT
+		<choose>
+          	<when test='currConCheck == "m"'>  
+				, DATE_SUB(DTA.DT, INTERVAL 1 MONTH) AS PREV_DT		-- 이전날짜 
+			</when>
+			<otherwise>
+				, DATE_SUB(DTA.DT, INTERVAL 7 DAY) AS PREV_DT		-- 이전날짜 
+			</otherwise>
+		</choose>
+				, #{studId} AS STUD_ID
+			FROM 
+			(
+				SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+					FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+				    LIMIT #{limitDtCnt}   
+				) a
+			) AS DTA  
+		) AS DTS 
+		LEFT OUTER JOIN (	
+			SELECT DT, STUD_ID 
+					, COUNT(DISTINCT IF(DT <![CDATA[<]]> PLAN_DT, SERVICE_ID, NULL)) AS PLAN_A_LRN_EX_CNT
+					, COUNT(DISTINCT IF(DT = PLAN_DT, SERVICE_ID, NULL)) AS PLAN_T_LRN_EX_CNT
+					, COUNT(DISTINCT IF(DT <![CDATA[>]]> PLAN_DT, SERVICE_ID, NULL)) AS PLAN_D_LRN_EX_CNT
+			FROM DAY_LRN_EX_LOG
+			WHERE STUD_ID = #{studId}
+				AND FNSH_YN = 'Y'
+				AND DT BETWEEN #{startDt} AND #{endDt}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT
+		) AS LRN ON LRN.DT = DTS.DT
+		LEFT OUTER JOIN (	
+			SELECT DT, STUD_ID 
+					, COUNT(DISTINCT IF(DT <![CDATA[<]]> PLAN_DT, SERVICE_ID, NULL)) AS PLAN_A_LRN_EX_CNT
+					, COUNT(DISTINCT IF(DT = PLAN_DT, SERVICE_ID, NULL)) AS PLAN_T_LRN_EX_CNT
+					, COUNT(DISTINCT IF(DT <![CDATA[>]]> PLAN_DT, SERVICE_ID, NULL)) AS PLAN_D_LRN_EX_CNT
+			FROM DAY_LRN_EX_LOG
+			WHERE STUD_ID = #{studId}
+				AND FNSH_YN = 'Y'
+				<choose>
+		            <when test='currConCheck == "m"'>    
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+				AND SUBJ_CD NOT LIKE '%Z%'				
+			GROUP BY DT
+		) AS PREV_LRN ON PREV_LRN.DT = DTS.PREV_DT
+    
+    </select>
+    
+    <select id="getALrnExStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    STUD_NM,
+		    A_LRN_EX_CNT,
+		    PREV_A_LRN_EX_CNT,
+		    TOP_A_LRN_EX_CNT,
+		    AVG_A_LRN_EX_CNT,
+		    CASE
+		    	WHEN A_LRN_EX_CNT IS NULL THEN SU.MSG
+		    	ELSE
+		    		REPLACE(
+		    			REPLACE(SU.MSG, '{a}', A_LRN_EX_CNT),
+	    			'{n}', A_LRN_EX_CNT
+	    			)
+		    END AS SUMMARY,
+		    CASE
+		    	WHEN A_LRN_EX_CNT IS NULL THEN DE.MSG
+		    	ELSE
+		    		REPLACE(
+		    			REPLACE(DE.MSG, '{b}', IFNULL(SUBJ_NM,'')),
+		    		'{학생이름}', IFNULL(STUD_NM,'')
+	    			)
+		    END AS DETAIL
+		FROM (
+	    	SELECT
+				ST.STUD_ID,
+				ST.STUD_NM,
+			    ALRN.A_LRN_EX_CNT,
+			    PALRN.A_LRN_EX_CNT AS PREV_A_LRN_EX_CNT,
+			    TOP_30_A_LRN_CNT AS TOP_A_LRN_EX_CNT,
+				GRP_AVG_A_LRN_CNT AS AVG_A_LRN_EX_CNT,
+				CASE
+					WHEN ATT_CNT IS NULL OR ATT_CNT = 0 THEN 128
+			        ELSE 
+						CASE
+							WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 130, 132)
+			                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 134, 136)
+			                WHEN EX_RT <![CDATA[>]]> 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 141, 138)
+			            END 
+			    END AS SUMMARY,
+				CASE
+					WHEN ATT_CNT IS NULL OR ATT_CNT = 0 THEN 129
+			        ELSE 
+						CASE
+							WHEN EX_RT IS NULL THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 131, 133)
+			                WHEN EX_RT = 0 THEN IF(IFNULL(ALRN.A_LRN_EX_CNT,0) = 0, 135, 137)
+			                WHEN EX_RT <![CDATA[>]]> 0 THEN
+								CASE
+									WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) = 0 THEN 142
+			                        WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) <![CDATA[>]]> 0 THEN
+			                        	CASE 
+			                        		WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) = IFNULL(PALRN.A_LRN_EX_CNT,0) OR IFNULL(PALRN.A_LRN_EX_CNT,0) = 0 THEN 140
+			                        		WHEN IFNULL(ALRN.A_LRN_EX_CNT,0) <![CDATA[<]]> IFNULL(PALRN.A_LRN_EX_CNT,0)  THEN 140
+			                        		ELSE 139
+			                        	END		                        
+			                    END
+			            END 
+			    END AS DETAIL,
+			    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = SUBJ.SUBJ_CD) AS SUBJ_NM,
+			    SUBJ_CD
+			FROM STUD ST
+			<choose>
+				<when test='currConCheck == "m"'>
+					LEFT OUTER JOIN MONTH_LRN_EX_STT ALRN ON ALRN.YYMM = #{yyMm} AND ST.STUD_ID = ALRN.STUD_ID
+					LEFT OUTER JOIN MONTH_LRN_EX_STT PALRN ON PALRN.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PALRN.STUD_ID
+					LEFT OUTER JOIN (
+						SELECT
+							STUD_ID,
+							COUNT(FIRST_LOGIN_DTTM) AS ATT_CNT
+						FROM MONTH_ATT_LOG
+						WHERE YYMM = #{yyMm}
+							AND STUD_ID = #{studId}
+						GROUP BY STUD_ID
+					) MA ON ST.STUD_ID = MA.STUD_ID
+				</when>
+				<otherwise>
+					LEFT OUTER JOIN DAY_7_LRN_EX_STT ALRN ON ALRN.DT = #{endDt} AND ST.STUD_ID = ALRN.STUD_ID
+					LEFT OUTER JOIN DAY_7_LRN_EX_STT PALRN ON PALRN.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PALRN.STUD_ID
+					LEFT OUTER JOIN (
+						SELECT
+							STUD_ID,
+						    ATT_CNT
+						FROM DAY_7_ATT_STT
+						WHERE DT = #{endDt}
+							AND STUD_ID = #{studId}
+					) MA ON ST.STUD_ID = MA.STUD_ID
+				</otherwise>
+			</choose> 
+			LEFT OUTER JOIN (
+				SELECT
+					ST.STUD_ID,
+					ROUND(AVG(TOP_30_A_LRN_CNT)) AS TOP_30_A_LRN_CNT,
+					ROUND(AVG(GRP_AVG_A_LRN_CNT)) AS GRP_AVG_A_LRN_CNT
+				FROM STUD ST
+				LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+				WHERE ST.STUD_ID = #{studId}
+				GROUP BY ST.STUD_ID
+			) GRP ON ST.STUD_ID = GRP.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					PLAN.STUD_ID,
+					ROUND(LRN_CNT / PLAN_CNT * 100) AS EX_RT
+				FROM (
+					SELECT
+						STUD_ID,
+						SUM(PLAN_CNT) AS PLAN_CNT
+					FROM DAY_PLAN_STT
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+				) PLAN
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						COUNT(DISTINCT SERVICE_ID) AS LRN_CNT
+					FROM DAY_LRN_EX_LOG
+					WHERE PLAN_DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+						AND FNSH_YN = 'Y'
+						AND PLAN_UPD_YN IS NULL
+						AND SERVICE_ID IS NOT NULL
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID
+				) LRN ON PLAN.STUD_ID = LRN.STUD_ID
+			) EX ON ST.STUD_ID = EX.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUBJ_CD,
+					SUM(A_LRN_EX_CNT) AS SUBJ_CNT
+				FROM DAY_SUBJ_A_LRN_EX_STT
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID, SUBJ_CD
+				ORDER BY SUM(A_LRN_EX_CNT) DESC,
+					CASE SUBJ_CD
+						WHEN 'C01' THEN 1
+						WHEN 'C02' THEN 2
+						WHEN 'C03' THEN 3
+						WHEN 'C04' THEN 4
+						WHEN 'C05' THEN 5
+						WHEN 'C06' THEN 6
+						WHEN 'N04' THEN 7
+						WHEN 'N03' THEN 8
+						WHEN 'N01' THEN 9
+						WHEN 'N02' THEN 10
+						WHEN 'N05' THEN 11
+						WHEN 'N06' THEN 12
+					END
+				LIMIT 1
+			) SUBJ ON ST.STUD_ID = SUBJ.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) TA
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TA.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TA.DETAIL
+    </select>
+    
+    <select id="getALrnExSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    ST.PREV_DT,
+		    A.A_LRN_EX_CNT,
+		    PREV_A_LRN_EX_CNT,
+		    TOP_30_A_LRN_CNT AS TOP_A_LRN_EX_CNT,
+		    GRP_AVG_A_LRN_CNT AS AVG_A_LRN_EX_CNT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+				<choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay} 
+				) DTS  
+			) DE
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				COUNT(CTGR) AS A_LRN_EX_CNT
+			FROM (
+				SELECT
+					DT, 
+					STUD_ID,
+					CTGR
+				FROM DAY_LRN_EX_LOG A
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND SUBJ_CD NOT LIKE 'Z%'
+                    AND (
+                    		(PLAN_DT IS NULL AND SUBSTRING(SUB_SUBJ_CD,4) BETWEEN '011' AND '020' = 0 AND LRN_SEC <![CDATA[>=]]> 30) 
+		                    OR (PLAN_DT IS NULL AND SUBSTRING(SUB_SUBJ_CD,4) BETWEEN '011' AND '020' AND SUBSTRING(SUB_SUBJ_CD,4) != '015' AND FNSH_YN = 'Y' ) 
+		                    OR (PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y' AND FNSH_YN = 'Y' ) 
+	                )
+			) ACHART1
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				STUD_ID,
+				COUNT(CTGR) AS PREV_A_LRN_EX_CNT
+			FROM (
+				SELECT
+					DT, 
+					STUD_ID,
+					CTGR
+				FROM DAY_LRN_EX_LOG A
+				WHERE DT
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+					AND SUBJ_CD NOT LIKE 'Z%'
+                    AND (
+                    		(PLAN_DT IS NULL AND SUBSTRING(SUB_SUBJ_CD,4) BETWEEN '011' AND '020' = 0 AND LRN_SEC <![CDATA[>=]]> 30) 
+		                    OR (PLAN_DT IS NULL AND SUBSTRING(SUB_SUBJ_CD,4) BETWEEN '011' AND '020' AND SUBSTRING(SUB_SUBJ_CD,4) != '015' AND FNSH_YN = 'Y' ) 
+		                    OR (PLAN_DT IS NOT NULL AND PLAN_UPD_YN = 'Y' AND FNSH_YN = 'Y' ) 
+	                )
+			) ACHART1
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getCrtRtStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    CRT_RT,
+		    PREV_CRT_RT,
+		    TOP_CRT_RT,
+		    AVG_CRT_RT,
+		    CASE
+		    	WHEN CRT_RT IS NULL THEN SU.MSG
+		    	ELSE
+				    REPLACE (
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(CRT_RT,0)),
+							'{n}',IFNULL(ABS(DIFF),'')),
+						'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
+					'{c}', PS_EXPL_CNT
+				    )
+		    END AS SUMMARY,
+		    CASE
+		    	WHEN CRT_RT IS NULL THEN DE.MSG
+		    	ELSE 
+				    REPLACE(
+						REPLACE(DE.MSG, '{a}', IFNULL(EXPL_CNT,0)),
+					'{a-c}', IFNULL(EXPL_CNT,0) - IFNULL(PS_EXPL_CNT,0) 
+					)
+			END AS DETAIL
+		FROM (
+	    	SELECT
+				STUD_ID,
+			    CRT_RT,
+			    PREV_CRT_RT,
+			    TOP_CRT_RT,
+			    AVG_CRT_RT,
+			    EXPL_CNT,
+			    PS_EXPL_CNT,
+			    DIFF,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 143
+					ELSE 
+						CASE
+							WHEN CRT_RT = 0 THEN 145
+							WHEN CRT_RT = 100 THEN IF(DIFF<![CDATA[>]]>0, 147, 148)
+							ELSE 
+								CASE
+									WHEN PS_EXPL_CNT = 0 THEN IF(DIFF != 0, 153, 154)
+									ELSE IF(DIFF != 0, 150, 151)
+								END
+						END
+				END AS SUMMARY,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 144
+					ELSE
+						CASE
+							WHEN CRT_RT = 0 THEN 146
+							WHEN CRT_RT = 100 THEN 149
+							ELSE
+								CASE
+									WHEN PS_EXPL_CNT = 0 THEN IF(DIFF<![CDATA[>]]>0, 155, 156)
+									ELSE 152
+								END
+						END
+				END AS DETAIL
+			FROM (
+		    	SELECT
+					ST.STUD_ID,
+				    IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) AS CRT_RT,
+		    		IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100)) AS PREV_CRT_RT,
+				    TOP_30_CRT_RT AS TOP_CRT_RT,
+					GRP_AVG_CRT_RT AS AVG_CRT_RT,
+					ES.EXPL_CNT,
+					ES.PS_EXPL_CNT,
+			        (IF(ES.QUES_CNT IS NULL, NULL, ROUND(ES.CRT_CNT / ES.QUES_CNT * 100)) - IF(PES.QUES_CNT IS NULL, NULL, ROUND(PES.CRT_CNT / PES.QUES_CNT * 100))) AS DIFF
+				FROM STUD ST
+				<choose>
+					<when test='currConCheck == "m"'>
+						LEFT OUTER JOIN EXAM_MONTH_STT ES ON ES.YYMM = #{yyMm} AND ST.STUD_ID = ES.STUD_ID
+						LEFT OUTER JOIN EXAM_MONTH_STT PES ON PES.YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND ST.STUD_ID = PES.STUD_ID
+					</when>
+					<otherwise>
+						LEFT OUTER JOIN DAY_7_EXAM_STT ES ON ES.DT = #{endDt} AND ST.STUD_ID = ES.STUD_ID
+						LEFT OUTER JOIN DAY_7_EXAM_STT PES ON PES.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PES.STUD_ID
+					</otherwise>
+				</choose> 
+				LEFT OUTER JOIN (
+					SELECT
+						ST.STUD_ID,
+						ROUND(AVG(TOP_30_CRT_RT)) AS TOP_30_CRT_RT,
+						ROUND(AVG(GRP_AVG_CRT_RT)) AS GRP_AVG_CRT_RT
+					FROM STUD ST
+					LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+					WHERE ST.STUD_ID = #{studId}
+					GROUP BY ST.STUD_ID
+				) GRP ON ST.STUD_ID = GRP.STUD_ID
+				WHERE ST.STUD_ID = #{studId}
+			) CRT
+		) TC
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TC.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TC.DETAIL
+    </select>
+    
+    <select id="getCrtRtSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    ST.PREV_DT,
+		    ST.STUD_ID,
+		    E.CRT_RT,
+		    PREV_CRT_RT,
+			TOP_30_CRT_RT AS TOP_CRT_RT,
+			GRP_AVG_CRT_RT AS AVG_CRT_RT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+		        ROUND(CRT_CNT / QUES_CNT * 100) AS CRT_RT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_CNT
+				FROM EXAM_RST
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'
+				GROUP BY DT, STUD_ID
+			) ECHART1
+		) E ON ST.DT = E.DT AND ST.STUD_ID = E.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				STUD_ID,
+		        ROUND(CRT_CNT / QUES_CNT * 100) AS PREV_CRT_RT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_CNT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'
+				GROUP BY DT, STUD_ID
+			) ECHART1
+			GROUP BY DT, STUD_ID
+		) PE ON ST.PREV_DT = PE.DT AND ST.STUD_ID = PE.STUD_ID
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
+    </select>
+    
+    <select id="getIncrtNoteNcStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+    		STUD_ID,
+		    INCRT_NOTE_NC_CNT,
+		    PREV_INCRT_NOTE_NC_CNT,
+			TOP_INCRT_NOTE_NC_CNT,
+			AVG_INCRT_NOTE_NC_CNT,
+			CASE
+				WHEN INCRT_NOTE_NC_CNT IS NULL THEN SU.MSG
+				ELSE
+					REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(SU.MSG, '{a}', IFNULL(EXPL_CNT,0)),
+							'{b}', IFNULL(INCRT_NT_REG_CNT,0)),
+						'{c}', IFNULL(INCRT_NOTE_NC_CNT,0)),
+					'{a-d}', IFNULL(EXPL_CNT,0) - IFNULL(PS_EXPL_CNT,0)
+					)
+			END AS SUMMARY,
+			CASE
+				WHEN INCRT_NOTE_NC_CNT IS NULL THEN DE.MSG
+				ELSE 
+				    REPLACE(
+						REPLACE(DE.MSG,'{b}', IFNULL(INCRT_NT_REG_CNT,0)),
+				    '{c}', INCRT_NOTE_NC_CNT
+					) 
+			END AS DETAIL
+    	FROM (
+	    	SELECT 
+				ST.STUD_ID,
+			    INCRT_NOTE_NC_CNT,
+			    PREV_INCRT_NOTE_NC_CNT,
+			    EXPL_CNT,
+			    PS_EXPL_CNT,
+			    NPS_EXPL_CNT,
+			    INCRT_NT_REG_CNT,
+				TOP_30_INCRT_NT_CNT AS TOP_INCRT_NOTE_NC_CNT,
+				GRP_AVG_INCRT_NT_CNT AS AVG_INCRT_NOTE_NC_CNT,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 157
+			        ELSE 
+						CASE
+							WHEN EXPL_CNT = PS_EXPL_CNT AND INCRT_NT_REG_CNT = 0 AND INCRT_NOTE_NC_CNT = 0 THEN 159
+			                WHEN PS_EXPL_CNT<![CDATA[>=]]>1 AND NPS_EXPL_CNT<![CDATA[>=]]>1 AND INCRT_NT_REG_CNT<![CDATA[>=]]>1 THEN
+								CASE
+									WHEN INCRT_NOTE_NC_CNT = 0 THEN 163
+			                        WHEN INCRT_NOTE_NC_CNT<![CDATA[>]]>0 THEN 161
+			                    END
+			            END
+			    END AS SUMMARY,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 158
+			        ELSE 
+						CASE
+							WHEN EXPL_CNT = PS_EXPL_CNT AND INCRT_NT_REG_CNT = 0 AND INCRT_NOTE_NC_CNT = 0 THEN 160
+			                WHEN PS_EXPL_CNT<![CDATA[>=]]>1 AND NPS_EXPL_CNT<![CDATA[>=]]>1 AND INCRT_NT_REG_CNT<![CDATA[>=]]>1 THEN
+								CASE
+									WHEN INCRT_NOTE_NC_CNT = 0 THEN 164
+			                        WHEN INCRT_NOTE_NC_CNT<![CDATA[>]]>0 THEN 162
+			                    END
+			            END
+			    END AS DETAIL
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					CASE
+						WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
+						ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
+					END AS INCRT_NOTE_NC_CNT,
+					SUM(INCRT_NT_REG_CNT) AS INCRT_NT_REG_CNT,
+			        COUNT(DISTINCT EXAM_CD) AS EXPL_CNT,
+			        COUNT(IF(ROUND(CRT_CNT / QUES_CNT * 100)<![CDATA[>=]]>100, 1, NULL)) AS PS_EXPL_CNT,
+			        COUNT(IF(ROUND(CRT_CNT / QUES_CNT * 100)<![CDATA[<]]>100, 1, NULL)) AS NPS_EXPL_CNT
+				FROM EXAM_RST
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND DEL_YN = 'N'
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) EN ON ST.STUD_ID = EN.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					CASE
+						WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
+						ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
+					END AS PREV_INCRT_NOTE_NC_CNT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND DEL_YN = 'N'
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) PEN ON ST.STUD_ID = PEN.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					ST.STUD_ID,
+					ROUND(AVG(TOP_30_INCRT_NT_CNT)) AS TOP_30_INCRT_NT_CNT,
+					ROUND(AVG(GRP_AVG_INCRT_NT_CNT)) AS GRP_AVG_INCRT_NT_CNT
+				FROM STUD ST
+				LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+				WHERE ST.STUD_ID = #{studId}
+				GROUP BY ST.STUD_ID
+			) GRP ON ST.STUD_ID = GRP.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) TI
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TI.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TI.DETAIL
+    </select>
+    
+    <select id="getIncrtNoteNcSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    PREV_DT,
+		    INCRT_NOTE_NC_CNT,
+		    CRT_NOTE_NC_CNT,
+		    PREV_INCRT_NOTE_NC_CNT,
+		    PREV_CRT_NOTE_NC_CNT,
+		    TOP_30_INCRT_NT_CNT AS TOP_INCRT_NOTE_NC_CNT,
+			GRP_AVG_INCRT_NT_CNT AS AVG_INCRT_NOTE_NC_CNT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				CASE
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
+					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
+				END AS INCRT_NOTE_NC_CNT,
+				SUM(INCRT_NT_FNSH_CNT) AS CRT_NOTE_NC_CNT
+			FROM EXAM_RST
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND DEL_YN = 'N'
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+		    SELECT
+				DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				STUD_ID,
+				CASE
+					WHEN SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)<![CDATA[<]]>0 THEN 0
+					ELSE SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)
+				END AS PREV_INCRT_NOTE_NC_CNT,
+				SUM(INCRT_NT_FNSH_CNT) AS PREV_CRT_NOTE_NC_CNT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND DEL_YN = 'N'
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getCrtQuesCntStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    CRT_QUES_CNT,
+		    PREV_CRT_QUES_CNT,
+		    TOP_CRT_QUES_CNT,
+		    AVG_CRT_QUES_CNT,
+		    CASE
+		    	WHEN CRT_QUES_CNT IS NULL THEN SU.MSG
+		    	ELSE 
+				    REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(QUES_CNT,0)),
+							'{d}', IFNULL(CRT_QUES_CNT,0)),
+						'{n}', IFNULL(DIFF,0)),
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					) 
+			END AS SUMMARY,
+		    DE.MSG AS DETAIL
+		FROM (
+	    	SELECT 
+				ST.STUD_ID,
+			    CRT_QUES_CNT,
+			    PREV_CRT_QUES_CNT,
+			    TOP_30_CRT_CNT AS TOP_CRT_QUES_CNT,
+				GRP_AVG_CRT_CNT AS AVG_CRT_QUES_CNT,
+			    EXPL_CNT,
+			    QUES_CNT,
+			    (CRT_QUES_CNT - PREV_CRT_QUES_CNT) AS DIFF,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 165
+			        ELSE 
+						CASE
+							WHEN CRT_QUES_CNT<![CDATA[>]]>0 THEN
+								CASE
+									WHEN CRT_RT = 0 AND CRT_QUES_CNT = 0 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT)<![CDATA[<]]>0, 168, 167)
+			                        WHEN CRT_RT = 100 THEN 170
+			                        WHEN CRT_RT<![CDATA[<]]>100 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT) != 0, 172, 173)
+			                    END
+			            END
+			    END AS SUMMARY,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 166
+			        ELSE 
+						CASE
+							WHEN CRT_QUES_CNT<![CDATA[>]]>0 THEN
+								CASE
+									WHEN CRT_RT = 0 AND CRT_QUES_CNT = 0 THEN 169
+			                        WHEN CRT_RT = 100 THEN 171
+			                        WHEN CRT_RT<![CDATA[<]]>100 THEN IF((CRT_QUES_CNT - PREV_CRT_QUES_CNT)<![CDATA[>]]>0, 174, 175)
+			                    END
+			            END
+			    END AS DETAIL
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+			        COUNT(DISTINCT EXAM_CD) AS EXPL_CNT,
+			        IF(
+			        	SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) > SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)), 
+			        	100, 
+			        	ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+		        	) AS CRT_RT
+				FROM EXAM_RST
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND DEL_YN = 'N'
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) EN ON ST.STUD_ID = EN.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS PREV_CRT_QUES_CNT
+				FROM EXAM_RST
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND DEL_YN = 'N'
+					AND STUD_ID = #{studId}
+				GROUP BY STUD_ID
+			) PEN ON ST.STUD_ID = PEN.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					ST.STUD_ID,
+					ROUND(AVG(TOP_30_CRT_CNT)) AS TOP_30_CRT_CNT,
+					ROUND(AVG(GRP_AVG_CRT_CNT)) AS GRP_AVG_CRT_CNT
+				FROM STUD ST
+				LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+				WHERE ST.STUD_ID = #{studId}
+				GROUP BY ST.STUD_ID
+			) GRP ON ST.STUD_ID = GRP.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) TQ
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TQ.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TQ.DETAIL
+    </select>
+    
+    <select id="getCrtQuesCntSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    ST.PREV_DT,
+		    CRT_QUES_CNT,
+		    INCRT_QUES_CNT,
+		    PREV_CRT_QUES_CNT,
+		    PREV_INCRT_QUES_CNT,
+		    TOP_30_CRT_CNT AS TOP_CRT_QUES_CNT,
+		    GRP_AVG_CRT_CNT AS AVG_CRT_QUES_CNT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+		        SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_INCRT_CNT, INCRT_CNT)) AS INCRT_QUES_CNT
+			FROM EXAM_RST
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND DEL_YN = 'N'
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+		    SELECT
+				DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				STUD_ID,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS PREV_CRT_QUES_CNT,
+		        SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_INCRT_CNT, INCRT_CNT)) AS PREV_INCRT_QUES_CNT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND DEL_YN = 'N'
+				AND STUD_ID = #{studId}
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		LEFT OUTER JOIN DAY_GRP_EXAM_RST DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getSlvHabitStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    SLV_HABIT_CNT,
+		    PREV_SLV_HABIT_CNT,
+		    CASE
+		    	WHEN SLV_HABIT_CNT IS NULL THEN SU.MSG
+		    	ELSE
+				    REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(SU.MSG,'{a}', IFNULL(EXPL_CNT,0)),
+								'{b}', IFNULL(PS_EXPL_CNT,0)),
+							'{c}', IFNULL(SLV_HABIT_CNT,0)),
+						'{n}', IFNULL(DIFF,0)),
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					) 
+			END AS SUMMARY,
+			CASE
+				WHEN SLV_HABIT_CNT IS NULL THEN DE.MSG
+					
+				ELSE
+				    REPLACE(
+						REPLACE(
+							REPLACE(DE.MSG, '{c}', SLV_HABIT_CNT),
+						'{d}', IFNULL(PTN_NM, '')),
+					'{e}', IFNULL(QUES_PTN_CNT,0)
+					) 
+			END AS DETAIL
+		FROM (
+	    	SELECT 
+				ST.STUD_ID,
+			    SLV_HABIT_CNT,
+			    PREV_SLV_HABIT_CNT,
+			    EXPL_CNT,
+			    PS_EXPL_CNT,
+			    (SELECT CD_NM FROM COMM_CD WHERE CD = QUES_PTN AND GRP = 'QUES_PTN') AS PTN_NM,
+			    QUES_PTN_CNT,
+			    (SLV_HABIT_CNT - PREV_SLV_HABIT_CNT) AS DIFF,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 176
+			        WHEN EXPL_CNT<![CDATA[>=]]>1 AND EXPL_CNT = PS_EXPL_CNT THEN IF(SLV_HABIT_CNT = 0, 178, 180)
+			        WHEN EXPL_CNT<![CDATA[>=]]>1 AND PS_EXPL_CNT = 0 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN IF((SLV_HABIT_CNT - PREV_SLV_HABIT_CNT) != 0, 182, 183)
+					WHEN EXPL_CNT<![CDATA[>=]]>2 AND EXPL_CNT<![CDATA[>]]>PS_EXPL_CNT AND PS_EXPL_CNT<![CDATA[>=]]>1 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN IF((SLV_HABIT_CNT - PREV_SLV_HABIT_CNT) != 0, 185, 186)
+			    END AS SUMMARY,
+				CASE
+					WHEN IFNULL(EXPL_CNT, 0) = 0 THEN 177
+			        WHEN EXPL_CNT<![CDATA[>=]]>1 AND EXPL_CNT = PS_EXPL_CNT THEN IF(SLV_HABIT_CNT = 0, 179, 181)
+			        WHEN EXPL_CNT<![CDATA[>=]]>1 AND PS_EXPL_CNT = 0 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN 184
+					WHEN EXPL_CNT<![CDATA[>=]]>2 AND EXPL_CNT<![CDATA[>]]>PS_EXPL_CNT AND PS_EXPL_CNT<![CDATA[>=]]>1 AND SLV_HABIT_CNT<![CDATA[>]]>0 THEN 187
+			    END AS DETAIL
+			FROM STUD ST
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					COUNT(IF(QUES_PTN IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS SLV_HABIT_CNT
+				FROM (
+					SELECT
+						STUD_ID,
+						IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+					FROM EXAM_RST_QUES_LOG
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+				) EQ
+				GROUP BY STUD_ID
+			) EN ON ST.STUD_ID = EN.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					COUNT(IF(QUES_PTN IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS PREV_SLV_HABIT_CNT
+				FROM (
+					SELECT
+						STUD_ID,
+						IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+					FROM EXAM_RST_QUES_LOG
+					WHERE DT
+					<choose>
+						<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>
+						AND STUD_ID = #{studId}
+				) EQ
+				GROUP BY STUD_ID
+			) PEN ON ST.STUD_ID = PEN.STUD_ID
+			<choose>
+				<when test='currConCheck == "m"'>
+					LEFT OUTER JOIN EXAM_MONTH_STT EM ON EM.YYMM = #{yyMm} AND ST.STUD_ID = EM.STUD_ID
+				</when>
+				<otherwise>
+					LEFT OUTER JOIN DAY_7_EXAM_STT EM ON EM.DT = #{endDt} AND ST.STUD_ID = EM.STUD_ID
+				</otherwise>
+			</choose> 
+			LEFT OUTER JOIN (
+				SELECT
+					STUD_ID,
+					QUES_PTN,
+					COUNT(QUES_PTN) AS QUES_PTN_CNT
+				FROM (
+					SELECT
+						STUD_ID,
+						IF(INSTR(IFNULL(QUES_PTN_IRT, QUES_PTN),'GU')<![CDATA[>]]>0, 'GUI', IFNULL(QUES_PTN_IRT, QUES_PTN)) AS QUES_PTN
+					FROM EXAM_RST_QUES_LOG
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+						AND IFNULL(QUES_PTN_IRT, QUES_PTN) != 'CRT'
+				) QP
+				GROUP BY STUD_ID, QUES_PTN
+				ORDER BY COUNT(QUES_PTN) DESC, 
+					CASE QUES_PTN
+						WHEN 'INC' THEN 1
+						WHEN 'MIS' THEN 2
+						WHEN 'GUI' THEN 3
+						WHEN 'CUR' THEN 4
+						WHEN 'SKP' THEN 5
+					END
+				LIMIT 1
+			) QPT ON ST.STUD_ID = QPT.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) TS 
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TS.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TS.DETAIL
+    </select>
+    
+    <select id="getSlvHabitSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    ST.PREV_DT,
+		    SLV_HABIT_CNT,
+		    SKIP_QUES_CNT,
+		    CURSORY_QUES_CNT,
+		    GUESS_QUES_CNT,
+		    MISTAKEN_QUES_CNT,
+		    PREV_SKIP_QUES_CNT,
+		    PREV_CURSORY_QUES_CNT,
+		    PREV_GUESS_QUES_CNT,
+		    PREV_MISTAKEN_QUES_CNT
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+		        COUNT(IF(QUES_PTN IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS SLV_HABIT_CNT,
+				COUNT(IF(QUES_PTN = 'SKP', 1, NULL)) AS SKIP_QUES_CNT,
+				COUNT(IF(QUES_PTN = 'CUR', 1, NULL)) AS CURSORY_QUES_CNT,
+				COUNT(IF(QUES_PTN IN ('GUC', 'GUI'), 1, NULL)) AS GUESS_QUES_CNT,
+				COUNT(IF(QUES_PTN = 'MIS', 1, NULL)) AS MISTAKEN_QUES_CNT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+				FROM EXAM_RST_QUES_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+			) EQ
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+		    SELECT
+				DT,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				STUD_ID,
+				COUNT(IF(QUES_PTN = 'SKP', 1, NULL)) AS PREV_SKIP_QUES_CNT,
+				COUNT(IF(QUES_PTN = 'CUR', 1, NULL)) AS PREV_CURSORY_QUES_CNT,
+				COUNT(IF(QUES_PTN IN ('GUC', 'GUI'), 1, NULL)) AS PREV_GUESS_QUES_CNT,
+				COUNT(IF(QUES_PTN = 'MIS', 1, NULL)) AS PREV_MISTAKEN_QUES_CNT
+			FROM (
+				SELECT
+					DT,
+					STUD_ID,
+					IFNULL(QUES_PTN_IRT, QUES_PTN) AS QUES_PTN
+				FROM EXAM_RST_QUES_LOG
+				WHERE DT 
+				<choose>
+					<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+					</when>
+					<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					</otherwise>
+				</choose>
+					AND STUD_ID = #{studId}
+			) EQ
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getDayAvgLrnStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+			LRN_TM,
+			PREV_LRN_TM,
+			CASE
+				WHEN LRN_TM IS NULL THEN SU.MSG
+				ELSE 
+				    REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR, 0)),
+								'{b}', IFNULL(CONVERT_MINUTE,0)),
+							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					) 
+			END AS SUMMARY,
+		    DE.MSG AS DETAIL
+		FROM (
+	    	SELECT 
+				STUD_ID,
+			    LRN_TM,
+			    PREV_LRN_TM,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(ABS(DIFF)), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(ABS(DIFF)), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+			    DIFF,
+			    CASE
+					WHEN IFNULL(LRN_TM,0) = 0 THEN 189
+			        ELSE IF(DIFF != 0, 190, 191)
+			    END AS SUMMARY,
+			    CASE
+					WHEN IFNULL(LRN_TM,0) = 0 THEN 189
+			        ELSE 192
+			    END AS DETAIL
+			FROM (
+				SELECT
+					ST.STUD_ID,
+					ROUND(LRN_TM / ATT.ATT_CNT) AS LRN_TM,
+					ROUND(PREV_LRN_TM / PATT.ATT_CNT) AS PREV_LRN_TM,
+					(ROUND(LRN_TM / ATT.ATT_CNT) - ROUND(PREV_LRN_TM / PATT.ATT_CNT)) AS DIFF
+				FROM STUD ST
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUM(IFNULL(LRN_SEC,0)) AS LRN_TM,
+						<choose>
+							<when test='currConCheck == "m"'>
+								CAST(DATE_FORMAT(LAST_DAY(#{startDt}), '%d')AS UNSIGNED) AS DAY_NUM
+							</when>
+							<otherwise>
+								7 AS DAY_NUM
+							</otherwise>
+						</choose>
+					FROM DAY_LRN_EX_LOG
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID
+				) LT ON ST.STUD_ID = LT.STUD_ID
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM,
+						<choose>
+							<when test='currConCheck == "m"'>
+								CAST(DATE_FORMAT(LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH)), '%d')AS UNSIGNED) AS PREV_DAY_NUM
+							</when>
+							<otherwise>
+								7 AS PREV_DAY_NUM
+							</otherwise>
+						</choose>
+					FROM DAY_LRN_EX_LOG
+					WHERE DT 
+					<choose>
+						<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID
+				) PLT ON ST.STUD_ID = PLT.STUD_ID
+				<choose>
+					<when test='currConCheck == "m"'>
+					LEFT OUTER JOIN MONTH_ATT_STT ATT ON ATT.YYMM = #{yyMm} AND ST.STUD_ID = ATT.STUD_ID
+					LEFT OUTER JOIN MONTH_ATT_STT PATT ON PATT.YYMM = DATE_FORMAT(LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH)), '%Y%m') AND ST.STUD_ID = PATT.STUD_ID
+					</when>
+					<otherwise>
+					LEFT OUTER JOIN DAY_7_ATT_STT ATT ON ATT.DT = #{endDt} AND ST.STUD_ID = ATT.STUD_ID
+					LEFT OUTER JOIN DAY_7_ATT_STT PATT ON PATT.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PATT.STUD_ID
+					</otherwise>
+				</choose>
+				WHERE ST.STUD_ID = #{studId}
+			) TM1
+		) TM 
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TM.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TM.DETAIL
+    </select>
+    
+    <select id="getDayAvgLrnSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    ST.DT,
+		    TM.SUBJ_CD,
+		    TM.LRN_SEC AS LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT #{lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND ST.STUD_ID = TM.STUD_ID
+		ORDER BY ST.DT, TM.SUBJ_CD
+    </select>
+    
+    <select id="getDayAvgLrnDetailList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    ST.DT,
+		    SUM(IFNULL(TM.LRN_SEC, 0 )) AS TOTAL_LRN_SEC,
+		    GROUP_CONCAT(IFNULL(TM.LRN_SEC,0) ORDER BY ST.SUBJ_CD SEPARATOR ',') AS SUBJ_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND TM.SUBJ_CD = ST.SUBJ_CD AND ST.STUD_ID = TM.STUD_ID
+		GROUP BY ST.DT, ST.STUD_ID
+    </select>
+    
+    <select id="getTotalLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    TOTAL_LRN_TM,
+		    PREV_TOTAL_LRN_TM,
+		    TOP_TOTAL_LRN_TM,
+			AVG_TOTAL_LRN_TM,
+			CASE
+				WHEN TOTAL_LRN_TM IS NULL THEN SU.MSG
+				ELSE
+				    REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR,0)),
+								'{b}', IFNULL(CONVERT_MINUTE,0)),
+							'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+						'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+					'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))
+					) 
+			END AS SUMMARY,
+		    DE.MSG AS DETAIL
+		FROM (
+	    	SELECT
+	    		STUD_ID,
+			    TOTAL_LRN_TM,
+			    PREV_TOTAL_LRN_TM,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(TOTAL_LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(TOTAL_LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(ABS(DIFF)), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(ABS(DIFF)), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+			    DIFF,
+			    TOP_TOTAL_LRN_TM,
+			    AVG_TOTAL_LRN_TM,
+				CASE
+					WHEN IFNULL(TOTAL_LRN_TM, 0) = 0 THEN 193
+			        ELSE IF(DIFF != 0, 195, 196)
+			    END AS SUMMARY,
+				CASE
+					WHEN IFNULL(TOTAL_LRN_TM, 0) = 0 THEN 194
+			        ELSE 197
+			    END AS DETAIL
+	    	FROM (
+		    	SELECT
+					ST.STUD_ID,
+				    TOTAL_LRN_TM,
+				    PREV_TOTAL_LRN_TM,
+				    TOP_30_LRN_SEC AS TOP_TOTAL_LRN_TM,
+				    GRP_AVG_LRN_SEC AS AVG_TOTAL_LRN_TM,
+				    (TOTAL_LRN_TM - PREV_TOTAL_LRN_TM) AS DIFF
+				FROM STUD ST
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+					FROM DAY_LRN_EX_LOG
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID
+				) TM ON ST.STUD_ID = TM.STUD_ID
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+					FROM DAY_LRN_EX_LOG
+					WHERE DT 
+					<choose>
+						<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID
+				) PTM ON ST.STUD_ID = PTM.STUD_ID
+				LEFT OUTER JOIN (
+					SELECT
+						ST.STUD_ID,
+						ROUND(SUM(TOP_30_LRN_SEC)) AS TOP_30_LRN_SEC,
+						ROUND(SUM(GRP_AVG_LRN_SEC)) AS GRP_AVG_LRN_SEC
+					FROM STUD ST
+					LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON DG.DT BETWEEN #{startDt} AND #{endDt} AND ST.GRADE = DG.GRADE 
+					WHERE ST.STUD_ID = #{studId}
+					GROUP BY ST.STUD_ID
+				) GRP ON ST.STUD_ID = GRP.STUD_ID
+				WHERE ST.STUD_ID = #{studId}
+			) TTM1
+		) TTM
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = TTM.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = TTM.DETAIL
+    </select>
+    
+    <select id="getTotalLrnTmSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.DT,
+		    TOTAL_LRN_TM,
+		    PREV_TOTAL_LRN_TM,
+		    TOP_30_LRN_SEC AS TOP_TOTAL_LRN_TM,
+		    GRP_AVG_LRN_SEC AS AVG_TOTAL_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+		        ST1.GRADE,
+				DE.DT,
+		        <choose>
+					<when test='currConCheck == "m"'>
+						DATE_SUB(DT, INTERVAL 1 MONTH) AS PREV_DT,
+					</when>
+					<otherwise>
+						DATE_SUB(DT, INTERVAL 7 DAY) AS PREV_DT,
+					</otherwise>
+				</choose>
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			WHERE ST1.STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUM(IFNULL(LRN_SEC,0)) AS TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT, STUD_ID
+		) A ON ST.STUD_ID = A.STUD_ID AND ST.DT = A.DT
+		LEFT OUTER JOIN (
+		    SELECT
+				DT,
+		        STUD_ID,
+		        CAST(DATE_FORMAT(DT, '%d') AS UNSIGNED) AS PREV_NUMS1,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_TOTAL_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT, STUD_ID
+		) PA ON ST.PREV_DT = PA.DT AND ST.STUD_ID = PA.STUD_ID
+		LEFT OUTER JOIN DAY_GRP_LRN_EX_STT DG ON ST.DT = DG.DT AND ST.GRADE = DG.GRADE
+		ORDER BY ST.DT
+    </select>
+    
+    <select id="getLongLrnTmStt" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+		    LONG_LRN_SUBJ_CD,
+		    LONG_LRN_SUBJ_LRN_TM,
+		    PREV_LONG_LRN_SUBJ_LRN_TM,
+		    CASE
+		    	WHEN LONG_LRN_SUBJ_CD IS NULL THEN SU.MSG
+		    	ELSE
+				    REPLACE(
+						REPLACE(
+							REPLACE(
+								REPLACE(
+									REPLACE(
+										REPLACE(SU.MSG, '{a}', IFNULL(CONVERT_HOUR,0)),
+									'{b}', IFNULL(CONVERT_MINUTE,0)),
+								'{n}', IFNULL(CONVERT_DIFF_HOUR,0)),
+							'{m}', IFNULL(CONVERT_DIFF_MINUTE,0)),
+						'{상승/하락}', IF(DIFF IS NULL, 0, IF(DIFF<![CDATA[<]]>0, '하락', '상승'))),
+					'{x}', SUBJ_NM
+					) 
+			END AS SUMMARY,
+			CASE
+				WHEN LONG_LRN_SUBJ_CD IS NULL THEN DE.MSG
+				ELSE REPLACE(DE.MSG,'{x}', IFNULL(SUBJ_NM,''))
+			END AS DETAIL
+		FROM (
+	    	SELECT
+	    		STUD_ID,
+			    LONG_LRN_SUBJ_CD,
+			    (SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = LONG_LRN_SUBJ_CD) AS SUBJ_NM,
+			    LONG_LRN_SUBJ_LRN_TM,
+			    PREV_LONG_LRN_SUBJ_LRN_TM,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(LONG_LRN_SUBJ_LRN_TM), ':', 1) AS UNSIGNED) AS CONVERT_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(LONG_LRN_SUBJ_LRN_TM), '%i') AS UNSIGNED) AS CONVERT_MINUTE,
+			    CAST(SUBSTRING_INDEX(SEC_TO_TIME(ABS(DIFF)), ':', 1) AS UNSIGNED) AS CONVERT_DIFF_HOUR,
+			    CAST(DATE_FORMAT(SEC_TO_TIME(ABS(DIFF)), '%i') AS UNSIGNED) AS CONVERT_DIFF_MINUTE,
+			    DIFF,
+			    CASE
+					WHEN IFNULL(LONG_LRN_SUBJ_LRN_TM, 0) = 0 THEN 198
+			        ELSE IF(DIFF != 0, 200, 201)
+			    END AS SUMMARY,
+				CASE
+					WHEN IFNULL(LONG_LRN_SUBJ_LRN_TM, 0) = 0 THEN 199
+			        ELSE 202
+			    END AS DETAIL
+	    	FROM (
+		    	SELECT
+					ST.STUD_ID,
+					LONG_LRN_SUBJ_CD,
+					LONG_LRN_SUBJ_LRN_TM,
+					PREV_LONG_LRN_SUBJ_LRN_TM,
+			        (LONG_LRN_SUBJ_LRN_TM - PREV_LONG_LRN_SUBJ_LRN_TM) AS DIFF
+				FROM STUD ST
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUBJ_CD AS LONG_LRN_SUBJ_CD,
+						SUM(IFNULL(LRN_SEC,0)) AS LONG_LRN_SUBJ_LRN_TM
+					FROM DAY_LRN_EX_LOG
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID, SUBJ_CD
+					ORDER BY SUM(IFNULL(LRN_SEC,0)) DESC 
+					LIMIT 1
+				) TM ON ST.STUD_ID = TM.STUD_ID
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+				        SUBJ_CD,
+						SUM(IFNULL(LRN_SEC,0)) AS PREV_LONG_LRN_SUBJ_LRN_TM
+					FROM DAY_LRN_EX_LOG
+					WHERE DT 
+					<choose>
+						<when test='currConCheck == "m"'>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+						BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>
+						AND STUD_ID = #{studId}
+						AND SUBJ_CD NOT LIKE '%Z%'
+					GROUP BY STUD_ID, SUBJ_CD
+				) PTM ON ST.STUD_ID = PTM.STUD_ID AND TM.LONG_LRN_SUBJ_CD = PTM.SUBJ_CD
+				WHERE ST.STUD_ID = #{studId}
+			) LTM1
+		) LTM
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE SU ON SU.CHANNEL = 'O' AND SU.MSG_VERSION = '1.0' AND SU.MSG_SHEET = 'D' AND SU.MSG_NO = LTM.SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE DE ON DE.CHANNEL = 'O' AND DE.MSG_VERSION = '1.0' AND DE.MSG_SHEET = 'D' AND DE.MSG_NO = LTM.DETAIL
+    </select>
+    
+    <select id="getLongLrnTmSttList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ST.STUD_ID,
+		    ST.SUBJ_CD,
+		    LRN_TM,
+		    PREV_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY STUD_ID, SUBJ_CD
+		) TM ON ST.STUD_ID = TM.STUD_ID AND TM.SUBJ_CD = ST.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM
+			FROM DAY_LRN_EX_LOG
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+				BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY STUD_ID, SUBJ_CD
+		) PTM ON ST.STUD_ID = PTM.STUD_ID AND ST.SUBJ_CD = PTM.SUBJ_CD
+    </select>
+    
+    <select id="getLongLrnTmDetailList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    ST.DT,
+		    SUM(IFNULL(TM.LRN_SEC, 0 )) AS TOTAL_LRN_SEC,
+		    GROUP_CONCAT(IFNULL(TM.LRN_SEC,0) ORDER BY ST.SUBJ_CD SEPARATOR ',') AS SUBJ_LRN_TM
+		FROM (
+			SELECT 
+				ST1.STUD_ID,
+				DE.DT,
+				CD.SUBJ_CD
+			FROM STUD ST1
+			CROSS JOIN (
+				SELECT 
+					DT + INTERVAL LV - 1 DAY AS DT
+				FROM (
+					SELECT 
+						@ROWNUM:=@ROWNUM+1 AS LV, 
+						#{startDt} AS DT
+					FROM information_schema.`COLUMNS` A
+						   , (SELECT @ROWNUM:=0) R
+					LIMIT ${lastDay}    
+				) DTS  
+			) DE 
+			CROSS JOIN COMM_SUBJ_CD CD 
+			WHERE ST1.STUD_ID = #{studId}
+				AND CD.DEPTH = 1 
+				AND CD.SUBJ_CD NOT LIKE 'Z%'
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				DT,
+				STUD_ID,
+				SUBJ_CD,
+				SUM(IFNULL(LRN_SEC,0)) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY DT, STUD_ID, SUBJ_CD
+		) TM ON TM.DT = ST.DT AND TM.SUBJ_CD = ST.SUBJ_CD AND ST.STUD_ID = TM.STUD_ID
+		GROUP BY ST.DT, ST.STUD_ID
+    </select>
+    
+    <select id="getSubjExam" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    SUBJ_CD,
+		    ANS_QUES_CNT,
+		    CRT_QUES_CNT,
+		    INCRT_NOTE_CNT,
+		    INCRT_NOTE_FNSH_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS ANS_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+				SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
+				SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT
+			FROM EXAM_RST
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+		) CRT ON ST.STUD_ID = CRT.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				CASE
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+				END AS CRT_RT
+			FROM EXAM_RST
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+			ORDER BY CASE
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+				END DESC
+			LIMIT 1		
+		) SUBJ ON ST.STUD_ID = SUBJ.STUD_ID
+		WHERE ST.STUD_ID = #{studId};
+    </select>
+    
+    <select id="getCompareSub" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			STUD_ID,
+			MAX_SUBJ_CD,
+			MAX_CRT_RT,
+			PRE_MAX_CRT_RT,
+			MAX_SUB_CRT_RT,
+			MIN_SUBJ_CD,
+			MIN_CRT_RT,
+			PRE_MIN_CRT_RT,
+			MIN_SUB_CRT_RT,
+		    DT,
+		    PRE_DT,
+		    CASE
+				WHEN MAX_SUBJ_CD IS NULL THEN MAXSU.MSG
+		        ELSE REPLACE(MAXSU.MSG, '{b}', MAX_CRT_RT)
+		    END AS MAX_SUMMARY,
+		    CASE
+				WHEN MAX_SUBJ_CD IS NULL THEN MAXDE.MSG
+		        ELSE REPLACE(MAXDE.MSG, '{a}', MAX_SUBJ_NM)
+		    END AS MAX_DETAIL,
+		    CASE
+				WHEN MIN_SUBJ_CD IS NULL THEN MINSU.MSG
+		        ELSE REPLACE(MINSU.MSG, '{d}', MIN_CRT_RT)
+		    END AS MIN_SUMMARY,
+		    CASE
+				WHEN MIN_SUBJ_CD IS NULL THEN MINDE.MSG
+		        ELSE REPLACE(MINDE.MSG, '{c}', MIN_SUBJ_NM)
+		    END AS MIN_DETAIL
+		FROM (
+	    	SELECT
+				ST.STUD_ID,
+			    MAX_SUBJ_CD,
+			    MAX_CRT_RT,
+			    PRE_MAX_CRT_RT,
+			    MAX_SUB_CRT_RT,
+			    MIN_SUBJ_CD,
+			    MIN_CRT_RT,
+			    PRE_MIN_CRT_RT,
+			    MIN_SUB_CRT_RT,
+			    <choose>
+			    	<when test='currConCheck == "m"'>
+			    		CONCAT(CAST(#{mm} AS UNSIGNED), '월') AS DT,
+			    	</when>
+			    	<when test='currConCheck == "w"'>
+			    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = #{endDt}) AS DT,
+			    	</when>
+			    	<otherwise>
+			    		CONCAT(#{startDt}, ' ~ ', #{endDt}) AS DT,
+			    	</otherwise>
+			    </choose>
+			    <choose>
+			    	<when test='currConCheck == "m"'>
+			    		CONCAT(CAST(DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%m') AS UNSIGNED), '월') AS PRE_DT,
+			    	</when>
+			    	<when test='currConCheck == "w"'>
+			    		(SELECT CONCAT(CAST(SUBSTRING(YYMM, 5) AS UNSIGNED), '월 ', WK, '주차') FROM COMM_WK_DT WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) = DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT,
+			    	</when>
+			    	<otherwise>
+			    		CONCAT(DATE_SUB(#{startDt}, INTERVAL 7 DAY), ' ~ ', DATE_SUB(#{endDt}, INTERVAL 7 DAY)) AS PRE_DT,
+			    	</otherwise>
+			    </choose>
+			    CASE IFNULL(MAX_SUBJ_CD, '') 
+					WHEN 'C01' THEN 204
+					WHEN 'C02' THEN 205
+					WHEN 'C03' THEN 206
+					WHEN 'C04' THEN 207
+					WHEN 'C05' THEN 208
+					WHEN 'C06' THEN 209
+					ELSE 210
+			    END AS MAX_SUMMARY,
+			    CASE
+					WHEN MAX_SUBJ_CD IS NULL THEN 212
+			        ELSE 211
+			    END AS MAX_DETAIL,
+			    CASE IFNULL(MIN_SUBJ_CD, '') 
+					WHEN 'C01' THEN 213
+					WHEN 'C02' THEN 214
+					WHEN 'C03' THEN 215
+					WHEN 'C04' THEN 216
+					WHEN 'C05' THEN 217
+					WHEN 'C06' THEN 218
+					ELSE 219
+			    END AS MIN_SUMMARY,
+			    CASE
+					WHEN MIN_SUBJ_CD IS NULL THEN 221
+			        ELSE 220
+			    END AS MIN_DETAIL,
+		    	(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = MAXS.MAX_SUBJ_CD) AS MAX_SUBJ_NM,
+        		(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = MINS.MIN_SUBJ_CD) AS MIN_SUBJ_NM
+			FROM STUD ST 
+			LEFT OUTER JOIN (
+				SELECT
+					SCRT.STUD_ID,
+					SCRT.SUBJ_CD AS MAX_SUBJ_CD,
+					SCRT.QUES_CNT,
+					SCRT.CRT_RT AS MAX_CRT_RT,
+					PSCRT.CRT_RT AS PRE_MAX_CRT_RT,
+					(SCRT.CRT_RT - PSCRT.CRT_RT) AS MAX_SUB_CRT_RT
+				FROM (
+					SELECT
+						STUD_ID,
+						SUBJ_CD,
+						SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+						CASE
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+						END AS CRT_RT
+					FROM EXAM_RST
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+					GROUP BY STUD_ID, SUBJ_CD
+				) SCRT 
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUBJ_CD,
+						CASE
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+						END AS CRT_RT
+					FROM EXAM_RST
+					WHERE DT 
+					<choose>
+						<when test='currConCheck == "m"'>
+							BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+							BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>  
+						AND STUD_ID = #{studId}
+					GROUP BY STUD_ID, SUBJ_CD
+				) PSCRT ON SCRT.STUD_ID = PSCRT.STUD_ID AND SCRT.SUBJ_CD = PSCRT.SUBJ_CD
+				WHERE SCRT.CRT_RT<![CDATA[>]]>60
+				ORDER BY SCRT.CRT_RT DESC, SCRT.QUES_CNT DESC, (SCRT.CRT_RT - PSCRT.CRT_RT) DESC, SCRT.SUBJ_CD
+				LIMIT 1
+			) MAXS ON ST.STUD_ID = MAXS.STUD_ID
+			LEFT OUTER JOIN (
+				SELECT
+					SCRT.STUD_ID,
+					SCRT.SUBJ_CD AS MIN_SUBJ_CD,
+					SCRT.QUES_CNT,
+					SCRT.CRT_RT AS MIN_CRT_RT,
+					PSCRT.CRT_RT AS PRE_MIN_CRT_RT,
+					(PSCRT.CRT_RT - SCRT.CRT_RT) AS MIN_SUB_CRT_RT
+				FROM (
+					SELECT
+						STUD_ID,
+						SUBJ_CD,
+						SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS QUES_CNT,
+						CASE
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+						END AS CRT_RT
+					FROM EXAM_RST
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId}
+					GROUP BY STUD_ID, SUBJ_CD
+				) SCRT 
+				LEFT OUTER JOIN (
+					SELECT
+						STUD_ID,
+						SUBJ_CD,
+						CASE
+							WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+							ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+						END AS CRT_RT
+					FROM EXAM_RST
+					WHERE DT
+					<choose>
+						<when test='currConCheck == "m"'>
+							BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+						</when>
+						<otherwise>
+							BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+						</otherwise>
+					</choose>  
+						AND STUD_ID = #{studId}
+					GROUP BY STUD_ID, SUBJ_CD
+				) PSCRT ON SCRT.STUD_ID = PSCRT.STUD_ID AND SCRT.SUBJ_CD = PSCRT.SUBJ_CD
+				WHERE SCRT.CRT_RT<![CDATA[<=]]>60
+				ORDER BY SCRT.CRT_RT, SCRT.QUES_CNT DESC, (PSCRT.CRT_RT - SCRT.CRT_RT) DESC, SCRT.SUBJ_CD
+				LIMIT 1
+			) MINS ON ST.STUD_ID = MINS.STUD_ID
+			WHERE ST.STUD_ID = #{studId}
+		) EC
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE MAXSU ON MAXSU.CHANNEL = 'O' AND MAXSU.MSG_VERSION = '1.0' AND MAXSU.MSG_SHEET = 'D' AND MAXSU.MSG_NO = EC.MAX_SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE MINSU ON MINSU.CHANNEL = 'O' AND MINSU.MSG_VERSION = '1.0' AND MINSU.MSG_SHEET = 'D' AND MINSU.MSG_NO = EC.MIN_SUMMARY
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE MAXDE ON MAXDE.CHANNEL = 'O' AND MAXDE.MSG_VERSION = '1.0' AND MAXDE.MSG_SHEET = 'D' AND MAXDE.MSG_NO = EC.MAX_DETAIL
+		LEFT OUTER JOIN COMM_MSG_TEMPLATE MINDE ON MINDE.CHANNEL = 'O' AND MINDE.MSG_VERSION = '1.0' AND MINDE.MSG_SHEET = 'D' AND MINDE.MSG_NO = EC.MIN_DETAIL
+    </select>
+    
+    <select id="getExamChart" parameterType="hashMap" resultType="resultMap">
+		SELECT
+		    ST.SUBJ_CD,
+		    CRT_RT,
+		    PREV_CRT_RT,
+		    TOP_CRT_RT,
+		    AVG_CRT_RT,
+		    EXPL_CNT,
+		    ANS_QUES_CNT,
+		    CRT_QUES_CNT,
+		    INCRT_NOTE_NC_CNT,
+		    IMPRV_SLV_HABIT_CNT,
+		    SKIP_QUES_CNT,
+		    CURSORY_QUES_CNT,
+		    GUESS_QUES_CNT,
+		    MISTAKE_QUES_CNT
+		FROM (
+			SELECT
+				STUD_ID,
+		        GRADE,
+		        SUBJ_CD
+			FROM STUD ST
+		    CROSS JOIN COMM_SUBJ_CD CS
+			WHERE ST.STUD_ID = #{studId}  
+				AND CS.SUBJ_CD LIKE 'C%' 
+				AND CS.DEPTH = 1
+		) ST
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+		        COUNT(STUD_ID) AS EXPL_CNT,
+				CASE
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+				END AS CRT_RT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) AS ANS_QUES_CNT,
+				SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) AS CRT_QUES_CNT,
+				IF(IFNULL(SUM(INCRT_NT_REG_CNT),0) = 0, 0, (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT))) AS INCRT_NOTE_NC_CNT
+			FROM EXAM_RST
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+		        AND DEL_YN = 'N'
+			GROUP BY STUD_ID, SUBJ_CD
+		) ER ON ST.STUD_ID = ER.STUD_ID AND ST.SUBJ_CD = ER.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) IN ('GUC', 'GUI', 'SKP', 'CUR', 'MIS'), 1, NULL)) AS IMPRV_SLV_HABIT_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'SKP', 1, NULL)) AS SKIP_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'CUR', 1, NULL)) AS CURSORY_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) IN ('GUC', 'GUI'), 1, NULL)) AS GUESS_QUES_CNT,
+				COUNT(IF(IFNULL(QUES_PTN_IRT, QUES_PTN) = 'MIS', 1, NULL)) AS MISTAKE_QUES_CNT
+			FROM EXAM_RST_QUES_LOG
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			GROUP BY STUD_ID, SUBJ_CD
+		) EQ ON ST.STUD_ID = EQ.STUD_ID AND ST.SUBJ_CD = EQ.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUBJ_CD,
+				CASE
+					WHEN SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) = 0 THEN 0
+					ELSE ROUND(SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_CRT_CNT, CRT_CNT)) / SUM(IF(ASSESSMENT_YN = 'Y', DESCPT_QUES_CNT, QUES_CNT)) * 100 )
+				END AS PREV_CRT_RT
+			FROM EXAM_RST
+			WHERE DT 
+			<choose>
+				<when test='currConCheck == "m"'>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 1 MONTH) AND LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH))
+				</when>
+				<otherwise>
+					BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+				</otherwise>
+			</choose>  
+				AND STUD_ID = #{studId}
+		        AND DEL_YN = 'N'
+			GROUP BY STUD_ID, SUBJ_CD
+		) PER ON ST.STUD_ID = PER.STUD_ID AND ST.SUBJ_CD = PER.SUBJ_CD
+		LEFT OUTER JOIN (
+			SELECT
+				GRADE,
+		        SUBJ_CD,
+		        TOP_30_CRT_RT AS TOP_CRT_RT,
+		        GRP_AVG_CRT_RT AS AVG_CRT_RT
+			<choose>
+				<when test='currConCheck == "m"'>
+					FROM MONTH_GRP_EXAM_SUBJ_RST
+					WHERE YYMM = #{yyMm}
+				</when>
+				<otherwise>
+					FROM DAY_7_GRP_EXAM_SUBJ_RST
+		    		WHERE DT = #{endDt}
+				</otherwise>
+			</choose>  
+		) GP ON ST.GRADE = GP.GRADE AND ST.SUBJ_CD = GP.SUBJ_CD
+		ORDER BY ST.SUBJ_CD;
+    </select>
+    
+    <select id="getSubjExamListCnt" parameterType="hashMap" resultType="resultMap">
+		SELECT
+				COUNT(CNT.STUD_ID) AS TOTAL_CNT
+		FROM STUD ST
+		LEFT OUTER JOIN (
+			SELECT
+				ER.STUD_ID
+			FROM EXAM_RST ER
+			LEFT OUTER JOIN EXAM_RST_QUES_LOG EQ ON ER.DT = EQ.DT AND ER.STUD_ID = EQ.STUD_ID AND ER.EXAM_CD = EQ.EXAM_CD AND ER.EXAM_TYPE = EQ.EXAM_TYPE AND ER.SMT_ID = EQ.SMT_ID
+			WHERE ER.DT BETWEEN #{startDt} AND #{endDt}
+				AND ER.STUD_ID = #{studId}
+			<if test="types != null">
+					AND ER.EXAM_TYPE IN
+				<foreach collection="types" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+					AND ER.DEL_YN = 'N'
+			</if>
+			<choose>
+				<when test="search != null">	
+					AND ER.EXAM_NM LIKE CONCAT('%',#{search},'%')
+				</when>
+			</choose>
+			GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
+		) CNT ON ST.STUD_ID = CNT.STUD_ID
+		WHERE ST.STUD_ID = #{studId}
+		GROUP BY ST.STUD_ID 
+    </select>
+    
+    <select id="getSubjExamList" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			ER.SUBJ_CD,
+		    DATE_FORMAT(ER.SMT_DTTM,'%Y-%m-%d %H:%i:%s') AS SMT_DTTM,
+		    ER.EXAM_TYPE AS TYPE,
+		    ER.EXAM_CD,
+		    ER.SMT_ID,
+		    ER.STUD_ID,
+		    ER.EXAM_NM,
+		    CONCAT((SELECT IF(COUNT(*) = 1, 1, COUNT(*) + 1) FROM EXAM_RST WHERE STUD_ID = ER.STUD_ID AND EXAM_CD = ER.EXAM_CD AND SMT_ID = ER.SMT_ID),'차') AS ROUND,
+		    ROUND(IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_CRT_CNT, ER.CRT_CNT) / IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_QUES_CNT, ER.QUES_CNT) * 100) AS CRT_RT,
+		    IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_CRT_CNT, ER.CRT_CNT) AS CRT_QUES_CNT,
+			IF(ER.ASSESSMENT_YN = 'Y', ER.DESCPT_QUES_CNT, ER.QUES_CNT) AS QUES_CNT,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CRT', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'GUC', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS GUESS_CRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'SKP', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS SKIP_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'GUI', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS GUESS_INC_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'CUR', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS CURSORY_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'INC', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS INCRT_QUES,
+		    GROUP_CONCAT(IF(IFNULL(EQ.QUES_PTN_IRT, EQ.QUES_PTN) = 'MIS', EQ.QUES_ORD, NULL) ORDER BY EQ.QUES_ORD SEPARATOR ',') AS MISTAKEN_QUES
+		FROM EXAM_RST ER
+		LEFT OUTER JOIN EXAM_RST_QUES_LOG EQ ON ER.DT = EQ.DT AND ER.STUD_ID = EQ.STUD_ID AND ER.EXAM_CD = EQ.EXAM_CD AND ER.EXAM_TYPE = EQ.EXAM_TYPE AND ER.SMT_ID = EQ.SMT_ID
+		WHERE ER.DT BETWEEN #{startDt} AND #{endDt}
+			AND ER.STUD_ID = #{studId}
+		<if test="types != null">
+				AND ER.EXAM_TYPE IN
+			<foreach collection="types" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+				AND ER.DEL_YN = 'N'
+		</if>
+		<choose>
+			<when test="search != null">	
+				AND ER.EXAM_NM LIKE CONCAT('%',#{search},'%')
+			</when>
+		</choose>
+		GROUP BY ER.STUD_ID, ER.EXAM_CD, ER.SMT_ID
+		ORDER BY ER.SMT_DTTM DESC
+		<choose>
+            <when test="startIdx != null and pageSize != null">
+                LIMIT ${pageSize}
+                OFFSET ${startIdx}
+            </when>
+            <when test="startIdx == null and pageSize != null">
+                LIMIT ${pageSize}
+                OFFSET 0
+            </when>
+            <when test="startIdx != null and pageSize == null">
+                LIMIT 10
+                OFFSET ${startIdx}
+            </when>
+            <otherwise>
+                LIMIT 10
+                OFFSET 0
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="getIncrtNote" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			SUM(INCRT_NT_REG_CNT) AS INCRT_NOTE_CNT,
+		    SUM(INCRT_NT_FNSH_CNT) AS INCRT_NOTE_FNSH_CNT,
+		    (SUM(INCRT_NT_REG_CNT) - SUM(INCRT_NT_FNSH_CNT)) AS INCRT_NOTE_NC_CNT,
+		    TOTAL_CNT
+		FROM EXAM_RST ER
+		LEFT OUTER JOIN (
+			SELECT 
+				STUD_ID,
+				COUNT(*) AS TOTAL_CNT
+			FROM (
+				SELECT
+					STUD_ID,
+					GRADE_TERM,
+					SUBJ_NM,
+					CHPATER_NM AS UNIT_NM,
+					NULL AS TYPE,
+					GROUP_CONCAT(EXAM_CD SEPARATOR ',') AS EXAM_CD,
+					GROUP_CONCAT(SMT_ID SEPARATOR ',') AS SMT_ID,
+					STU_ID,
+					(SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = MAX(LRN_STT)) AS LRN_STT,
+					SUM(QUES_CNT) AS QUES_CNT,
+					SUM(CRT_QUES_CNT) AS CRT_QUES_CNT,
+					SUM(REMAIN_QUES_CNT) AS REMAIN_QUES_CNT,
+					MAX(INCRT_NOTE_REG_DT) AS INCRT_NOTE_REG_DT,
+					MAX(SMT_DTTM) AS SMT_DTTM,
+			        CHAPTER_CD
+				FROM (
+					SELECT 
+						EXAM_CD AS CHAPTER_EXAM_CD,
+						MIN(L_CHAPTER_CD) AS CHAPTER_CD,
+						MIN(L_CHAPTER_NM) AS CHPATER_NM
+					FROM UNIT_EXAM_INFO
+					GROUP BY EXAM_CD
+				) UI 
+				JOIN (
+					SELECT
+						STUD_ID,
+						GRADE_TERM,
+						(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_NM,
+						UNIT_NM,
+						EXAM_TYPE AS TYPE,
+						EXAM_CD,
+						SMT_ID,
+						STU_ID,
+						LRN_STT,
+						QUES_CNT,
+						CRT_QUES_CNT,
+						INCRT_CNT AS REMAIN_QUES_CNT,
+						REG_DT AS INCRT_NOTE_REG_DT,
+						SMT_DTTM
+					FROM EXAM_RST_INCRT_NT EN
+					WHERE DT BETWEEN #{startDt} AND #{endDt}
+						AND STUD_ID = #{studId} 
+				) EN ON UI.CHAPTER_EXAM_CD = EN.EXAM_CD
+				GROUP BY UI.CHAPTER_CD
+				<if test='reportType !=null and reportType == "B"'>
+				UNION ALL
+				SELECT
+					STUD_ID,
+					GRADE_TERM,
+					(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_NM,
+					UNIT_NM,
+					EXAM_TYPE AS TYPE,
+					EXAM_CD,
+					SMT_ID,
+					STU_ID,
+					(SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = EN.LRN_STT) AS LRN_STT,
+					QUES_CNT,
+					CRT_QUES_CNT,
+					INCRT_CNT AS REMAIN_QUES_CNT,
+					REG_DT AS INCRT_NOTE_REG_DT,
+					SMT_DTTM,
+			        CONCAT((SELECT L_CHAPTER_CD FROM UNIT_EXAM_INFO WHERE EXAM_CD = EN.EXAM_CD LIMIT 1), 'A') AS CHAPTER_CD
+				FROM EXAM_RST_INCRT_NT EN
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId}
+				</if>
+			) TEN
+		) ECNT ON ER.STUD_ID = ECNT.STUD_ID
+		WHERE ER.DT BETWEEN #{startDt} AND #{endDt}
+			AND ER.STUD_ID = #{studId}
+    </select>
+    	
+    <select id="getIncrtNoteList" parameterType="hashMap" resultType="resultMap">
+    	SELECT 
+			GRADE_TERM,
+			SUBJ_NM,
+			UNIT_NM,
+			TYPE,
+			EXAM_CD,
+			SMT_ID,
+			STU_ID,
+			LRN_STT,
+			QUES_CNT,
+			CRT_QUES_CNT,
+			REMAIN_QUES_CNT,
+			INCRT_NOTE_REG_DT,
+			SMT_DTTM
+		FROM (
+			SELECT
+				GRADE_TERM,
+				SUBJ_NM,
+				CHPATER_NM AS UNIT_NM,
+				NULL AS TYPE,
+				GROUP_CONCAT(EXAM_CD SEPARATOR ',') AS EXAM_CD,
+				GROUP_CONCAT(SMT_ID SEPARATOR ',') AS SMT_ID,
+				STU_ID,
+				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = MAX(LRN_STT)) AS LRN_STT,
+				SUM(QUES_CNT) AS QUES_CNT,
+				SUM(CRT_QUES_CNT) AS CRT_QUES_CNT,
+				SUM(REMAIN_QUES_CNT) AS REMAIN_QUES_CNT,
+				MAX(INCRT_NOTE_REG_DT) AS INCRT_NOTE_REG_DT,
+				MAX(SMT_DTTM) AS SMT_DTTM,
+		        CHAPTER_CD
+			FROM (
+				SELECT 
+					EXAM_CD AS CHAPTER_EXAM_CD,
+					MIN(L_CHAPTER_CD) AS CHAPTER_CD,
+					MIN(L_CHAPTER_NM) AS CHPATER_NM
+				FROM UNIT_EXAM_INFO
+				GROUP BY EXAM_CD
+			) UI 
+			JOIN (
+				SELECT
+					GRADE_TERM,
+					(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_NM,
+					UNIT_NM,
+					EXAM_TYPE AS TYPE,
+					EXAM_CD,
+					SMT_ID,
+					STU_ID,
+					LRN_STT,
+					QUES_CNT,
+					CRT_QUES_CNT,
+					INCRT_CNT AS REMAIN_QUES_CNT,
+					REG_DT AS INCRT_NOTE_REG_DT,
+					SMT_DTTM
+				FROM EXAM_RST_INCRT_NT EN
+				WHERE DT BETWEEN #{startDt} AND #{endDt}
+					AND STUD_ID = #{studId} 
+			) EN ON UI.CHAPTER_EXAM_CD = EN.EXAM_CD
+			GROUP BY UI.CHAPTER_CD
+			<if test='reportType !=null and reportType == "B"'>
+			UNION ALL
+			SELECT
+				GRADE_TERM,
+				(SELECT SUBJ_NM FROM COMM_SUBJ_CD WHERE SUBJ_CD = EN.SUBJ_CD AND DEPTH = 1) AS SUBJ_NM,
+				UNIT_NM,
+				EXAM_TYPE AS TYPE,
+				EXAM_CD,
+				SMT_ID,
+				STU_ID,
+				(SELECT CD_NM FROM COMM_CD WHERE GRP = 'LRN_INFO' AND CD = EN.LRN_STT) AS LRN_STT,
+				QUES_CNT,
+				CRT_QUES_CNT,
+				INCRT_CNT AS REMAIN_QUES_CNT,
+				REG_DT AS INCRT_NOTE_REG_DT,
+				SMT_DTTM,
+		        CONCAT((SELECT L_CHAPTER_CD FROM UNIT_EXAM_INFO WHERE EXAM_CD = EN.EXAM_CD LIMIT 1), 'A') AS CHAPTER_CD
+			FROM EXAM_RST_INCRT_NT EN
+			WHERE DT BETWEEN #{startDt} AND #{endDt}
+				AND STUD_ID = #{studId}
+			</if>
+		) TEN
+		ORDER BY CHAPTER_CD, INCRT_NOTE_REG_DT DESC
+		<choose>
+            <when test="startIdx != null and pageSize != null">
+                LIMIT ${pageSize}
+                OFFSET ${startIdx}
+            </when>
+            <when test="startIdx == null and pageSize != null">
+                LIMIT ${pageSize}
+                OFFSET 0
+            </when>
+            <when test="startIdx != null and pageSize == null">
+                LIMIT 10
+                OFFSET ${startIdx}
+            </when>
+            <otherwise>
+                LIMIT 10
+                OFFSET 0
+            </otherwise>
+        </choose>
+    </select>
+    
+    <select id="getChapterStt" parameterType="hashMap" resultType="resultMap">
+		SELECT COUNT(EXAM_CD) AS LRN_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[>=]]> 80, 1, 0)) AS FNSH_CHAPTER_CNT
+			, SUM(IF(CRT_RT <![CDATA[<]]> 50, 1, 0)) AS SUPPLEMENTARY_CHAPTER_CNT
+			, GROUP_CONCAT(DISTINCT SUBJ_CD ORDER BY SUBJ_CD ASC SEPARATOR '|') AS SUBJ_CD_LIST
+		<choose>
+          	<when test='currConCheck == "m"'> 		
+		FROM EXAM_MONTH_UNIT_TEST_RST
+		WHERE YYMM = #{yymm}
+			AND STUD_ID = #{studId}
+			AND SUBJ_CD IN ('C01','C02','C03','C04')
+			</when>
+			<otherwise>		
+		FROM EXAM_UNIT_TEST_RST
+		WHERE DT BETWEEN #{startDt} AND #{endDt}
+			AND STUD_ID = #{studId}
+			AND DEL_YN = 'N'
+			AND SUBJ_CD IN ('C01','C02','C03','C04')
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getChapterSttDetail" parameterType="hashMap" resultType="resultMap">
+	    SELECT 
+			A.GRADE, A.TERM, A.CHAPTER
+			, GROUP_CONCAT(IFNULL(B.UNIT_CD,'') ORDER BY A.SUBJ_CD SEPARATOR '|') AS CHAPTER_CD
+			, GROUP_CONCAT(IFNULL(B.UNIT_NM,'') ORDER BY A.SUBJ_CD SEPARATOR '|') AS CHAPTER_NM
+			, GROUP_CONCAT(IFNULL(UNDERSTANDING_LV, 0) ORDER BY A.SUBJ_CD SEPARATOR '|') AS UNDERSTANDING_LV
+		FROM (
+		<choose>
+			<when test='currConCheck == "m"'> 		
+			SELECT 
+				GRADE,
+				TERM,
+				CHAPTER,
+				SUBJ_CD
+			FROM (
+				SELECT DISTINCT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
+				FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+				WHERE RST.YYMM = #{yymm}
+					AND RST.STUD_ID = #{studId}
+					AND RST.SUBJ_CD IN ('C01','C02','C03','C04')
+			) A
+			CROSS JOIN (
+				SELECT DISTINCT SUBJ_CD
+				FROM EXAM_MONTH_UNIT_TEST_RST
+				WHERE YYMM = #{yymm}
+				AND STUD_ID = #{studId}			
+				AND SUBJ_CD IN ('C01','C02','C03','C04')
+			) B	
+		) A 
+		LEFT OUTER JOIN (
+			SELECT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER, RST.SUBJ_CD, UNIT.UNIT_CD, UNIT.UNIT_NM
+				, IF(TRUE_SCORE IS NULL
+					, IF(CRT_RT <![CDATA[<]]> 50
+						, 1
+						, IF(CRT_RT <![CDATA[<]]> 80
+							, 2
+							, IF(CRT_RT IS NULL
+								, NULL
+								, 3
+								)
+							)
+						)
+					, IF(TRUE_SCORE <![CDATA[<]]> 50
+						, 1
+						, IF(TRUE_SCORE <![CDATA[<]]> 80
+							, 2
+							, 3
+							)
+						)
+					) AS UNDERSTANDING_LV
+			FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+			WHERE RST.YYMM = #{yymm} 
+				AND RST.STUD_ID = #{studId}
+			GROUP BY GRADE, TERM, CHAPTER, SUBJ_CD
+		) B ON A.GRADE = B.GRADE AND A.TERM = B.TERM AND A.CHAPTER = B.CHAPTER AND A.SUBJ_CD = B.SUBJ_CD 
+			</when>
+			<otherwise>	
+			SELECT 
+				GRADE,
+				TERM,
+				CHAPTER,
+				SUBJ_CD
+			FROM (
+				SELECT DISTINCT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER
+				FROM EXAM_UNIT_TEST_RST AS RST
+				JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+				WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+					AND RST.STUD_ID = #{studId}
+					AND RST.DEL_YN = 'N'
+					AND RST.SUBJ_CD IN ('C01','C02','C03','C04')
+			) A
+			CROSS JOIN (
+				SELECT DISTINCT SUBJ_CD
+				FROM EXAM_UNIT_TEST_RST 
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+					AND STUD_ID = #{studId}
+					AND DEL_YN = 'N'		
+					AND SUBJ_CD IN ('C01','C02','C03','C04')
+			) B	
+		) A 
+		LEFT OUTER JOIN (
+			SELECT DISTINCT UNIT.GRADE, UNIT.TERM, CAST(SUBSTRING_INDEX(UNIT.UNIT_NO,'단원',1) AS UNSIGNED) AS CHAPTER, RST.SUBJ_CD, UNIT.UNIT_CD, UNIT.UNIT_NM
+				, IF(TRUE_SCORE IS NULL
+					, IF(CRT_RT <![CDATA[<]]> 50
+						, 1
+						, IF(CRT_RT <![CDATA[<]]> 80
+							, 2
+							, IF(CRT_RT IS NULL
+								, NULL
+								, 3
+								)
+							)
+						)
+					, IF(TRUE_SCORE / TRUE_SCORE_MAX * 100 <![CDATA[<]]> 50
+						, 1
+						, IF(TRUE_SCORE / TRUE_SCORE_MAX * 100 <![CDATA[<]]> 80
+							, 2
+							, 3
+							)
+						)
+					) AS UNDERSTANDING_LV
+			FROM EXAM_UNIT_TEST_RST AS RST 
+			JOIN UNIT_INFO AS UNIT ON RST.UNIT_CD = UNIT.UNIT_CD
+			WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+				AND RST.STUD_ID = #{studId}
+				AND RST.DEL_YN = 'N'	
+				AND RST.SUBJ_CD IN ('C01','C02','C03','C04')			
+			GROUP BY GRADE, TERM, CHAPTER, SUBJ_CD	
+		) B ON A.GRADE = B.GRADE AND A.TERM = B.TERM AND A.CHAPTER = B.CHAPTER AND A.SUBJ_CD = B.SUBJ_CD 
+			</otherwise>
+		</choose>		
+		GROUP BY GRADE, TERM, CHAPTER
+		ORDER BY GRADE, TERM, CHAPTER	
+    </select>
+    
+    <select id="getChapterLrn" parameterType="hashMap" resultType="resultMap">
+  	    SELECT 
+			IFNULL(ULINK.UNIT_INFO, '') AS CHAPTER_NM
+			, IF(RST.TRUE_SCORE IS NULL, RST.CRT_RT, CAST(ROUND(RST.TRUE_SCORE / RST.TRUE_SCORE_MAX * 100) AS UNSIGNED)) AS EXAM_CRT_RT
+			, DATE_FORMAT(RST.SMT_DTTM, '%Y-%m-%d') AS EXAM_DT
+			, IFNULL(ULINK.PRE_UNIT_INFO, '') AS PRE_CHAPTER_NM
+			, IFNULL(PREV_RST.PRE_EXAM_CRT_RT, '') AS PRE_EXAM_CRT_RT
+			, IFNULL(PREV_RST.PRE_EXAM_DT, '') AS PRE_EXAM_DT
+			, IFNULL(ULINK.SUB_UNIT_INFO, '') AS FOLLOW_UP_LRN
+			, IFNULL(ULINK.SP_UNIT_INFO, '') AS SUPPLEMENTARY_LRN
+		<choose>
+			<when test='currConCheck == "m"'> 
+		FROM EXAM_MONTH_UNIT_TEST_RST AS RST 
+		JOIN UNIT_INFO AS UNIT ON UNIT.UNIT_CD = RST.UNIT_CD
+		LEFT OUTER JOIN UNIT_LINK_INFO AS ULINK ON ULINK.UNIT_CD = UNIT.UNIT_CD
+ 		LEFT OUTER JOIN (
+			SELECT ULINK.UNIT_CD
+					, IF(PREV.TRUE_SCORE IS NULL, PREV.CRT_RT, CAST(ROUND(PREV.TRUE_SCORE / PREV.TRUE_SCORE_MAX * 100) AS UNSIGNED)) AS PRE_EXAM_CRT_RT
+					, DATE_FORMAT(PREV.SMT_DTTM, '%Y-%m-%d') AS PRE_EXAM_DT
+			FROM UNIT_LINK_INFO AS ULINK 
+			LEFT OUTER JOIN EXAM_MONTH_UNIT_TEST_RST AS PREV 
+							ON PREV.YYMM BETWEEN DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(#{yymm},'01'), '%Y%m%d'), INTERVAL 6 MONTH), '%Y%m') AND #{yymm} 
+							AND PREV.STUD_ID = #{studId}	
+							AND PREV.UNIT_CD = ULINK.PRE_UNIT_CD
+			WHERE ULINK.UNIT_CD = #{chapterCd}
+			ORDER BY PREV.SMT_DTTM DESC LIMIT 1		 
+		) AS PREV_RST ON PREV_RST.UNIT_CD = UNIT.UNIT_CD
+		WHERE RST.YYMM = #{yymm}
+			AND RST.STUD_ID = #{studId}	
+			AND RST.UNIT_CD = #{chapterCd}
+			</when>
+			<otherwise>	
+ 		FROM EXAM_UNIT_TEST_RST AS RST 
+ 		JOIN UNIT_INFO AS UNIT ON UNIT.UNIT_CD = RST.UNIT_CD
+ 		LEFT OUTER JOIN UNIT_LINK_INFO AS ULINK ON ULINK.UNIT_CD = UNIT.UNIT_CD
+ 		LEFT OUTER JOIN (
+			SELECT ULINK.UNIT_CD
+					, IF(PREV.TRUE_SCORE IS NULL, PREV.CRT_RT, CAST(ROUND(PREV.TRUE_SCORE / PREV.TRUE_SCORE_MAX * 100) AS UNSIGNED)) AS PRE_EXAM_CRT_RT
+					, DATE_FORMAT(PREV.SMT_DTTM, '%Y-%m-%d') AS PRE_EXAM_DT
+			FROM UNIT_LINK_INFO AS ULINK 
+			LEFT OUTER JOIN EXAM_UNIT_TEST_RST AS PREV 
+							ON PREV.DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 6 MONTH) AND #{endDt} 
+							AND PREV.STUD_ID = #{studId}	
+							AND PREV.UNIT_CD = ULINK.PRE_UNIT_CD
+			WHERE ULINK.UNIT_CD = #{chapterCd}
+			ORDER BY PREV.SMT_DTTM DESC LIMIT 1		 
+		) AS PREV_RST ON PREV_RST.UNIT_CD = UNIT.UNIT_CD
+ 		WHERE RST.DT BETWEEN #{startDt} AND #{endDt} 
+ 			AND RST.STUD_ID = #{studId}
+ 			AND RST.DEL_YN = 'N'
+ 			AND RST.UNIT_CD = #{chapterCd}
+			</otherwise>
+		</choose>		
+		GROUP BY RST.UNIT_CD
+    </select>
+    
+    <select id="getCommMsgTemplate" parameterType="hashMap" resultType="resultMap">
+  	  SELECT MSG_NO, MSG FROM COMM_MSG_TEMPLATE
+      WHERE CHANNEL = 'O' 
+      		AND MSG_VERSION = #{version}
+      		AND MSG_SHEET = #{sheet} 
+      		AND MSG_NO IN
+	      	<foreach collection="msgNo" item="item" index="index" separator="," open="(" close=")">
+				#{item}
+			</foreach>
+    </select>
+    
+</mapper>

@@ -299,15 +299,21 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        } else if(apiName.equals("connect-log-list")) { 
 	        	try {
 		        	String url = HLLOGIN_API + apiName + ".json";
-		        	
-		        	String studId = "";
-		    		String encodedStr = paramMap.get("p").toString();
-		    		
-		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-		    		studId = paramList[1];
-		    		paramMap.put("stuId", studId);
-		    		
-		    		paramMap.remove("p");
+		        	if(paramMap.containsKey("studId")) { 
+//		        		url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/comm/" + apiName + ".json";	//임시 라이브 api test
+			        	paramMap.put("stuId", paramMap.get("studId"));
+		        		paramMap.remove("studId");		
+		        		paramMap.remove("s");		
+		        	} else if(!paramMap.containsKey("stuId") && paramMap.containsKey("p")) {
+			        	String studId = "";
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		paramMap.put("stuId", studId);
+			    		
+			    		paramMap.remove("p");
+		        	}
 		        	
 		        	//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
@@ -318,7 +324,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
 		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-		        	
+
+		        	LOGGER.debug("apiUri : " + apiUri);
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));
@@ -376,15 +383,25 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        }else if(apiName.equals("recommand/")){
 	        	try {
-		        	String studId = "";
-		    		String encodedStr = paramMap.get("p").toString();
+
+	        		String url = TUTORRECOMMEND_API + apiName;
+	        		//GroupServiceImpl >> getAiRecommendLrn 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
+	        		//studId 추출 코드 예외 추가
+	        		if(paramMap.containsKey("studId") && paramMap.containsKey("s")) {
+//	        			url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/ai/tutor/weekly/" + apiName;	//임시 라이브 api test
+ 		        		paramMap.remove("s");	   	
+	        		} else if(paramMap.containsKey("p")) 
+	        		{	        		
+			        	String studId = "";
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		paramMap.put("studId", studId);
+			    		//paramMap.put("studId", "1006753");
+	        		} 
 		    		
-		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-		    		studId = paramList[1];
-		    		paramMap.put("studId", studId);
-		    		//paramMap.put("studId", "1006753");
-		    		
-		    		String url = TUTORRECOMMEND_API + apiName + paramMap.get("studId") + ".json";
+		        	url += paramMap.get("studId") + ".json";
 		        	
 		        	//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
@@ -392,7 +409,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
 		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-		        	
+
+		        	LOGGER.debug("apiUri : " + apiUri);
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));
@@ -451,8 +469,19 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        }else {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
-		        	
-		        	if(!apiName.equals("step-list/study-goal-text")) {
+		        	//GroupServiceImpl >> getDiagnosticEvalStt 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
+	        		//studId 추출 코드 예외 추가		        	
+		        	if(apiName.equals("inspecion-present") && paramMap.containsKey("studId")) {
+//		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";		//임시 라이브 api test
+		        		paramMap.put("stuId", paramMap.get("studId"));
+		        		paramMap.remove("studId");		
+		        		paramMap.remove("s");		
+		        	} else if(apiName.equals("act-element-detail") && paramMap.containsKey("studId")) {
+//		        		url = "https://sem.home-learn.com/sigong/cldsvc/admsys/v1/ai/" + apiName + ".json";		//임시 라이브 api test
+		        		paramMap.put("stuId", paramMap.get("studId"));
+		        		paramMap.remove("studId");	
+		        		paramMap.remove("s");	        		
+		        	} else if(!apiName.equals("step-list/study-goal-text")) {
 			    		String studId = "";
 			    		String encodedStr = paramMap.get("p").toString();
 			    		
@@ -477,7 +506,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
 		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-		        	
+
+		        	LOGGER.debug("apiUri : " + apiUri);
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));

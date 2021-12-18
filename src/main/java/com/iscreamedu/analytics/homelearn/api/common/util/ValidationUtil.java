@@ -50,6 +50,13 @@ public class ValidationUtil {
 		}
 	}
 
+	/*
+	 * 시스템 error 처리
+	 */
+    public void setError(String key) {
+		showMessage(ValidationCode.SYSTEM_ERROR, key, ValidationCode.SYSTEM_ERROR.getMessage());
+    }
+    
 	/**
 	 * Vaildation log를 찍고, 해당메시지를 결과에 담는다.
 	 * @param v_code : Validation Code
@@ -124,7 +131,7 @@ public class ValidationUtil {
 			dateFormat.setLenient(false);
 			dateFormat.parse(value);
 		}catch(ParseException e) {
-			showMessage(ValidationCode.DATE, key, value);
+			showMessage(ValidationCode.DATE, key, value + " ( " + ValidationCode.DATE.getMessage() + " )");
 		}
 	}
 	
@@ -140,7 +147,7 @@ public class ValidationUtil {
 			dateFormat.setLenient(false);
 			dateFormat.parse(value);
 		}catch(ParseException e) {
-			showMessage(ValidationCode.DATE, key, value);
+			showMessage(ValidationCode.DATE, key, value + " ( " + ValidationCode.DATE.getMessage() + " )");
 		}
 	}
 	
