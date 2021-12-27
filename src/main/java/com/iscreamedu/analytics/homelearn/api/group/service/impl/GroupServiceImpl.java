@@ -4452,6 +4452,8 @@ public class GroupServiceImpl implements GroupService {
 					data_period = (Map<String,Object>)getMapperResultData(v_param, "", paramMap, ".getPeriod");
 					startDate = data_period.get("startDt").toString();
 					endDate = data_period.get("endDt").toString();
+					paramMap.put("startDt", startDate);
+					paramMap.put("endDt", endDate);
 					paramMap.put("currConCheck", "w");					
 					data_lrnBasic = (ArrayList<Map<String,Object>>)getMapperResultData(v_param, "list", paramMap, ".getLrnBasicPeriod");
 					data_lrnHabit = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitPeriod");
