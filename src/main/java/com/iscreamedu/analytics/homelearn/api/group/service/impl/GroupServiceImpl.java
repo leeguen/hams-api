@@ -192,7 +192,7 @@ public class GroupServiceImpl implements GroupService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) { 		
-			setResult(dataKey, getMapperResultData(v_param, "", paramMap, ".getStud"));			
+			setResult(dataKey, getMapperResultData(v_param, "", paramMap, ".getStud"));
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -304,7 +304,7 @@ public class GroupServiceImpl implements GroupService {
 				msgRequestMap.put("sheet", "C");
 				ArrayList<Map<String,Object>> msgTemplate = new ArrayList<>();
 				msgTemplate = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", msgRequestMap, ".getCommMsgTemplate");
-				
+	            	
 				getLrnBasicResult(cData, data, positive, negative, msg, msgTemplate);		            
 	            setResult(dataKey, data);
 			}
@@ -685,7 +685,7 @@ public class GroupServiceImpl implements GroupService {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
 						if(data != null) {
 							detailList = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitDetail");
-							if(detailList.size() > 0 && detailList.get(0) != null) {	
+							if(detailList.size() > 0 && detailList.get(0) != null) {								
 								data.put("lrnHabitChart", detailList);
 							}
 							data.remove("studId");
@@ -4160,7 +4160,7 @@ public class GroupServiceImpl implements GroupService {
 //				}
 //				params.put("studIdList", studIdList);
 //        	} else {
-        		
+
         		String decodedStr = cp.AES_Decode(params.get("s").toString());
 	
 	            //DB params
