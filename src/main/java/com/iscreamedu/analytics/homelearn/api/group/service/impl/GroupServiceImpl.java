@@ -4363,15 +4363,24 @@ public class GroupServiceImpl implements GroupService {
 		vu.checkRequired(new String[] {"yymm","studId"}, paramMap);
 		if(vu.isValid()) { 		
     		List<String> sList = new ArrayList<>();
+    		List<String> srList = new ArrayList<>();
     		ArrayList<String> studIdList = new ArrayList<>();
+    		ArrayList<String> studIdListResult = new ArrayList<>();
 			sList = Arrays.asList(paramMap.get("studId").toString().split(","));
 			for(String s : sList) {							
 				studIdList.add(s);		
 			}
 			paramMap.put("studIdList", studIdList);
 			data = (Map<String,Object>)getMapperResultData(v_param, "", paramMap, ".getCheckReport");
-			if(data != null) {
-				setResult(dataKey, Arrays.asList(data.get("studId").toString().split(",")).stream().mapToInt(Integer::parseInt).toArray());
+			if(data != null) {				
+				srList = Arrays.asList(data.get("studId").toString().split(","));
+				
+				for(String s : studIdList) {		
+					for(String sr : srList) {		
+						if(s.equals(sr)) studIdListResult.add(sr);		
+					}
+				}
+				setResult(dataKey, studIdListResult.stream().mapToInt(Integer::parseInt).toArray());
 			} else {
 				setResult(dataKey, null);
 			}
@@ -4434,6 +4443,7 @@ public class GroupServiceImpl implements GroupService {
 					endDate = yyyy+"-"+mm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 					paramMap.put("startDt", startDate);
 					paramMap.put("endDt", endDate);
+					paramMap.put("currConCheck", "m");
 					data_lrnBasic = (ArrayList<Map<String,Object>>)getMapperResultData(v_param, "list", paramMap, ".getLrnBasicMonthly");
 					data_lrnHabit = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitMonthly");
 					paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));					
@@ -4442,6 +4452,7 @@ public class GroupServiceImpl implements GroupService {
 					data_period = (Map<String,Object>)getMapperResultData(v_param, "", paramMap, ".getPeriod");
 					startDate = data_period.get("startDt").toString();
 					endDate = data_period.get("endDt").toString();
+					paramMap.put("currConCheck", "w");					
 					data_lrnBasic = (ArrayList<Map<String,Object>>)getMapperResultData(v_param, "list", paramMap, ".getLrnBasicPeriod");
 					data_lrnHabit = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitPeriod");
 					paramMap.put("limitDtCnt", 7);					
