@@ -153,9 +153,13 @@
 		FROM 
 		(				
 			SELECT STUD_ID
+			<choose>
+	            <when test='currConCheck == "w"'>   
 				, WK.DT
 			-- prev
-				, PREV_WK.dt AS PREV_DT 
+				, PREV_WK.dt AS PREV_DT
+				</when>
+			</choose>
 			FROM STUD
 			<choose>
 	            <when test='currConCheck == "w"'>            
