@@ -517,5 +517,37 @@ public class GroupController {
 		body = (LinkedHashMap)groupService.getChapterLrn(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
-    
+
+	/**
+	 * HAMS-ORG-DB-001
+	 * 대시보드 - 선택한 리포트 생성여부 체크
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getCheckReport")
+    @ResponseBody
+	public ResponseEntity getCheckReport(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getCheckReport(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+
+	/**
+	 * HAMS-ORG-DB-002
+	 * 대시보드 - 선택한 리포트 리스트 출력
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getAiReportList")
+    @ResponseBody
+	public ResponseEntity getAiReportList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)groupService.getAiReportList(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
 }

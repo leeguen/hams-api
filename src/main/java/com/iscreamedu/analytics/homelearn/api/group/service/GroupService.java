@@ -1,5 +1,6 @@
 package com.iscreamedu.analytics.homelearn.api.group.service;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public interface GroupService {
@@ -64,5 +65,9 @@ public interface GroupService {
     public Map getChapterStt(Map<String, Object> paramMap) throws Exception;
     
     public Map getChapterLrn(Map<String, Object> paramMap) throws Exception;
+    
+    public Map getCheckReport(Map<String, Object> paramMap) throws Exception;
+    
+    public Map getAiReportList(Map<String, Object> paramMap) throws Exception;
         
 }

@@ -2,6 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="AiReport_1.0">
 
+
+    <select id="getPeriod" parameterType="hashMap" resultType="resultMap">
+   		SELECT 
+			IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) AS START_DT
+			, IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) AS END_DT
+		FROM COMM_WK_DT 
+		WHERE YYMM = #{yymm} AND WK = #{wk}
+    </select>
+    
     <select id="getPeriodWeeks" parameterType="hashMap" resultType="resultMap">
 	/* getPeriodWeeks : 년월, 주차 산출 - 기간정보 */
 		SELECT 
@@ -53,36 +62,71 @@
 						A.GRADE,
 						A.SCHL_NM,
 						C.DT AS LAST_LOGIN_DT, 
-						MIN(B.START_DT) AS LRN_START_DT
+						B.LRN_START_DT
 					FROM STUD A 
-					JOIN STUD_LOG B ON B.STUD_ID = A.STUD_ID
+					JOIN (
+						SELECT STUD_ID, MIN(START_DT) AS LRN_START_DT
+						FROM STUD_LOG 
+				<choose>
+          			<when test='studIdList != null'>    
+						WHERE STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						WHERE STUD_ID = #{studId}
+					</otherwise>
+				</choose>					
+						GROUP BY STUD_ID
+					) B ON B.STUD_ID = A.STUD_ID
 					LEFT OUTER JOIN (
-						SELECT DT, STUD_ID 
+						SELECT MAX(DT) AS DT, STUD_ID 
 						FROM DAY_ATT_LOG 
-						WHERE STUD_ID  = #{studId} AND LOGIN_YN = 'Y' 
-						ORDER BY DT DESC LIMIT 1
+				<choose>
+          			<when test='studIdList != null'>  
+						WHERE STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						WHERE STUD_ID = #{studId}
+					</otherwise>
+				</choose>		
+							 AND LOGIN_YN = 'Y' 
+						GROUP BY STUD_ID
 					) AS C ON C.STUD_ID = A.STUD_ID
-					WHERE A.STUD_ID = #{studId}
+				<choose>
+          			<when test='studIdList != null'>  
+						WHERE A.STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						WHERE A.STUD_ID = #{studId}
+					</otherwise>
+				</choose>		
 			) S	    
     </select>
     
     <select id="getLrnBasicPeriod" parameterType="hashMap" resultType="resultMap">
 	/* getLrnBasicPeriod : 기관용 기간별 학습 분석 */
 		SELECT
+        	S.STUD_ID 
 		<choose>
             <when test='currConCheck == "w"'>    
-			WK.DT
+			, S.DT
 		-- prev
-			, PREV_WK.dt AS PREV_DT 
-			,
+			, S.PREV_DT 
 			</when>
 			<otherwise>
-			CONCAT(#{startDt}, ' ~ ', #{endDt}) AS DT
+			, CONCAT(#{startDt}, ' ~ ', #{endDt}) AS DT
 			, CONCAT(DATE_SUB(IFNULL(PREV_ATT.DT, PREV_LRN.DT), INTERVAL 6 DAY), ' ~ ', IFNULL(PREV_ATT.DT, PREV_LRN.DT)) AS PREV_DT
-			,
 			</otherwise>
         </choose>
-			CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS DT_STR
+			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS DT_STR
 			, ATT.ATT_RT		-- 출석률
 			, LRN.EX_RT			-- 수행률
 			, ER.AVG_CRT_RT AS CRT_RT	-- 정답률
@@ -107,47 +151,104 @@
     		, IFNULL(ER.SKP_QUES_CNT, 0) AS SKIP_QUES_CNT			-- 건너뛴 문제 수
             , (IFNULL(ER.CUR_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
 		FROM 
-		(	
-			SELECT #{studId} AS STUD_ID 
+		(				
+			SELECT STUD_ID
+				, WK.DT
+			-- prev
+				, PREV_WK.dt AS PREV_DT 
+			FROM STUD
+			<choose>
+	            <when test='currConCheck == "w"'>            
+			CROSS JOIN ( -- 주차
+				SELECT MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
+				FROM COMM_WK_DT 
+				WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
+					AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt}, '%Y-%m-%d')				
+			) AS WK 
+			CROSS JOIN (
+				SELECT MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
+				FROM COMM_WK_DT 
+				WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_SUB(#{startDt}, INTERVAL 7 DAY)
+					AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_SUB(#{endDt}, INTERVAL 7 DAY)		
+			) AS PREV_WK ON PREV_WK.MO = DATE_SUB(WK.MO, INTERVAL 7 DAY) 
+				</when>
+	        </choose>
+			<choose>
+         		<when test='studIdList != null'>  
+					WHERE STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					WHERE STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS S 		
-		<choose>
-            <when test='currConCheck == "w"'>            
-		LEFT OUTER JOIN ( -- 주차
-			SELECT #{studId} AS STUD_ID
-				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
-			FROM COMM_WK_DT 
-			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO))))))  <![CDATA[>=]]> DATE_FORMAT(#{startDt}, '%Y-%m-%d')
-				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_FORMAT(#{endDt}, '%Y-%m-%d')				
-		) AS WK ON WK.STUD_ID = S.STUD_ID   
-		LEFT OUTER JOIN (
-			SELECT #{studId} AS STUD_ID 
-				, MO, GROUP_CONCAT(CONCAT(SUBSTRING(YYMM,5,2),'월',WK,'주차') SEPARATOR ' ~ ') AS DT
-			FROM COMM_WK_DT 
-			WHERE IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) <![CDATA[>=]]> DATE_SUB(#{startDt}, INTERVAL 7 DAY)
-				AND IFNULL(MO, IFNULL(TU, IFNULL(WE, IFNULL(TH, IFNULL(FR, IFNULL(SA, SU)))))) <![CDATA[<]]> DATE_SUB(#{endDt}, INTERVAL 7 DAY)		
-		) AS PREV_WK ON PREV_WK.MO = DATE_SUB(WK.MO, INTERVAL 7 DAY) AND PREV_WK.STUD_ID = S.STUD_ID  
-			</when>
-        </choose>
 		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
 			SELECT DT, STUD_ID, ATT_RT, ATT_CNT 
 			FROM DAY_7_ATT_STT
-			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+			WHERE DT = #{endDt}   
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS ATT ON ATT.STUD_ID = S.STUD_ID
 		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
 			SELECT DT, STUD_ID, ATT_RT, ATT_CNT 
 			FROM DAY_7_ATT_STT
-			WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND STUD_ID = #{studId} 			
+			WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>			
 		) AS PREV_ATT ON PREV_ATT.DT = DATE_SUB(ATT.DT, INTERVAL 7 DAY) AND PREV_ATT.STUD_ID = S.STUD_ID
 		LEFT OUTER JOIN ( -- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100, 선택된 기간 내에 총 학습시간, 스스로학습 수행 수, 나중에 했어요 개수
 			SELECT DT, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 				, A_LRN_EX_CNT, PLAN_D_LRN_EX_CNT
 			FROM DAY_7_LRN_EX_STT PL 
-	        WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+	        WHERE DT = #{endDt}   
+	        <choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>			
         ) AS LRN ON LRN.STUD_ID = S.STUD_ID
         LEFT OUTER JOIN (	-- 수행률 : (완료한 학습 수 / 계획된 학습 수) * 100, 선택된 기간 내에 총 학습시간
 			SELECT DT, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 			FROM DAY_7_LRN_EX_STT PL 
-	        WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+	        WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)    
+	        <choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>			
 	    ) AS PREV_LRN ON PREV_LRN.DT = DATE_SUB(LRN.DT, INTERVAL 7 DAY) AND PREV_LRN.STUD_ID = S.STUD_ID    
         LEFT OUTER JOIN ( 	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100, 완료한 평가지 개수, 100점인 평가지 개수			
         	SELECT DT, STUD_ID
@@ -165,19 +266,52 @@
                 , INCRT_QUES_CNT
                 , IMPRV_SLV_HABIT_CNT
             FROM DAY_7_EXAM_STT 
-            WHERE STUD_ID = #{studId} AND DT = #{endDt}    
+            WHERE DT = #{endDt}   
+	        <choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>			    
         ) AS ER ON ER.STUD_ID = S.STUD_ID   
         LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
         	SELECT DT, STUD_ID,  ROUND(CRT_CNT / QUES_CNT * 100) AS AVG_CRT_RT
             FROM DAY_7_EXAM_STT 
-            WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+            WHERE DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)    
+	        <choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>			
         ) AS PREV_ER ON PREV_ER.DT = DATE_SUB(ER.DT, INTERVAL 7 DAY) AND PREV_ER.STUD_ID = S.STUD_ID   
         LEFT OUTER JOIN (   -- 스스로학습 수행 수가 가장 높은 하위과목명 	
         	SELECT EX.STUD_ID, CD.SUBJ_NM AS SUBJ_NM_A_LRN 
         	FROM DAY_SUBJ_A_LRN_EX_STT AS EX 
         	JOIN COMM_SUBJ_CD AS CD 
         	ON CD.SUBJ_CD = EX.SUB_SUBJ_CD
-	        WHERE EX.DT BETWEEN #{startDt} AND #{endDt} AND EX.STUD_ID = #{studId} 
+	        WHERE EX.DT BETWEEN #{startDt} AND #{endDt} 
+	        <choose>
+         		<when test='studIdList != null'>  
+					AND EX.STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND EX.STUD_ID = #{studId}
+				</otherwise>
+			</choose>			
 		    ORDER BY EX.A_LRN_EX_CNT DESC LIMIT 1        	
 	    ) AS LRN_A ON LRN_A.STUD_ID = S.STUD_ID   
 	</select>
@@ -185,7 +319,8 @@
 	<select id="getLrnBasicMonthly" parameterType="hashMap" resultType="resultMap">
 	/* getLrnBasicMonthly : 기관용 월간 학습 분석 */
 		SELECT
-		    CONCAT(SUBSTRING(#{yyyy},3,2),'년',#{mm},'월') AS DT
+        	S.STUD_ID
+        	, CONCAT(SUBSTRING(#{yyyy},3,2),'년',#{mm},'월') AS DT
 			, CONCAT(DATE_FORMAT(STR_TO_DATE(#{startDt}, '%Y-%m-%d'), '%Y.%m.%d'), '-', DATE_FORMAT(STR_TO_DATE(#{endDt}, '%Y-%m-%d'), '%Y.%m.%d')) AS DT_STR
 			, ATT.ATT_RT		-- 출석률
 			, LRN.EX_RT			-- 수행률
@@ -216,28 +351,84 @@
             , (IFNULL(ER.CURSORY_QUES_CNT,0) + IFNULL(ER.MISTAKE_QUES_CNT,0)) AS CM_PROBLEM_HABIT_CNT		-- 급하게 풀어 틀린 문제 수 + 실수한 문제 수 
 		FROM 
 		(	
-			SELECT #{studId} AS STUD_ID 
+			SELECT STUD_ID
+			FROM STUD
+			<choose>
+         		<when test='studIdList != null'>  
+					WHERE STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					WHERE STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS S
 		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
 			SELECT YYMM, STUD_ID, ATT_RT, ATT_CNT
 			FROM MONTH_ATT_STT
-			WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+			WHERE YYMM = #{yymm} 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN (	-- 이전 출석률, 선택된 기간 내 로그인 일 수
 			SELECT YYMM, STUD_ID, ATT_RT, ATT_CNT 
 			FROM MONTH_ATT_STT
-			WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId} 			
+			WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') 			 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>		
 		) AS PREV_ATT ON PREV_ATT.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(ATT.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m') AND PREV_ATT.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN (	-- 수행률, 학습시간, 스스로학습 수행 수, 나중에 했어요 개수
 			SELECT YYMM, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 				, A_LRN_EX_CNT, PLAN_D_LRN_EX_CNT
 			FROM MONTH_LRN_EX_STT PL 
-	       	WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+	       	WHERE YYMM = #{yymm} 	       	 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>
         ) AS LRN ON LRN.STUD_ID = S.STUD_ID 
         LEFT OUTER JOIN (	-- 이전 수행률, 학습시간	
 			SELECT YYMM, STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
 			FROM MONTH_LRN_EX_STT PL 
-	       	WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+	       	WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') 	       	 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>
         ) AS PREV_LRN ON PREV_LRN.YYMM = DATE_FORMAT(DATE_SUB(DATE_FORMAT(CONCAT(LRN.YYMM,'01'), '%Y%m%d'), INTERVAL 1 MONTH), '%Y%m') AND PREV_LRN.STUD_ID = S.STUD_ID 
         LEFT OUTER JOIN (	-- 정답률, 완료한 평가지 개수, 100점인 평가지 개수
         	SELECT STUD_ID
@@ -255,7 +446,18 @@
                     , MISTAKE_QUES_CNT
                     , CURSORY_QUES_CNT
             FROM EXAM_MONTH_STT 
-            WHERE YYMM = #{yymm} AND STUD_ID = #{studId}
+            WHERE YYMM = #{yymm}              
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>
         ) AS ER ON ER.STUD_ID = S.STUD_ID 
         LEFT OUTER JOIN (	-- 정답률		
         	SELECT STUD_ID, CASE
@@ -263,21 +465,44 @@
                                 ELSE ROUND( SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )
                             END AS AVG_CRT_RT
             FROM EXAM_MONTH_STT 
-            WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m') AND STUD_ID = #{studId}
+            WHERE YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')              
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>
         ) AS PREV_ER ON PREV_ER.STUD_ID = S.STUD_ID
         LEFT OUTER JOIN (    -- 스스로학습 수행 수가 가장 높은 하위과목명 	
         	SELECT EX.STUD_ID, CD.SUBJ_NM AS SUBJ_NM_A_LRN
         	FROM MONTH_SUBJ_A_LRN_EX_STT AS EX 
         	JOIN COMM_SUBJ_CD AS CD 
         	ON CD.SUBJ_CD = EX.SUB_SUBJ_CD
-	        WHERE EX.YYMM = #{yymm} AND EX.STUD_ID = #{studId} 
+	        WHERE EX.YYMM = #{yymm} 	         
+			<choose>
+         		<when test='studIdList != null'>  
+					AND EX.STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND EX.STUD_ID = #{studId}
+				</otherwise>
+			</choose>
 		    ORDER BY EX.A_LRN_EX_CNT DESC LIMIT 1        	
 	    ) AS LRN_A ON LRN_A.STUD_ID = S.STUD_ID
 	</select>
-    
-    <select id="getLrnHabitPeriod" parameterType="hashMap" resultType="resultMap">
+	
+	<select id="getLrnHabitPeriod" parameterType="hashMap" resultType="resultMap">
 	    SELECT
-			ATT.ATT_RT AS ATT_HABIT						-- 약속을 지키는 습관(출석률) 
+        	S.STUD_ID
+			, ATT.ATT_RT AS ATT_HABIT						-- 약속을 지키는 습관(출석률) 
 			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
 			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
 			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
@@ -286,22 +511,67 @@
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
 		(	
-			SELECT #{studId} AS STUD_ID 
+			SELECT STUD_ID
+			FROM STUD
+			<choose>
+         		<when test='studIdList != null'>  
+					WHERE STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					WHERE STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS S
 		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
 			SELECT STUD_ID, ATT_RT, ATT_CNT 
 			FROM DAY_7_ATT_STT
-			WHERE STUD_ID = #{studId} AND DT = #{endDt}   
+			WHERE DT = #{endDt}   
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN (	-- 수행률, 학습시간	
 			SELECT STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT, LRN_SEC
-			FROM DAY_7_LRN_EX_STT PL 
-		    WHERE STUD_ID = #{studId} AND DT = #{endDt} 
+			FROM DAY_7_LRN_EX_STT  
+		    WHERE DT = #{endDt} 
+		   	<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
 			SELECT STUD_ID, INCRT_NT_CNT, IMPRV_SLV_HABIT_CNT
 			FROM DAY_7_EXAM_STT
-			WHERE STUD_ID = #{studId} AND DT = #{endDt} 
+			WHERE DT = #{endDt} 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS EX ON EX.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN (	-- 스스로 찾아 학습하는 습관(과목코드), 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
 			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
@@ -311,9 +581,31 @@
 			( 
 				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
 				FROM DAY_SUBJ_A_LRN_EX_STT 
-				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+				<choose>
+	         		<when test='studIdList != null'>  
+						AND STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						AND STUD_ID = #{studId}
+					</otherwise>
+				</choose>	
 			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
-			WHERE ALRN1.STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+			WHERE DT BETWEEN #{startDt} AND #{endDt} 
+			<choose>
+         		<when test='studIdList != null'>  
+					AND ALRN1.STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND ALRN1.STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
 											WHEN 'C01' THEN 1
 											WHEN 'C02' THEN 2
@@ -334,7 +626,8 @@
     
     <select id="getLrnHabitMonthly" parameterType="hashMap" resultType="resultMap">
 		SELECT
-			ATT_RT AS ATT_HABIT							-- 약속을 지키는 습관(출석률)
+        	S.STUD_ID
+			, ATT_RT AS ATT_HABIT							-- 약속을 지키는 습관(출석률)
 			, LRN.EX_RT AS PLAN_HABIT					-- 계획을 실천하는 습관(수행률) 
 			, EX.INCRT_NT_CNT AS INCRT_NOTE_HABIT		-- 오답노트 확인 습관(오답노트수) 
 			, ALRN.SUBJ_CD AS A_LRN_HABIT_CD			-- 스스로 찾아 학습하는 습관(과목코드)
@@ -343,25 +636,70 @@
 			, ROUND( LRN.LRN_SEC / ATT.ATT_CNT ) AS CONCN_HABIT	-- 학습에 집중하는 습관(1일평균학습시간)  : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)
 		FROM 
 		(	
-			SELECT #{studId} AS STUD_ID 
+			SELECT STUD_ID
+			FROM STUD
+			<choose>
+         		<when test='studIdList != null'>  
+					WHERE STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					WHERE STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS S
 		LEFT OUTER JOIN (	-- 출석률, 선택된 기간 내 로그인 일 수
 			SELECT STUD_ID, ATT_RT, ATT_CNT 
 			FROM MONTH_ATT_STT 
-			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+			WHERE YYMM = #{yymm}
+				<choose>
+	         		<when test='studIdList != null'>  
+						AND STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						AND STUD_ID = #{studId}
+					</otherwise>
+				</choose>	
 		) AS ATT ON ATT.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN (	-- 수행률, 학습시간	
 			SELECT STUD_ID, ROUND(PLAN_LRN_EX_CNT/PLAN_CNT * 100) AS EX_RT
 					, LRN_SEC
-			FROM MONTH_LRN_EX_STT PL 
-		    WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+			FROM MONTH_LRN_EX_STT  
+		    WHERE YYMM = #{yymm}
+		    <choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS LRN ON LRN.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN ( -- 미완료된 오답노트수, 고쳐야할 문제 수 : (건너뛴 문제 수+급하게 풀어 틀린 문제 수+찍은 것으로 보이는 문제 수+실수한 문제 수)
 			SELECT STUD_ID
 				, ( IFNULL(INCRT_NT_REG_CNT, 0) - IFNULL(INCRT_NT_FNSH_CNT, 0) ) AS INCRT_NT_CNT
 				, ( IFNULL(SKIP_QUES_CNT,0) + IFNULL(CURSORY_QUES_CNT,0) + IFNULL(GUESS_INCRT_QUES_CNT,0) + IFNULL(MISTAKE_QUES_CNT,0) ) AS IMPRV_SLV_HABIT_CNT
 			FROM EXAM_MONTH_STT
-			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+			WHERE YYMM = #{yymm}
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	
 		) AS EX ON EX.STUD_ID = S.STUD_ID 
 		LEFT OUTER JOIN ( -- 스스로 찾아 학습하는 습관(과목코드) , 평균 스스로학습 수 = sum(일자별 스스로학습 수) / 일자 수
 			SELECT ALRN1.STUD_ID, ALRN1.SUBJ_CD 
@@ -371,9 +709,31 @@
 			( 
 				SELECT STUD_ID, ROUND(SUM(A_LRN_EX_CNT) / COUNT(DISTINCT DT)) AS AVG_SUBJ_CNT
 				FROM DAY_SUBJ_A_LRN_EX_STT 
-				WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt} 
+				WHERE DT BETWEEN #{startDt} AND #{endDt} 
+				<choose>
+	         		<when test='studIdList != null'>  
+						AND STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						AND STUD_ID = #{studId}
+					</otherwise>
+				</choose>	
 			) AS ALRN2 ON ALRN1.STUD_ID = ALRN2.STUD_ID
-			WHERE ALRN1.STUD_ID = #{studId} AND YYMM = #{yymm}
+			WHERE YYMM = #{yymm}
+				<choose>
+	         		<when test='studIdList != null'>  
+						AND ALRN1.STUD_ID IN
+						<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+							#{item}
+						</foreach>
+					</when>
+					<otherwise>
+						AND ALRN1.STUD_ID = #{studId}
+					</otherwise>
+				</choose>	
 			ORDER BY A_LRN_EX_CNT DESC, CASE SUBJ_CD
 											WHEN 'C01' THEN 1
 											WHEN 'C02' THEN 2
@@ -411,6 +771,7 @@
 		) AS DTS 
 		LEFT OUTER JOIN (	-- 수행률
 			SELECT 
+				STUD_ID,
 			 	PLAN_DT,
 			 	COUNT(*) AS PLAN_EX_CNT,
 				SUM(IF(FNSH_YN = 'Y', 1, 0)) AS FNSH_PLAN_EX_CNT
@@ -419,7 +780,7 @@
 		    	AND PLAN_UPD_YN IS NULL
 				AND SERVICE_ID IS NOT NULL
 				AND SUBJ_CD NOT LIKE '%Z%'
-			GROUP BY PLAN_DT
+			GROUP BY STUD_ID, PLAN_DT
 		) AS LRN ON LRN.PLAN_DT = DTS.DT
 		LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
 			SELECT DT,  
@@ -839,6 +1200,110 @@
 		) AS ATT ON ATT.DT = DTS.DT AND ATT.STUD_ID = DTS.STUD_ID
 		GROUP BY DTS.DT
 	</select>
+	
+	<select id="getLrnHabitDetailReport" parameterType="hashMap" resultType="resultMap">
+	 	SELECT
+        	DTS.STUD_ID
+			, STR_TO_DATE(DTS.DT, '%Y-%m-%d') AS DT
+			, ROUND( LRN.FNSH_PLAN_EX_CNT / LRN.PLAN_EX_CNT * 100 )  AS EX_RT	-- 수행률
+			, ER.CRT_RT AS CRT_RT		-- 정답률
+			, LRN2.LRN_SEC AS DAY_LRN_TM	-- 일평균 학습시간 : (선택된 기간 내에 총 학습시간 / 선택된 기간 내 로그인 일 수)	
+		FROM 
+		(
+			SELECT S.STUD_ID
+					, S.GRADE
+					, DTA.DT
+			FROM STUD AS S	
+			CROSS JOIN 
+			(	SELECT dt + INTERVAL lv-1 DAY AS DT
+				FROM (
+				    SELECT @ROWNUM:=@ROWNUM+1 AS lv
+				            , #{startDt} dt
+				FROM information_schema.`COLUMNS` A
+				           , (SELECT @ROWNUM:=0) R
+					LIMIT #{limitDtCnt} 
+				) AS A	
+			) AS DTA	
+			<choose>
+         		<when test='studIdList != null'>  
+			WHERE S.STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>
+				</when>
+				<otherwise>
+			WHERE S.STUD_ID = #{studId}
+				</otherwise>
+			</choose>
+		) AS DTS 
+		LEFT OUTER JOIN (	-- 수행률
+			SELECT 
+				STUD_ID,
+			 	PLAN_DT,
+			 	COUNT(*) AS PLAN_EX_CNT,
+				SUM(IF(FNSH_YN = 'Y', 1, 0)) AS FNSH_PLAN_EX_CNT
+			FROM DAY_LRN_EX_LOG  
+		    WHERE PLAN_DT BETWEEN #{startDt} AND #{endDt} 		    
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach> 
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	  
+		    	AND PLAN_UPD_YN IS NULL
+				AND SERVICE_ID IS NOT NULL
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY STUD_ID, PLAN_DT
+		) AS LRN ON LRN.PLAN_DT = DTS.DT AND LRN.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (	-- 정답률	: (맞은 문항 수 / 전체 문항 수) * 100		
+			SELECT DT, STUD_ID,   
+				CASE
+		            WHEN SUM(QUES_CNT) = 0 THEN 0
+		            WHEN SUM(DESCPT_QUES_CNT) > 0
+		            	THEN ROUND( SUM(CRT_CNT + DESCPT_CRT_CNT) / SUM(QUES_CNT + DESCPT_QUES_CNT) * 100 ) 
+		        	ELSE ROUND( SUM(CRT_CNT) / SUM(QUES_CNT) * 100 )
+		        END AS CRT_RT
+		    FROM EXAM_RST
+		    WHERE DT BETWEEN #{startDt} AND #{endDt} 		    		    
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>  
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	  
+				AND DEL_YN = 'N'
+			GROUP BY DT
+		) AS ER ON ER.DT = DTS.DT AND ER.STUD_ID = DTS.STUD_ID
+		LEFT OUTER JOIN (	-- 학습시간	
+			SELECT DT, STUD_ID, SUM(LRN_SEC) AS LRN_SEC
+			FROM DAY_LRN_EX_LOG 
+			WHERE DT BETWEEN #{startDt} AND #{endDt} 						        
+			<choose>
+         		<when test='studIdList != null'>  
+					AND STUD_ID IN
+					<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+						#{item}
+					</foreach>  
+				</when>
+				<otherwise>
+					AND STUD_ID = #{studId}
+				</otherwise>
+			</choose>	  		
+				AND SUBJ_CD NOT LIKE '%Z%'
+			GROUP BY STUD_ID, DT
+		) AS LRN2 ON LRN2.DT = DTS.DT AND LRN2.STUD_ID = DTS.STUD_ID
+		ORDER BY DTS.STUD_ID, DTS.DT ASC
+    </select>
 	
     <select id="getLoginPtnStt" parameterType="hashMap" resultType="resultMap">
    		SELECT LOGIN_PTN
@@ -4050,10 +4515,35 @@
       WHERE CHANNEL = 'O' 
       		AND MSG_VERSION = #{version}
       		AND MSG_SHEET = #{sheet} 
-      		AND MSG_NO IN
-	      	<foreach collection="msgNo" item="item" index="index" separator="," open="(" close=")">
-				#{item}
-			</foreach>
     </select>
     
+    <select id="getCheckReport" parameterType="hashMap" resultType="resultMap">
+     	SELECT 
+			GROUP_CONCAT(DISTINCT STUD_ID SEPARATOR ',') STUD_ID
+		<choose>
+			<when test='wk == null'>
+		FROM MONTH_LRN_EX_STT
+		WHERE YYMM = #{yymm}
+			</when>
+			<otherwise>
+		FROM DAY_7_LRN_EX_STT 
+		WHERE DT = (SELECT IFNULL(SU, IFNULL(SA, IFNULL(FR, IFNULL(TH, IFNULL(WE, IFNULL(TU, MO)))))) 
+					FROM COMM_WK_DT
+					WHERE YYMM = #{yymm} AND WK = #{wk})
+ 			</otherwise>
+ 		</choose>
+		<choose>
+      		<when test='studIdList != null'>  
+			AND STUD_ID IN
+				<foreach collection="studIdList" item="item" index="index" separator="," open="(" close=")">
+					#{item}
+				</foreach>
+			</when>
+			<otherwise>
+			AND STUD_ID = #{studId}
+			</otherwise>
+		</choose>
+    </select>
+    
+        
 </mapper>
