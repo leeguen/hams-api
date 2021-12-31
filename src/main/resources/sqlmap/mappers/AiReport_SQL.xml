@@ -55,10 +55,20 @@
 			DATE_FORMAT(IF(LRN_START_DT <![CDATA[<]]> '2020-10-01', '2020-10-01', LRN_START_DT),'%Y.%m.%d') AS LRN_START_DT
 			FROM (
 					SELECT 
-						A.STUD_NM,
-						A.GENDER,
-						A.STUD_ID,
-						A.LOGIN_ID,
+					<choose>
+						<when test="demo != null">
+							CONCAT('김', '*', '런', TRUNCATE(RAND(NOW()) * 10,0) + 1) AS STUD_NM,
+							A.GENDER,
+							A.STUD_ID,
+							CONCAT('***test', TRUNCATE(RAND(NOW()) * 10,0) + 1) AS LOGIN_ID,
+						</when>
+						<otherwise>
+							A.STUD_NM,
+							A.GENDER,
+							A.STUD_ID,
+							A.LOGIN_ID,
+						</otherwise>
+					</choose>
 						A.GRADE,
 						A.SCHL_NM,
 						C.DT AS LAST_LOGIN_DT, 
