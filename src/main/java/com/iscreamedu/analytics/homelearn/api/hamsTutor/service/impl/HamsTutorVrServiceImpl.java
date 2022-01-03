@@ -403,7 +403,7 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         	
         	paramMap.put("yymms", yymmList);
         }else if(term == 2) {
-        	for(int i = 8; i < 6; i++) {
+        	for(int i = 8; i < 13; i++) {
         		yymmList.add(Integer.valueOf((i>9)?yymm+i : yymm+"0"+i));
         	}
         	
