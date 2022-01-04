@@ -179,7 +179,6 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 
                 if(negativePointCnt == 0) {
                 	negativeMsgCdList.add("CPB0017");
-                	negativePointCnt += 1;
                 }
                 
                 for(Map<String, Object> item : msgList) {
@@ -220,7 +219,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 			}else if("CPB0010".equals(msgCd)) {
                 				msg = msg.replace("{c}", msgInfo.get("skpQuesCnt").toString());
                 			}else if("CPB0011".equals(msgCd)) {
-                				msg = msg.replace("{c+d}", msgInfo.get("curQuesCnt").toString());
+                				msg = msg.replace("{c+d}", msgInfo.get("curMistakeQuesCnt").toString());
                 			}else if("CPB0012".equals(msgCd)) {
                 				msg = msg.replace("{c}", msgInfo.get("gucQuesCnt").toString());
                 			}else if("CPB0013".equals(msgCd)) {
