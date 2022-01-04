@@ -785,6 +785,13 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         ArrayList<Map<String,Object>> subjList = new ArrayList();
         ArrayList<Map<String,Object>> unsubjList = new ArrayList();
         
+        ArrayList<Map<String,Object>> c01List = new ArrayList();
+        ArrayList<Map<String,Object>> c02List = new ArrayList();
+        ArrayList<Map<String,Object>> c03List = new ArrayList();
+        ArrayList<Map<String,Object>> c04List = new ArrayList();
+        ArrayList<Map<String,Object>> c05List = new ArrayList();
+        ArrayList<Map<String,Object>> c06List = new ArrayList();
+        
         ArrayList<Map<String,Object>> subjCdList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorVr.selectSubjCd");
         
         externalApiParamMap.put("p", paramMap.get("p"));
@@ -816,7 +823,21 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 					String subjCd = null;
 					List<String> titleList = Arrays.asList(subjItem.get("title").toString().replace("|", ",").split(","));
 					
-        			for(Map<String, Object> subjCdItem : subjCdList) {
+					if(subjItem.get("subjectName").toString().contains("국어")) {
+						c01List.add(subjItem);
+					} else if(subjItem.get("subjectName").toString().contains("수학")) { 
+						c02List.add(subjItem);
+					} else if(subjItem.get("subjectName").toString().contains("사회")) {
+						c03List.add(subjItem);
+					} else if(subjItem.get("subjectName").toString().contains("과학")) {
+						c04List.add(subjItem);
+					} else if(subjItem.get("subjectName").toString().contains("영어")) {
+						c05List.add(subjItem);
+					} else if(subjItem.get("subjectName").toString().contains("통합")) {
+						c06List.add(subjItem);
+					}
+					
+        			/*for(Map<String, Object> subjCdItem : subjCdList) {
         				
         				if(subjCdItem.get("subjNm").toString().replace(" ", "").equals(subjItem.get("subjectName").toString().replace(" ", ""))) {
         					subjCd = (Integer.valueOf(subjCdItem.get("depth").toString()) == 1) ? subjCdItem.get("subjCd").toString() : subjCdItem.get("upperSubjCd").toString();
@@ -825,18 +846,33 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         						subjCdCheck = subjCd;
         					}
         				}
-        			}
-        			
-        			if(subjList.size() > 2) {
-        				if(titleList.get(0).contains(grade)) {
-        					visionPrintLrnDiagnosisRst.add(createSubjCourseMap(subjCd, subjItem.get("lastDay").toString(), titleList.get(titleList.size()-1)));
-        					listSize++;
-        				}
-        			}else {
-        				visionPrintLrnDiagnosisRst.add(createSubjCourseMap(subjCd, subjItem.get("lastDay").toString(), titleList.get(titleList.size()-1)));
-        			}
+        			}*/
         			
         		}
+        	}
+        	
+        	if(c01List.size() > 0) {
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c01List, grade, "C01"));
+        	}
+        	
+        	if(c02List.size() > 0) { 
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c02List, grade, "C02"));
+        	}
+        	
+        	if(c03List.size() > 0){
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c03List, grade, "C03"));
+        	}
+        	
+        	if(c04List.size() > 0) {
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c04List, grade, "C04"));
+        	}
+        	
+        	if(c05List.size() > 0) {
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c05List, grade, "C05"));
+        	}
+        	
+        	if(c06List.size() > 0) {
+        		visionPrintLrnDiagnosisRst.add(getSubjCourseMap(c06List, grade, "C06"));
         	}
         	
         	if(unsubjList.size() > 0) {
@@ -845,6 +881,8 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         			
         			for(Map<String, Object> subjCdItem : subjCdList) {
         				if(subjCdItem.get("subjNm").toString().replace(" ", "").equals(unsubjItem.get("subjectName").toString().replace(" ", ""))) {
+        					subjCd = (Integer.valueOf(subjCdItem.get("depth").toString()) == 1) ? subjCdItem.get("subjCd").toString() : subjCdItem.get("upperSubjCd").toString();
+        				} else if (subjCdItem.get("subjNm").toString().replace(" ", "").contains(unsubjItem.get("subjectName").toString().replace(" ", ""))) {
         					subjCd = (Integer.valueOf(subjCdItem.get("depth").toString()) == 1) ? subjCdItem.get("subjCd").toString() : subjCdItem.get("upperSubjCd").toString();
         				}
         			}
@@ -1090,6 +1128,56 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         resultMap.put("thumUrl",thumUrl);
         resultMap.put("ctgr1",ctgr1);
         resultMap.put("ctgr2",ctgr2);
+
+        return  resultMap;
+    }
+    
+    private LinkedHashMap<String, Object> getSubjCourseMap(ArrayList<Map<String, Object>> subjLists, String grade, String subjCd) {
+        LinkedHashMap<String,Object> resultMap = new LinkedHashMap<>();
+        ArrayList<Map<String, Object>> checkList = new ArrayList<>();
+        
+        int courseId = 0;
+        int index = 0;
+        int checkIndex = 0;
+        
+        if(subjLists.size() > 1) {
+        	for(Map<String, Object> cdItem : subjLists) {
+        		List<String> titleList = Arrays.asList(cdItem.get("title").toString().replace("|", ",").split(","));
+        		
+        		int checkCourseId = Integer.valueOf(cdItem.get("courseId").toString());
+        		
+        		if(titleList.get(0).contains(grade)) {
+        			checkList.add(cdItem);
+    			}
+        		
+        		if(courseId == 0) {
+        			courseId = checkCourseId;
+        		} else if(courseId != 0 && courseId > checkCourseId) {
+        			courseId = checkCourseId;
+        			checkIndex = index;
+        		}
+        		
+        		index++;
+        	}
+        	
+        	if(checkList.size() > 1) {
+        		List<String> titleList = Arrays.asList(checkList.get(checkIndex).get("title").toString().replace("|", ",").split(","));
+				resultMap = createSubjCourseMap(subjCd, checkList.get(checkIndex).get("lastDay").toString(), titleList.get(titleList.size()-1));
+        	} else if(checkList.size() > 0) {
+        		List<String> titleList = Arrays.asList(checkList.get(checkIndex).get("title").toString().replace("|", ",").split(","));
+				resultMap = createSubjCourseMap(subjCd, checkList.get(checkIndex).get("lastDay").toString(), titleList.get(titleList.size()-1));
+        	} else {
+        		List<String> titleList = Arrays.asList(subjLists.get(0).get("title").toString().replace("|", ",").split(","));
+				resultMap = createSubjCourseMap(subjCd, subjLists.get(0).get("lastDay").toString(), titleList.get(titleList.size()-1));
+        	}
+        	
+			
+		}else {
+			for(Map<String, Object> cdItem : subjLists) {
+				List<String> titleList = Arrays.asList(cdItem.get("title").toString().replace("|", ",").split(","));
+				resultMap = createSubjCourseMap(subjCd, cdItem.get("lastDay").toString(), titleList.get(titleList.size()-1));
+        	}
+		}
 
         return  resultMap;
     }
