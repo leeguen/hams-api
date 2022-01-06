@@ -835,7 +835,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     			msgCdList.add("CPB0005");
     		}
     		
-    		if(exRt < 100) {
+    		if(exRt < 100 && nLrnCnt > 0) {
     			msgCdList.add("CPB0006");
     		}
     		
