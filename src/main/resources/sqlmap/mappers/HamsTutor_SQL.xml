@@ -247,7 +247,7 @@
             <when test='isWM == "W"'>
                 F.YYMM,
                 F.WK,
-                IF(GROUP_CONCAT(CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차') SEPARATOR '/')='12월4주차/01월1주차', '12월4주차/1월1주차','') AS YYMMWK, 
+                IF(GROUP_CONCAT(CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차') SEPARATOR '/') IN ('12월4주차/01월1주차','12월4주차/01월2주차'), '12월4주차/1월1주차','') AS YYMMWK, 
             </when>
                <otherwise>
                    IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
@@ -264,7 +264,7 @@
             E.C03,
             E.C04,
             E.C05,
-            E.C06,	
+            E.C06,
             D.GRP_AVG_CRT_RT,
             C.GRP_AVG_EX_RT,
             D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
@@ -275,6 +275,23 @@
             <when test='isWM == "W"'>
                 COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
 	                AND F.MO BETWEEN #{startDt} AND #{endDt}
+                LEFT OUTER JOIN
+                COMM_WK_DT AS F1 ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
+	                AND ((F1.MO = #{startDt}
+	                OR F1.TU = #{startDt}
+	                OR F1.WE = #{startDt}
+	                OR F1.TH = #{startDt}
+	                OR F1.FR = #{startDt}
+	                OR F1.SA = #{startDt}
+	                OR F1.SU = #{startDt})
+	                 OR 
+	                (F1.MO = #{endDt}
+	                OR F1.TU = #{endDt}
+	                OR F1.WE = #{endDt}
+	                OR F1.TH = #{endDt}
+	                OR F1.FR = #{endDt}
+	                OR F1.SA = #{endDt}
+	                OR F1.SU = #{endDt}))	                
                 LEFT OUTER JOIN
                 COMM_WK_DT AS F1 ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
 	                AND ((F1.MO = #{startDt}
