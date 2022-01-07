@@ -52,7 +52,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     
     @Value("${extapi.hl.tutor.new.ai.recommend.url}")
 	String NEW_RECOMMEND_API; //AI 추천 정보 API 주소
-    
+
     
     @Value("${extapi.ai.tutor.intent.check.url}")
 	String AI_TUTOR_INTENT_CHECK_API; //AI tutor 인텐트 조회 API 주소
