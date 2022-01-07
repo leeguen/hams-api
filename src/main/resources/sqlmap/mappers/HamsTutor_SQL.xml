@@ -245,12 +245,11 @@
         SELECT
         <choose>
             <when test='isWM == "W"'>
-                F.YYMM,
-                F.WK,
+                CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) AS DT_STR, 
             </when>
-               <otherwise>
-                   IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
-               </otherwise>
+            <otherwise>
+                IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
+            </otherwise>
         </choose>
             ROUND((SUM(E.CRT_CNT)/SUM(E.QUES_CNT)) * 100) AS CRT_RT,
             CASE
@@ -263,26 +262,13 @@
             E.C03,
             E.C04,
             E.C05,
-            E.C06,
+            E.C06,	
             D.GRP_AVG_CRT_RT,
             C.GRP_AVG_EX_RT,
             D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,
             C.TOP_10_EX_RT AS TOP_10_AVG_EX_RT
         FROM STUD AS A
         LEFT OUTER JOIN
-        <choose>
-            <when test='isWM == "W"'>
-                COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
-	                AND (F.MO = #{endDt}
-	                OR F.TU = #{endDt}
-	                OR F.WE = #{endDt}
-	                OR F.TH = #{endDt}
-	                OR F.FR = #{endDt}
-	                OR F.SA = #{endDt}
-	                OR F.SU = #{endDt})
-                LEFT OUTER JOIN
-            </when>
-        </choose>
         (
 	        SELECT
 	            STUD_ID,
