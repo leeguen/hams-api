@@ -248,7 +248,7 @@
                 CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) AS DT_STR, 
             </when>
             <otherwise>
-                IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
+                CAST(IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS UNSIGNED) AS YYMM,
             </otherwise>
         </choose>
             ROUND((SUM(E.CRT_CNT)/SUM(E.QUES_CNT)) * 100) AS CRT_RT,
