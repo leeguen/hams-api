@@ -274,24 +274,13 @@
         <choose>
             <when test='isWM == "W"'>
                 COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
-	                AND F.MO BETWEEN #{startDt} AND #{endDt}
-                LEFT OUTER JOIN
-                COMM_WK_DT AS F1 ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
-	                AND ((F1.MO = #{startDt}
-	                OR F1.TU = #{startDt}
-	                OR F1.WE = #{startDt}
-	                OR F1.TH = #{startDt}
-	                OR F1.FR = #{startDt}
-	                OR F1.SA = #{startDt}
-	                OR F1.SU = #{startDt})
-	                 OR 
-	                (F1.MO = #{endDt}
-	                OR F1.TU = #{endDt}
-	                OR F1.WE = #{endDt}
-	                OR F1.TH = #{endDt}
-	                OR F1.FR = #{endDt}
-	                OR F1.SA = #{endDt}
-	                OR F1.SU = #{endDt}))	                
+	                AND (F.MO = #{endDt}
+	                OR F.TU = #{endDt}
+	                OR F.WE = #{endDt}
+	                OR F.TH = #{endDt}
+	                OR F.FR = #{endDt}
+	                OR F.SA = #{endDt}
+	                OR F.SU = #{endDt})       
                 LEFT OUTER JOIN
                 COMM_WK_DT AS F1 ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
 	                AND ((F1.MO = #{startDt}
