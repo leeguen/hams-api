@@ -245,7 +245,7 @@
         SELECT
         <choose>
             <when test='isWM == "W"'>
-                CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) AS DT_STR, 
+                CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) AS DT_STR,
             </when>
             <otherwise>
                 CAST(IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS UNSIGNED) AS YYMM,
@@ -262,7 +262,7 @@
             E.C03,
             E.C04,
             E.C05,
-            E.C06,	
+            E.C06,
             D.GRP_AVG_CRT_RT,
             C.GRP_AVG_EX_RT,
             D.TOP_10_CRT_RT AS TOP_10_AVG_CRT_RT,

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorExService;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
@@ -51,6 +52,10 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     
     @Value("${extapi.hl.tutor.new.ai.recommend.url}")
 	String NEW_RECOMMEND_API; //AI 추천 정보 API 주소
+
+    
+    @Value("${extapi.ai.tutor.intent.check.url}")
+	String AI_TUTOR_INTENT_CHECK_API; //AI tutor 인텐트 조회 API 주소
 
         @Override
         public Map getSettleInfoPredictionStt (Map<String,Object> paramMap) throws Exception {
@@ -135,11 +140,19 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 ArrayList<String> negativeMsgCdList = new ArrayList<>();
                 ArrayList<String> negativeMsgList = new ArrayList<>();
                 
+                Map<String,Object> intentMap = getIntentCheckCnt(paramMap); 
+                
+                String attentionGCheck = (intentMap.get("EndingAttentionG") != null) ? intentMap.get("EndingAttentionG").toString() : "N";
+                String attentionCCheck = (intentMap.get("EndingAttentionC") != null) ? intentMap.get("EndingAttentionC").toString() : "N";
+                
+                String attetionGMsg = (intentMap.get("EndingAttentionGValue") != null) ? intentMap.get("EndingAttentionGValue").toString() : null;
+                String attetionCMsg = (intentMap.get("EndingAttentionCValue") != null) ? intentMap.get("EndingAttentionCValue").toString() : null;
+                
                 int positivePointCnt = 0;
                 int negativePointCnt = 0;
                 
-                positiveMsgCdList = getPositiveMsgList(msgInfo);
-                negativeMsgCdList = getNegativeMsgList(msgInfo);
+                positiveMsgCdList = getPositiveMsgList(msgInfo, attentionGCheck);
+                negativeMsgCdList = getNegativeMsgList(msgInfo, attentionCCheck);
                 
                 
                 positivePointCnt = positiveMsgCdList.size();
@@ -198,6 +211,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                     					.replace("{c}", msgInfo.get("subjCd").toString());
                     		}else if("CPG0012".equals(msgCd)) {
                     			msg = msg.replace("{a}", String.valueOf(bookCnt));
+                    		} else if ("CPG0014".equals(msgCd)) {
+                    			msg = msg.replace("{a}", attetionGMsg.replace("|", ", "));
                     		}
                 			positiveMsgList.add(msg);
                 		}
@@ -226,6 +241,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 				msg = msg.replace("{b}", msgInfo.get("oLrnCnt").toString());
                 			}else if("CPB0014".equals(msgCd)) {
                 				msg = msg.replace("{b}", msgInfo.get("bLrnCnt").toString());
+                			}else if("CPB0018".equals(msgCd)) {
+                				msg = msg.replace("{a}", attetionCMsg.replace("|", ", "));
                 			}
                 			
                 			negativeMsgList.add(msg);
@@ -701,7 +718,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     }
     
     //칭찬포인트 메시지 산출
-    private ArrayList getPositiveMsgList(Map<String, Object> msgData) {
+    private ArrayList getPositiveMsgList(Map<String, Object> msgData, String attentionCheck) {
     	ArrayList<String> msgCdList = new ArrayList<>();
     	
     	int exRt = (msgData.get("exRt") != null) ? Integer.valueOf(msgData.get("exRt").toString()) : 0;
@@ -713,6 +730,10 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     	int incrtNtCnt = (msgData.get("incrtNtCnt") != null) ? Integer.valueOf(msgData.get("incrtNtCnt").toString()) : -1;
     	int ptnRt = (msgData.get("ptnRt") != null) ? Integer.valueOf(msgData.get("ptnRt").toString()) : 0;
     	int slvCnt = (msgData.get("slvCnt") != null) ? Integer.valueOf(msgData.get("slvCnt").toString()) : -1;
+    	
+    	if(attentionCheck.equals("Y")) {
+    		msgCdList.add("CPG0014");
+    	}
     	
     	if(exRt >= 90 && exRt <= 100) {
     		if(dLrnCnt > 0 && dLrnCnt <= 3) {
@@ -750,7 +771,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     		}
     	}
     	
-    	if(ptnRt >= 50) {
+    	if(ptnRt >= 50 && msgCdList.size() < 6) {
     		msgCdList.add("CPG0009");
     	}
     	
@@ -767,7 +788,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     
     
     // 처방포인트 메시지 산출
-    private ArrayList getNegativeMsgList(Map<String, Object> msgData) {
+    private ArrayList getNegativeMsgList(Map<String, Object> msgData, String attentionCheck) {
     	ArrayList<String> msgCdList = new ArrayList<>();
     	
     	int loginCnt = (msgData.get("loginCnt") != null) ? Integer.valueOf(msgData.get("loginCnt").toString()) : 0;
@@ -792,8 +813,11 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     	int skpQuesCnt = (msgData.get("skpQuesCnt") != null) ? Integer.valueOf(msgData.get("skpQuesCnt").toString()) : 0;
     	int curQuesCnt = (msgData.get("curQuesCnt") != null) ? Integer.valueOf(msgData.get("curQuesCnt").toString()) : 0;
     	
-    	
     	if(loginCnt > 0) {
+    		
+    		if(attentionCheck.equals("Y")) {
+        		msgCdList.add("CPB0018");
+        	}
     		
     		if(exRt == 0) {
     			if(aLrnCnt == 0) {
@@ -811,11 +835,11 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     			msgCdList.add("CPB0005");
     		}
     		
-    		if(exRt < 100) {
+    		if(exRt < 100 && nLrnCnt > 0) {
     			msgCdList.add("CPB0006");
     		}
     		
-    		if(explCnt >= 1 && crtRt < 50) {
+    		if(explCnt >= 1 && crtRt < 50 && msgCdList.size() < 6) {
     			msgCdList.add("CPB0007");
     		}
     		
@@ -865,9 +889,69 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     		
     	}else {
     		msgCdList.add("CPB0001");
+    		
+    		if(attentionCheck.equals("Y")) {
+        		msgCdList.add("CPB0018");
+        	}
     	}
     	
     	return msgCdList;
+    }
+    
+    private Map<String, Object> getIntentCheckCnt(Map<String, Object> paramMap){
+    	Map<String, Object> intentReuslt = new HashMap<>();
+    	
+    	int studId = Integer.valueOf(paramMap.get("studId").toString());
+    	String startDay = paramMap.get("startDt").toString();
+    	String endDay = paramMap.get("endDt").toString();
+    	
+        ArrayList<String> intentList = new ArrayList<>();
+        
+        JSONArray intentArray = new JSONArray();
+        
+        intentArray.add("EndingAttentionG");
+        intentArray.add("EndingAttentionC");
+        JSONObject intentJson = new JSONObject();
+        
+        intentJson.put("studId", studId);
+        intentJson.put("startDay", startDay);
+        intentJson.put("endDay", endDay);
+        intentJson.put("intentNm", intentArray);
+        
+        RestTemplate intentRestTemplate = new RestTemplate();
+        
+        try {
+        	JSONParser parser = new JSONParser();
+        	HttpHeaders intentHeaders = new HttpHeaders();
+        	//intentHeaders.setContentType(MediaType.APPLICATION_JSON);
+        	
+        	Map<String,Object> paramData = new HashMap<>();
+        	//String url = "https://aitutor.adm.i-screamreport.com/client/intent-check";
+        	String url = AI_TUTOR_INTENT_CHECK_API;
+        	HttpEntity<?> entity = new HttpEntity<>(intentJson, intentHeaders);
+        	
+        	ResponseEntity<String> response = intentRestTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        	
+        	int statusCode = Integer.valueOf(response.getStatusCode().toString());
+        	
+    		Object obj = parser.parse(response.getBody());
+    		
+         	if(statusCode == 200) {
+         		ObjectMapper mapper = new ObjectMapper();
+	         	Map<String, Object> objMap = mapper.readValue(obj.toString(), Map.class);
+	         	
+	         	String resultMsg = objMap.get("resultMsg").toString();
+	         	
+	         	if(resultMsg.equals("success")) {
+	         		intentReuslt = (Map<String, Object>) objMap.get("data");
+	         	}
+	         	
+         	}
+        }catch(Exception e) {
+    	   LOGGER.debug(e.toString());
+		}
+    	
+    	return intentReuslt;
     }
     
     /**
