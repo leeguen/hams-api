@@ -245,13 +245,12 @@
         SELECT
         <choose>
             <when test='isWM == "W"'>
-                CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) AS DT_STR,
                 CASE 
         			WHEN WEEKDAY(#{startDt}) = 0 THEN -- 월요일 시작시 주차 표기
         				IF(GROUP_CONCAT(CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차') SEPARATOR '/') IN ('12월4주차/01월1주차','12월4주차/01월2주차'), '12월4주차/1월1주차', CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차')) 
         			ELSE -- 그외 일자 표기
                 		CONCAT(DATE_FORMAT(#{startDt},'%m/%d'),'~',DATE_FORMAT(#{endDt},'%m/%d')) 
-                END 
+                END AS DT_STR,
             </when>
             <otherwise>
                 CAST(IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS UNSIGNED) AS YYMM,
@@ -303,7 +302,8 @@
 	            GROUP BY STUD_ID,SERVICE_ID
 	            ) AS A
         ) B ON A.STUD_ID = B.STUD_ID
-        <if test='"isWM == "W"'>
+        <choose>
+            <when test='isWM == "W"'>
         LEFT OUTER JOIN COMM_WK_DT AS F1 
         	ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
 	               AND ((F1.MO = #{startDt}
@@ -321,7 +321,8 @@
 	                OR F1.FR = #{endDt}
 	                OR F1.SA = #{endDt}
 	                OR F1.SU = #{endDt}))	
-        </if>
+      		</when>
+      	</choose>
         LEFT OUTER JOIN (
 	        SELECT
 	            STUD_ID,
