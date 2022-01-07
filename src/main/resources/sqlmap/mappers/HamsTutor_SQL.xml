@@ -247,7 +247,7 @@
             <when test='isWM == "W"'>
                 F.YYMM,
                 F.WK,
-                IF(GROUP_CONCAT(CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차') SEPARATOR '/')='12월4주차/01월1주차', '12월4주차/1월1주차','') AS YYMMWK, 
+                IF(GROUP_CONCAT(CONCAT(SUBSTRING(F1.YYMM,5,2),'월',F1.WK,'주차') SEPARATOR '/') IN ('12월4주차/01월1주차','12월4주차/01월2주차'), '12월4주차/1월1주차','') AS YYMMWK, 
             </when>
                <otherwise>
                    IFNULL(C.YYMM,DATE_FORMAT(#{endDt},'%Y%m')) AS YYMM,
@@ -274,7 +274,13 @@
         <choose>
             <when test='isWM == "W"'>
                 COMM_WK_DT AS F ON (F.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
-	                AND F.MO BETWEEN #{startDt} AND #{endDt}
+	                AND (F.MO = #{endDt}
+	                OR F.TU = #{endDt}
+	                OR F.WE = #{endDt}
+	                OR F.TH = #{endDt}
+	                OR F.FR = #{endDt}
+	                OR F.SA = #{endDt}
+	                OR F.SU = #{endDt})
                 LEFT OUTER JOIN
                 COMM_WK_DT AS F1 ON (F1.YYMM BETWEEN DATE_FORMAT(DATE_ADD(#{endDt},INTERVAL - 1 MONTH),'%Y%m') AND DATE_FORMAT(#{endDt},'%Y%m'))
 	                AND ((F1.MO = #{startDt}
