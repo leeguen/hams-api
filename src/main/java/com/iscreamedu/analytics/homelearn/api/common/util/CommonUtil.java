@@ -36,7 +36,7 @@ public class CommonUtil {
 	 */
 	public static long getCalendarDiff(String date1, String date2, String diffUnit) {
 		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-mm-dd");
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			
 	        Date firstDate = format.parse(date1);
 	        Date secondDate = format.parse(date2);

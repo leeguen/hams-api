@@ -281,7 +281,9 @@ public class GroupServiceImpl implements GroupService {
 						paramMap.put("yymm", startDate.substring(0,4)+startDate.substring(5,7));
 						cData = (Map<String, Object>)getMapperResultData(v_param, "", paramMap, ".getLrnBasicPeriod");
 						if(cData != null) {
-							data.put("prevDtCnt", "7");
+							long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+							if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+							data.put("prevDtCnt", limitDtCnt);
 						}
 						else {
 							setResult(dataKey, data);
@@ -4481,6 +4483,8 @@ public class GroupServiceImpl implements GroupService {
 					msgRequestMap.put("sheet", "C");
 					ArrayList<Map<String,Object>> msgTemplate = new ArrayList<>();
 					msgTemplate = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", msgRequestMap, ".getCommMsgTemplate");
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					for(Map<String, Object> item : data_lrnBasic) {
 						Map<String, Object> detailMap = new LinkedHashMap<>();									
@@ -4493,7 +4497,7 @@ public class GroupServiceImpl implements GroupService {
 						if(!paramMap.containsKey("wk")) {
 							detailMap.put("prevDtCnt", CommonUtil.getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
 						} else {
-							detailMap.put("prevDtCnt", "7");								
+							detailMap.put("prevDtCnt", limitDtCnt);								
 						}
 						detailMap.put("studId", item.get("studId"));
 						lrnBasic.add(detailMap);
