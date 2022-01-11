@@ -825,7 +825,7 @@
 					REPLACE(
 						REPLACE(
 							REPLACE(SUMMARY.MSG 
-									, '{a}', ATT_RT)
+									, '{a}', IFNULL(ATT_RT,''))
 									, '{m}', ABS(DIFF))
 								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승'))
 								    , '{0}', '0') AS SUMMARY					
@@ -833,7 +833,7 @@
 					REPLACE(
 						REPLACE(
 							REPLACE(DETAIL.MSG
-									, '{a}', ATT_RT)
+									, '{a}', IFNULL(ATT_RT,''))
 									, '{m}', ABS(DIFF))
 								    , '{상승/하락}', IF(DIFF <![CDATA[<]]> 0, '하락', '상승'))
 								    , '{0}', '0') AS DETAIL						
@@ -901,29 +901,52 @@
 				SELECT #{studId} AS STUD_ID 
 			) AS S
 			LEFT OUTER JOIN (	
-				SELECT STUD_ID, ATT_RT 				
+							
 			<choose>
 					<when test='currConCheck == "m"'>					
+				SELECT STUD_ID, ATT_RT 	
 				FROM MONTH_ATT_STT 
 				WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
 					</when>
 					<otherwise>
+						<choose>
+				 			<when test='notSevenDayCheck != null'>
+				SELECT STUD_ID, SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0)), SUM(IF(PLAN_YN = 'Y', 1, 0))
+					, ROUND(SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0))/SUM(IF(PLAN_YN = 'Y', 1, 0))*100) AS ATT_RT 	
+				FROM DAY_ATT_LOG 
+	 			WHERE STUD_ID = #{studId} AND DT BETWEEN #{startDt} AND #{endDt}
+					 		</when>
+					 		<otherwise>
+				SELECT STUD_ID, ATT_RT 	
 				FROM DAY_7_ATT_STT 
 				WHERE STUD_ID = #{studId} AND DT = #{endDt}
+							</otherwise>
+						</choose>
 					</otherwise>
 			</choose>
 			) AS ATT ON ATT.STUD_ID = S.STUD_ID
 			LEFT OUTER JOIN
-			(
-				SELECT STUD_ID, ATT_RT
+			(				
 			<choose>
 					<when test='currConCheck == "m"'>					
+				SELECT STUD_ID, ATT_RT
 				FROM MONTH_ATT_STT 
 				WHERE STUD_ID = #{studId} AND YYMM = DATE_FORMAT(DATE_SUB(#{startDt}, INTERVAL 1 MONTH), '%Y%m')
 					</when>
 					<otherwise>
+						<choose>
+				 			<when test='notSevenDayCheck != null'>
+				SELECT STUD_ID, SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0)), SUM(IF(PLAN_YN = 'Y', 1, 0))
+					, ROUND(SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0))/SUM(IF(PLAN_YN = 'Y', 1, 0))*100) AS ATT_RT 	
+				FROM DAY_ATT_LOG 
+	 			WHERE STUD_ID = #{studId} AND DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					 		</when>
+					 		<otherwise>
+				SELECT STUD_ID, ATT_RT
 				FROM DAY_7_ATT_STT 
 				WHERE STUD_ID = #{studId} AND DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY)	
+							</otherwise>
+						</choose> 
 					</otherwise>
 			</choose> 
 			) AS PREV_ATT ON PREV_ATT.STUD_ID = S.STUD_ID
@@ -1167,10 +1190,30 @@
 						, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
 				FROM STUD 
 			) AS S
+				<choose>
+					<when test='notSevenDayCheck != null'>
+			LEFT OUTER JOIN (	
+				SELECT STUD_ID		
+					, SUM(IF(PLAN_YN = 'Y', 1, 0)) AS PLAN_DAY_CNT						-- 학습계획일
+					, SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0)) AS PLAN_ATT_CNT	-- 계획된 학습일 중 출석일 수 
+				FROM DAY_ATT_LOG
+				WHERE DT BETWEEN #{startDt} AND #{endDt} AND STUD_ID = #{studId}		 
+			) AS ATT ON ATT.STUD_ID = S.STUD_ID
+			LEFT OUTER JOIN (	
+				SELECT STUD_ID		
+					, SUM(IF(PLAN_YN = 'Y', 1, 0)) AS PLAN_DAY_CNT						-- 학습계획일
+					, SUM(IF(PLAN_YN = 'Y' AND LOGIN_YN = 'Y', 1, 0)) AS PLAN_ATT_CNT	-- 계획된 학습일 중 출석일 수 
+				FROM DAY_ATT_LOG
+				WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND STUD_ID = #{studId}		 		
+			) AS PREV_ATT ON PREV_ATT.STUD_ID = ATT.STUD_ID 
+					</when>
+					<otherwise>
 			LEFT OUTER JOIN DAY_7_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
 				AS ATT ON ATT.DT = S.DT AND ATT.STUD_ID = S.STUD_ID
 			LEFT OUTER JOIN DAY_7_ATT_STT			-- 선택된 기간 내 로그인 일 수, 계획일수
 				AS PREV_ATT ON PREV_ATT.DT = S.PREV_DT AND PREV_ATT.STUD_ID = ATT.STUD_ID 
+					</otherwise>
+				</choose>
 			</otherwise>
 		</choose>
 			WHERE S.STUD_ID = #{studId}			
@@ -1361,12 +1404,24 @@
 				WHERE ATT.STUD_ID = #{studId} AND ATT.YYMM = #{yymm}				
 			</when>
 			<otherwise>
+				<choose>
+					<when test='notSevenDayCheck != null'>
+				SELECT (SUM(IFNULL(ATT.LOGIN_PTN, 0))/SUM(IF(ATT.LOGIN_YN = 'Y', 1, 0))) AS LOGIN_PTN						-- 로그인패턴
+						,(SUM(IFNULL(PREV_ATT.LOGIN_PTN, 0))/SUM(IF(PREV_ATT.LOGIN_YN = 'Y', 1, 0))) AS PREV_LOGIN_PTN	-- 이전 로그인패턴
+				FROM DAY_ATT_LOG AS ATT
+				LEFT OUTER JOIN DAY_ATT_LOG AS PREV_ATT 
+						ON ATT.STUD_ID = PREV_ATT.STUD_ID AND PREV_ATT.DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY) 
+				WHERE ATT.DT BETWEEN #{startDt} AND #{endDt} AND ATT.STUD_ID = #{studId} 
+					</when>
+					<otherwise>
 				SELECT IF((ATT.LOGIN_PTN_CNT / ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS LOGIN_PTN					-- 로그인패턴
 					, IF((PREV_ATT.LOGIN_PTN_CNT / PREV_ATT.ATT_CNT * 100) <![CDATA[>=]]> 50, 1, 0) AS PREV_LOGIN_PTN	-- 이전 로그인패턴
 				FROM DAY_7_ATT_STT AS ATT
 				LEFT OUTER JOIN DAY_7_ATT_STT AS PREV_ATT 
 					ON ATT.STUD_ID = PREV_ATT.STUD_ID AND PREV_ATT.DT = (DATE_FORMAT(ATT.DT,'%Y-%m-%d') - interval 7 DAY)
 				WHERE ATT.STUD_ID = #{studId} AND ATT.DT = #{endDt} 
+					</otherwise>
+				</choose>
 			</otherwise>
 		</choose>
 			) A WHERE NOT (LOGIN_PTN IS NULL AND PREV_LOGIN_PTN IS NULL)
@@ -1555,7 +1610,7 @@
  					, DATE_SUB(#{endDt}, INTERVAL 7 DAY) AS PREV_DT
  				FROM STUD
  				WHERE STUD_ID = #{studId}
- 			) AS S
+ 			) AS S 				
  			LEFT OUTER JOIN (
  				SELECT DT
  						, STUD_ID

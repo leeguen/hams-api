@@ -30,6 +30,7 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
 import com.iscreamedu.analytics.homelearn.api.common.util.VersionUtil;
 import com.iscreamedu.analytics.homelearn.api.group.service.GroupService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
+import com.iscreamedu.analytics.homelearn.api.common.util.CommonUtil;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -246,14 +247,14 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
-						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						startDate = yyyy + "-" + convertMm + "-01";
+						endDate = yyyy + "-" + convertMm + "-" + CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
 						cData = (Map<String, Object>)getMapperResultData(v_param, "", paramMap, ".getLrnBasicMonthly");
 						if(cData != null) {
 							//current 기준 prev 구하기 
-			                data.put("prevDtCnt", getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
+			                data.put("prevDtCnt", CommonUtil.getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
 				        }
 						else {
 							setResult(dataKey, data);
@@ -614,22 +615,6 @@ public class GroupServiceImpl implements GroupService {
 		msg.put("positive", positive);
 		msg.put("negative", negative);
 		data.put("msg",msg);
-	}    
-    
-    /***
-     * 해당월의 마지막날짜 추출
-     * @param curDate
-     * @param transFormat
-     * @return 오류발생시 0 리턴
-     */
-	private int getCalendarLastDay(String curDate, DateFormat transFormat) {
-		try {
-			Calendar dt = Calendar.getInstance();
-			dt.setTime(transFormat.parse(curDate));
-			return dt.getActualMaximum(Calendar.DATE);
-		} catch(ParseException pe) {
-			return 0;
-		}
 	}
 
 	/**
@@ -676,11 +661,11 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
-						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						startDate = yyyy + "-" + convertMm + "-01";
+						endDate = yyyy + "-" + convertMm + "-" + CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnHabitMonthly");
 						if(data != null) {
@@ -874,10 +859,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isYearMonth("yyyy, mm", yymm);
 					if(vu2.isValid()) {
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						// 출석률 attRt
 						// 이전출석률 prevAttRt
@@ -933,7 +918,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						// 출석률 attRt
@@ -1124,10 +1111,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntStt");
 						if(data != null) {
@@ -1172,7 +1159,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getAttCntStt");
@@ -1271,10 +1260,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnStt");
 						if(data != null) {
@@ -1328,7 +1317,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLoginPtnStt");
@@ -1435,10 +1426,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtStt");
 						if(data != null) {
@@ -1491,7 +1482,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getExRtStt");
@@ -1596,10 +1589,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getFnshLrnExStt");
 						if(data != null) {
@@ -1655,7 +1648,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getFnshLrnExStt");
@@ -1764,10 +1759,10 @@ public class GroupServiceImpl implements GroupService {
 					if(vu2.isValid()) {
 						
 						startDate = yyyy+"-"+convertMm+"-01";
-						endDate = yyyy+"-"+convertMm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+						endDate = yyyy+"-"+convertMm+"-"+ CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 						paramMap.put("startDt", startDate);
 						paramMap.put("endDt", endDate);
-						paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
+						paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));
 						
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnExSttCompareSub");
 						if(data != null) {
@@ -1827,7 +1822,9 @@ public class GroupServiceImpl implements GroupService {
 					//2. 유효성 체크
 					vu1.isDate("startDt", startDate);
 					vu2.isDate("endDt", endDate);
-					paramMap.put("limitDtCnt", 7);
+					long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+					paramMap.put("limitDtCnt", limitDtCnt);
+					if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 					
 					if(vu1.isValid() && vu2.isValid()) {
 						data = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLrnExSttCompareSub");
@@ -1942,7 +1939,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2008,7 +2005,9 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 						
 						aLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getALrnExStt");
 						aLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getALrnExSttList");
@@ -2118,7 +2117,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2183,8 +2182,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
-						
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+												
 						crtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtRtStt");
 						crtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtRtSttList");
 						
@@ -2292,7 +2293,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2359,7 +2360,9 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 						
 						incrtData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getIncrtNoteNcStt");
 						incrtList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getIncrtNoteNcSttList");
@@ -2470,7 +2473,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2537,8 +2540,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
-						
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+												
 						crtQuesData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getCrtQuesCntStt");
 						crtQuesList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getCrtQuesCntSttList");
 						
@@ -2641,7 +2646,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2711,8 +2716,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
-						
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+												
 						slvHabitData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getSlvHabitStt");
 						slvHabitList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getSlvHabitSttList");
 						
@@ -2819,7 +2826,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -2894,8 +2901,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
-						
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+												
 						dayAvgLrnData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getDayAvgLrnStt");
 						dayAvgLrnList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnSttList");
 						dayAvgLrnDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getDayAvgLrnDetailList");
@@ -3005,7 +3014,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -3062,8 +3071,10 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
-						
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
+												
 						totalLrnTmData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getTotalLrnTmStt");
 						totalLrnTmDetailList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getTotalLrnTmSttList");
 						
@@ -3157,7 +3168,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -3235,7 +3246,9 @@ public class GroupServiceImpl implements GroupService {
 					vu2.isDate("endDt", endDate);
 					
 					if(vu1.isValid() && vu2.isValid()) {
-						paramMap.put("lastDay", 7);
+						long limitDtCnt = CommonUtil.getCalendarDiff(startDate, endDate, "DAY") + 1;
+						paramMap.put("lastDay", limitDtCnt);
+						if(limitDtCnt < 7) paramMap.put("notSevenDayCheck", true);
 						
 						longLrnTmData = (Map<String, Object>) getMapperResultData(v_param, "", paramMap, ".getLongLrnTmStt");
 						longLrnTmList = (ArrayList<Map<String, Object>>) getMapperResultData(v_param, "list", paramMap, ".getLongLrnTmSttList");
@@ -3340,7 +3353,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid()) {
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("startDt", startDt);
@@ -3434,7 +3447,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid()) {
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("startDt", startDt);
@@ -3583,7 +3596,7 @@ public class GroupServiceImpl implements GroupService {
 						String yyMm = yyyy + convertMm;
 						
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("yyMm", yyMm);
@@ -3695,7 +3708,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid()) {
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("startDt", startDt);
@@ -3804,7 +3817,7 @@ public class GroupServiceImpl implements GroupService {
 					
 					if(vu1.isValid()) {
 						String startDt = yyyy + "-" + convertMm + "-01";
-						int lastDay = getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
+						int lastDay = CommonUtil.getCalendarLastDay(startDt, new SimpleDateFormat("yyyy-MM-dd"));
 						String endDt = yyyy + "-" +convertMm + "-" + String.valueOf(lastDay);
 						
 						paramMap.put("startDt", startDt);
@@ -4439,14 +4452,14 @@ public class GroupServiceImpl implements GroupService {
 				
 				if(!paramMap.containsKey("wk")) {
 					// startDate, endDate 월의 첫날, 마지막날
-					startDate = yyyy+"-"+mm+"-01";
-					endDate = yyyy+"-"+mm+"-"+getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
+					startDate = yyyy + "-" + mm + "-01";
+					endDate = yyyy + "-" + mm + "-" + CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd"));
 					paramMap.put("startDt", startDate);
 					paramMap.put("endDt", endDate);
 					paramMap.put("currConCheck", "m");
 					data_lrnBasic = (ArrayList<Map<String,Object>>)getMapperResultData(v_param, "list", paramMap, ".getLrnBasicMonthly");
 					data_lrnHabit = (ArrayList<Map<String,Object>>) getMapperResultData(v_param, "list", paramMap, ".getLrnHabitMonthly");
-					paramMap.put("limitDtCnt", getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));					
+					paramMap.put("limitDtCnt", CommonUtil.getCalendarLastDay(startDate, new SimpleDateFormat("yyyy-MM-dd")));					
 				} else {
 					// startDate, endDate 주차별 기간 db에서 조회
 					data_period = (Map<String,Object>)getMapperResultData(v_param, "", paramMap, ".getPeriod");
@@ -4478,7 +4491,7 @@ public class GroupServiceImpl implements GroupService {
 						getLrnBasicResult(item, detailMap, positive, negative, msg, msgTemplate);
 						
 						if(!paramMap.containsKey("wk")) {
-							detailMap.put("prevDtCnt", getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
+							detailMap.put("prevDtCnt", CommonUtil.getCalendarLastDay(subDate(startDate,-1,false,false), new SimpleDateFormat("yyyy-MM-dd")));
 						} else {
 							detailMap.put("prevDtCnt", "7");								
 						}
