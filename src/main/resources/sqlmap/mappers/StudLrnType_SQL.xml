@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StudLrnType">
+    <select id="getLrnTypeSummary" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			LRN_TYPE_NM,
+			-- LRN_TYPE_IMG
+		    IFNULL(LRN_TYPE_IMG,'') AS LRN_TYPE_IMG
+		FROM MONTH_STUD ST
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm};
+    </select>
+    
+    <select id="getLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    LRN_TYPE_NM,
+		    LRN_TYPE_IMG,
+		    IFNULL(PREV_LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
+		    IFNULL(PREV_LRN_TYPE_IMG, '') AS PREV_LRN_TYPE_IMG,
+		    DATE_FORMAT(DATE_ADD(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y-%m-%d') AS NEXT_LRN_TYPE_ANAL_DT
+		FROM (
+			SELECT
+				ST.STUD_ID,
+				LRN_TYPE_NM,
+				-- LRN_TYPE_IMG
+				IFNULL(LRN_TYPE_IMG,'') AS LRN_TYPE_IMG,
+		        (SELECT COUNT(LRN_TYPE_CD) FROM MONTH_STUD WHERE STUD_ID = 4995 AND YYMM = 202201) AS LRN_TYPE_CNT
+			FROM MONTH_STUD ST
+			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm}
+		) LT
+		LEFT OUTER JOIN (
+			SELECT
+				ST.STUD_ID,
+				IFNULL(LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
+				-- LRN_TYPE_IMG
+				IFNULL(LRN_TYPE_IMG,'') AS PREV_LRN_TYPE_IMG
+			FROM MONTH_STUD ST
+			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
+		) LT1 ON LT.STUD_ID = LT1.STUD_ID;
+    </select>
+    
+    <select id="getLrnTypeInfoYn" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    IF(LRN_TYPE_CNT = 1, 'Y', 'N') AS LRN_TYPE_ANAL_YN
+		FROM (
+			SELECT
+				ST.STUD_ID,
+				COUNT(LRN_TYPE_CD) AS LRN_TYPE_CNT
+			FROM MONTH_STUD
+			WHERE STUD_ID = #{studId} AND YYMM =  #{yymm}
+		) LTCNT
+		LEFT OUTER JOIN (
+			SELECT
+				ST.STUD_ID,
+				LRN_TYPE_NM AS PREV_LRN_TYPE_NM,
+				-- LRN_TYPE_IMG
+				IFNULL(LRN_TYPE_IMG,'') AS PREV_LRN_TYPE_IMG
+			FROM MONTH_STUD ST
+			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+			WHERE ST.STUD_ID = 4995 AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT('202201','01'), INTERVAL 1 MONTH), '%Y%m')
+		) LT1 ON LT.STUD_ID = LT1.STUD_ID;
+    </select>
+</mapper>
