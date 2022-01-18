@@ -3216,8 +3216,8 @@
 		    	WHEN A_LRN_EX_CNT IS NULL THEN SU.MSG
 		    	ELSE
 		    		REPLACE(
-		    			REPLACE(SU.MSG, '{a}', A_LRN_EX_CNT),
-	    			'{n}', A_LRN_EX_CNT
+		    			REPLACE(SU.MSG, '{a}', IFNULL(A_LRN_EX_CNT,0)),
+	    			'{n}', IFNULL(A_LRN_EX_CNT,0)
 	    			)
 		    END AS SUMMARY,
 		    CASE
@@ -4262,7 +4262,33 @@
 					LEFT OUTER JOIN EXAM_MONTH_STT EM ON EM.YYMM = #{yyMm} AND ST.STUD_ID = EM.STUD_ID
 				</when>
 				<otherwise>
+					<choose>
+ 			  			<when test='notSevenDayCheck != null'>
+					LEFT OUTER JOIN (
+                        SELECT
+                            STUD_ID,
+                            COUNT(STUD_ID) AS EXPL_CNT,
+                            SUM(IF(CRT_RT = 100, 1, 0)) AS PS_EXPL_CNT 
+                        FROM (
+                            SELECT
+                                STUD_ID,
+                                EXAM_TYPE,
+                                EXAM_CD,
+                                CASE
+                                    WHEN IF(DESCPT_QUES_CNT <![CDATA[>]]> 0, DESCPT_QUES_CNT, QUES_CNT) = 0 THEN 0
+                                    ELSE ROUND(IF(DESCPT_CRT_CNT <![CDATA[>]]> 0, DESCPT_CRT_CNT, CRT_CNT) / IF(DESCPT_QUES_CNT <![CDATA[>]]> 0, DESCPT_QUES_CNT, QUES_CNT) * 100)
+                                END AS CRT_RT
+                            FROM EXAM_RST
+                            WHERE DT BETWEEN #{startDt} AND #{endDt}
+                           		AND STUD_ID = #{studId}
+                                AND DEL_YN = 'N'
+                        ) ER                        
+             		 ) EM ON ST.STUD_ID = EM.STUD_ID
+		  				</when>
+		  				<otherwise>
 					LEFT OUTER JOIN DAY_7_EXAM_STT EM ON EM.DT = #{endDt} AND ST.STUD_ID = EM.STUD_ID
+						</otherwise>
+					</choose> 
 				</otherwise>
 			</choose> 
 			LEFT OUTER JOIN (
@@ -4437,15 +4463,7 @@
 				LEFT OUTER JOIN (
 					SELECT
 						STUD_ID,
-						SUM(IFNULL(LRN_SEC,0)) AS LRN_TM,
-						<choose>
-							<when test='currConCheck == "m"'>
-								CAST(DATE_FORMAT(LAST_DAY(#{startDt}), '%d')AS UNSIGNED) AS DAY_NUM
-							</when>
-							<otherwise>
-								7 AS DAY_NUM
-							</otherwise>
-						</choose>
+						SUM(IFNULL(LRN_SEC,0)) AS LRN_TM
 					FROM DAY_LRN_EX_LOG
 					WHERE DT BETWEEN #{startDt} AND #{endDt}
 						AND STUD_ID = #{studId}
@@ -4455,15 +4473,7 @@
 				LEFT OUTER JOIN (
 					SELECT
 						STUD_ID,
-						SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM,
-						<choose>
-							<when test='currConCheck == "m"'>
-								CAST(DATE_FORMAT(LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH)), '%d')AS UNSIGNED) AS PREV_DAY_NUM
-							</when>
-							<otherwise>
-								7 AS PREV_DAY_NUM
-							</otherwise>
-						</choose>
+						SUM(IFNULL(LRN_SEC,0)) AS PREV_LRN_TM
 					FROM DAY_LRN_EX_LOG
 					WHERE DT 
 					<choose>
@@ -4483,9 +4493,29 @@
 					LEFT OUTER JOIN MONTH_ATT_STT ATT ON ATT.YYMM = #{yyMm} AND ST.STUD_ID = ATT.STUD_ID
 					LEFT OUTER JOIN MONTH_ATT_STT PATT ON PATT.YYMM = DATE_FORMAT(LAST_DAY(DATE_SUB(#{startDt}, INTERVAL 1 MONTH)), '%Y%m') AND ST.STUD_ID = PATT.STUD_ID
 					</when>
-					<otherwise>
+					<otherwise>					
+			 			<choose>
+			 		 		<when test='notSevenDayCheck != null'>
+					LEFT OUTER JOIN (
+						SELECT STUD_ID
+							, SUM(IF(LOGIN_YN = 'Y', 1, 0)) AS ATT_CNT		-- 출석일 수 
+						FROM DAY_ATT_LOG 
+						WHERE DT BETWEEN #{startDt} AND #{endDt}
+							AND STUD_ID = #{studId}
+					) ATT ON ST.STUD_ID = ATT.STUD_ID
+					LEFT OUTER JOIN (
+						SELECT STUD_ID
+							, SUM(IF(LOGIN_YN = 'Y', 1, 0)) AS ATT_CNT		-- 출석일 수 
+						FROM DAY_ATT_LOG 
+						WHERE DT BETWEEN DATE_SUB(#{startDt}, INTERVAL 7 DAY) AND DATE_SUB(#{endDt}, INTERVAL 7 DAY)
+					AND STUD_ID = #{studId}
+					) PATT ON ST.STUD_ID = PATT.STUD_ID
+			 		 		</when>
+	 		 				<otherwise>
 					LEFT OUTER JOIN DAY_7_ATT_STT ATT ON ATT.DT = #{endDt} AND ST.STUD_ID = ATT.STUD_ID
 					LEFT OUTER JOIN DAY_7_ATT_STT PATT ON PATT.DT = DATE_SUB(#{endDt}, INTERVAL 7 DAY) AND ST.STUD_ID = PATT.STUD_ID
+							</otherwise>
+						</choose>
 					</otherwise>
 				</choose>
 				WHERE ST.STUD_ID = #{studId}
