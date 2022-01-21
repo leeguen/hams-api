@@ -43,23 +43,88 @@
     
     <select id="getLrnTypeInfoYn" parameterType="hashMap" resultType="resultMap">
     	SELECT
-		    IF(LRN_TYPE_CNT = 1, 'Y', 'N') AS LRN_TYPE_ANAL_YN
+			IF(LRN_TYPE_CNT = 1, 'Y', 'N') AS LRN_TYPE_ANAL_YN,
+		    IF(LRN_TYPE_CHECK_CNT = 1, 'Y', 'N') AS LRN_TYPE_CHECK_YN
 		FROM (
 			SELECT
-				ST.STUD_ID,
-				COUNT(LRN_TYPE_CD) AS LRN_TYPE_CNT
+				STUD_ID,
+				COUNT(LRN_TYPE_CD) AS LRN_TYPE_CNT,
+				(SELECT LRN_TYPE_GUIDE FROM LRN_TYPE_GUIDE WHERE STUD_ID = #{studId}) AS LRN_TYPE_CHECK_CNT
 			FROM MONTH_STUD
-			WHERE STUD_ID = #{studId} AND YYMM =  #{yymm}
-		) LTCNT
-		LEFT OUTER JOIN (
-			SELECT
-				ST.STUD_ID,
-				LRN_TYPE_NM AS PREV_LRN_TYPE_NM,
-				-- LRN_TYPE_IMG
-				IFNULL(LRN_TYPE_IMG,'') AS PREV_LRN_TYPE_IMG
-			FROM MONTH_STUD ST
-			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
-			WHERE ST.STUD_ID = 4995 AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT('202201','01'), INTERVAL 1 MONTH), '%Y%m')
-		) LT1 ON LT.STUD_ID = LT1.STUD_ID;
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) LTCNT;
     </select>
+    
+    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			LI.LRN_TYPE_NM,
+			LD.LRN_TYPE_CD,
+		    IFNULL(LI.LRN_TYPE_IMG, NULL) AS LRN_TYPE_IMG,
+		    IFNULL(LI.LRN_TYPE_DEF, NULL) AS LRN_TYPE_DEF,
+		    IFNULL(LD.LRN_TEND, NULL) AS LRN_TEND,
+		    IFNULL(LD.LRN_STR, NULL) AS LRN_STR,
+		    LD.LRN_TYPE_ACT_SCORE AS ACT_SCORE, 
+		    LD.LRN_TYPE_STR_SCORE AS STR_SCORE,
+		    GL.LRN_TYPE_STUD_RT
+		FROM LRN_TYPE_DETAIL LD
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		LEFT OUTER JOIN GRP_LRN_TYPE_STT GL ON LD.LRN_TYPE_CD = GL.LRN_TYPE_CD AND LD.YYMM = GL.YYMM
+		WHERE STUD_ID = #{studId} AND LD.YYMM = #{yymm};
+    </select>
+    
+    <select id="getLrnTypeGrp" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+			LI.LRN_TYPE_NM AS MAX_LRN_TYPE_NM
+		FROM GRP_LRN_TYPE_STT GL
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON GL.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		WHERE YYMM = #{yymm}
+		ORDER BY LRN_TYPE_STUD_CNT DESC
+		LIMIT 1;
+    </select>
+    
+    <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+		    ST.MM,
+		    LI.LRN_TYPE_NM,
+		    IFNULL(LI.LRN_TYPE_IMG, NULL) AS LRN_TYPE_IMG,
+		    IFNULL(LD.LRN_TEND, NULL) AS LRN_TEND,
+			IFNULL(LD.LRN_STR, NULL) AS LRN_STR
+		FROM (
+			SELECT
+				STUD_ID,
+				YYMM,
+		        MM
+			FROM STUD
+			CROSS JOIN (
+				SELECT
+					CASE 
+						WHEN lv<![CDATA[<]]>10 THEN CONCAT(YY,'0',lv)
+						ELSE CONCAT(YY,lv)
+					END YYMM,
+		            CASE
+						WHEN lv<![CDATA[<]]>10 THEN CONCAT('0',lv)
+						ELSE lv
+					END MM
+				FROM (
+					SELECT @ROWNUM:=@ROWNUM+1 AS lv
+							, #{yyyy} AS YY
+					FROM information_schema.`COLUMNS` A
+							   , (SELECT @ROWNUM:=0) R
+						LIMIT 12 
+				) AS A  
+			) YM
+			WHERE STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN LRN_TYPE_DETAIL LD ON ST.STUD_ID = LD.STUD_ID AND ST.YYMM = LD.YYMM
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD;
+    </select>
+    
+    <update id="updateLrnTypeInfo" parameterType="hashMap">
+    	UPDATE LRN_TYPE_GUIDE 
+		SET 
+			LRN_TYPE_GUIDE = #{guideValue},
+		    UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		WHERE STUD_ID = #{studId};
+    </update>
+    
 </mapper>
