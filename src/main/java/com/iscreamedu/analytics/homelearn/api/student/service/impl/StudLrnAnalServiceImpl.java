@@ -420,36 +420,127 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getLrnExRt(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "수행률 메시지");
+	        				
+	        				lrnExRtMap.put("subjCd", "C00");
+	        				
+	        				lrnExRtList.add(createTestDataMap2(10, 0, 12));
+	        				lrnExRtList.add(createTestDataMap2(11, 0, 36));
+	        				lrnExRtList.add(createTestDataMap2(12, 0, 55));
+	        				lrnExRtList.add(createTestDataMap2(01, 0, 84));
+	        				lrnExRtList.add(createTestDataMap2(02, 0, 90));
+	        					        				
+	        				lrnExRtMap.put("lrnExRtList", lrnExRtList);
+	        				
+	        				lrnExRtSubjList.add(lrnExRtMap);
+	        				
+	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+        					data.put("msg", "수행률 메시지");
+	        				
+	        				lrnExRtMap.put("subjCd", "C00");
+	        				
+	        				lrnExRtList.add(createTestDataMap2(01, 2, 12));
+	        				lrnExRtList.add(createTestDataMap2(01, 3, 36));
+	        				lrnExRtList.add(createTestDataMap2(01, 4, 55));
+	        				lrnExRtList.add(createTestDataMap2(01, 5, 84));
+	        				lrnExRtList.add(createTestDataMap2(02, 1, 90));
+	        					        				
+	        				lrnExRtMap.put("lrnExRtList", lrnExRtList);
+	        				
+	        				lrnExRtSubjList.add(lrnExRtMap);
+	        				
+	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -460,36 +551,105 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getLrnHabit(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "수행 습관 메시지");
+	        				data.put("bLrnCnt", 6);
+	        				data.put("tLrnCnt", 5);
+	        				data.put("dLrnCnt", 10);
+	        				data.put("maxLrnHabitNm", "나중에 했어요");
+	        				data.put("maxLrnHabitRt", 33);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+        					Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "수행 습관 메시지");
+	        				data.put("bLrnCnt", 6);
+	        				data.put("tLrnCnt", 5);
+	        				data.put("dLrnCnt", 10);
+	        				data.put("maxLrnHabitNm", "나중에 했어요");
+	        				data.put("maxLrnHabitRt", 33);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -500,36 +660,127 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getConcn(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> concnMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> concnSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "집중도 메시지");
+	        				
+	        				concnMap.put("subjCd", "C00");
+	        				
+	        				concnList.add(createTestDataMap2(10, 0, 3));
+	        				concnList.add(createTestDataMap2(11, 0, 2));
+	        				concnList.add(createTestDataMap2(12, 0, 9));
+	        				concnList.add(createTestDataMap2(01, 0, 6));
+	        				concnList.add(createTestDataMap2(02, 0, 5));
+	        					        				
+	        				concnMap.put("concnList", concnList);
+	        				
+	        				concnSubjList.add(concnMap);
+	        				
+	        				data.put("concnSubjList", concnSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> concnMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> concnSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+        					data.put("msg", "수행률 메시지");
+	        				
+        					concnMap.put("subjCd", "C00");
+	        				
+	        				concnList.add(createTestDataMap2(01, 2, 3));
+	        				concnList.add(createTestDataMap2(01, 3, 9));
+	        				concnList.add(createTestDataMap2(01, 4, 6));
+	        				concnList.add(createTestDataMap2(01, 5, 2));
+	        				concnList.add(createTestDataMap2(02, 1, 5));
+	        					        				
+	        				concnMap.put("concnList", concnList);
+	        				
+	        				concnSubjList.add(concnMap);
+	        				
+	        				data.put("concnSubjList", concnSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -540,36 +791,155 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getLrnTm(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnTmSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnTmList = new ArrayList<>();
+	        				
+	        				Map<String, Object> lrnTmMap1 = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnTmList1 = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "홈런 타임 메시지");
+	        				
+	        				lrnTmMap.put("subjCd", "C00");
+	        				
+	        				lrnTmList.add(createTestDataMap2(10, 0, 3332));
+	        				lrnTmList.add(createTestDataMap2(11, 0, 2848));
+	        				lrnTmList.add(createTestDataMap2(12, 0, 1629));
+	        				lrnTmList.add(createTestDataMap2(01, 0, 6566));
+	        				lrnTmList.add(createTestDataMap2(02, 0, 5483));
+	        					        				
+	        				lrnTmMap.put("lrnTmList", lrnTmList);
+	        				
+        					lrnTmMap1.put("subjCd", "C01");
+	        				
+	        				lrnTmList1.add(createTestDataMap2(10, 0, 3332));
+	        				lrnTmList1.add(createTestDataMap2(11, 0, 2848));
+	        				lrnTmList1.add(createTestDataMap2(12, 0, 1629));
+	        				lrnTmList1.add(createTestDataMap2(01, 0, 6566));
+	        				lrnTmList1.add(createTestDataMap2(02, 0, 5483));
+	        					        				
+	        				lrnTmMap1.put("lrnTmList", lrnTmList1);
+	        				
+	        				lrnTmSubjList.add(lrnTmMap);
+	        				lrnTmSubjList.add(lrnTmMap1);
+	        				
+	        				data.put("lrnTmSubjList", lrnTmSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnTmSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnTmList = new ArrayList<>();
+	        				
+	        				Map<String, Object> lrnTmMap1 = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> lrnTmList1 = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+        					data.put("msg", "홈런 타임 메시지");
+	        				
+        					lrnTmMap.put("subjCd", "C00");
+	        				
+        					lrnTmList.add(createTestDataMap2(01, 2, 3215));
+        					lrnTmList.add(createTestDataMap2(01, 3, 489));
+        					lrnTmList.add(createTestDataMap2(01, 4, 663));
+        					lrnTmList.add(createTestDataMap2(01, 5, 152));
+        					lrnTmList.add(createTestDataMap2(02, 1, 533));
+	        					        				
+	        				lrnTmMap.put("lrnTmList", lrnTmList);
+	        				
+        					lrnTmMap1.put("subjCd", "C01");
+	        				
+        					lrnTmList1.add(createTestDataMap2(01, 2, 3215));
+        					lrnTmList1.add(createTestDataMap2(01, 3, 489));
+        					lrnTmList1.add(createTestDataMap2(01, 4, 663));
+        					lrnTmList1.add(createTestDataMap2(01, 5, 152));
+        					lrnTmList1.add(createTestDataMap2(02, 1, 533));
+	        					        				
+	        				lrnTmMap1.put("lrnTmList", lrnTmList1);
+	        				
+	        				lrnTmSubjList.add(lrnTmMap);
+	        				lrnTmSubjList.add(lrnTmMap1);
+	        				
+	        				data.put("lrnTmSubjList", lrnTmSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -580,17 +950,20 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getAlrn(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
         vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
+    		getStudId(paramMap);
+    		
+    		if(decodeResult.isEmpty()) {
     			String yyyy = paramMap.get("yyyy").toString();
     			int mm = Integer.valueOf(paramMap.get("mm").toString());
     			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
@@ -600,16 +973,28 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
     			
     			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+    				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+    				ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
+    				
+    				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+    				
+    				data.put("msg", "수행 습관 메시지");
+    				data.put("maxALrnSubjNm", 6);
+    				
+    				aLrnList.add(createTestDataMap3("C01", 20));
+    				aLrnList.add(createTestDataMap3("C06", 15));
+    				aLrnList.add(createTestDataMap3("C05", 10));
+    				
+    				data.put("aLrnList", aLrnList);
     				
     				setResult(dataKey,data);
     			} else {
     				setResult(msgKey, vu1.getResult());
     			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+    			
+    		} else {
+    			setResult(msgKey, decodeResult);
+    		}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -620,36 +1005,155 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getExamScore(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
+	        				
+	        				Map<String, Object> examScoreMap1 = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examScoreList1 = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "평가점수 메시지");
+	        				
+	        				examScoreMap.put("subjCd", "C00");
+	        				
+	        				examScoreList.add(createTestDataMap2(10, 0, 80));
+	        				examScoreList.add(createTestDataMap2(11, 0, 28));
+	        				examScoreList.add(createTestDataMap2(12, 0, 69));
+	        				examScoreList.add(createTestDataMap2(01, 0, 89));
+	        				examScoreList.add(createTestDataMap2(02, 0, 95));
+	        					        				
+	        				examScoreMap.put("examScoreList", examScoreList);
+	        				
+	        				examScoreMap1.put("subjCd", "C01");
+	        				
+	        				examScoreList1.add(createTestDataMap2(10, 0, 33));
+	        				examScoreList1.add(createTestDataMap2(11, 0, 48));
+	        				examScoreList1.add(createTestDataMap2(12, 0, 99));
+	        				examScoreList1.add(createTestDataMap2(01, 0, 66));
+	        				examScoreList1.add(createTestDataMap2(02, 0, 83));
+	        					        				
+	        				examScoreMap1.put("examScoreList", examScoreList1);
+	        				
+	        				examScoreSubjList.add(examScoreMap);
+	        				examScoreSubjList.add(examScoreMap1);
+	        				
+	        				data.put("examScoreSubjList", examScoreSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
+	        				
+	        				Map<String, Object> examScoreMap1 = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examScoreList1 = new ArrayList<>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+        					data.put("msg", "평가점수 메시지");
+	        				
+        					examScoreMap.put("subjCd", "C00");
+	        				
+        					examScoreList.add(createTestDataMap2(01, 2, 33));
+        					examScoreList.add(createTestDataMap2(01, 3, 59));
+        					examScoreList.add(createTestDataMap2(01, 4, 63));
+        					examScoreList.add(createTestDataMap2(01, 5, 89));
+        					examScoreList.add(createTestDataMap2(02, 1, 93));
+	        					        				
+        					examScoreMap.put("examScoreList", examScoreList);
+	        				
+	        				examScoreMap1.put("subjCd", "C01");
+	        				
+        					examScoreList1.add(createTestDataMap2(01, 2, 35));
+        					examScoreList1.add(createTestDataMap2(01, 3, 89));
+        					examScoreList1.add(createTestDataMap2(01, 4, 63));
+        					examScoreList1.add(createTestDataMap2(01, 5, 91));
+        					examScoreList1.add(createTestDataMap2(02, 1, 53));
+	        					        				
+        					examScoreMap1.put("examScoreList", examScoreList1);
+	        				
+        					examScoreSubjList.add(examScoreMap);
+	        				examScoreSubjList.add(examScoreMap1);
+	        				
+	        				data.put("examScoreSubjList", examScoreSubjList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -660,36 +1164,103 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getIncrtNoteStt(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "오답노트 현황 메시지");
+	        				data.put("incrtNoteCnt", 20);
+	        				data.put("incrtNotefnshCnt", 18);
+	        				data.put("incrtNoteNcCnt", 2);
+	        				data.put("incrtNoteNcRt", 10);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+        					Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "오답노트 현황 메시지");
+	        				data.put("incrtNoteCnt", 20);
+	        				data.put("incrtNotefnshCnt", 18);
+	        				data.put("incrtNoteNcCnt", 2);
+	        				data.put("incrtNoteNcRt", 10);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -700,36 +1271,137 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getSlvHabit(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				
+	        				Map<String, Object> slvHabitMap1 = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "문제풀이 습관 메시지");
+	        				
+	        				slvHabitMap.put("mm", 12);
+	        				slvHabitMap.put("skipQuesCnt", 2);
+	        				slvHabitMap.put("cursoryQuesCnt", 6);
+	        				slvHabitMap.put("guessQuesCnt", 5);
+	        				slvHabitMap.put("mistakeQuesCnt", 7);
+	        				
+	        				slvHabitMap1.put("mm", 1);
+	        				slvHabitMap1.put("skipQuesCnt", 1);
+	        				slvHabitMap1.put("cursoryQuesCnt", 8);
+	        				slvHabitMap1.put("guessQuesCnt", 3);
+	        				slvHabitMap1.put("mistakeQuesCnt", 5);
+	        				
+	        				slvHabitList.add(slvHabitMap);
+	        				slvHabitList.add(slvHabitMap1);
+	        				
+	        				data.put("slvHabitList", slvHabitList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				
+	        				Map<String, Object> slvHabitMap1 = new LinkedHashMap<String, Object>();
+	        				
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "문제풀이 습관 메시지");
+	        				
+	        				slvHabitMap.put("mm", 1);
+	        				slvHabitMap.put("wk", 2);
+	        				slvHabitMap.put("skipQuesCnt", 9);
+	        				slvHabitMap.put("cursoryQuesCnt", 7);
+	        				slvHabitMap.put("guessQuesCnt", 10);
+	        				slvHabitMap.put("mistakeQuesCnt", 6);
+	        				
+	        				slvHabitMap1.put("mm", 1);
+	        				slvHabitMap1.put("wk", 2);
+	        				slvHabitMap1.put("skipQuesCnt", 1);
+	        				slvHabitMap1.put("cursoryQuesCnt", 8);
+	        				slvHabitMap1.put("guessQuesCnt", 3);
+	        				slvHabitMap1.put("mistakeQuesCnt", 5);
+	        				
+	        				slvHabitList.add(slvHabitMap);
+	        				slvHabitList.add(slvHabitMap1);
+	        				
+	        				data.put("slvHabitList", slvHabitList);
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -740,36 +1412,95 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map getReportImpression(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "리포트 소감 메시지");
+	        				data.put("impressionYn", "Y");
+	        				data.put("emoticon", "이모티콘");
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+    						//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "리포트 소감 메시지");
+	        				data.put("impressionYn", "Y");
+	        				data.put("emoticon", "이모티콘");
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -780,36 +1511,93 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Override
     public Map insertReportImpression(Map<String, Object> paramMap) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			paramMap.put("yymm", yyyy+convertMm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "Success");
+	        				data.put("insertYn", "Y");
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			paramMap.put("yymm", yyyy+convertMm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+    						//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				
+	        				data.put("msg", "Success1");
+	        				data.put("insertYn", "Y");
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -882,5 +1670,28 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         dummyMap.put("fnshCnth",fnshCnt);
         return dummyMap;
 
-}
+	}
+	
+	private Map createTestDataMap2(int mm, int wk, int lrnExRt) {
+        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+        
+        dummyMap.put("mm",mm);
+        
+        if(wk > 0) {
+        	dummyMap.put("wk",wk);
+        }
+        
+        dummyMap.put("lrnExRt",lrnExRt);
+        return dummyMap;
+
+	}
+	
+	private Map createTestDataMap3(String subjCd, int cnt) {
+        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+        
+        dummyMap.put("subjCd",subjCd);
+        dummyMap.put("cnt",cnt);
+        return dummyMap;
+
+	}
 }

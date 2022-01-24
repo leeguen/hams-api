@@ -119,5 +119,126 @@ public class StudentController {
         body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnStt(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * 수행률 (STUD-LA-004)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getLrnExRt")
+    public ResponseEntity getLrnExRt(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnExRt(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 수행 습관 (STUD-LA-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getLrnHabit")
+    public ResponseEntity getLrnHabit(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnHabit(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 집중도 (STUD-LA-006)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getConcn")
+    public ResponseEntity getConcn(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getConcn(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 홈런 타임 (STUD-LA-007)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getLrnTm")
+    public ResponseEntity getLrnTm(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnTm(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 스스로학습 (STUD-LA-008)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getAlrn")
+    public ResponseEntity getAlrn(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getAlrn(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 평가점수 (STUD-LA-009)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getExamScore")
+    public ResponseEntity getExamScore(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getExamScore(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 오답노트 현황 (STUD-LA-010)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getIncrtNoteStt")
+    public ResponseEntity getIncrtNoteStt(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getIncrtNoteStt(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 문제풀이 습관 (STUD-LA-011)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getSlvHabit")
+    public ResponseEntity getSlvHabit(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getSlvHabit(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 리포트 소감 조회 (STUD-LA-012)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getReportImpression")
+    public ResponseEntity getReportImpression(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getReportImpression(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 리포트 소감 등록 (STUD-LA-013)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/insertReportImpression")
+	@ResponseBody
+	public ResponseEntity insertReportImpression(@RequestBody Map<String, Object> params) throws Exception {
+		body = (LinkedHashMap<String, Object>)studLrnAnalService.insertReportImpression(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 
 }
