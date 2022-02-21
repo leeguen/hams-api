@@ -1,17 +1,23 @@
 package com.iscreamedu.analytics.homelearn.api.common.service.impl;
 
+import java.io.Serializable;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -71,6 +77,12 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	
 	@Value("${extapi.hl.tutor.recommend.url}")
 	String TUTORRECOMMEND_API; //AI 추천 정보 API 주소
+	
+	@Value("${extapi.hlmarketing.url}")
+	String HLMARKETING_API; //마케팅 - 기관조회 API 주소
+	
+	@Value("${extapi.hlfast.url}")
+	String HLFAST_API; //학생,교사 정보 - FAST API 주소
 	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -466,7 +478,122 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("result", "External API Error");
 	        		setResult(msgKey, msgMap);
 	        	}
-	        }else {
+	        } else if(apiName.equals("agencyServiceApiDetail")){
+	        	try {
+	        		String url = HLMARKETING_API + apiName + ".json";
+	        		
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	builder.queryParam("agn_code", paramMap.get("orgId"));
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+
+		        	LOGGER.debug("apiUri : " + apiUri);
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("student/")){
+	        	try {
+	        		String url = HLFAST_API + apiName;
+	        		// [get] https://dw-api.home-learn.com/intsvc/dw/v1/student/4995
+	        		if(paramMap.containsKey("studId")) {
+	        			url += paramMap.get("studId");
+	        		
+			        	//파라미터 세팅
+			        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+			        	
+			        	URI apiUri = builder.build().encode().toUri();  
+			        	
+			        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+
+			        	LOGGER.debug("apiUri : " + apiUri);
+			        	LOGGER.debug("STU_ID : " + responseData.get("STU_ID"));
+//			        	LOGGER.debug("LOGIN_ID : " + responseData.get("LOGIN_ID"));
+//			        	LOGGER.debug("STUD_NM : " + responseData.get("STUD_NM"));
+			        	
+			        	setResult(dataKey, responseData);
+			        	
+	        		} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
+		        		msgMap.put("result", ValidationCode.REQUIRED.getClass());
+		        		setResult(msgKey, msgMap);
+	        		}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("students")){
+	        	try {
+	        		String url = HLFAST_API + apiName + "?stu_ids={studList}";
+	        		// [post] https://dw-api.home-learn.com/intsvc/dw/v1/students?stu_ids=180520%2C%202008216%2C%202237642
+	    	        if(paramMap.containsKey("stu_ids")) {
+
+	    	        	LOGGER.debug("url : " + url);
+			        	LOGGER.debug("stu_ids : " + paramMap.get("stu_ids"));
+			            
+						JSONParser parser = new JSONParser();
+						HttpHeaders headers = new HttpHeaders();
+						headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+						Map<String,Object> paramData = new HashMap<>();			            
+						paramData.put("studList", paramMap.get("stu_ids").toString());
+						
+						HttpEntity<String> entity = new HttpEntity<>(headers);
+						
+						ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class, paramData);
+						
+						int statusCode = Integer.valueOf(response.getStatusCode().toString());
+						
+						Object responseData = parser.parse(response.getBody());
+						
+						if(statusCode == 200) {
+							JSONArray jsonList = (JSONArray) responseData;
+							List<HashMap<String,Object>> studLists = (List) jsonList;
+
+			        		LOGGER.debug("statusCode : "+statusCode);
+							setResult(dataKey, studLists);
+						}
+						else {
+							LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+							msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
+							msgMap.put("result", ValidationCode.REQUIRED.getClass());
+							setResult(msgKey, msgMap);
+						}
+			        	
+	        		} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", ValidationCode.EX_API_ERROR.getClass());
+		        		setResult(msgKey, msgMap);
+	        		}
+	        	} catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", "External API Error");
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
 		        	//GroupServiceImpl >> getDiagnosticEvalStt 에서 p 파라미터 대신 studId 파라미터를 가지고 호출 
