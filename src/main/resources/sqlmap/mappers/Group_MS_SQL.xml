@@ -1319,11 +1319,9 @@
 					select 
 						stud_key,
 						max_add_lrn_subj_nm,
-						max_add_lrn_subj_exec_cnt,
-						coalesce(c.pty, null) as subj_rank
+						max_add_lrn_subj_exec_cnt
 					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
 					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
-					left outer join lrndmt.mt_dm_subj_pty as c on c.subj_nm = a.max_add_lrn_subj_nm
 					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
@@ -1336,7 +1334,7 @@
 						and b.org_cd = #{orgId}
 					</otherwise>
 				</choose>
-					order by stud_key, max_add_lrn_subj_exec_cnt desc, subj_rank
+					order by stud_key, max_add_lrn_subj_exec_cnt desc
 				) c1_1
 			) c on a.stud_key = c.stud_key and c.ord = 1
 			 where a.avg_crt_rt <![CDATA[>=]]> 80
@@ -1640,11 +1638,9 @@
 					 b.org_cd ,
 						stud_key,
 						max_add_lrn_subj_nm,
-						max_add_lrn_subj_exec_cnt,
-						coalesce(c.pty, null) as subj_rank
+						max_add_lrn_subj_exec_cnt
 					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
 					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
-					left outer join lrndmt.mt_dm_subj_pty as c on c.subj_nm = a.max_add_lrn_subj_nm
 					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
@@ -1657,7 +1653,7 @@
 					and b.org_cd = #{orgId}
 				</otherwise>
 			</choose>
-					order by stud_key, max_add_lrn_subj_exec_cnt desc, subj_rank
+					order by stud_key, max_add_lrn_subj_exec_cnt desc
 				) c1_1
 			) c on a.stud_key = c.stud_key and c.ord = 1
 		) a
