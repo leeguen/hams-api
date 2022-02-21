@@ -1,0 +1,1702 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Group_MS">
+	
+	<select id="getSchoolType" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.getSchoolType : 학교타입 디폴트값 지정을 위한 학생수 추출 */
+	/* db utc 기준 + 배치 월요일 03:30 경 완료 시점 기준 default 선택 주차 계산 */
+		select case when st.schl_typ = 'ms' then ol.tot_stud_cnt else 0 end as ms_tot_stud_cnt
+ 			, case when st.schl_typ = 'es' then ol.tot_stud_cnt else 0 end as es_tot_stud_cnt
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly ol 
+		join sc_dsb.vw_dm_org o on ol.org_key = o.org_key 
+		join sc_dsb.vw_dm_ssvc st on ol.ssvc_akey = st.ssvc_akey
+		where ol.yyyymmw_key = (select pre_1w_yyyymmw_key from sc_dsb.vw_dm_dt where dt = to_char((now() - interval '5.5 HOUR'), 'YYYY-MM-DD')::DATE)
+			and o.org_cd = #{orgId} 
+			and ol.regn_lv = 0 
+	</select>
+	
+	<select id="selectGetYymmWk" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGetYymmWk : 년월, 주차 산출 */
+	/* db utc 기준 + 배치 월요일 03:30 경 완료 시점 기준 주차 계산 */
+		select 
+			yyyy_key as yyyy,
+			substring(yyyymm_key::TEXT from 5 for 2)::INTEGER as mm,		
+			w::INTEGER as wk
+		from sc_dsb.vw_dm_wk_dt
+		where coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) <![CDATA[>=]]> (#{svcOpenDe}::DATE + INTERVAL '7 DAY')
+			and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) <![CDATA[<]]> (now() + interval '5.5 HOUR')
+	</select>
+	
+	<select id="selectGetYymm" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGetYymm : 년월 산출 */
+	/* DB UTC 기준 + 배치 월요일 03:30 경 완료 시점 기준 주차 계산 */
+		select 
+			a.yyyy_key as yyyy,
+			a.mm::INTEGER as mm
+		from sc_dsb.vw_dm_dt a 
+		join (
+			select
+				min(yyyymm_key) as start_yymm,
+		        max(yyyymm_key) as end_yymm
+			from sc_dsb.vw_dm_wk_dt
+			where ( 
+					#{svcOpenDe}::DATE - interval '1 MONTH'
+					between coalesce(mon_dt, coalesce(tue_dt, coalesce(wed_dt, coalesce(thu_dt, coalesce(fri_dt, coalesce(sat_dt, sun_dt))))))
+						and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) 
+				)
+				or (
+					now() + interval '5.5 HOUR'
+					between coalesce(mon_dt, coalesce(tue_dt, coalesce(wed_dt, coalesce(thu_dt, coalesce(fri_dt, coalesce(sat_dt, sun_dt))))))
+						and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt))))))
+				)
+		) b on a.yyyymm_key <![CDATA[>=]]> b.start_yymm 
+			and a.yyyymm_key <![CDATA[<]]> b.end_yymm
+		group by a.yyyy_key, a.mm
+	</select>
+	
+	<select id="selectGradeClassorgId" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGradeClassorgId : 학년, 반 기관 ID 조회 */
+	</select>
+	
+	<select id="selectGradeClassInfo" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGradeClassInfo : 학년, 반 정보 조회 */
+	</select>
+	
+	<select id="selectGradeClassYn" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGradeClassYn : 학년, 반 정보 조회 */
+	</select>
+	
+	<select id="selectWeeklyGroupStatusMain" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupLrnAnalysis : 기관용 학습 분석 */
+		select
+			total_stud_cnt, 
+		    att_rt,
+		    ex_rt, 
+		    crt_rt, 
+		    day_avg_lrn_tm,
+		    lrn_signal_a, 
+		    lrn_signal_b, 
+		    lrn_signal_c
+		from (
+				select 
+				    wly.tot_stud_cnt as total_stud_cnt, 
+				    round(wly.att_rt*100) as att_rt, 
+				    round(wly.exec_rt*100) as ex_rt, 
+				    round(wly.answ_rt*100) as crt_rt, 
+				    round(wly.dd_avg_lrn_ss) as day_avg_lrn_tm,
+				    wly.prais_stud_cnt as lrn_signal_a,
+					wly.keep_stud_cnt as lrn_signal_b,
+					wly.encr_stud_cnt as lrn_signal_c
+				from sc_dsb.ds_ag_sc_org_lrn_sts_wly as wly
+				join sc_dsb.vw_dm_org as org on wly.org_key = org.org_key 
+				where wly.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+					and org.org_cd = #{orgId}
+		<choose>
+			<when test="localcd != null and localcd != ''">
+					and wly.regn_cd = #{localcd}		
+			</when>
+			<otherwise>
+					and wly.regn_lv = 0
+			</otherwise>		
+		</choose>
+		) a
+	</select>
+	
+	<select id="selectMonthlyGroupStatusMain" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupLrnAnalysis : 기관용 월간 학습 분석 */
+		select
+			total_stud_cnt, 
+		    att_rt,
+		    ex_rt, 
+		    crt_rt, 
+		    day_avg_lrn_tm,
+		    lrn_signal_a, 
+		    lrn_signal_b, 
+		    lrn_signal_c
+		from (
+				select 
+				    tot_stud_cnt as total_stud_cnt, 
+				    round(att_rt*100) as att_rt, 
+				    round(exec_rt*100) as ex_rt, 
+				    round(answ_rt*100) as crt_rt, 
+				    round(dd_avg_lrn_ss) as day_avg_lrn_tm,
+				    prais_stud_cnt as lrn_signal_a,
+					keep_stud_cnt as lrn_signal_b,
+					encr_stud_cnt as lrn_signal_c
+				from sc_dsb.ds_ag_sc_org_lrn_sts_mly as mly
+				join sc_dsb.vw_dm_org as org on mly.org_key = org.org_key 
+				where yyyymm_key = #{yymm}::INTEGER
+					and org.org_cd = #{orgId}
+		<choose>
+			<when test="localcd != null and localcd != ''">
+					and regn_cd = #{localcd}		-- 추후 확인		
+			</when>
+			<otherwise>
+					and regn_lv = 0
+			</otherwise>		
+		</choose>
+		) a
+	</select>
+	
+	<select id="selectWeeklyGroupLrnChart" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupLrnChart : 기관 주간 학습 차트 */		
+		select
+			case
+				when position('Y' in string_agg(coalesce(d.null_check,'N'), '|')) = 0 
+					then null
+		        else string_agg(d.mmw_ko, '|') 
+		    end as x_axis_ctgr,
+			case
+				when count(d.att_rt) != 0
+					then string_agg(coalesce(d.att_rt::TEXT,''), '|')
+				else null
+			end as att_rt,
+			case
+				when count(d.ex_rt) != 0
+					then string_agg(coalesce(d.ex_rt::TEXT,''), '|')
+				else null
+			end as ex_rt,
+			case
+				when count(d.crt_rt) != 0
+					then string_agg(coalesce(d.crt_rt::TEXT,''), '|')
+				else null
+			end as crt_rt,
+			case
+				when count(d.day_avg_lrn_tm) != 0
+					then string_agg(coalesce(d.day_avg_lrn_tm::TEXT,''), '|')
+				else null
+			end as day_avg_lrn_tm
+        from (
+			select 
+				distinct(a.yyyymmw_key) as yyyymmw_key
+				, a.mmw_ko as mmw_ko
+				, b.org_cd as org_id
+				, round(c.att_rt * 100) as att_rt
+				, round(c.exec_rt * 100) as ex_rt
+				, round(c.answ_rt * 100) as crt_rt
+				, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
+				, case 
+					when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
+					else 'Y'
+				end as null_check			
+			from sc_dsb.vw_dm_wk_dt as a
+			cross join sc_dsb.vw_dm_org as b 
+			left outer join sc_dsb.ds_ag_sc_org_lrn_sts_wly as c
+				on c.yyyymmw_key = a.yyyymmw_key
+					and c.org_key = b.org_key
+					and c.regn_lv = 0
+			where a.yyyymmw_key <![CDATA[<=]]> concat(#{yymm}, #{wk})::INTEGER
+				and b.org_cd = #{orgId} 
+			order by a.yyyymmw_key desc 
+			limit 6
+        ) as d
+	</select>
+	
+	<select id="selectMonthlyGroupLrnChart" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupLrnChart : 기관 월간 학습 차트 */
+		select
+			case
+				when position('Y' in string_agg(coalesce(d.null_check,'N'), '|')) = 0 
+					then null
+		        else string_agg(mm_ko, '|') 
+		    end as x_axis_ctgr,
+			case
+				when count(d.att_rt) != 0
+					then string_agg(coalesce(d.att_rt::TEXT,''), '|')
+				else null
+			end as att_rt,
+			case
+				when count(d.ex_rt) != 0
+					then string_agg(coalesce(d.ex_rt::TEXT,''), '|')
+				else null
+			end as ex_rt,
+			case
+				when count(d.crt_rt) != 0
+					then string_agg(coalesce(d.crt_rt::TEXT,''), '|')
+				else null
+			end as crt_rt,
+			case
+				when count(d.day_avg_lrn_tm) != 0
+					then string_agg(coalesce(d.day_avg_lrn_tm::TEXT,''), '|')
+				else null
+			end as day_avg_lrn_tm
+        from (
+			select 
+				distinct(a.yyyymm_key) as yyyymm_key
+				, substring(a.mmw_ko::TEXT from 1 for 3) as mm_ko
+				, b.org_cd as org_id
+				, round(c.att_rt * 100) as att_rt
+				, round(c.exec_rt * 100) as ex_rt
+				, round(c.answ_rt * 100) as crt_rt
+				, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
+				, case 
+					when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
+					else 'Y'
+				end as null_check			
+			from sc_dsb.vw_dm_wk_dt as a
+			cross join sc_dsb.vw_dm_org as b 
+			left outer join sc_dsb.ds_ag_sc_org_lrn_sts_mly as c
+				on c.yyyymm_key = a.yyyymm_key
+					and c.org_key = b.org_key 
+					and c.regn_lv = 0
+			where a.yyyymm_key <![CDATA[<=]]> #{yymm}::INTEGER
+				and b.org_cd = #{orgId}
+			order by a.yyyymm_key desc 
+			limit 4
+        ) as d
+	</select>
+	
+	<select id="selectWeeklyGroupMapInfo" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupMapInfo : 기관 주간 지도 정보 */
+		select
+			a.tot_stud_cnt as total_stud_cnt,
+			round(a.att_rt * 100) as att_rt,
+			round(a.exec_rt * 100) as ex_rt, 
+			round(a.answ_rt * 100) as crt_rt,
+			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
+			a.regn_cd as local_cd, 
+			c.regn_knm as local_nm,
+			a.regn_lv as depth,
+			c.lat as latitude,
+			c.lon as longitude   
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
+		join sc_dsb.vw_dm_regn as c on a.regn_lv = c.regn_lv and a.regn_cd = c.regn_cd
+		where
+			a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER 
+		<choose>
+			<when test="orgList != null and orgList.size!=0">
+				and b.org_cd in 
+				<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+			</when>
+			<otherwise>
+				and b.org_cd = #{orgId}
+			</otherwise>
+		</choose>
+		order by a.regn_lv asc, a.regn_cd asc			
+	</select>
+	
+	<select id="selectMonthlyGroupMapInfo" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupMapInfo : 기관 월간 지도 정보 */
+		select
+			a.tot_stud_cnt as total_stud_cnt,
+			round(a.att_rt * 100) as att_rt,
+			round(a.exec_rt * 100) as ex_rt, 
+			round(a.answ_rt * 100) as crt_rt,
+			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
+			a.regn_cd as local_cd, 
+			c.regn_knm as local_nm,
+			a.regn_lv as depth,
+			c.lat as latitude,
+			c.lon as longitude   
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
+		join sc_dsb.vw_dm_regn as c on a.regn_lv = c.regn_lv and a.regn_cd = c.regn_cd
+		where
+			a.yyyymm_key = #{yymm}::INTEGER 
+		<choose>
+			<when test="orgList != null and orgList.size!=0">
+				and b.org_cd in 
+				<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+			</when>
+			<otherwise>
+				and b.org_cd = #{orgId}
+			</otherwise>
+		</choose>
+		order by a.regn_lv asc, a.regn_cd asc	
+	</select>
+	
+	<select id="selectWeeklyGroupStudList" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupStudList : 기관용 주간 학생 리스트 */
+		select 
+		    rownum, 
+			yyyy,
+			mm,
+			wk,
+			stud_id,
+			stud_grade,
+			lrn_signal,
+			att_rt,
+			ex_rt,
+			day_avg_lrn_tm,
+			crt_rt
+		from (
+			select 
+				(row_number() over()) as rownum, 
+				d.*
+			from (				
+				select
+					substring(a.yyyymmw_key::TEXT from 1 for 4)::INTEGER as yyyy,
+					case
+						when substring(a.yyyymmw_key::TEXT from 5 for 2)::INTEGER <![CDATA[>=]]> 10 then substring(a.yyyymmw_key::TEXT from 5 for 2)::INTEGER
+		                else substring(a.yyyymmw_key::TEXT from 6 for 1)::INTEGER
+					end as mm,
+					substring(a.yyyymmw_key::TEXT from 7 for 1)::INTEGER as wk,
+					a.stud_key as stud_id,
+					a.grd as stud_grade,
+					c.scr_typ as lrn_signal,
+					round(a.att_rt * 100) as att_rt,
+					round(a.exec_rt * 100) as ex_rt,
+					case
+						when a.dd_avg_lrn_ss is null then null
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[>=]]> 60 then	-- 1시간 이상일때
+							case
+								when mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60) = 0 then concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'시간')	-- 60, 120, 180...
+								else concat(concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60),60),'시간'), concat(mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'분'))
+							end
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]>  1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
+						else concat(floor(coalesce(a.dd_avg_lrn_ss,0)/60),'분')
+					end as day_avg_lrn_tm,
+					round(a.answ_rt * 100) as crt_rt,
+					a.zip_cd as zipcode
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_wly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				join sc_dsb.vw_dm_scr_typ as c on a.scr_typ_key = c.scr_typ_key				
+ 				<if test="localCd != null and localCd != ''">
+ 				join sc_dsb.vw_dm_zip d on a.zip_cd = d.zip_cd
+ 	                <if test="depth == 1"> 
+ 						and d.lv_1_sido_cd = #{localCd}
+ 					</if>
+ 					<if test="depth == 2"> 
+ 						and d.lv_2_sigg_cd = #{localCd}
+ 					</if>
+ 					<if test="depth == 3"> 
+ 						and d.lv_3_umd_cd = #{localCd}
+ 					</if>
+                 </if>
+				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+ 					and b.org_cd = #{orgId}
+ 					<if test="lrnSignal != null and lrnSignal != ''">
+ 						and c.scr_typ = #{lrnSignal}
+ 					</if>
+ 					<if test="studPlan != null and studPlan != ''">
+ 						<choose>
+ 							<when test="studPlan == 'N'.toString()">
+ 								and a.att_rt is null
+ 							</when>
+ 							<otherwise>
+ 								and a.att_rt is not null
+ 							</otherwise>
+ 						</choose>
+ 					</if>
+ 				<choose>
+ 					<when test="orderNm == 'studGradeOn'.toString()">
+ 						order by a.grd
+ 					</when>
+ 					<when test="orderNm == 'studGradeOff'.toString()">
+ 						order by a.grd desc
+ 					</when>
+ 					<when test="orderNm == 'lrnSignalOn'.toString()">
+ 						order by c.scr_typ
+ 					</when>
+ 					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						order by c.scr_typ desc
+ 					</when>
+ 					<when test="orderNm == 'attRtOn'.toString()">
+ 						order by a.att_rt
+ 					</when>
+ 					<when test="orderNm == 'attRtOff'.toString()">
+ 						order by a.att_rt desc
+ 					</when>
+ 					<when test="orderNm == 'exRtOn'.toString()">
+ 						order by a.exec_rt
+ 					</when>
+ 					<when test="orderNm == 'exRtOff'.toString()">
+ 						order by a.exec_rt desc
+ 					</when>
+ 					<when test="orderNm == 'dayAvgLrnTmOn'.toString()">
+ 						order by a.dd_avg_lrn_ss
+ 					</when>
+ 					<when test="orderNm == 'dayAvgLrnTmOff'.toString()">
+ 						order by a.dd_avg_lrn_ss desc
+ 					</when>
+ 					<when test="orderNm == 'crtRtOn'.toString()">
+ 						order by a.answ_rt
+ 					</when>
+ 					<when test="orderNm == 'crtRtOff'.toString()">
+ 						order by a.answ_rt desc
+ 					</when>
+ 					<otherwise>
+						order by c.scr_typ, a.stud_key
+ 					</otherwise>
+ 				</choose>
+				) d
+			) f
+			<choose>
+				<when test="pageSize == null or pageSize == ''">
+					where rownum between ${startIdx} and (${startIdx} <![CDATA[+9]]>)				
+				</when>
+				<otherwise>
+					where rownum between ${startIdx} and (${startIdx} + ${pageSize} <![CDATA[-1]]>)
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="selectMonthlyGroupStudList" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupStudList : 기관용 월간 학생 리스트 */
+		select 
+		    rownum, 
+			yyyy,
+			mm,
+			stud_id,
+			stud_grade,
+			lrn_signal,
+			att_rt,
+			ex_rt,
+			day_avg_lrn_tm,
+			crt_rt
+		from (
+			select 
+				(row_number() over()) as rownum, 
+				d.*
+			from (	
+				select
+					substring(a.yyyymm_key::TEXT from 1 for 4)::INTEGER as yyyy,
+					case
+						when substring(a.yyyymm_key::TEXT from 5 for 2)::INTEGER <![CDATA[>=]]> 10 then substring(a.yyyymm_key::TEXT from 5 for 2)::INTEGER
+		                else substring(a.yyyymm_key::TEXT from 6 for 1)::INTEGER
+					end as mm,
+					a.stud_key as stud_id,
+					a.grd as stud_grade,
+					c.scr_typ as lrn_signal,
+					round(a.att_rt * 100) as att_rt,
+					round(a.exec_rt * 100) as ex_rt,
+					case
+						when a.dd_avg_lrn_ss is null then null
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[>=]]> 60 then	-- 1시간 이상일때
+							case
+								when mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60) = 0 then concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'시간')	-- 60, 120, 180...
+								else concat(concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60),60),'시간'), concat(mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'분'))
+							end
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]>  1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
+						else concat(floor(coalesce(a.dd_avg_lrn_ss,0)/60),'분')
+					end as day_avg_lrn_tm,
+					round(a.answ_rt * 100) as crt_rt,
+					a.zip_cd as zipcode					
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				join sc_dsb.vw_dm_scr_typ as c on a.scr_typ_key = c.scr_typ_key		
+				<if test="localCd != null and localCd != ''">
+ 				join sc_dsb.vw_dm_zip d on a.zip_cd = d.zip_cd
+ 	                <if test="depth == 1"> 
+ 						and d.lv_1_sido_cd = #{localCd}
+ 					</if>
+ 					<if test="depth == 2"> 
+ 						and d.lv_2_sigg_cd = #{localCd}
+ 					</if>
+ 					<if test="depth == 3"> 
+ 						and d.lv_3_umd_cd = #{localCd}
+ 					</if>
+                 </if>
+				where a.yyyymm_key = #{yymm}::INTEGER
+ 					and b.org_cd = #{orgId}
+ 					<if test="lrnSignal != null and lrnSignal != ''">
+ 						and c.scr_typ = #{lrnSignal}
+ 					</if>
+ 					<if test="studPlan != null and studPlan != ''">
+ 						<choose>
+ 							<when test="studPlan == 'N'.toString()">
+ 								AND a.att_rt is null
+ 							</when>
+ 							<otherwise>
+ 								AND a.att_rt is not null
+ 							</otherwise>
+ 						</choose>
+ 					</if>
+ 				<choose>
+ 					<when test="orderNm == 'studGradeOn'.toString()">
+ 						order by a.grd
+ 					</when>
+ 					<when test="orderNm == 'studGradeOff'.toString()">
+ 						order by a.grd desc
+ 					</when>
+ 					<when test="orderNm == 'lrnSignalOn'.toString()">
+ 						order by c.scr_typ
+ 					</when>
+ 					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						order by c.scr_typ desc
+ 					</when>
+ 					<when test="orderNm == 'attRtOn'.toString()">
+ 						order by a.att_rt
+ 					</when>
+ 					<when test="orderNm == 'attRtOff'.toString()">
+ 						order by a.att_rt desc
+ 					</when>
+ 					<when test="orderNm == 'exRtOn'.toString()">
+ 						order by a.exec_rt
+ 					</when>
+ 					<when test="orderNm == 'exRtOff'.toString()">
+ 						order by a.exec_rt desc
+ 					</when>
+ 					<when test="orderNm == 'dayAvgLrnTmOn'.toString()">
+ 						order by a.dd_avg_lrn_ss
+ 					</when>
+ 					<when test="orderNm == 'dayAvgLrnTmOff'.toString()">
+ 						order by a.dd_avg_lrn_ss desc
+ 					</when>
+ 					<when test="orderNm == 'crtRtOn'.toString()">
+ 						order by a.answ_rt
+ 					</when>
+ 					<when test="orderNm == 'crtRtOff'.toString()">
+ 						order by a.answ_rt desc
+ 					</when>
+ 					<otherwise>
+						order by c.scr_typ, a.stud_key
+ 					</otherwise>
+ 				</choose>
+				) d
+			) f
+			<choose>
+				<when test="pageSize == null or pageSize == ''">
+					where rownum between ${startIdx} and (${startIdx} <![CDATA[+9]]>)				
+				</when>
+				<otherwise>
+					where rownum between ${startIdx} and (${startIdx} + ${pageSize} <![CDATA[-1]]>)
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="selectWeeklyGroupStudListCnt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupStudListCnt : 기관 주간 학생 리스트 총 수 */
+		select
+	<choose>
+		<when test="lrnSignal != null and lrnSignal != ''">			
+			<choose>
+				<when test="lrnSignal = 'A'">
+				a.prais_stud_cnt as stud_cnt,
+					<choose>
+						<when test="pageSize == null or pageSize == ''">
+							ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+						</when>
+						<otherwise>
+							ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+						</otherwise>
+					</choose>
+				</when>
+				<when test="lrnSignal = 'B'">
+				a.keep_stud_cnt as stud_cnt,
+					<choose>
+						<when test="pageSize == null or pageSize == ''">
+							ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+						</when>
+						<otherwise>
+							ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+						</otherwise>
+					</choose>
+				</when>
+				<when test="lrnSignal = 'C'">
+				a.encr_stud_cnt as stud_cnt,
+					<choose>
+						<when test="pageSize == null or pageSize == ''">
+							ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+						</when>
+						<otherwise>
+							ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+						</otherwise>
+					</choose>
+				</when>
+			</choose>
+		</when>
+		<otherwise>
+			a.tot_stud_cnt as stud_cnt,
+			<choose>
+				<when test="pageSize == null or pageSize == ''">
+					ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+				</when>
+				<otherwise>
+					ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+				</otherwise>
+			</choose>
+		</otherwise>
+	</choose>
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+	<if test="localCd != null and localCd != ''">
+		join sc_dsb.vw_dm_regn c on a.regn_cd = c.regn_cd and a.regn_lv = c.regn_lv
+	</if>
+		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+					and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+					and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+			<choose>
+				<when test="localCd != null and localCd != ''">
+					<choose>
+	                	<when test="depth == 1"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 1
+						</when>
+						<when test="depth == 2"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 2
+						</when>
+						<when test="depth == 3"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 3
+						</when>
+					</choose>
+				</when>
+				<otherwise>
+					and a.regn_lv = 0
+				</otherwise>
+			</choose>
+		<if test="studPlan != null and studPlan != ''">
+			<choose>
+				<when test="studPlan == 'N'.toString()">
+					and a.att_rt is null
+				</when>
+				<otherwise>
+					and a.att_rt is not null
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="selectMonthlyGroupStudListCnt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupStudListCnt : 기관 월간 학생 리스트 총 수 */
+		select
+		<choose>
+			<when test="lrnSignal != null and lrnSignal != ''">			
+				<choose>
+					<when test="lrnSignal = 'A'">
+					a.prais_stud_cnt as stud_cnt,
+						<choose>
+							<when test="pageSize == null or pageSize == ''">
+								ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+							</when>
+							<otherwise>
+								ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							</otherwise>
+						</choose>
+					</when>
+					<when test="lrnSignal = 'B'">
+					a.keep_stud_cnt as stud_cnt,
+						<choose>
+							<when test="pageSize == null or pageSize == ''">
+								ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+							</when>
+							<otherwise>
+								ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							</otherwise>
+						</choose>
+					</when>
+					<when test="lrnSignal = 'C'">
+					a.encr_stud_cnt as stud_cnt,
+						<choose>
+							<when test="pageSize == null or pageSize == ''">
+								ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+							</when>
+							<otherwise>
+								ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							</otherwise>
+						</choose>
+					</when>
+				</choose>
+			</when>
+			<otherwise>
+				a.tot_stud_cnt as stud_cnt,
+				<choose>
+					<when test="pageSize == null or pageSize == ''">
+						ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+					</when>
+					<otherwise>
+						ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+					</otherwise>
+				</choose>
+			</otherwise>
+		</choose>
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+	<if test="localCd != null and localCd != ''">
+		join sc_dsb.vw_dm_regn as c on a.regn_cd = c.regn_cd and a.regn_lv = c.regn_lv
+	</if>
+		where a.yyyymm_key = #{yymm}::INTEGER
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+					and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+					and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+			<choose>
+				<when test="localCd != null and localCd != ''">
+					<choose>
+	                	<when test="depth == 1"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 1
+						</when>
+						<when test="depth == 2"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 2
+						</when>
+						<when test="depth == 3"> 
+					and c.regn_cd = #{localCd} and c.regn_lv = 3
+						</when>
+					</choose>
+				</when>
+				<otherwise>
+					and a.regn_lv = 0
+				</otherwise>
+			</choose>
+		<if test="studPlan != null and studPlan != ''">
+			<choose>
+				<when test="studPlan == 'N'.toString()">
+					and a.att_rt is null
+				</when>
+				<otherwise>
+					and a.att_rt is not null
+				</otherwise>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="selectWeeklyGroupLocalList" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeeklyGroupLocalList : 기관 주간 지역 리스트 */
+		select 
+			distinct 
+			e.regn_cd as depth_1_local_cd, 
+			e.regn_knm as depth_1_local_nm, 
+			d.regn_cd as depth_2_local_cd, 
+			d.regn_knm as depth_2_local_nm, 
+			c.regn_cd as depth_3_local_cd, 
+			c.regn_knm as depth_3_local_nm
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join sc_dsb.vw_dm_regn as c on c.regn_cd = a.regn_cd and a.regn_lv = 3 and not c.del_yn 
+		join sc_dsb.vw_dm_regn as d on d.regn_cd = c.upp_regn_cd and d.regn_lv = 2 and not d.del_yn 
+		join sc_dsb.vw_dm_regn as e on e.regn_cd = d.upp_regn_cd and e.regn_lv = 1 and not e.del_yn 
+		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER and a.regn_lv = 3 
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+					and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+				and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+		order by e.regn_cd asc, d.regn_cd asc, c.regn_cd asc
+	</select>
+	
+	<select id="selectMonthlyGroupLocalList" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthlyGroupLocalList : 기관 월간 지역 리스트 */
+		select 
+			distinct 
+			e.regn_cd as depth_1_local_cd, 
+			e.regn_knm as depth_1_local_nm, 
+			d.regn_cd as depth_2_local_cd, 
+			d.regn_knm as depth_2_local_nm, 
+			c.regn_cd as depth_3_local_cd, 
+			c.regn_knm as depth_3_local_nm
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join sc_dsb.vw_dm_regn as c on c.regn_cd = a.regn_cd and a.regn_lv = 3 and not c.del_yn 
+		join sc_dsb.vw_dm_regn as d on d.regn_cd = c.upp_regn_cd and d.regn_lv = 2 and not d.del_yn 
+		join sc_dsb.vw_dm_regn as e on e.regn_cd = d.upp_regn_cd and e.regn_lv = 1 and not e.del_yn 
+		where a.yyyymm_key = #{yymm}::INTEGER and a.regn_lv = 3 
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+					and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+				and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+		order by e.regn_cd asc, d.regn_cd asc, c.regn_cd asc		
+	</select>
+	
+	<select id="selectGroupMainLocal" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectGroupMainLocal : 기관 메인 지역 */
+		 select 1 as GRADE
+			, coalesce(lv2.regn_lv, lv1.regn_lv) as level
+			, coalesce(lv2.regn_knm, lv1.regn_knm) as local_nm
+			, coalesce(lv2.regn_cd, lv1.regn_cd) as local_cd
+			, lv1.regn_cd as ctp_code
+		 from sc_dsb.vw_dm_regn as lv1 -- 광역시도(레벨1)
+		 left outer join sc_dsb.vw_dm_regn as lv2 on lv2.regn_lv=2 and lv2.upp_regn_cd = lv1.regn_cd and lv2.regn_cd_src= #{areaCode2} and not lv2.del_yn -- 시군구(레벨2)
+		 where lv1.regn_lv=1 
+		 	and lv1.regn_cd_src = #{areaCode1}
+		 	and not lv1.del_yn
+	</select>
+	
+	<select id="selectWeekLrnStt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeekLrnStt : 학습지표 주간 */
+		select 		
+			b.org_cd as org_id,
+		    string_agg(c.yyyymmw_ko, ',') as category_sp,
+		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',') as stud_cnt_sp,
+		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',') as avg_att_rt_sp,
+		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',') as avg_ex_rt_sp,
+		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
+		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join sc_dsb.vw_dm_wk_dt as c on c.yyyymmw_key = a.yyyymmw_key
+		where
+			a.yyyymmw_key between concat(#{searchStartYymm}, '1')::INTEGER and concat(#{searchEndYymm}, '6')::INTEGER
+			and a.regn_lv = 0
+		    and b.org_cd = #{orgId}
+		group by b.org_cd
+	</select>
+	
+	<select id="selectMonthLrnStt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthLrnStt : 학습지표 월간 */
+		select 
+			b.org_cd as org_id,			
+		    string_agg(distinct c.yyyymm_wk_ko, ',') as category_sp,
+		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',') as stud_cnt_sp,
+		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',') as avg_att_rt_sp,
+		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',') as avg_ex_rt_sp,
+		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
+		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join (
+			select distinct yyyymm_key, yyyymm_wk_ko
+			from sc_dsb.vw_dm_wk_dt
+			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		) as c on c.yyyymm_key = a.yyyymm_key
+		where
+			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			and a.regn_lv = 0
+		    and b.org_cd = #{orgId} 
+		group by b.org_cd
+	</select>
+	
+	<select id="selectWeekLrnSttTrend" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeekLrnSttTrend : 학습지표 추이 주간 */
+		select 
+			b.org_cd as org_id,
+		    c.yyyymmw_ko as category,
+		    round(a.att_rt * 100) as avg_att_rt,
+		    round(a.exec_rt * 100) as avg_ex_rt,
+		    round(a.answ_rt * 100) as avg_crt_rt,
+		    a.tot_stud_cnt as stud_cnt
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join sc_dsb.vw_dm_wk_dt as c on c.yyyymmw_key = a.yyyymmw_key
+		where
+			a.yyyymmw_key between concat(#{searchStartYymm}, '1')::INTEGER and concat(#{searchEndYymm}, '6')::INTEGER
+			and a.regn_lv = 0
+		    and b.org_cd = #{orgId}			
+	</select>
+	
+	<select id="selectMonthLrnSttTrend" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthLrnSttTrend : 학습지표 추이 월간 */
+		select 
+			b.org_cd as org_id,
+		    c.yyyymm_wk_ko as category,
+		    round(a.att_rt * 100) as avg_att_rt,
+		    round(a.exec_rt * 100) as avg_ex_rt,
+		    round(a.answ_rt * 100) as avg_crt_rt,
+		    a.tot_stud_cnt as stud_cnt
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join (
+			select distinct yyyymm_key, yyyymm_wk_ko
+			from sc_dsb.vw_dm_wk_dt
+			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		) as c on c.yyyymm_key = a.yyyymm_key
+		where
+			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			and a.regn_lv = 0
+		    and b.org_cd = #{orgId}
+	</select>
+	
+	<select id="selectOrgLrnStt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectOrgLrnStt : 기관학습현황 */
+		select 
+			org_avg_att_rt,
+		    org_avg_ex_rt,
+		    org_avg_crt_rt,
+		    org_avg_day_lrn_sec,
+		    top10_avg_att_rt,
+		    top10_avg_ex_rt,
+		    top10_avg_crt_rt,
+		    top10_avg_day_lrn_sec
+		from 
+		(
+			select 
+				coalesce(round(sum(a.att_rt * 100) / count(a.att_rt)), 0) as org_avg_att_rt,
+				coalesce(round(sum(a.exec_rt * 100) / count(a.exec_rt)), 0) as org_avg_ex_rt,
+				coalesce(round(sum(a.answ_rt * 100) / count(a.answ_rt)), 0) as org_avg_crt_rt,
+				coalesce(round(sum(a.dd_avg_lrn_ss) / count(a.dd_avg_lrn_ss)), 0) as org_avg_day_lrn_sec
+			from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+			where
+				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and a.regn_lv = 0
+		   		and b.org_cd = #{orgId}
+		) as org_rst,
+		(
+			select 
+				round(avg(case when att_rt_prnk <![CDATA[<=]]> 0.1 and a.att_rt is not null then a.att_rt end) * 100) as top10_avg_att_rt,
+				round(avg(case when exec_rt_prnk <![CDATA[<=]]> 0.1 and a.exec_rt is not null then a.exec_rt end) * 100) as top10_avg_ex_rt,
+				round(avg(case when answ_rt_prnk <![CDATA[<=]]> 0.1 and a.answ_rt is not null then a.answ_rt end) * 100) as top10_avg_crt_rt,
+				round(avg(case when dd_avg_lrn_ss_prnk <![CDATA[<=]]> 0.1 and a.dd_avg_lrn_ss is not null then a.dd_avg_lrn_ss end)) as top10_avg_day_lrn_sec
+			from (
+				select 
+					a.att_rt
+					, a.exec_rt
+					, a.answ_rt
+					, a.dd_avg_lrn_ss
+					, percent_rank() over (partition by a.att_rt is not null ORDER BY a.att_rt desc) as att_rt_prnk
+					, percent_rank() over (partition by a.exec_rt is not null ORDER BY a.exec_rt desc) as exec_rt_prnk
+					, percent_rank() over (partition by a.answ_rt is not null ORDER BY a.answ_rt desc) as answ_rt_prnk
+					, percent_rank() over (partition by a.dd_avg_lrn_ss is not null ORDER BY a.dd_avg_lrn_ss desc) as dd_avg_lrn_ss_prnk
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				where
+					a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			) A
+		) as top10_rst
+	</select>
+	
+	<select id="selectHlUtilizationCrtRtExcellentGrp" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectHlUtilizationCrtRtExcellentGrp : 홈런 활용 정답률 우수군 */
+		select 
+--			stud_nm,
+			stud_key as stud_id,
+			avg_crt_rt
+		from ( 
+			select
+				a.stud_key,
+				coalesce(round(avg(a.answ_rt) * 100), 0) as avg_crt_rt,
+				coalesce(round(avg(a.exec_rt) * 100), 0) as avg_ex_rt,
+		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
+				count(a.answ_rt) as crt_rt_cnt 
+			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+			where 
+				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>		   		
+			group by a.stud_key
+		) as crt_rt_rst
+		where avg_crt_rt <![CDATA[>=]]> 80
+			<if test="diffMonth > 1">
+				and crt_rt_cnt <![CDATA[>=]]> 2
+			</if>
+		order by avg_crt_rt desc, crt_rt_cnt desc, avg_ex_rt desc, avg_att_rt desc, stud_key
+		limit 5
+	</select>
+	
+	<select id="selectHlUtilizationCrtRtNeedEffortGrp" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectHlUtilizationCrtRtNeedEffortGrp : 홈런 활용 정답률 노력필요군 */
+		select 
+--			stud_nm,
+			stud_key as stud_id,
+			avg_crt_rt
+		from ( 
+			select
+				a.stud_key,
+				coalesce(round(avg(a.answ_rt) * 100), 0) as avg_crt_rt,
+				coalesce(round(avg(a.exec_rt) * 100), 0) as avg_ex_rt,
+		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
+				count(a.answ_rt) as crt_rt_cnt 
+			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+			where 
+				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>		   		
+			group by a.stud_key
+		) as crt_rt_rst
+		where avg_crt_rt <![CDATA[<=]]> 60
+			<if test="diffMonth > 1">
+				and crt_rt_cnt <![CDATA[>=]]> 2
+			</if>
+		order by avg_crt_rt, crt_rt_cnt, avg_ex_rt, avg_att_rt, stud_key
+		limit 5
+	</select>
+	
+	<select id="selectHlUtilizationExRtExcellentGrp" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectHlUtilizationExRtExcellentGrp : 홈런 활용 수행률 우수군 */
+		select 
+--			stud_nm,
+			stud_key as stud_id,
+			avg_ex_rt
+		from ( 
+			select
+				a.stud_key,
+				coalesce(round(avg(a.answ_rt) * 100), 0) as avg_crt_rt,
+				coalesce(round(avg(a.exec_rt) * 100), 0) as avg_ex_rt,
+		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
+				count(a.exec_rt) as ex_rt_cnt 
+			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+			where 
+				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>		   		
+			group by a.stud_key
+		) as crt_rt_rst
+		where avg_ex_rt <![CDATA[>=]]> 80
+			<if test="diffMonth > 1">
+				and avg_ex_rt <![CDATA[>=]]> 2
+			</if>
+		order by avg_ex_rt desc, ex_rt_cnt desc, avg_crt_rt desc, avg_att_rt desc, stud_key
+		limit 5
+	</select>
+	
+	<select id="selectHlUtilizationExRtNeedEffortGrp" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectHlUtilizationExRtNeedEffortGrp : 홈런 활용 수행률 노력필요군 */
+		select 
+--			stud_nm,
+			stud_key as stud_id,
+			avg_ex_rt
+		from ( 
+			select
+				a.stud_key,
+				coalesce(round(avg(a.answ_rt) * 100), 0) as avg_crt_rt,
+				coalesce(round(avg(a.exec_rt) * 100), 0) as avg_ex_rt,
+		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
+				count(a.exec_rt) as ex_rt_cnt 
+			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+			where 
+				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>		   		
+			group by a.stud_key
+		) as crt_rt_rst
+		where avg_ex_rt <![CDATA[<=]]> 60
+			<if test="diffMonth > 1">
+				and avg_ex_rt <![CDATA[>=]]> 2
+			</if>
+		order by avg_ex_rt, ex_rt_cnt, avg_crt_rt, avg_att_rt, stud_key
+		limit 5
+	</select>
+	
+	<select id="selectWeekLrnSignalTrend" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectWeekLrnSignalTrend : 학습 분석 신호 변화 주간 */
+		select 
+			c.yyyymmw_ko as category,
+		    a.prais_stud_cnt as signal1,
+		    a.keep_stud_cnt as signal2,
+		    a.encr_stud_cnt as signal3,
+		    a.tot_stud_cnt as total
+		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
+		join sc_dsb.vw_dm_wk_dt as c on a.yyyymmw_key = c.yyyymmw_key
+		where
+			a.yyyymmw_key between concat(#{searchStartYymm},'1')::INTEGER and concat(#{searchEndYymm},'6')::INTEGER
+			and a.regn_lv = 0
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+			and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+			and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="selectMonthLrnSignalTrend" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthLrnSignalTrend : 학습 분석 신호 변화 월간 */
+		select 
+			c.yyyymm_wk_ko as category,
+		    a.prais_stud_cnt as signal1,
+		    a.keep_stud_cnt as signal2,
+		    a.encr_stud_cnt as signal3,
+		    a.tot_stud_cnt as total
+		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
+		join (
+			select distinct yyyymm_key, yyyymm_wk_ko
+			from sc_dsb.vw_dm_wk_dt
+			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		) as c on c.yyyymm_key = a.yyyymm_key
+		where
+			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			and a.regn_lv = 0
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+			and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                   #{item}
+		               </foreach>
+				</when>
+				<otherwise>
+			and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="selectStrengthHabitExcellentStud" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectStrengthHabitExcellentStud : 강점 습관 분석 우수회원 */
+		select
+		    c.mm_ko as category,
+			a.stud_key as stud_id,
+		    round(a.answ_rt * 100) as avg_crt_rt,
+		    round(a.exec_rt * 100) as avg_ex_rt,
+		    round(a.dd_avg_lrn_ss) as avg_day_lrn_sec
+		from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+		join 
+		(
+			select distinct yyyymm_key, mm_ko
+			from sc_dsb.vw_dm_dt
+			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		) as c on c.yyyymm_key = a.yyyymm_key
+		join (
+			select 
+				a.stud_key,
+				case
+					when a.crt_rt_cnt <![CDATA[>]]> coalesce(a.null_cnt, 0) then 1
+					else 0
+				end as crt_rt_check
+			from (
+				select
+					a.stud_key,
+					coalesce(round(avg(a.exec_rt * 100)), 0) as avg_ex_rt,
+					coalesce(round(avg(a.answ_rt * 100)), 0) as avg_crt_rt,
+					coalesce(round(avg(a.att_rt * 100)), 0) as avg_att_rt,
+					count(a.answ_rt) as crt_rt_cnt,
+					count(a.stud_key) as month_cnt,
+					sum(case when a.answ_rt is null then 1 else 0 end) as null_cnt
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					<choose>
+						<when test="orgList != null and orgList.size!=0">
+							and b.org_cd in 
+							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						</when>
+						<otherwise>
+							and b.org_cd = #{orgId}
+						</otherwise>
+					</choose>
+				group by a.stud_key
+			) a
+			where  a.avg_crt_rt <![CDATA[>=]]> 80
+				and a.crt_rt_cnt <![CDATA[>=]]> 2
+			order by a.avg_crt_rt desc, crt_rt_check desc, a.avg_ex_rt desc, a.avg_att_rt desc, a.stud_key
+			limit 1
+		) d on d.stud_key = a.stud_key
+		where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		<choose>
+			<when test="orgList != null and orgList.size!=0">
+				and b.org_cd in 
+				<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+			</when>
+			<otherwise>
+				and b.org_cd = #{orgId}
+			</otherwise>
+		</choose>	
+	</select>
+	
+	<select id="selectStrengthHabitExcellentStudHabit" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectStrengthHabitExcellentStudHabit : 강점 습관 분석 우수회원 학습특성 */
+		select 
+			att_habit,
+			plan_habit,
+			incrt_note_habit,
+			a_lrn_habit,
+			slv_habit,
+			concn_habit
+		from (
+			select 
+				case
+					when avg_att_rt <![CDATA[>=]]> 80 then avg_att_rt
+					else null
+				end as att_habit,
+				case
+					when avg_ex_rt <![CDATA[>=]]> 80 then avg_ex_rt
+					else null
+				end as plan_habit,
+				case
+					when avg_incrt_nt_nc_cnt <![CDATA[>=]]> 0 and avg_incrt_nt_nc_cnt <![CDATA[<=]]> 10 then avg_incrt_nt_nc_cnt
+					else null
+				end as incrt_note_habit,
+				case
+					when avg_a_lrn_ex_cnt <![CDATA[>=]]> 10 and avg_a_lrn_ex_cnt <![CDATA[<=]]> 100 then c.max_add_lrn_subj_nm
+					else null
+				end as a_lrn_habit,
+				case
+					when avg_imprv_slv_habit_cnt <![CDATA[<=]]> 5 then avg_imprv_slv_habit_cnt
+					else null
+				end as slv_habit,
+				avg_day_avg_lrn_sec as concn_habit,
+				case
+					when a.crt_rt_cnt <![CDATA[>]]> coalesce(a.null_cnt,0) then 1
+					else 0
+				end as crt_rt_check
+			from (
+				select
+					a.yyyymm_key,
+					a.stud_key,
+					coalesce(round(avg(a.exec_rt)), 0) as avg_ex_rt,
+					coalesce(round(avg(a.answ_rt)), 0) as avg_crt_rt,
+					coalesce(round(avg(a.att_rt)), 0) as avg_att_rt,
+					coalesce(round(avg(a.wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
+					coalesce(round(avg(a.tot_add_lrn_exec_cnt)), 0) as avg_a_lrn_ex_cnt,
+					coalesce(round(avg(fix_ques_slv_habit_cnt)), 0) as avg_imprv_slv_habit_cnt,
+					coalesce(round(avg(dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec,
+					count(a.answ_rt) as crt_rt_cnt,
+					count(a.stud_key) as month_cnt
+					, sum(case when a.answ_rt is null then 1 else 0 end) as null_cnt
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>
+				group by a.yyyymm_key, a.stud_key
+			) a
+			join (
+				select
+					c1_1.stud_key,
+					c1_1.max_add_lrn_subj_nm,
+					c1_1.max_add_lrn_subj_exec_cnt,
+					(ROW_NUMBER() OVER (PARTITION BY c1_1.stud_key)) as ord
+				from (
+					select 
+						stud_key,
+						max_add_lrn_subj_nm,
+						max_add_lrn_subj_exec_cnt,
+						coalesce(c.pty, null) as subj_rank
+					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+					left outer join lrndmt.mt_dm_subj_pty as c on c.subj_nm = a.max_add_lrn_subj_nm
+					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>
+					order by stud_key, max_add_lrn_subj_exec_cnt desc, subj_rank
+				) c1_1
+			) c on a.stud_key = c.stud_key and c.ord = 1
+			 where a.avg_crt_rt <![CDATA[>=]]> 80
+				 and a.crt_rt_cnt <![CDATA[>=]]> 2
+			order by a.avg_crt_rt desc, crt_rt_check desc, a.avg_ex_rt desc, a.avg_att_rt desc, a.stud_key
+			limit 1
+		) a
+	</select>
+	
+	<select id="selectStrengthHabitHighGrowthStud" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectStrengthHabitHighGrowthStud : 강점 습관 분석 고성장 회원 */
+		select 
+			c.mm_ko as category,
+			a.stud_key as stud_id,
+--		    a.stud_nm,
+		    round(a.answ_rt * 100) as avg_crt_rt
+		from sc_dsb.ds_ag_sc_stud_lrn_sts_mly a 
+		join (
+			select
+				b1.stud_key, b1.org_key
+			from (
+				select
+					a.stud_key,
+					a.org_key,
+					coalesce(round(avg(a.exec_rt * 100)), 0) as avg_ex_rt,
+					coalesce(round(avg(a.answ_rt * 100)), 0) as avg_crt_rt,
+					coalesce(round(avg(a.wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
+					coalesce(round(avg(a.dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					<choose>
+						<when test="orgList != null and orgList.size!=0">
+							and b.org_cd in 
+							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						</when>
+						<otherwise>
+							and b.org_cd = #{orgId}
+						</otherwise>
+					</choose>
+				group by a.stud_key, a.org_key
+			) b1
+			join (
+				select 
+					stud_key,
+					diff_crt_rt,
+					coalesce(first_crt_rt, 0) as first_crt_rt,
+					coalesce(last_crt_rt, 0) as last_crt_rt,
+					coalesce((last_crt_rt - first_crt_rt ), 0) as diff_month_crt_rt					
+				from (
+					select 
+						b2_1.stud_key,
+						b2_1.diff_crt_rt,
+						round(b2_2_1.answ_rt * 100) as first_crt_rt, 	-- 시작 월 값과 비교
+						round(b2_2_2.answ_rt * 100) as last_crt_rt 		-- 종료 월 값과 비교
+					from (
+						select
+							d.stud_key,
+							sum(case when coalesce(d.answ_rt, 0) - coalesce(pre_1m.answ_rt, 0) <![CDATA[>]]> 0 then 1 else 0 end) as diff_crt_rt 		-- 1달전 값과 비교
+						from (
+							select
+								a.yyyymm_key,	
+								c.pre_1m_yyyymm_key as lyymm,
+								a.stud_key,
+								a.answ_rt
+							from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+							join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+							join (
+								select distinct yyyymm_key, pre_1m_yyyymm_key
+								from sc_dsb.vw_dm_dt 
+								where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+							) as c on a.yyyymm_key = c.yyyymm_key
+							where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+						<choose>
+							<when test="orgList != null and orgList.size!=0">
+								and b.org_cd in 
+								<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+				                    #{item}
+				                </foreach>
+							</when>
+							<otherwise>
+								and b.org_cd = #{orgId}
+							</otherwise>
+						</choose>
+							group by a.stud_key, a.yyyymm_key, c.pre_1m_yyyymm_key
+						) d
+						left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as pre_1m on pre_1m.yyyymm_key = d.lyymm and pre_1m.stud_key = d.stud_key
+						group  by d.stud_key
+					) b2_1
+					left outer join (
+						select
+							min(yyyymm_key) as min_yymm,
+							stud_key
+						from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+						join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+						where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					<choose>
+						<when test="orgList != null and orgList.size!=0">
+							and b.org_cd in 
+							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						</when>
+						<otherwise>
+							and b.org_cd = #{orgId}
+						</otherwise>
+					</choose>
+							and answ_rt is not null
+						group by stud_key
+					) b2_2 on b2_1.stud_key = b2_2.stud_key
+					left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as b2_2_1 on b2_2_1.yyyymm_key = b2_2.min_yymm and b2_2_1.stud_key = b2_2.stud_key
+					left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as b2_2_2 on b2_2_2.yyyymm_key = #{searchEndYymm}::INTEGER and b2_2_2.stud_key = b2_1.stud_key
+					where b2_1.diff_crt_rt <![CDATA[>]]> 2
+				) b2_3 
+			) b2 on b1.stud_key = b2.stud_key  
+			order by diff_month_crt_rt desc, last_crt_rt desc, avg_ex_rt desc, avg_incrt_nt_nc_cnt, avg_day_avg_lrn_sec desc
+			limit 1
+		) b on a.stud_key = b.stud_key and a.org_key = b.org_key		
+		join (
+			select distinct yyyymm_key, mm_ko
+			from sc_dsb.vw_dm_dt 
+			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+		) as c on a.yyyymm_key = c.yyyymm_key
+		where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER	
+	</select>
+	
+	<select id="selectStrengthHabitHighGrowthStudHabit" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectStrengthHabitHighGrowthStudHabit : 강점 습관 분석 고성장 회원 학습특성 */
+		select 
+			att_habit,
+			plan_habit,
+			incrt_note_habit,
+			a_lrn_habit,
+			slv_habit,
+			concn_habit
+		from (
+			select 
+				case
+					when avg_att_rt <![CDATA[>=]]> 80 then avg_att_rt
+					else null
+				end as att_habit,
+				case
+					when avg_ex_rt <![CDATA[>=]]> 80 then avg_ex_rt
+					else null
+				end as plan_habit,
+				case
+					when avg_incrt_nt_nc_cnt <![CDATA[>=]]> 0 and avg_incrt_nt_nc_cnt <![CDATA[<=]]> 10 then avg_incrt_nt_nc_cnt
+					else null
+				end as incrt_note_habit,
+				case
+					when avg_a_lrn_ex_cnt <![CDATA[>=]]> 10 and avg_a_lrn_ex_cnt <![CDATA[<=]]> 100 then c.max_add_lrn_subj_nm
+					else null
+				end as a_lrn_habit,
+				case
+					when avg_imprv_slv_habit_cnt <![CDATA[<=]]> 5 then avg_imprv_slv_habit_cnt
+					else null
+				end as slv_habit,
+				avg_day_avg_lrn_sec as concn_habit
+			from (
+				select
+					a.stud_key,
+					coalesce(round(avg(exec_rt)), 0) as avg_ex_rt,
+					coalesce(round(avg(answ_rt)), 0) as avg_crt_rt,
+					coalesce(round(avg(att_rt)), 0) as avg_att_rt,
+					coalesce(round(avg(wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
+					coalesce(round(avg(tot_add_lrn_exec_cnt)), 0) as avg_a_lrn_ex_cnt,
+					coalesce(round(avg(fix_ques_slv_habit_cnt)), 0) as avg_imprv_slv_habit_cnt,
+					coalesce(round(avg(dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec,
+					count(answ_rt) as crt_rt_cnt,
+					count(a.stud_key) as month_cnt
+				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					<choose>
+						<when test="orgList != null and orgList.size!=0">
+							and b.org_cd in 
+							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						</when>
+						<otherwise>
+							and b.org_cd = #{orgId}
+						</otherwise>
+					</choose>
+				group by a.stud_key
+			) a
+			join (				
+				select
+					b1.stud_key, b1.org_key
+				from (
+					select
+						a.stud_key,
+						a.org_key,
+						coalesce(round(avg(a.exec_rt * 100)), 0) as avg_ex_rt,
+						coalesce(round(avg(a.answ_rt * 100)), 0) as avg_crt_rt,
+						coalesce(round(avg(a.wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
+						coalesce(round(avg(a.dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec
+					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+						<choose>
+							<when test="orgList != null and orgList.size!=0">
+								and b.org_cd in 
+								<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+				                    #{item}
+				                </foreach>
+							</when>
+							<otherwise>
+								and b.org_cd = #{orgId}
+							</otherwise>
+						</choose>
+					group by a.stud_key, a.org_key
+				) b1
+				join (
+					select 
+						stud_key,
+						diff_crt_rt,
+						coalesce(first_crt_rt, 0) as first_crt_rt,
+						coalesce(last_crt_rt, 0) as last_crt_rt,
+						coalesce(( last_crt_rt - first_crt_rt ), 0) as diff_month_crt_rt
+						
+					from (
+						select 
+							b2_1.stud_key,
+							b2_1.diff_crt_rt,
+							round(b2_2_1.answ_rt * 100) as first_crt_rt, 	-- 시작 월 값과 비교
+							round(b2_2_2.answ_rt * 100) as last_crt_rt 		-- 종료 월 값과 비교
+						from (
+							select
+								d.stud_key,
+								sum(case when coalesce(d.answ_rt, 0) - coalesce(pre_1m.answ_rt, 0) > 0 then 1 else 0 end) as diff_crt_rt	-- 1달전 값과 비교
+							from (
+								select
+									a.yyyymm_key,	
+									c.pre_1m_yyyymm_key as lyymm,
+									a.stud_key,
+									a.answ_rt -- ,
+								from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+								join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+								join (
+									select distinct yyyymm_key, pre_1m_yyyymm_key
+									from sc_dsb.vw_dm_dt 
+									where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+								) as c on a.yyyymm_key = c.yyyymm_key
+								where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+							<choose>
+								<when test="orgList != null and orgList.size!=0">
+									and b.org_cd in 
+									<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+					                    #{item}
+					                </foreach>
+								</when>
+								<otherwise>
+									and b.org_cd = #{orgId}
+								</otherwise>
+							</choose>
+								group by a.stud_key, a.yyyymm_key, c.pre_1m_yyyymm_key
+							) d
+							left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as pre_1m on pre_1m.yyyymm_key = d.lyymm and pre_1m.stud_key = d.stud_key
+							group  by d.stud_key
+						) b2_1
+						left outer join (
+							select
+								min(yyyymm_key) as min_yymm,
+								stud_key
+							from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+							join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+							where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+						<choose>
+							<when test="orgList != null and orgList.size!=0">
+								and b.org_cd in 
+								<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+				                    #{item}
+				                </foreach>
+							</when>
+							<otherwise>
+								and b.org_cd = #{orgId}
+							</otherwise>
+						</choose>
+								and answ_rt is not null
+							group by stud_key
+						) b2_2 on b2_1.stud_key = b2_2.stud_key
+						left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as b2_2_1 on b2_2_1.yyyymm_key = b2_2.min_yymm and b2_2_1.stud_key = b2_2.stud_key
+						left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as b2_2_2 on b2_2_2.yyyymm_key = #{searchEndYymm}::INTEGER and b2_2_2.stud_key = b2_1.stud_key
+						where b2_1.diff_crt_rt > 0
+					) b2_3 
+				) b2 on b1.stud_key = b2.stud_key  
+				order by diff_month_crt_rt desc, last_crt_rt desc, avg_ex_rt desc, avg_incrt_nt_nc_cnt, avg_day_avg_lrn_sec desc
+				limit 1
+			) b on a.stud_key = b.stud_key
+			join (
+				select
+					c1_1.stud_key,
+					c1_1.max_add_lrn_subj_nm,
+					c1_1.max_add_lrn_subj_exec_cnt,
+					(ROW_NUMBER() OVER (PARTITION BY c1_1.stud_key)) as ord
+				from (
+					select 
+					 b.org_cd ,
+						stud_key,
+						max_add_lrn_subj_nm,
+						max_add_lrn_subj_exec_cnt,
+						coalesce(c.pty, null) as subj_rank
+					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+					left outer join lrndmt.mt_dm_subj_pty as c on c.subj_nm = a.max_add_lrn_subj_nm
+					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			<choose>
+				<when test="orgList != null and orgList.size!=0">
+					and b.org_cd in 
+					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+	                    #{item}
+	                </foreach>
+				</when>
+				<otherwise>
+					and b.org_cd = #{orgId}
+				</otherwise>
+			</choose>
+					order by stud_key, max_add_lrn_subj_exec_cnt desc, subj_rank
+				) c1_1
+			) c on a.stud_key = c.stud_key and c.ord = 1
+		) a
+	</select>
+	
+ 	<select id="selectWeekLrnPlanStudLrnStt" parameterType="hashMap" resultType="resultMap">
+	 	/* Group_MS.selectWeekLrnPlanStudLrnStt : 학습계획 학생 학습 현황 주간 */
+ 		select 
+ 			stud_key as stud_id,
+ 		    grd as stud_grade,
+ 		    scr_typ_key as lrn_signal,
+ 		    round(att_rt * 100) as att_rt,
+ 		    round(exec_rt * 100) as ex_rt,
+ 		    floor(dd_avg_lrn_ss) as day_avg_lrn_sec,
+ 		    round(answ_rt * 100) as crt_rt
+ 		from sc_dsb.ds_ag_sc_stud_lrn_sts_wly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+ 		where
+ 			yyyymmw_key = concat(#{searchYymm}, #{searchWk})::INTEGER
+ 			and stud_key = #{studId}::INTEGER
+ 			and b.org_cd = #{orgId}
+ 	</select>
+	
+	<select id="selectMonthLrnPlanStudLrnStt" parameterType="hashMap" resultType="resultMap">
+	/* Group_MS.selectMonthLrnPlanStudLrnStt : 학습계획 학생 학습 현황 월간 */
+		select 
+ 			stud_key as stud_id,
+ 		    grd as stud_grade,
+ 		    scr_typ_key as lrn_signal,
+ 		    round(att_rt * 100) as att_rt,
+ 		    round(exec_rt * 100) as ex_rt,
+ 		    floor(dd_avg_lrn_ss) as day_avg_lrn_sec,
+ 		    round(answ_rt * 100) as crt_rt
+ 		from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
+ 		where
+ 			yyyymm_key = #{searchYymm}::INTEGER
+ 			and stud_key = #{studId}::INTEGER
+ 			and b.org_cd = #{orgId}
+	</select>
+	
+</mapper>

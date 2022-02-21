@@ -152,6 +152,22 @@ public class ValidationUtil {
 	}
 	
 	/**
+	 * Date형 체크(yyyy)
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public void isYear(String key, String value) {
+		try {
+			SimpleDateFormat dateFormat = new  SimpleDateFormat("yyyy");
+			dateFormat.setLenient(false);
+			dateFormat.parse(value);
+		}catch(ParseException e) {
+			showMessage(ValidationCode.DATE, key, value);
+		}
+	}
+	
+	/**
 	 * 길이 체크
 	 * @param key
 	 * @param value
