@@ -73,13 +73,21 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			data.put("area_code1", data_hl.get("area_code1"));
 			data.put("area_code2", data_hl.get("area_code2"));
 			
-			data_es = (Map<String, Object>) es_mapper.get(paramMap, "Group_ES.getSchoolType");
+			//demo 계정 관련 로직 
+			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			
+			data_es = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getSchoolType");
 			data_ms = (Map<String, Object>) ms_mapper.get(paramMap, "Group_MS.getSchoolType");
 			int cnt_es = (data_es != null && data_es.get("esTotStudCnt") != null && !data_es.get("esTotStudCnt").equals("")) ? (int) data_es.get("esTotStudCnt") : 0;
 			int cnt_ms = (data_ms != null && data_ms.get("msTotStudCnt") != null && !data_ms.get("msTotStudCnt").equals("")) ? (int) data_ms.get("msTotStudCnt") : 0;
-			data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
+			if(mapperName.equals("Group_ES_Demo")) {
+				data.put("sch_type", "es");
+				data.put("ms_type_cnt", 0);
+			} else {
+				data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
+				data.put("ms_type_cnt", cnt_ms);
+			}
 			data.put("es_type_cnt", cnt_es);
-			data.put("ms_type_cnt", cnt_ms);
 			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());

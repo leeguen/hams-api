@@ -16,7 +16,7 @@
 			ORDER BY YYMM DESC, WK DESC
 			LIMIT 1
 		) AS CD ON WL.YYMM = CD.YYMM AND WL.WK = CD.WK
-		WHERE WL.ORG_ID = #{orgId} 
+		WHERE WL.ORG_ID = 'seocho4'
 	</select>
 	
 	<select id="selectGetYymmWk" parameterType="hashMap" resultType="resultMap">
