@@ -371,7 +371,7 @@
 				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and c.scr_typ = #{lrnSignal}
+ 						and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
@@ -495,7 +495,7 @@
 				where a.yyyymm_key = #{yymm}::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and c.scr_typ = #{lrnSignal}
+ 						and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
@@ -566,7 +566,7 @@
 	<choose>
 		<when test="lrnSignal != null and lrnSignal != ''">			
 			<choose>
-				<when test="lrnSignal = 'A'">
+				<when test="lrnSignal = 'a'">
 				a.prais_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
@@ -577,7 +577,7 @@
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'B'">
+				<when test="lrnSignal = 'b'">
 				a.keep_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
@@ -588,7 +588,7 @@
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'C'">
+				<when test="lrnSignal = 'c'">
 				a.encr_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
@@ -666,7 +666,7 @@
 		<choose>
 			<when test="lrnSignal != null and lrnSignal != ''">			
 				<choose>
-					<when test="lrnSignal = 'A'">
+					<when test="lrnSignal = 'a'">
 					a.prais_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
@@ -677,7 +677,7 @@
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'B'">
+					<when test="lrnSignal = 'b'">
 					a.keep_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
@@ -688,7 +688,7 @@
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'C'">
+					<when test="lrnSignal = 'c'">
 					a.encr_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
