@@ -25,6 +25,7 @@
 		from sc_dsb.vw_dm_wk_dt
 		where coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) <![CDATA[>=]]> (#{svcOpenDe}::DATE + INTERVAL '7 DAY')
 			and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) <![CDATA[<]]> (now() + interval '5.5 HOUR')
+		order by yyyy, mm, wk
 	</select>
 	
 	<select id="selectGetYymm" parameterType="hashMap" resultType="resultMap">
@@ -52,6 +53,7 @@
 		) b on a.yyyymm_key <![CDATA[>=]]> b.start_yymm 
 			and a.yyyymm_key <![CDATA[<]]> b.end_yymm
 		group by a.yyyy_key, a.mm
+		order by yyyy, mm
 	</select>
 	
 	<select id="selectGradeClassorgId" parameterType="hashMap" resultType="resultMap">
