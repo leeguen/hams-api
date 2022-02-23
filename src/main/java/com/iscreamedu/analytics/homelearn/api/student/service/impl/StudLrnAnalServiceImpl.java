@@ -8,6 +8,7 @@ import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnAnalService
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnType;
 
 import org.json.simple.JSONArray;
@@ -43,7 +44,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     private String dataKey = "data";
 
     @Autowired
-    CommonMapperLrnType commonMapperLrnType;
+    CommonMapperLrnDm studLrnAnalMapper;
 
     @Override
     public Map getReportList(Map<String, Object> paramMap) throws Exception {
@@ -62,40 +63,24 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     			int mm = Integer.valueOf(paramMap.get("mm").toString());
     			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
     			
-    			paramMap.put("yymm", yyyy+convertMm);
+    			int yymm = Integer.parseInt(yyyy+convertMm);
+    			int yymmwk = Integer.parseInt(yyyy+convertMm+1);
+    			
+    			paramMap.put("yymm", yymm);
+    			paramMap.put("yymmwk", yymmwk);
     			
     			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
     			
     			if(vu1.isValid()) {
     				Map<String, Object> monthMap = new LinkedHashMap<>();
+    				Map<String, Object> monthDataMap = new LinkedHashMap<>();
     				ArrayList<Map<String, Object>> weekList = new ArrayList<>();
     				
-    				Map<String, Object> weekMap1 = new LinkedHashMap<>();
-    				Map<String, Object> weekMap2 = new LinkedHashMap<>();
-    				Map<String, Object> weekMap3 = new LinkedHashMap<>();
-    				Map<String, Object> weekMap4 = new LinkedHashMap<>();
+    				monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
+    				weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
     				
-    				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-    				
-    				monthMap.put("reportNm", "1월 월간 리포트");
-    				monthMap.put("publishYn ", "Y");
-    				
-    				weekMap1.put("reportNm", "1월 1주 주간 리포트");
-    				weekMap1.put("publishYn", "Y");
-    				
-    				weekMap2.put("reportNm", "1월 2주 주간 리포트");
-    				weekMap2.put("publishYn", "Y");
-    				
-    				weekMap3.put("reportNm", "1월 3주 주간 리포트");
-    				weekMap3.put("publishYn", "N");
-    				
-    				weekMap4.put("reportNm", "1월 4주 주간 리포트");
-    				weekMap4.put("publishYn", "N");
-    				
-    				weekList.add(weekMap1);
-    				weekList.add(weekMap2);
-    				weekList.add(weekMap3);
-    				weekList.add(weekMap4);
+    				monthMap.put("reportNm", mm + "월 월간 리포트");
+    				monthMap.put("publishYn ", monthDataMap.get("reportYn"));
     				
     				data.put("month", monthMap);
     				data.put("week", weekList);
@@ -143,42 +128,47 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> examMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
+	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
+	        				examQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamQuesSummary");
 	        				
-	        				learnMap.put("planCnt", 100);
-	        				learnMap.put("lrnCnt", 95);
-	        				learnMap.put("exRt", 95);
-	        				learnMap.put("bLrnCnt", 30);
-	        				learnMap.put("tLrnCnt", 40);
-	        				learnMap.put("dLrnCnt", 25);
-	        				learnMap.put("bLrnRt", 30);
-	        				learnMap.put("tLrnRt", 40);
-	        				learnMap.put("dLrnRt", 25);
-	        				learnMap.put("concnScore", 3);
-	        				learnMap.put("concnMsg", "매우좋음");
-	        				learnMap.put("lrnSec", 3666);
-	        				learnMap.put("aLrnCnt", 20);
-	        				
-	        				examMap.put("examScore", 76);
+	        				/*과목별 평가 점수 초기 값*/
+	        				examMap.put("examScore", null);
 	        				examMap.put("c01examScore", null);
-	        				examMap.put("c02examScore", 77);
-	        				examMap.put("c03examScore", 95);
-	        				examMap.put("c04examScore", 0);
-	        				examMap.put("c05examScore", 60);
-	        				examMap.put("c06examScore", 80);
-	        				examMap.put("incrtNoteNcCnt", 3);
-	        				examMap.put("skipQuesCnt", 20);
-	        				examMap.put("cursoryQuesCnt", 15);
-	        				examMap.put("guessQuesCnt", 10);
-	        				examMap.put("mistakeQuesCnt", 20);
+	        				examMap.put("c02examScore", null);
+	        				examMap.put("c03examScore", null);
+	        				examMap.put("c04examScore", null);
+	        				examMap.put("c05examScore", null);
+	        				examMap.put("c06examScore", null);
+	        				
+	        				for(Map<String, Object> examSubjItme : examSubjList) {
+	        					String subjCd = examSubjItme.get("subjCd").toString();
+	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					
+	        					if(subjCd.equals("c00")) {
+	        						examMap.put("examScore", score);
+	        					} else {
+	        						examMap.put(subjCd+"examScore", score);
+	        					}
+	        				}
+	        				
+	        				examMap.put("incrtNoteNcCnt", null);
+	        				examMap.put("skipQuesCnt", examQuesMap.get("quesSkipCnt"));
+	        				examMap.put("cursoryQuesCnt", examQuesMap.get("quesHrryCnt"));
+	        				examMap.put("guessQuesCnt", examQuesMap.get("quesGussCnt"));
+	        				examMap.put("mistakeQuesCnt", examQuesMap.get("quesMstkeCnt"));
 	        				
 	        				data.put("learn", learnMap);
 	        				data.put("exam", examMap);
@@ -207,7 +197,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
@@ -215,35 +207,38 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> examMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
+	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
+	        				examQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamQuesSummary");
 	        				
-	        				learnMap.put("planCnt", 100);
-	        				learnMap.put("lrnCnt", 95);
-	        				learnMap.put("exRt", 95);
-	        				learnMap.put("bLrnCnt", 30);
-	        				learnMap.put("tLrnCnt", 40);
-	        				learnMap.put("dLrnCnt", 25);
-	        				learnMap.put("bLrnRt", 30);
-	        				learnMap.put("tLrnRt", 40);
-	        				learnMap.put("dLrnRt", 25);
-	        				learnMap.put("concnScore", 3);
-	        				learnMap.put("concnMsg", "매우좋음");
-	        				learnMap.put("lrnSec", 3666);
-	        				learnMap.put("aLrnCnt", 20);
-	        				
-	        				examMap.put("examScore", 76);
+	        				/*과목별 평가 점수 초기 값*/
+	        				examMap.put("examScore", null);
 	        				examMap.put("c01examScore", null);
-	        				examMap.put("c02examScore", 77);
-	        				examMap.put("c03examScore", 95);
-	        				examMap.put("c04examScore", 0);
-	        				examMap.put("c05examScore", 60);
-	        				examMap.put("c06examScore", 80);
-	        				examMap.put("incrtNoteNcCnt", 3);
-	        				examMap.put("skipQuesCnt", 20);
-	        				examMap.put("cursoryQuesCnt", 15);
-	        				examMap.put("guessQuesCnt", 10);
-	        				examMap.put("mistakeQuesCnt", 20);
+	        				examMap.put("c02examScore", null);
+	        				examMap.put("c03examScore", null);
+	        				examMap.put("c04examScore", null);
+	        				examMap.put("c05examScore", null);
+	        				examMap.put("c06examScore", null);
+	        				
+	        				for(Map<String, Object> examSubjItme : examSubjList) {
+	        					String subjCd = examSubjItme.get("subjCd").toString();
+	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					
+	        					if(subjCd.equals("c00")) {
+	        						examMap.put("examScore", score);
+	        					} else {
+	        						examMap.put(subjCd+"examScore", score);
+	        					}
+	        				}
+	        				
+	        				examMap.put("incrtNoteNcCnt", null);
+	        				examMap.put("skipQuesCnt", examQuesMap.get("quesSkipCnt"));
+	        				examMap.put("cursoryQuesCnt", examQuesMap.get("quesHrryCnt"));
+	        				examMap.put("guessQuesCnt", examQuesMap.get("quesGussCnt"));
+	        				examMap.put("mistakeQuesCnt", examQuesMap.get("quesMstkeCnt"));
 	        				
 	        				data.put("learn", learnMap);
 	        				data.put("exam", examMap);
@@ -300,43 +295,33 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+        				int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> learnSttMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> learnSttDataMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> lrnSttList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnSttDataList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnSttDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnStt");
+	        				lrnSttDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getLrnSttList");
 	        				
 	        				learnSttMap.put("msg", "학습현황 메시지");
-	        				learnSttMap.put("planDtCnt", 20);
-	        				learnSttMap.put("fnshDtCnt", 18);
-	        				learnSttMap.put("planCnt", 90);
-	        				learnSttMap.put("fnshCnt", 65);
+	        				learnSttMap.put("planDtCnt", learnSttDataMap.get("planDtCnt"));
+	        				learnSttMap.put("fnshDtCnt", learnSttDataMap.get("fnshDtCnt"));
+	        				learnSttMap.put("planCnt", learnSttDataMap.get("planCnt"));
+	        				learnSttMap.put("fnshCnt", learnSttDataMap.get("fnshCnt"));
 	        				
-	        				lrnSttList.add(createTestDataMap("2022-01-03", "월요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-04", "화요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-05", "수요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-06", "목요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-07", "금요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-08", "토요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-09", "일요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-10", "월요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-11", "화요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-12", "수요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-13", "목요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-14", "금요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-15", "토요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-16", "일요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-17", "월요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-18", "화요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-19", "수요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-20", "목요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-21", "금요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-22", "토요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-23", "일요일", 10, 5));
+	        				for(Map<String, Object> lrnSttItem : lrnSttDataList) {
+	        					String dt = lrnSttItem.get("dt").toString();
+	        					String day = lrnSttItem.get("dayKo").toString();
+	        					
+	        					lrnSttList.add(createTestDataMap(dt, day, lrnSttItem.get("planLrnCnt"), lrnSttItem.get("lrnExecCnt")));
+	        				}
 	        					        				
 	        				data.put("lrnStt", learnSttMap);
 	        				data.put("lrnSttList", lrnSttList);
@@ -365,30 +350,34 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+        				int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> learnSttMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> learnSttDataMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> lrnSttList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> lrnSttDataList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnSttDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnStt");
+	        				lrnSttDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getLrnSttList");
 	        				
 	        				learnSttMap.put("msg", "학습현황 메시지");
-	        				learnSttMap.put("planDtCnt", 20);
-	        				learnSttMap.put("fnshDtCnt", 18);
-	        				learnSttMap.put("planCnt", 90);
-	        				learnSttMap.put("fnshCnt", 65);
+	        				learnSttMap.put("planDtCnt", learnSttDataMap.get("planDtCnt"));
+	        				learnSttMap.put("fnshDtCnt", learnSttDataMap.get("fnshDtCnt"));
+	        				learnSttMap.put("planCnt", learnSttDataMap.get("planCnt"));
+	        				learnSttMap.put("fnshCnt", learnSttDataMap.get("fnshCnt"));
 	        				
-	        				lrnSttList.add(createTestDataMap("2022-01-10", "월요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-11", "화요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-12", "수요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-13", "목요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-14", "금요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-15", "토요일", 10, 5));
-	        				lrnSttList.add(createTestDataMap("2022-01-16", "일요일", 10, 5));
+	        				for(Map<String, Object> lrnSttItem : lrnSttDataList) {
+	        					String dt = lrnSttItem.get("dt").toString();
+	        					String day = lrnSttItem.get("dayKo").toString();
+	        					
+	        					lrnSttList.add(createTestDataMap(dt, day, lrnSttItem.get("planLrnCnt"), lrnSttItem.get("lrnExecCnt")));
+	        				}
 	        					        				
 	        				data.put("lrnStt", learnSttMap);
 	        				data.put("lrnSttList", lrnSttList);
@@ -445,30 +434,103 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				ArrayList<Map<String, Object>> c00LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06LrnExRtList = new ArrayList<>();
+	        				
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
+	        				
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
+	        				
+	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymm = Integer.parseInt(yymmDataMap.get("endYymm").toString());
+	        				
+	        				paramMap.put("startYymm", startYymm);
+	        				paramMap.put("endYymm", endYymm);
+	        				
+	        				lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+	        				
+	        				for(Map<String, Object> lrnExRtItem : lrnExRtList) {
+	        					
+	        					String subjCd = lrnExRtItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmKey").toString().substring(4, 6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C01":
+									c01LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C02":
+									c02LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C03":
+									c03LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C04":
+									c04LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C05":
+									c05LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								case "C06":
+									c06LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
+									break;
+								default:
+									break;
+								}
+	        				}
+	        				
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        					lrnExRtMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									lrnExRtMap.put("lrnExRtList", c00LrnExRtList);
+									break;
+								case "C01":
+									lrnExRtMap.put("lrnExRtList", c01LrnExRtList);
+									break;
+								case "C02":
+									lrnExRtMap.put("lrnExRtList", c02LrnExRtList);
+									break;
+								case "C03":
+									lrnExRtMap.put("lrnExRtList", c03LrnExRtList);
+									break;
+								case "C04":
+									lrnExRtMap.put("lrnExRtList", c04LrnExRtList);
+									break;
+								case "C05":
+									lrnExRtMap.put("lrnExRtList", c05LrnExRtList);
+									break;
+								default:
+									lrnExRtMap.put("lrnExRtList", c06LrnExRtList);
+									break;
+	        					}
+	        					
+								lrnExRtSubjList.add(lrnExRtMap);
+	        				}
 	        				
 	        				data.put("msg", "수행률 메시지");
-	        				
-	        				lrnExRtMap.put("subjCd", "C00");
-	        				
-	        				lrnExRtList.add(createTestDataMap2(10, 0, 12));
-	        				lrnExRtList.add(createTestDataMap2(11, 0, 36));
-	        				lrnExRtList.add(createTestDataMap2(12, 0, 55));
-	        				lrnExRtList.add(createTestDataMap2(01, 0, 84));
-	        				lrnExRtList.add(createTestDataMap2(02, 0, 90));
-	        					        				
-	        				lrnExRtMap.put("lrnExRtList", lrnExRtList);
-	        				
-	        				lrnExRtSubjList.add(lrnExRtMap);
 	        				
 	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				
@@ -496,31 +558,105 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-	        				Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				ArrayList<Map<String, Object>> c00LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05LrnExRtList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06LrnExRtList = new ArrayList<>();
 	        				
-        					data.put("msg", "수행률 메시지");
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
 	        				
-	        				lrnExRtMap.put("subjCd", "C00");
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				lrnExRtList.add(createTestDataMap2(01, 2, 12));
-	        				lrnExRtList.add(createTestDataMap2(01, 3, 36));
-	        				lrnExRtList.add(createTestDataMap2(01, 4, 55));
-	        				lrnExRtList.add(createTestDataMap2(01, 5, 84));
-	        				lrnExRtList.add(createTestDataMap2(02, 1, 90));
-	        					        				
-	        				lrnExRtMap.put("lrnExRtList", lrnExRtList);
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
 	        				
-	        				lrnExRtSubjList.add(lrnExRtMap);
+	        				paramMap.put("startYymmwk", startYymmwk);
+	        				paramMap.put("endYymmwk", endYymmwk);
+	        				
+	        				lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+	        				
+	        				for(Map<String, Object> lrnExRtItem : lrnExRtList) {
+	        					
+	        					String subjCd = lrnExRtItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(4, 6));
+	        					int wkData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C01":
+									c01LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C02":
+									c02LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C03":
+									c03LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C04":
+									c04LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C05":
+									c05LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								case "C06":
+									c06LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
+									break;
+								default:
+									break;
+								}
+	        				}
+	        				
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
+	        					lrnExRtMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									lrnExRtMap.put("lrnExRtList", c00LrnExRtList);
+									break;
+								case "C01":
+									lrnExRtMap.put("lrnExRtList", c01LrnExRtList);
+									break;
+								case "C02":
+									lrnExRtMap.put("lrnExRtList", c02LrnExRtList);
+									break;
+								case "C03":
+									lrnExRtMap.put("lrnExRtList", c03LrnExRtList);
+									break;
+								case "C04":
+									lrnExRtMap.put("lrnExRtList", c04LrnExRtList);
+									break;
+								case "C05":
+									lrnExRtMap.put("lrnExRtList", c05LrnExRtList);
+									break;
+								default:
+									lrnExRtMap.put("lrnExRtList", c06LrnExRtList);
+									break;
+	        					}
+	        					
+								lrnExRtSubjList.add(lrnExRtMap);
+	        				}
+	        				
+	        				data.put("msg", "수행률 메시지");
 	        				
 	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				
@@ -576,21 +712,46 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
+	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				lrnhabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnHabit");
+	        				
+	        				String maxLrnHabitCd = null;
+	        				
+	        				if(lrnhabitMap != null) {
+	        					maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
+	        				}
 	        				
 	        				data.put("msg", "수행 습관 메시지");
-	        				data.put("bLrnCnt", 6);
-	        				data.put("tLrnCnt", 5);
-	        				data.put("dLrnCnt", 10);
-	        				data.put("maxLrnHabitNm", "나중에 했어요");
-	        				data.put("maxLrnHabitRt", 33);
+	        				
+	        				if(learnMap != null) {
+	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
+	        					data.put("tLrnCnt", learnMap.get("tLrnCnt"));
+	        					data.put("dLrnCnt", learnMap.get("dLrnCnt"));
+	        				} else  {
+	        					data.put("bLrnCnt", null);
+	        					data.put("tLrnCnt", null);
+	        					data.put("dLrnCnt", null);
+	        				}
+	        				
+	        				if(maxLrnHabitCd != null) {
+	        					String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        					
+	        					data.put("maxLrnHabitNm", maxLrnHabitNm);
+	        					data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
+	        				} else {
+	        					data.put("maxLrnHabitNm", null);
+	        					data.put("maxLrnHabitRt", null);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -616,22 +777,47 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-        					Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				lrnhabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnHabit");
+	        				
+	        				String maxLrnHabitCd = null;
+	        				
+	        				if(lrnhabitMap != null) {
+	        					maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
+	        				}
 	        				
 	        				data.put("msg", "수행 습관 메시지");
-	        				data.put("bLrnCnt", 6);
-	        				data.put("tLrnCnt", 5);
-	        				data.put("dLrnCnt", 10);
-	        				data.put("maxLrnHabitNm", "나중에 했어요");
-	        				data.put("maxLrnHabitRt", 33);
+	        				
+	        				if(learnMap != null) {
+	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
+	        					data.put("tLrnCnt", learnMap.get("tLrnCnt"));
+	        					data.put("dLrnCnt", learnMap.get("dLrnCnt"));
+	        				} else  {
+	        					data.put("bLrnCnt", null);
+	        					data.put("tLrnCnt", null);
+	        					data.put("dLrnCnt", null);
+	        				}
+	        				
+	        				if(maxLrnHabitCd != null) {
+	        					String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        					
+	        					data.put("maxLrnHabitNm", maxLrnHabitNm);
+	        					data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
+	        				} else {
+	        					data.put("maxLrnHabitNm", null);
+	        					data.put("maxLrnHabitRt", null);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -685,7 +871,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
@@ -736,7 +924,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+        				int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
@@ -816,46 +1006,106 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> lrnTmSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnTmList = new ArrayList<>();
 	        				
-	        				Map<String, Object> lrnTmMap1 = new LinkedHashMap<String, Object>();
-	        				ArrayList<Map<String, Object>> lrnTmList1 = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c00LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06LrnTmList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
+	        				
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
+	        				
+	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymm = Integer.parseInt(yymmDataMap.get("endYymm").toString());
+	        				
+	        				paramMap.put("startYymm", startYymm);
+	        				paramMap.put("endYymm", endYymm);
+	        				
+	        				lrnTmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnTm");
+	        				
+	        				for(Map<String, Object> lrnExRtItem : lrnTmList) {
+	        					
+	        					String subjCd = lrnExRtItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmKey").toString().substring(4, 6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C01":
+									c01LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C02":
+									c02LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C03":
+									c03LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C04":
+									c04LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C05":
+									c05LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C06":
+									c06LrnTmList.add(createLrnSecDataMap(mmData, 0, lrnExRtItem.get("lrnSec")));
+									break;
+								default:
+									break;
+								}
+	        				}
+	        				
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        					lrnTmMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									lrnTmMap.put("lrnExRtList", c00LrnTmList);
+									break;
+								case "C01":
+									lrnTmMap.put("lrnExRtList", c01LrnTmList);
+									break;
+								case "C02":
+									lrnTmMap.put("lrnExRtList", c02LrnTmList);
+									break;
+								case "C03":
+									lrnTmMap.put("lrnExRtList", c03LrnTmList);
+									break;
+								case "C04":
+									lrnTmMap.put("lrnExRtList", c04LrnTmList);
+									break;
+								case "C05":
+									lrnTmMap.put("lrnExRtList", c05LrnTmList);
+									break;
+								default:
+									lrnTmMap.put("lrnExRtList", c06LrnTmList);
+									break;
+	        					}
+	        					
+	        					lrnTmSubjList.add(lrnTmMap);
+	        				}
 	        				
 	        				data.put("msg", "홈런 타임 메시지");
 	        				
-	        				lrnTmMap.put("subjCd", "C00");
-	        				
-	        				lrnTmList.add(createTestDataMap2(10, 0, 3332));
-	        				lrnTmList.add(createTestDataMap2(11, 0, 2848));
-	        				lrnTmList.add(createTestDataMap2(12, 0, 1629));
-	        				lrnTmList.add(createTestDataMap2(01, 0, 6566));
-	        				lrnTmList.add(createTestDataMap2(02, 0, 5483));
-	        					        				
-	        				lrnTmMap.put("lrnTmList", lrnTmList);
-	        				
-        					lrnTmMap1.put("subjCd", "C01");
-	        				
-	        				lrnTmList1.add(createTestDataMap2(10, 0, 3332));
-	        				lrnTmList1.add(createTestDataMap2(11, 0, 2848));
-	        				lrnTmList1.add(createTestDataMap2(12, 0, 1629));
-	        				lrnTmList1.add(createTestDataMap2(01, 0, 6566));
-	        				lrnTmList1.add(createTestDataMap2(02, 0, 5483));
-	        					        				
-	        				lrnTmMap1.put("lrnTmList", lrnTmList1);
-	        				
-	        				lrnTmSubjList.add(lrnTmMap);
-	        				lrnTmSubjList.add(lrnTmMap1);
-	        				
 	        				data.put("lrnTmSubjList", lrnTmSubjList);
+	        				
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -881,45 +1131,105 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-	        				Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> lrnTmSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnTmList = new ArrayList<>();
 	        				
-	        				Map<String, Object> lrnTmMap1 = new LinkedHashMap<String, Object>();
-	        				ArrayList<Map<String, Object>> lrnTmList1 = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c00LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05LrnTmList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06LrnTmList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
 	        				
-        					data.put("msg", "홈런 타임 메시지");
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-        					lrnTmMap.put("subjCd", "C00");
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
 	        				
-        					lrnTmList.add(createTestDataMap2(01, 2, 3215));
-        					lrnTmList.add(createTestDataMap2(01, 3, 489));
-        					lrnTmList.add(createTestDataMap2(01, 4, 663));
-        					lrnTmList.add(createTestDataMap2(01, 5, 152));
-        					lrnTmList.add(createTestDataMap2(02, 1, 533));
-	        					        				
-	        				lrnTmMap.put("lrnTmList", lrnTmList);
+	        				paramMap.put("startYymmwk", startYymmwk);
+	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
-        					lrnTmMap1.put("subjCd", "C01");
+	        				lrnTmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnTm");
 	        				
-        					lrnTmList1.add(createTestDataMap2(01, 2, 3215));
-        					lrnTmList1.add(createTestDataMap2(01, 3, 489));
-        					lrnTmList1.add(createTestDataMap2(01, 4, 663));
-        					lrnTmList1.add(createTestDataMap2(01, 5, 152));
-        					lrnTmList1.add(createTestDataMap2(02, 1, 533));
-	        					        				
-	        				lrnTmMap1.put("lrnTmList", lrnTmList1);
+	        				for(Map<String, Object> lrnExRtItem : lrnTmList) {
+	        					
+	        					String subjCd = lrnExRtItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(4, 6));
+	        					int wkData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C01":
+									c01LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C02":
+									c02LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C03":
+									c03LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C04":
+									c04LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C05":
+									c05LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								case "C06":
+									c06LrnTmList.add(createLrnSecDataMap(mmData, wkData, lrnExRtItem.get("lrnSec")));
+									break;
+								default:
+									break;
+								}
+	        				}
 	        				
-	        				lrnTmSubjList.add(lrnTmMap);
-	        				lrnTmSubjList.add(lrnTmMap1);
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> lrnTmMap = new LinkedHashMap<String, Object>();
+	        					lrnTmMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									lrnTmMap.put("lrnExRtList", c00LrnTmList);
+									break;
+								case "C01":
+									lrnTmMap.put("lrnExRtList", c01LrnTmList);
+									break;
+								case "C02":
+									lrnTmMap.put("lrnExRtList", c02LrnTmList);
+									break;
+								case "C03":
+									lrnTmMap.put("lrnExRtList", c03LrnTmList);
+									break;
+								case "C04":
+									lrnTmMap.put("lrnExRtList", c04LrnTmList);
+									break;
+								case "C05":
+									lrnTmMap.put("lrnExRtList", c05LrnTmList);
+									break;
+								default:
+									lrnTmMap.put("lrnExRtList", c06LrnTmList);
+									break;
+	        					}
+	        					
+	        					lrnTmSubjList.add(lrnTmMap);
+	        				}
+	        				
+	        				data.put("msg", "홈런 타임 메시지");
 	        				
 	        				data.put("lrnTmSubjList", lrnTmSubjList);
 	        				
@@ -968,22 +1278,29 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     			int mm = Integer.valueOf(paramMap.get("mm").toString());
     			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
     			
-    			paramMap.put("yymm", yyyy+convertMm);
+    			int yymm = Integer.parseInt(yyyy+convertMm);
+    			
+    			paramMap.put("yymm", yymm);
     			
     			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
     			
     			if(vu1.isValid()) {
-    				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+    				Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
     				ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
     				
-    				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+    				aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
+    				
+    				paramMap.put("size", 3);
+    				
+    				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnStt");
     				
     				data.put("msg", "수행 습관 메시지");
-    				data.put("maxALrnSubjNm", 6);
     				
-    				aLrnList.add(createTestDataMap3("C01", 20));
-    				aLrnList.add(createTestDataMap3("C06", 15));
-    				aLrnList.add(createTestDataMap3("C05", 10));
+    				if(aLrnDataMap != null) {
+    					data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
+    				} else {
+    					data.put("maxALrnSubjNm", null);
+    				}
     				
     				data.put("aLrnList", aLrnList);
     				
@@ -1030,44 +1347,103 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
 	        				
-	        				Map<String, Object> examScoreMap1 = new LinkedHashMap<String, Object>();
-	        				ArrayList<Map<String, Object>> examScoreList1 = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c00ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06ExamScoreList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
+	        				
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
+	        				
+	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymm = Integer.parseInt(yymmDataMap.get("endYymm").toString());
+	        				
+	        				paramMap.put("startYymm", startYymm);
+	        				paramMap.put("endYymm", endYymm);
+	        				
+	        				examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
+	        				
+	        				for(Map<String, Object> examScoreItem : examScoreList) {
+	        					
+	        					String subjCd = examScoreItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(examScoreItem.get("yyyymmKey").toString().substring(4, 6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C01":
+									c01ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C02":
+									c02ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C03":
+									c03ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C04":
+									c04ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C05":
+									c05ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								case "C06":
+									c06ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
+									break;
+								default:
+									break;
+								}
+	        				}
+	        				
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        					examScoreMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									examScoreMap.put("lrnExRtList", c00ExamScoreList);
+									break;
+								case "C01":
+									examScoreMap.put("lrnExRtList", c01ExamScoreList);
+									break;
+								case "C02":
+									examScoreMap.put("lrnExRtList", c02ExamScoreList);
+									break;
+								case "C03":
+									examScoreMap.put("lrnExRtList", c03ExamScoreList);
+									break;
+								case "C04":
+									examScoreMap.put("lrnExRtList", c04ExamScoreList);
+									break;
+								case "C05":
+									examScoreMap.put("lrnExRtList", c05ExamScoreList);
+									break;
+								default:
+									examScoreMap.put("lrnExRtList", c06ExamScoreList);
+									break;
+	        					}
+	        					
+	        					examScoreSubjList.add(examScoreMap);
+	        				}
 	        				
 	        				data.put("msg", "평가점수 메시지");
-	        				
-	        				examScoreMap.put("subjCd", "C00");
-	        				
-	        				examScoreList.add(createTestDataMap2(10, 0, 80));
-	        				examScoreList.add(createTestDataMap2(11, 0, 28));
-	        				examScoreList.add(createTestDataMap2(12, 0, 69));
-	        				examScoreList.add(createTestDataMap2(01, 0, 89));
-	        				examScoreList.add(createTestDataMap2(02, 0, 95));
-	        					        				
-	        				examScoreMap.put("examScoreList", examScoreList);
-	        				
-	        				examScoreMap1.put("subjCd", "C01");
-	        				
-	        				examScoreList1.add(createTestDataMap2(10, 0, 33));
-	        				examScoreList1.add(createTestDataMap2(11, 0, 48));
-	        				examScoreList1.add(createTestDataMap2(12, 0, 99));
-	        				examScoreList1.add(createTestDataMap2(01, 0, 66));
-	        				examScoreList1.add(createTestDataMap2(02, 0, 83));
-	        					        				
-	        				examScoreMap1.put("examScoreList", examScoreList1);
-	        				
-	        				examScoreSubjList.add(examScoreMap);
-	        				examScoreSubjList.add(examScoreMap1);
 	        				
 	        				data.put("examScoreSubjList", examScoreSubjList);
 	        				
@@ -1095,45 +1471,104 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-	        				Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
 	        				
-	        				Map<String, Object> examScoreMap1 = new LinkedHashMap<String, Object>();
-	        				ArrayList<Map<String, Object>> examScoreList1 = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c00ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c01ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c02ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c03ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c04ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c05ExamScoreList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> c06ExamScoreList = new ArrayList<>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
+	        				List<String> convertSubjList = Arrays.asList(subjList);
 	        				
-        					data.put("msg", "평가점수 메시지");
+	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-        					examScoreMap.put("subjCd", "C00");
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
 	        				
-        					examScoreList.add(createTestDataMap2(01, 2, 33));
-        					examScoreList.add(createTestDataMap2(01, 3, 59));
-        					examScoreList.add(createTestDataMap2(01, 4, 63));
-        					examScoreList.add(createTestDataMap2(01, 5, 89));
-        					examScoreList.add(createTestDataMap2(02, 1, 93));
-	        					        				
-        					examScoreMap.put("examScoreList", examScoreList);
+	        				paramMap.put("startYymmwk", startYymmwk);
+	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
-	        				examScoreMap1.put("subjCd", "C01");
+	        				examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
 	        				
-        					examScoreList1.add(createTestDataMap2(01, 2, 35));
-        					examScoreList1.add(createTestDataMap2(01, 3, 89));
-        					examScoreList1.add(createTestDataMap2(01, 4, 63));
-        					examScoreList1.add(createTestDataMap2(01, 5, 91));
-        					examScoreList1.add(createTestDataMap2(02, 1, 53));
-	        					        				
-        					examScoreMap1.put("examScoreList", examScoreList1);
+	        				for(Map<String, Object> examScoreItem : examScoreList) {
+	        					
+	        					String subjCd = examScoreItem.get("subjCd").toString();
+	        					int mmData = Integer.parseInt(examScoreItem.get("yyyymmwKey").toString().substring(4, 6));
+	        					int wkData = Integer.parseInt(examScoreItem.get("yyyymmwKey").toString().substring(6));
+	        					
+	        					switch (subjCd) {
+								case "C00":
+									c00ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C01":
+									c01ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C02":
+									c02ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C03":
+									c03ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C04":
+									c04ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C05":
+									c05ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								case "C06":
+									c06ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
+									break;
+								default:
+									break;
+								}
+	        				}
 	        				
-        					examScoreSubjList.add(examScoreMap);
-	        				examScoreSubjList.add(examScoreMap1);
+	        				for(String subjCdItem : convertSubjList) {
+	        					Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        					examScoreMap.put("subjCd", subjCdItem);
+	        					
+	        					switch (subjCdItem) {
+								case "C00":
+									examScoreMap.put("lrnExRtList", c00ExamScoreList);
+									break;
+								case "C01":
+									examScoreMap.put("lrnExRtList", c01ExamScoreList);
+									break;
+								case "C02":
+									examScoreMap.put("lrnExRtList", c02ExamScoreList);
+									break;
+								case "C03":
+									examScoreMap.put("lrnExRtList", c03ExamScoreList);
+									break;
+								case "C04":
+									examScoreMap.put("lrnExRtList", c04ExamScoreList);
+									break;
+								case "C05":
+									examScoreMap.put("lrnExRtList", c05ExamScoreList);
+									break;
+								default:
+									examScoreMap.put("lrnExRtList", c06ExamScoreList);
+									break;
+	        					}
+	        					
+	        					examScoreSubjList.add(examScoreMap);
+	        				}
+	        				data.put("msg", "평가점수 메시지");
 	        				
 	        				data.put("examScoreSubjList", examScoreSubjList);
 	        				
@@ -1189,20 +1624,32 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				
 	        				data.put("msg", "오답노트 현황 메시지");
-	        				data.put("incrtNoteCnt", 20);
-	        				data.put("incrtNotefnshCnt", 18);
-	        				data.put("incrtNoteNcCnt", 2);
-	        				data.put("incrtNoteNcRt", 10);
+	        				
+	        				if(incrtNoteMap != null) {
+	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
+		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
+		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
+		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
+		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
+	        				} else {
+	        					data.put("incrtNoteCnt", null);
+		        				data.put("incrtNotefnshCnt", null);
+		        				data.put("incrtNoteNcCnt", null);
+		        				data.put("incrtNoteFnshRt", null);
+		        				data.put("incrtNoteNcRt", null);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -1228,7 +1675,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
@@ -1236,13 +1685,23 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
         					Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+    						incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				
 	        				data.put("msg", "오답노트 현황 메시지");
-	        				data.put("incrtNoteCnt", 20);
-	        				data.put("incrtNotefnshCnt", 18);
-	        				data.put("incrtNoteNcCnt", 2);
-	        				data.put("incrtNoteNcRt", 10);
+	        				
+	        				if(incrtNoteMap != null) {
+	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
+		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
+		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
+		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
+		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
+	        				} else {
+	        					data.put("incrtNoteCnt", null);
+		        				data.put("incrtNotefnshCnt", null);
+		        				data.put("incrtNoteNcCnt", null);
+		        				data.put("incrtNoteFnshRt", null);
+		        				data.put("incrtNoteNcRt", null);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -1296,34 +1755,42 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
-	        				Map<String, Object> slvHabitMap1 = new LinkedHashMap<String, Object>();
+        					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymm = Integer.parseInt(yymmDataMap.get("endYymm").toString());
+	        				
+	        				paramMap.put("startYymm", startYymm);
+	        				paramMap.put("endYymm", endYymm);
+	        				
+	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitStt");
+	        				
+	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
+	        					Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        					
+	        					int mmData = Integer.parseInt(slvHavitItem.get("yyyymmKey").toString().substring(4, 6));
+	        					
+	        					slvHabitMap.put("mm", mmData);
+		        				slvHabitMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
+		        				slvHabitMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
+		        				slvHabitMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
+		        				slvHabitMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	        					
+		        				slvHabitList.add(slvHabitMap);
+	        				}
 	        				
 	        				data.put("msg", "문제풀이 습관 메시지");
-	        				
-	        				slvHabitMap.put("mm", 12);
-	        				slvHabitMap.put("skipQuesCnt", 2);
-	        				slvHabitMap.put("cursoryQuesCnt", 6);
-	        				slvHabitMap.put("guessQuesCnt", 5);
-	        				slvHabitMap.put("mistakeQuesCnt", 7);
-	        				
-	        				slvHabitMap1.put("mm", 1);
-	        				slvHabitMap1.put("skipQuesCnt", 1);
-	        				slvHabitMap1.put("cursoryQuesCnt", 8);
-	        				slvHabitMap1.put("guessQuesCnt", 3);
-	        				slvHabitMap1.put("mistakeQuesCnt", 5);
-	        				
-	        				slvHabitList.add(slvHabitMap);
-	        				slvHabitList.add(slvHabitMap1);
 	        				
 	        				data.put("slvHabitList", slvHabitList);
 	        				
@@ -1350,38 +1817,46 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
 	        			String wk = paramMap.get("wk").toString();
 	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
 	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
+	        			paramMap.put("yymmwk", yymmwk);
 	        			
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
-	        				Map<String, Object> slvHabitMap1 = new LinkedHashMap<String, Object>();
+        					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				
+	        				paramMap.put("startYymmwk", startYymmwk);
+	        				paramMap.put("endYymmwk", endYymmwk);
+	        				
+	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitStt");
+	        				
+	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
+	        					Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        					
+	        					int mmData = Integer.parseInt(slvHavitItem.get("yyyymmwKey").toString().substring(4, 6));
+	        					int wkData = Integer.parseInt(slvHavitItem.get("yyyymmwKey").toString().substring(6));
+	        					
+	        					slvHabitMap.put("mm", mmData);
+	        					slvHabitMap.put("wk", wkData);
+		        				slvHabitMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
+		        				slvHabitMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
+		        				slvHabitMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
+		        				slvHabitMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	        					
+		        				slvHabitList.add(slvHabitMap);
+	        				}
 	        				
 	        				data.put("msg", "문제풀이 습관 메시지");
-	        				
-	        				slvHabitMap.put("mm", 1);
-	        				slvHabitMap.put("wk", 2);
-	        				slvHabitMap.put("skipQuesCnt", 9);
-	        				slvHabitMap.put("cursoryQuesCnt", 7);
-	        				slvHabitMap.put("guessQuesCnt", 10);
-	        				slvHabitMap.put("mistakeQuesCnt", 6);
-	        				
-	        				slvHabitMap1.put("mm", 1);
-	        				slvHabitMap1.put("wk", 2);
-	        				slvHabitMap1.put("skipQuesCnt", 1);
-	        				slvHabitMap1.put("cursoryQuesCnt", 8);
-	        				slvHabitMap1.put("guessQuesCnt", 3);
-	        				slvHabitMap1.put("mistakeQuesCnt", 5);
-	        				
-	        				slvHabitList.add(slvHabitMap);
-	        				slvHabitList.add(slvHabitMap1);
 	        				
 	        				data.put("slvHabitList", slvHabitList);
 	        				
@@ -1648,9 +2123,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	CipherUtil cp = CipherUtil.getInstance();
     		String decodedStr = cp.AES_Decode(params.get("p").toString());
     		
+    		int studId = Integer.parseInt(decodedStr);
+    		
     		if(decodedStr != null) {
     			//DB params
-    			params.put("studId",decodedStr);
+    			params.put("studId",studId);
     		}
         } catch (Exception e) {
             LOGGER.debug("p Parameter Incorrect");
@@ -1661,18 +2138,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         }
 	}
 	
-	private Map createTestDataMap(String dt, String day, int planCnt, int fnshCnt) {
+	private Map createTestDataMap(String dt, String day, Object planCnt, Object fnshCnt) {
         LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
         
         dummyMap.put("dt",dt);
         dummyMap.put("day",day);
         dummyMap.put("planCnt",planCnt);
-        dummyMap.put("fnshCnth",fnshCnt);
+        dummyMap.put("fnshCnt",fnshCnt);
+        
         return dummyMap;
 
 	}
 	
-	private Map createTestDataMap2(int mm, int wk, int lrnExRt) {
+	private Map createTestDataMap2(int mm, int wk, Object lrnExRt) {
         LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
         
         dummyMap.put("mm",mm);
@@ -1682,6 +2160,52 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         }
         
         dummyMap.put("lrnExRt",lrnExRt);
+        
+        return dummyMap;
+
+	}
+	
+	private Map createLrnExRtDataMap(int mm, int wk, Object lrnExRt) {
+        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+        
+        dummyMap.put("mm",mm);
+        
+        if(wk > 0) {
+        	dummyMap.put("wk",wk);
+        }
+        
+        dummyMap.put("lrnExRt",lrnExRt);
+        
+        return dummyMap;
+
+	}
+	
+	private Map createLrnSecDataMap(int mm, int wk, Object lrnSec) {
+        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+        
+        dummyMap.put("mm",mm);
+        
+        if(wk > 0) {
+        	dummyMap.put("wk",wk);
+        }
+        
+        dummyMap.put("lrnSec",lrnSec);
+        
+        return dummyMap;
+
+	}
+	
+	private Map createExRtDataMap(int mm, int wk, Object exRt) {
+        LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+        
+        dummyMap.put("mm",mm);
+        
+        if(wk > 0) {
+        	dummyMap.put("wk",wk);
+        }
+        
+        dummyMap.put("exRt",exRt);
+        
         return dummyMap;
 
 	}

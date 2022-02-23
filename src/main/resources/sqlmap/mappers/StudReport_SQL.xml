@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StudReport">
+	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+				select
+					min(yyyymm_key) as start_yymm,
+					max(yyyymm_key) as end_yymm
+				from (
+					select 
+						yyyymm_key
+					from lrndmt.mt_dm_wk_dt a
+					where yyyymm_key<![CDATA[<=]]>#{yymm}
+						and w = '1'
+					order by yyyymm_key desc
+					limit 5
+				) a1;
+			</when>
+			<otherwise>
+				select
+					min(yyyymmw_key) as start_yymmwk,
+					max(yyyymmw_key) as end_yymmwk
+				from (
+					select 
+						yyyymmw_key
+					from lrndmt.mt_dm_wk_dt a
+					where yyyymmw_key<![CDATA[<=]]>#{yymmwk}
+					order by yyyymmw_key desc
+					limit 5
+				) a1;
+			</otherwise>
+		</choose>
+    </select>
+	
+	<select id="getMonthReportYn" parameterType="hashMap" resultType="resultMap">
+    	select
+			a.yyyymm_key,
+			case 
+				when b.stud_key is null then 'N'
+				else 'Y'
+			end as report_yn
+		from lrndmt.mt_dm_wk_dt a
+		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and stud_key = #{studId} and ssvc_akey = 3 and subj_clss_key = 3
+		where a.yyyymmw_key = #{yymmwk};
+    </select>
+    
+    <select id="getWeeklyReportYn" parameterType="hashMap" resultType="resultMap">
+    	select
+			-- a.yyyymmw_key,
+			replace(split_part(yyyymmw_ko, ' ', 3),'차', ' 주간 리포트') as report_nm,
+			case 
+				when b.stud_key is null then 'N'
+				else 'Y'
+			end as report_yn
+		from lrndmt.mt_dm_wk_dt a
+		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and stud_key = #{studId} and ssvc_akey = 3 and subj_clss_key = 3
+		where a.yyyymm_key = #{yymm};
+    </select>
+
+    <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">
+    	select
+			plan_lrn_cnt as plan_cnt,
+			lrn_exec_cnt as lrn_cnt,
+			round(exec_rt * 100) as ex_rt,
+			pre_lrn_exec_cnt as b_lrn_cnt,
+			intm_lrn_exec_cnt as t_lrn_cnt,
+			dely_lrn_exec_cnt as d_lrn_cnt,
+			round(pre_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as b_lrn_rt,
+			round(intm_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as t_lrn_rt,
+			round(dely_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as d_lrn_rt,
+			null as concn_score,
+			null as concn_msg,
+			b.tot_lrn_cnt as lrn_sec,
+			b.add_lrn_cnt as a_lrn_cnt
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
+			left outer join lrn_dsb.ds_ag_lrn_use_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey  and a.subj_clss_key = b.subj_clss_key 
+			where a.yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
+			left outer join lrn_dsb.ds_ag_lrn_use_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey  and a.subj_clss_key = b.subj_clss_key 
+			where a.yyyymmw_key = #{yymmwk}
+			</otherwise>
+		</choose>
+			and a.stud_key = #{studId}
+			and a.ssvc_akey = 3
+			and a.subj_clss_key = 3;
+    </select>
+    
+    <select id="getExamSubjSummary" parameterType="hashMap" resultType="resultMap">
+    	select
+			case
+				when b.subj_clss_key = 3 then 'c00'
+				else replace(b.subj_clss_cd,'A','c')
+			end as subj_cd,
+			round(answ_rt * 100) as ex_rt
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrn_dsb.ds_ag_exam_assm_sts_mly a
+			join lrndmt.mt_dm_subj_clss b on a.subj_clss_key = b.subj_clss_key
+			where a.yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			from lrn_dsb.ds_ag_exam_assm_sts_wly a
+			join lrndmt.mt_dm_subj_clss b on a.subj_clss_key = b.subj_clss_key
+			where a.yyyymmw_key = #{yymmwk}
+			</otherwise>
+		</choose>
+			and a.stud_key = #{studId}
+			and a.ssvc_akey = 3
+			and a.exam_typ_key = 0;
+    </select>
+    
+    <select id="getExamQuesSummary" parameterType="hashMap" resultType="resultMap">
+    	select
+			round(a.answ_rt * 100) as exam_score,
+			b.ques_skip_cnt,
+			b.ques_hrry_cnt,
+			b.ques_guss_cnt,
+			b.ques_mstke_cnt
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrn_dsb.ds_ag_exam_assm_sts_mly a
+			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key 
+				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.subj_clss_key = b.subj_clss_key
+			where a.yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			from lrn_dsb.ds_ag_exam_assm_sts_wly a
+			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key 
+				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.subj_clss_key = b.subj_clss_key
+			where a.yyyymmw_key = #{yymmwk}
+			</otherwise>
+		</choose>
+			and a.stud_key = #{studId}
+			and a.ssvc_akey = 3
+			and a.exam_typ_key = 0
+			and a.subj_clss_key = 3;
+    </select>
+    
+    <select id="getLrnStt" parameterType="hashMap" resultType="resultMap">
+    	select
+			count(case when plan_lrn_cnt > 0 then plan_lrn_cnt else null end) as plan_dt_cnt,
+			count(case when plan_lrn_fnsh_yn then lrn_exec_cnt else null end) as fnsh_dt_cnt,
+			sum(plan_lrn_cnt) as plan_cnt,
+			sum(lrn_exec_cnt) as fnsh_cnt
+		from lrn_dsb.ds_ag_lrn_plan_exec_sts_dly a
+		<choose>
+			<when test='currConCheck == "m"'>
+			join lrndmt.mt_dm_dt b on a.dt_key = b.dt_key and b.yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			join lrndmt.mt_dm_dt b on a.dt_key = b.dt_key and b.yyyymmw_key = #{yymmwk} 
+			</otherwise>
+		</choose>
+			and a.stud_key = #{studId}
+			and a.ssvc_akey = 3
+			and a.subj_clss_key = 3;
+    </select>
+    
+    <select id="getLrnSttList" parameterType="hashMap" resultType="resultMap">
+    	select
+			a.dt,
+			a.day_ko,
+			b.plan_lrn_cnt,
+			b.lrn_exec_cnt
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrndmt.mt_dm_dt a
+			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_dly b on a.dt_key = b.dt_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.subj_clss_key = 3
+			where a.yyyymm_key = #{yymm};
+			</when>
+			<otherwise>
+			from lrndmt.mt_dm_dt a
+			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_dly b on a.dt_key = b.dt_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.subj_clss_key = 3
+			where a.yyyymmw_key = #{yymmwk};
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getSubjLrnExRt" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+			select
+				a.yyyymm_key,
+				a.subj_cd,
+				b.ex_rt
+			from (
+				select
+					a.yyyymm_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) a
+			left outer join (
+				select 
+					a.yyyymm_key, 
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					round(b.exec_rt * 100) as ex_rt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymm_key desc;
+			</when>
+			<otherwise>
+			select
+				a.yyyymmw_key,
+				a.subj_cd,
+				b.ex_rt
+			from (
+				select
+					a.yyyymmw_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) a
+			left outer join (
+				select 
+					a.yyyymmw_key, 
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					round(b.exec_rt * 100) as ex_rt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymmw_key desc;
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getLrnHabit" parameterType="hashMap" resultType="resultMap">
+    	select 
+			case
+				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, dely_lrn_exec_cnt) then 'tLrn'
+				when pre_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, dely_lrn_exec_cnt) then 'bLrn'
+				when dely_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, dely_lrn_exec_cnt) then 'dLrn'
+				else null
+			end as max_nm
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly 
+			where yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly 
+			where yyyymmw_key = #{yymmwk} 
+			</otherwise>
+		</choose>
+			and stud_key = #{studId} 
+			and ssvc_akey = 3
+			and subj_clss_key = 3
+    </select>
+    
+    <select id="getSubjLrnTm" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+			select
+				a.yyyymm_key,
+				a.subj_cd,
+				b.tot_lrn_ss as lrn_sec
+			from (
+				select
+					a.yyyymm_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) a
+			left outer join (
+				select 
+					a.yyyymm_key, 
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					tot_lrn_ss
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_lrn_use_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymm_key desc;
+			</when>
+			<otherwise>
+			select
+				a.yyyymmw_key,
+				a.subj_cd,
+				b.tot_lrn_ss as lrn_sec
+			from (
+				select
+					a.yyyymmw_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) a
+			left outer join (
+				select
+					a.yyyymmw_key, 
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					tot_lrn_ss
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_lrn_use_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymmw_key desc;
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getALrnStt" parameterType="hashMap" resultType="resultMap">
+    	select
+    		<choose>
+				<when test="size != null">
+				case
+					when b.subj_clss_key = 3 then 'C00'
+					else replace(b.subj_clss_cd,'A','C')
+				end as subj_cd,
+				a.fnsh_add_lrn_cnt
+				</when>
+				<otherwise>
+				b.subj_clss_nm as subj_nm
+				</otherwise>
+			</choose>
+		from lrn_dsb.ds_ag_lrn_use_sts_mly a
+		join lrndmt.mt_dm_subj_clss b on a.subj_clss_key = b.subj_clss_key and b.subj_clss_typ = 'SUBJ_CD' and position('#' in b.subj_clss_cd) = 0
+		where a.yyyymm_key = #{yymm}
+			and a.stud_key = #{studId} 
+			and a.ssvc_akey = 3
+		order by a.fnsh_add_lrn_cnt desc
+		<choose>
+			<when test="size != null">
+			limit 3;
+			</when>
+			<otherwise>
+			limit 1;
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getSubjExamScore" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+			select
+				a.yyyymm_key,
+				a.subj_cd,
+				b.ex_rt
+			from (
+				select
+					a.yyyymm_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) a
+			left outer join (
+				select 
+					a.yyyymm_key, 
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					round(b.answ_rt * 100) as ex_rt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_exam_assm_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymm_key desc;
+			</when>
+			<otherwise>
+			select
+				a.yyyymmw_key,
+				a.subj_cd,
+				b.ex_rt
+			from (
+				select
+					a.yyyymmw_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(b.subj_clss_cd,'A','C')
+					end as subj_cd
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrndmt.mt_dm_subj_clss b on (b.subj_clss_typ = 'ALL' or b.subj_clss_typ = 'SUBJ_CD') and ( position('#' in b.subj_clss_cd) = 0 and position('N' in b.subj_clss_cd) = 0)
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) a
+			left outer join (
+				select
+					a.yyyymmw_key,
+					case
+						when b.subj_clss_key = 3 then 'C00'
+						else replace(c.subj_clss_cd,'A','C')
+					end as subj_cd,
+					round(b.answ_rt * 100) as ex_rt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_exam_assm_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0
+				join lrndmt.mt_dm_subj_clss c on b.subj_clss_key = c.subj_clss_key and (c.subj_clss_typ = 'ALL' or c.subj_clss_typ = 'SUBJ_CD') and position('#' in c.subj_clss_cd) = 0
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
+			order by a.subj_cd, a.yyyymmw_key desc;
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getIncrtNoteStt" parameterType="hashMap" resultType="resultMap">
+    	select 
+			wnote_tot_cnt,
+			wnote_fnsh_cnt,
+			wnote_unfnsh_cnt,
+			round(wnote_fnsh_cnt * 100 / wnote_tot_cnt)::integer as incrt_note_fnsh_rt,
+			round(wnote_unfnsh_cnt * 100 / wnote_tot_cnt)::integer as incrt_note_nc_rt
+		<choose>
+			<when test='currConCheck == "m"'>
+			from lrn_dsb.ds_ag_exam_wnote_sts_mly 
+			where yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+			from lrn_dsb.ds_ag_exam_wnote_sts_wly
+			where yyyymmw_key = #{yymmwk} 
+			</otherwise>
+		</choose>
+			and stud_key = #{studId}
+			and ssvc_akey = 3
+			and exam_typ_key = 3
+			and subj_clss_key = 3;
+    </select>
+    
+    <select id="getSlvHabitStt" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+			select
+				a.yyyymm_key,
+				b.ques_skip_cnt,
+				b.ques_hrry_cnt,
+				b.ques_guss_cnt,
+				b.ques_mstke_cnt
+			from (
+				select
+					a.yyyymm_key
+				from lrndmt.mt_dm_wk_dt a
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) a
+			left outer join (
+				select 
+					a.yyyymm_key,
+					b.ques_skip_cnt,
+					b.ques_hrry_cnt,
+					b.ques_guss_cnt,
+					b.ques_mstke_cnt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0 and b.subj_clss_key = 3
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) b on a.yyyymm_key = b.yyyymm_key
+			order by a.yyyymm_key desc;
+			</when>
+			<otherwise>
+			select
+				a.yyyymmw_key,
+				b.ques_skip_cnt,
+				b.ques_hrry_cnt,
+				b.ques_guss_cnt,
+				b.ques_mstke_cnt
+			from (
+				select
+					a.yyyymmw_key
+				from lrndmt.mt_dm_wk_dt a
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) a
+			left outer join (
+				select 
+					a.yyyymmw_key,
+					b.ques_skip_cnt,
+					b.ques_hrry_cnt,
+					b.ques_guss_cnt,
+					b.ques_mstke_cnt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0 and b.subj_clss_key = 3
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) b on a.yyyymmw_key = b.yyyymmw_key
+			order by a.yyyymmw_key desc;
+			</otherwise>
+		</choose>
+    </select>
+    
+</mapper>
