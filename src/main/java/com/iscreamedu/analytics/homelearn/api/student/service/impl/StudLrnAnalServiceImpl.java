@@ -45,7 +45,84 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 
     @Autowired
     CommonMapperLrnDm studLrnAnalMapper;
-
+    
+    @Override
+    public Map getYymmwk(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+    	
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		
+        		Map<String, Object> yymmwkMap = new LinkedHashMap<>();
+				Map<String, Object> yymmwkDataMap = new LinkedHashMap<>();
+				
+				yymmwkDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getYymmwk");
+				
+				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 6));
+				int mmData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(4, 6));
+				
+				data.put("yyyy", yyData);
+				data.put("mm", mmData);
+				data.put("wk", yymmwkDataMap.get("wk"));
+				
+				setResult(dataKey,data);
+        			
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
+    public Map getYymm(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+    	
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		
+        		Map<String, Object> yymmwkMap = new LinkedHashMap<>();
+				Map<String, Object> yymmwkDataMap = new LinkedHashMap<>();
+				
+				yymmwkDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getYymm");
+				
+				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 6));
+				int mmData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(4, 6));
+				
+				data.put("yyyy", yyData);
+				data.put("mm", mmData);
+				
+				setResult(dataKey,data);
+        			
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
     @Override
     public Map getReportList(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new LinkedHashMap<>();

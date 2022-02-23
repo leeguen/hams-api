@@ -35,7 +35,31 @@ public class StudentController {
         headers.setAccessControlAllowOrigin("*");
         headers.setAccessControlAllowCredentials(true);
     }
-
+    
+    /**
+     * 현재 주차 정보 (STUD-CM-001)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getYymmwk")
+    public ResponseEntity getYymmwk(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getYymmwk(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 현재 월 정보 (STUD-CM-002)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getYymm")
+    public ResponseEntity getYymm(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getYymm(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
     /**
      * 학습유형 요약 (STUD-LT-001)
      * @param params

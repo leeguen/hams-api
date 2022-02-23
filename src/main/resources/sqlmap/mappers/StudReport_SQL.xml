@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="StudReport">
+	<select id="getYymm" parameterType="hashMap" resultType="resultMap">
+		select
+			yyyymm_key
+		from sc_dsb.vw_dm_wk_dt
+		where ((now() + interval '5.5 HOUR') - interval '1 MONTH')::DATE
+				between stt_wk_dt and end_wk_dt;
+    </select>
+	
+	<select id="getYymmwk" parameterType="hashMap" resultType="resultMap">
+		select
+			yyyymm_key,
+			w::integer as wk
+		from sc_dsb.vw_dm_wk_dt
+		where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
+				between stt_wk_dt and end_wk_dt;
+    </select>
+	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
 		<choose>
 			<when test='currConCheck == "m"'>

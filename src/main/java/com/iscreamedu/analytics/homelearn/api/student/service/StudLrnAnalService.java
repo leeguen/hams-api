@@ -3,8 +3,12 @@ package com.iscreamedu.analytics.homelearn.api.student.service;
 import java.util.Map;
 
 public interface StudLrnAnalService {
-
-    public Map getReportList (Map<String,Object> paramMap) throws Exception;
+	
+	public Map getYymmwk(Map<String,Object> paramMap) throws Exception;
+	
+	public Map getYymm(Map<String,Object> paramMap) throws Exception;
+	
+    public Map getReportList(Map<String,Object> paramMap) throws Exception;
 
     public Map getHomeSummary(Map<String, Object> paramMap) throws Exception;
 
