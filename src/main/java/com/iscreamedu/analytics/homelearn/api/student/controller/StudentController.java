@@ -20,8 +20,8 @@ import java.util.Map;
 public class StudentController {
 	
 	
-	/*@Autowired
-	StudLrnTypeService studLrnTypeService;*/
+	@Autowired
+	StudLrnTypeService studLrnTypeService;
 	
 	@Autowired
 	StudLrnAnalService studLrnAnalService;
@@ -66,11 +66,11 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    /*@GetMapping("/getLrnTypeSummary")
+    @GetMapping("/getLrnTypeSummary")
     public ResponseEntity getLrnTypeSummary(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeSummary(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
-    }*/
+    }
 
     /**
      * 학습유형 안내 (STUD-LT-002)
@@ -78,11 +78,11 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    /*@GetMapping("/getLrnTypeInfo")
+    @GetMapping("/getLrnTypeInfo")
     public ResponseEntity getLrnTypeInfo(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeInfo(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
-    }*/
+    }
 
     /**
      * 학습유형 상세 (STUD-LT-003)
@@ -90,11 +90,11 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    /*@GetMapping("/getLrnTypeDetail")
+    @GetMapping("/getLrnTypeDetail")
     public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetail(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
-    }*/
+    }
 
     /**
      * 학습유형 내역 (STUD-LT-004)
@@ -102,11 +102,11 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    /*@GetMapping("/getLrnTypeHistory")
+    @GetMapping("/getLrnTypeHistory")
     public ResponseEntity getLrnTypeHistory(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistory(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
-    }*/
+    }
     
     /**
      * 리포트 리스트 (STUD-LA-001)
