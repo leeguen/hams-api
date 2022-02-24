@@ -9,7 +9,6 @@ import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
-import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnType;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -242,13 +241,15 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				examMap.put("incrtNoteNcCnt", null);
-	        				examMap.put("skipQuesCnt", examQuesMap.get("quesSkipCnt"));
-	        				examMap.put("cursoryQuesCnt", examQuesMap.get("quesHrryCnt"));
-	        				examMap.put("guessQuesCnt", examQuesMap.get("quesGussCnt"));
-	        				examMap.put("mistakeQuesCnt", examQuesMap.get("quesMstkeCnt"));
+	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
-	        				data.put("learn", learnMap);
-	        				data.put("exam", examMap);
+	        				if(examQuesMap != null && learnMap != null) {
+	        					data.put("learn", learnMap);
+	        					data.put("exam", examMap);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -312,13 +313,15 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				examMap.put("incrtNoteNcCnt", null);
-	        				examMap.put("skipQuesCnt", examQuesMap.get("quesSkipCnt"));
-	        				examMap.put("cursoryQuesCnt", examQuesMap.get("quesHrryCnt"));
-	        				examMap.put("guessQuesCnt", examQuesMap.get("quesGussCnt"));
-	        				examMap.put("mistakeQuesCnt", examQuesMap.get("quesMstkeCnt"));
+	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
-	        				data.put("learn", learnMap);
-	        				data.put("exam", examMap);
+	        				if(examQuesMap != null && learnMap != null) {
+	        					data.put("learn", learnMap);
+	        					data.put("exam", examMap);
+	        				}
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -804,30 +807,23 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				String maxLrnHabitCd = null;
 	        				
-	        				if(lrnhabitMap != null) {
-	        					maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
-	        				}
-	        				
-	        				data.put("msg", "수행 습관 메시지");
-	        				
 	        				if(learnMap != null) {
-	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
-	        					data.put("tLrnCnt", learnMap.get("tLrnCnt"));
-	        					data.put("dLrnCnt", learnMap.get("dLrnCnt"));
-	        				} else  {
-	        					data.put("bLrnCnt", null);
-	        					data.put("tLrnCnt", null);
-	        					data.put("dLrnCnt", null);
-	        				}
-	        				
-	        				if(maxLrnHabitCd != null) {
-	        					String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        					maxLrnHabitCd = lrnhabitMap.get("maxNm").toString();
 	        					
-	        					data.put("maxLrnHabitNm", maxLrnHabitNm);
-	        					data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
-	        				} else {
-	        					data.put("maxLrnHabitNm", null);
-	        					data.put("maxLrnHabitRt", null);
+	        					data.put("msg", "수행 습관 메시지");
+	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
+        						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
+        						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
+	        					
+	        					if(maxLrnHabitCd != null) {
+	        						String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        						
+	        						data.put("maxLrnHabitNm", maxLrnHabitNm);
+	        						data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
+	        					} else {
+	        						data.put("maxLrnHabitNm", null);
+	        						data.put("maxLrnHabitRt", null);
+	        					}
 	        				}
 	        				
 	        				setResult(dataKey,data);
@@ -870,30 +866,23 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				String maxLrnHabitCd = null;
 	        				
-	        				if(lrnhabitMap != null) {
-	        					maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
-	        				}
-	        				
-	        				data.put("msg", "수행 습관 메시지");
-	        				
 	        				if(learnMap != null) {
-	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
-	        					data.put("tLrnCnt", learnMap.get("tLrnCnt"));
-	        					data.put("dLrnCnt", learnMap.get("dLrnCnt"));
-	        				} else  {
-	        					data.put("bLrnCnt", null);
-	        					data.put("tLrnCnt", null);
-	        					data.put("dLrnCnt", null);
-	        				}
-	        				
-	        				if(maxLrnHabitCd != null) {
-	        					String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        					maxLrnHabitCd = lrnhabitMap.get("maxNm").toString();
 	        					
-	        					data.put("maxLrnHabitNm", maxLrnHabitNm);
-	        					data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
-	        				} else {
-	        					data.put("maxLrnHabitNm", null);
-	        					data.put("maxLrnHabitRt", null);
+	        					data.put("msg", "수행 습관 메시지");
+	        					data.put("bLrnCnt", learnMap.get("bLrnCnt"));
+        						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
+        						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
+	        					
+	        					if(maxLrnHabitCd != null) {
+	        						String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
+	        						
+	        						data.put("maxLrnHabitNm", maxLrnHabitNm);
+	        						data.put("maxLrnHabitRt", learnMap.get(maxLrnHabitCd+"Rt"));
+	        					} else {
+	        						data.put("maxLrnHabitNm", null);
+	        						data.put("maxLrnHabitRt", null);
+	        					}
 	        				}
 	        				
 	        				setResult(dataKey,data);
@@ -1371,15 +1360,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     				
     				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnStt");
     				
-    				data.put("msg", "수행 습관 메시지");
-    				
     				if(aLrnDataMap != null) {
+    					data.put("msg", "수행 습관 메시지");
     					data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
-    				} else {
-    					data.put("maxALrnSubjNm", null);
+    					data.put("aLrnList", aLrnList);
     				}
-    				
-    				data.put("aLrnList", aLrnList);
     				
     				setResult(dataKey,data);
     			} else {
@@ -1711,21 +1696,13 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
 	        				
 	        				incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
-	        				
-	        				data.put("msg", "오답노트 현황 메시지");
-	        				
 	        				if(incrtNoteMap != null) {
+	        					data.put("msg", "오답노트 현황 메시지");
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
 		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
 		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
 		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
-	        				} else {
-	        					data.put("incrtNoteCnt", null);
-		        				data.put("incrtNotefnshCnt", null);
-		        				data.put("incrtNoteNcCnt", null);
-		        				data.put("incrtNoteFnshRt", null);
-		        				data.put("incrtNoteNcRt", null);
 	        				}
 	        				
 	        				setResult(dataKey,data);
@@ -1764,20 +1741,13 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
     						incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				
-	        				data.put("msg", "오답노트 현황 메시지");
-	        				
-	        				if(incrtNoteMap != null) {
+    						if(incrtNoteMap != null) {
+	        					data.put("msg", "오답노트 현황 메시지");
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
 		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
 		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
 		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
-	        				} else {
-	        					data.put("incrtNoteCnt", null);
-		        				data.put("incrtNotefnshCnt", null);
-		        				data.put("incrtNoteNcCnt", null);
-		        				data.put("incrtNoteFnshRt", null);
-		        				data.put("incrtNoteNcRt", null);
 	        				}
 	        				
 	        				setResult(dataKey,data);

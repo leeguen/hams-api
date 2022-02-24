@@ -71,7 +71,7 @@
 				else 'Y'
 			end as report_yn
 		from lrndmt.mt_dm_wk_dt a
-		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and stud_key = #{studId} and ssvc_akey = 3 and subj_clss_key = 3
+		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and stud_key = #{studId} and ssvc_akey = 3 and subj_clss_key = 3
 		where a.yyyymm_key = #{yymm};
     </select>
 
@@ -287,7 +287,7 @@
 		</choose>
 			and stud_key = #{studId} 
 			and ssvc_akey = 3
-			and subj_clss_key = 3
+			and subj_clss_key = 3;
     </select>
     
     <select id="getSubjLrnTm" parameterType="hashMap" resultType="resultMap">
