@@ -1228,9 +1228,10 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			if(strengthHabitExcellentStudResult.size() > 0) {
 				Map<String, Object> studInfo = new LinkedHashMap<>();
 				
-//				studInfo.put("studId", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studId"));
-//				studInfo.put("studNm", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studNm"));
-				if(!mapperName.equals("Group_ES_Demo")) {
+				if(mapperName.equals("Group_ES_Demo")) {
+					studInfo.put("studId", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studId"));
+					studInfo.put("studNm", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studNm"));
+				} else {
 					getStudentInfo(strengthHabitExcellentStudResult, studInfo);
 				}
 				strengthHabitExcellentStud.put("studInfo", studInfo);
@@ -1271,15 +1272,15 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			//홈런 API 조회
 			Map<String,Object> data_hl = new HashMap<>();
 			Map<String, Object> paramMap_ex= new HashMap<>();
-			paramMap_ex.put("apiName", "student/");	       	
+			paramMap_ex.put("apiName", "student");	       	
 			paramMap_ex.put("studId", studResultList.get(studResultList.size() - 1).get("studId"));
 			data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
 			if(data_hl != null) {
-				studInfo.put("studNm", data_hl.get("STUD_NM").toString());
+				studInfo.put("studNm", new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
 				studInfo.put("studId", data_hl.get("LOGIN_ID").toString());
 			}
 		} catch (Exception e) {
-			LOGGER.error("getStudentInfo 홈런 API 조회[student/] Error");
+			LOGGER.error("getStudentInfo 홈런 API 조회[student] Error");
 		}
 	}
 	
@@ -1387,7 +1388,10 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			
 			if(strengthHabitHighGrowthStudResult.size() > 0) {
 				Map<String, Object> studInfo = new LinkedHashMap<>();
-				if(!mapperName.equals("Group_ES_Demo")) {
+				if(mapperName.equals("Group_ES_Demo")) {
+					studInfo.put("studId", strengthHabitHighGrowthStudResult.get(strengthHabitHighGrowthStudResult.size() - 1).get("studId"));
+					studInfo.put("studNm", strengthHabitHighGrowthStudResult.get(strengthHabitHighGrowthStudResult.size() - 1).get("studNm"));
+				} else {
 					getStudentInfo(strengthHabitHighGrowthStudResult, studInfo);
 				}
 				strengthHabitHighGrowthStud.put("studInfo", studInfo);
@@ -1530,13 +1534,16 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					try {	
 						//홈런 API 조회
 						Map<String,Object> data_hl = new HashMap<>();
-						paramMap.put("apiName", "student/");	       	
-						data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+
+						Map<String, Object> paramMap_ex= new HashMap<>();
+						paramMap_ex.put("apiName", "student");	       	
+						paramMap_ex.put("studId", paramMap.get("studId"));
+						data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
 						if(data_hl != null) {
-							studNm = data_hl.get("STUD_NM").toString();
+							studNm = new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8");
 						}
 					} catch (Exception e) {
-						LOGGER.error("getLrnPlanStudLrnStt 홈런 API 조회[student/] Error");
+						LOGGER.error("getLrnPlanStudLrnStt 홈런 API 조회[student] Error");
 					}
 				}
 				

@@ -509,27 +509,45 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("result", "External API Error");
 	        		setResult(msgKey, msgMap);
 	        	}
-	        } else if(apiName.equals("student/")){
+	        } else if(apiName.equals("student")){
 	        	try {
-	        		String url = HLFAST_API + apiName;
-	        		// [get] https://dw-api.home-learn.com/intsvc/dw/v1/student/4995
-	        		if(paramMap.containsKey("studId")) {
-	        			url += paramMap.get("studId");
-	        		
-			        	//파라미터 세팅
-			        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-			        	
-			        	URI apiUri = builder.build().encode().toUri();  
-			        	
-			        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-
-			        	LOGGER.debug("apiUri : " + apiUri);
-			        	LOGGER.debug("STU_ID : " + responseData.get("STU_ID"));
-//			        	LOGGER.debug("LOGIN_ID : " + responseData.get("LOGIN_ID"));
-//			        	LOGGER.debug("STUD_NM : " + responseData.get("STUD_NM"));
-			        	
-			        	setResult(dataKey, responseData);
-			        	
+	        		String url = HLFAST_API + apiName + "?item_id={itemId}";
+	        		if(paramMap.containsKey("studId") || paramMap.containsKey("loginId") || paramMap.containsKey("stuNm")) {
+	        			if(paramMap.containsKey("studId")) {
+	        				paramMap.put("itemId","I"); 
+	        				url += "&stu_id={studId}";
+	        			} else if(paramMap.containsKey("loginId")) {
+	        				paramMap.put("itemId","L"); 
+	        				url += "&stu_lgn={loginId}";
+	        			} else if(paramMap.containsKey("stuNm")) {
+	        				paramMap.put("itemId","N"); 
+	        				url += "&stu_nm={stuNm}";
+	        			} 
+	        			LOGGER.debug("url : " + url);
+			        	LOGGER.debug("item_id : " + paramMap.get("itemId"));
+			        	LOGGER.debug("stu_id : " + paramMap.get("studId"));
+			        	LOGGER.debug("stu_lgn : " + paramMap.get("loginId"));
+			        	LOGGER.debug("stu_nm : " + paramMap.get("stuNM"));
+			            
+						JSONParser parser = new JSONParser();
+						HttpHeaders headers = new HttpHeaders();
+						headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+						HttpEntity<String> entity = new HttpEntity<>(headers);
+						ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class, paramMap);
+						int statusCode = Integer.valueOf(response.getStatusCode().toString());
+						Object responseData = parser.parse(response.getBody());
+						
+						if(statusCode == 200) {
+			        		LOGGER.debug("statusCode : "+statusCode);
+//				        	LOGGER.debug("response : " + response.getBody());
+							setResult(dataKey, responseData);
+						}
+						else {
+							LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+							msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
+							msgMap.put("result", ValidationCode.REQUIRED.getClass());
+							setResult(msgKey, msgMap);
+						}
 	        		} else {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 		        		msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
@@ -544,26 +562,22 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        } else if(apiName.equals("students")){
 	        	try {
-	        		String url = HLFAST_API + apiName + "?stu_ids={studList}";
-	        		// [post] https://dw-api.home-learn.com/intsvc/dw/v1/students?stu_ids=180520%2C%202008216%2C%202237642
-	    	        if(paramMap.containsKey("stu_ids")) {
-
+	        		String url = HLFAST_API + apiName + "?item_id={itemId}";
+	        		if(paramMap.containsKey("stu_ids")) {
+						url += "&stu_ids={studIds}";
+	        			Map<String,Object> paramData = new HashMap<>();			            
+	        			paramData.put("itemId", "I");
+						paramData.put("studIds", paramMap.get("stu_ids").toString());   
 	    	        	LOGGER.debug("url : " + url);
-			        	LOGGER.debug("stu_ids : " + paramMap.get("stu_ids"));
+			        	LOGGER.debug("item_id : " + paramData.get("itemId"));
+			        	LOGGER.debug("stu_ids : " + paramData.get("studIds"));
 			            
 						JSONParser parser = new JSONParser();
 						HttpHeaders headers = new HttpHeaders();
 						headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-
-						Map<String,Object> paramData = new HashMap<>();			            
-						paramData.put("studList", paramMap.get("stu_ids").toString());
-						
 						HttpEntity<String> entity = new HttpEntity<>(headers);
-						
 						ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class, paramData);
-						
 						int statusCode = Integer.valueOf(response.getStatusCode().toString());
-						
 						Object responseData = parser.parse(response.getBody());
 						
 						if(statusCode == 200) {
