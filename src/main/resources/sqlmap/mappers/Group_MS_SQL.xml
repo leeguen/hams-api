@@ -94,8 +94,8 @@
 				where wly.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
 					and org.org_cd = #{orgId}
 		<choose>
-			<when test="localcd != null and localcd != ''">
-					and wly.regn_cd = #{localcd}		
+			<when test="localCd != null and localCd != ''">
+					and wly.regn_cd = #{localCd}		
 			</when>
 			<otherwise>
 					and wly.regn_lv = 0
@@ -130,8 +130,8 @@
 				where yyyymm_key = #{yymm}::INTEGER
 					and org.org_cd = #{orgId}
 		<choose>
-			<when test="localcd != null and localcd != ''">
-					and regn_cd = #{localcd}		-- 추후 확인		
+			<when test="localCd != null and localCd != ''">
+					and regn_cd = #{localCd}		-- 추후 확인		
 			</when>
 			<otherwise>
 					and regn_lv = 0
