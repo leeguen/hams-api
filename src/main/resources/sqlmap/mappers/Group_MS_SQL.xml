@@ -373,18 +373,24 @@
 				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and lower(c.scr_typ) = #{lrnSignal}
+ 					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
  							<when test="studPlan == 'N'.toString()">
- 								and a.att_rt is null
+ 					and a.att_rt is null
  							</when>
  							<otherwise>
- 								and a.att_rt is not null
+ 					and a.att_rt is not null
  							</otherwise>
  						</choose>
  					</if>
+ 					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					and a.stud_key in 
+						<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
  						order by a.grd
@@ -497,18 +503,24 @@
 				where a.yyyymm_key = #{yymm}::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and lower(c.scr_typ) = #{lrnSignal}
+ 					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
  							<when test="studPlan == 'N'.toString()">
- 								AND a.att_rt is null
+ 					and a.att_rt is null
  							</when>
  							<otherwise>
- 								AND a.att_rt is not null
+ 					and a.att_rt is not null
  							</otherwise>
  						</choose>
  					</if>
+ 					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					and a.stud_key in 
+						<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
  						order by a.grd
@@ -568,36 +580,36 @@
 	<choose>
 		<when test="lrnSignal != null and lrnSignal != ''">			
 			<choose>
-				<when test="lrnSignal = 'a'">
+				<when test="lrnSignal == 'a'.toString()">
 				a.prais_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.prais_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.prais_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'b'">
+				<when test="lrnSignal == 'b'.toString()">
 				a.keep_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.keep_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.keep_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'c'">
+				<when test="lrnSignal == 'c'.toString()">
 				a.encr_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.encr_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.encr_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
@@ -607,10 +619,10 @@
 			a.tot_stud_cnt as stud_cnt,
 			<choose>
 				<when test="pageSize == null or pageSize == ''">
-					ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+					ceil(a.tot_stud_cnt::float / 10)::INTEGER as page_cnt
 				</when>
 				<otherwise>
-					ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+					ceil(a.tot_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 				</otherwise>
 			</choose>
 		</otherwise>
@@ -623,40 +635,40 @@
 		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
-					and b.org_cd in 
+			and b.org_cd in 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					and b.org_cd = #{orgId}
+			and b.org_cd = #{orgId}
 				</otherwise>
 			</choose>
 			<choose>
 				<when test="localCd != null and localCd != ''">
 					<choose>
 	                	<when test="depth == 1"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 1
+			and c.regn_cd = #{localCd} and c.regn_lv = 1
 						</when>
 						<when test="depth == 2"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 2
+			and c.regn_cd = #{localCd} and c.regn_lv = 2
 						</when>
 						<when test="depth == 3"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 3
+			and c.regn_cd = #{localCd} and c.regn_lv = 3
 						</when>
 					</choose>
 				</when>
 				<otherwise>
-					and a.regn_lv = 0
+			and a.regn_lv = 0
 				</otherwise>
 			</choose>
 		<if test="studPlan != null and studPlan != ''">
 			<choose>
 				<when test="studPlan == 'N'.toString()">
-					and a.att_rt is null
+			and a.att_rt is null
 				</when>
 				<otherwise>
-					and a.att_rt is not null
+			and a.att_rt is not null
 				</otherwise>
 			</choose>
 		</if>
@@ -668,36 +680,36 @@
 		<choose>
 			<when test="lrnSignal != null and lrnSignal != ''">			
 				<choose>
-					<when test="lrnSignal = 'a'">
+					<when test="lrnSignal == 'a'.toString()">
 					a.prais_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.prais_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.prais_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'b'">
+					<when test="lrnSignal == 'b'.toString()">
 					a.keep_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.keep_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.keep_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'c'">
+					<when test="lrnSignal == 'c'.toString()">
 					a.encr_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.encr_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.encr_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
@@ -707,10 +719,10 @@
 				a.tot_stud_cnt as stud_cnt,
 				<choose>
 					<when test="pageSize == null or pageSize == ''">
-						ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+						ceil(a.tot_stud_cnt::float / 10)::INTEGER as page_cnt
 					</when>
 					<otherwise>
-						ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+						ceil(a.tot_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 					</otherwise>
 				</choose>
 			</otherwise>
@@ -759,7 +771,7 @@
 					and a.att_rt is not null
 				</otherwise>
 			</choose>
-		</if>
+		</if>	
 	</select>
 	
 	<select id="selectWeeklyGroupLocalList" parameterType="hashMap" resultType="resultMap">

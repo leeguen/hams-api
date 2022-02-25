@@ -659,29 +659,34 @@
 					AND A.WK = #{wk}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND A.ORG_ID IN 
+					AND A.ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND A.ORG_ID = #{orgId}
+					AND A.ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 					<if test="lrnSignal != null and lrnSignal != ''">
-						AND A.LRN_SIGNAL = #{lrnSignal}
+					AND A.LRN_SIGNAL = #{lrnSignal}
 					</if>
 					<if test="studPlan != null and studPlan != ''">
 						<choose>
 							<when test="studPlan == 'N'.toString()">
-								AND A.ATT_RT IS NULL
+					AND A.ATT_RT IS NULL
 							</when>
 							<otherwise>
-								AND A.ATT_RT IS NOT NULL
+					AND A.ATT_RT IS NOT NULL
 							</otherwise>
 						</choose>
 					</if>
-					<!--  <if test="keyword != null and keyword != ''">
+					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					AND A.STUD_ID IN 
+							<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+					<!--  
 						<choose>
 							<when test="searchType == 'studId'">
 								AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
@@ -689,8 +694,8 @@
 							<otherwise>
 								AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
 							</otherwise>
-						</choose>
-					</if> -->
+						</choose> -->
+					</if> 
 				<choose>
 				<!-- <when test="orderNm == 'studNmOn'.toString()">
 						ORDER BY A.STUD_NM 
@@ -864,16 +869,20 @@
 							</otherwise>
 						</choose>
 					</if>
-					<!-- <if test="keyword != null and keyword != ''">
-						<choose>
+					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+						AND A.STUD_ID IN 
+							<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						<!-- <choose>
 							<when test="searchType == 'studId'">
 								AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
 							</when>
 							<otherwise>
 								AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
 							</otherwise>
-						</choose>
-					</if> -->
+						</choose> -->
+					</if>
 				<choose>
 					<!-- <when test="orderNm == 'studNmOn'.toString()">
 						ORDER BY A.STUD_NM
@@ -961,23 +970,23 @@
 					AND A.WK = #{wk}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND A.ORG_ID IN 
+					AND A.ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND A.ORG_ID = #{orgId}
+					AND A.ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 					<if test="depth == 1"> 
-						AND B.1_DEPTH_LOCAL_CD = #{localCd}
+					AND B.1_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 					<if test="depth == 2"> 
-						AND B.2_DEPTH_LOCAL_CD = #{localCd}
+					AND B.2_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 					<if test="depth == 3"> 
-						AND B.3_DEPTH_LOCAL_CD = #{localCd}
+					AND B.3_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 			</when>
 			<otherwise>
@@ -985,19 +994,19 @@
 					AND A.WK = #{wk}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND A.ORG_ID IN 
+					AND A.ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND A.ORG_ID = #{orgId}
+					AND A.ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 			</otherwise>
 		</choose>
 		<if test="lrnSignal != null and lrnSignal != ''">
-			AND A.LRN_SIGNAL = #{lrnSignal}
+					AND A.LRN_SIGNAL = #{lrnSignal}
 		</if>
 		<if test="studPlan != null and studPlan != ''">
 			<choose>
@@ -1009,7 +1018,12 @@
 				</otherwise>
 			</choose>
 		</if>
-		<!-- <if test="keyword != null and keyword != ''">
+		<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					AND A.STUD_ID IN 
+				<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+                   		#{item}
+                </foreach>
+		<!--
 			<choose>
 				<when test="searchType == 'studId'">
 					AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
@@ -1017,8 +1031,8 @@
 				<otherwise>
 					AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
 				</otherwise>
-			</choose>
-		</if> -->
+			</choose>-->
+		</if> 
 	</select>
 	
 	<select id="selectMonthlyGroupStudListCnt" parameterType="hashMap" resultType="resultMap">
@@ -1040,42 +1054,42 @@
 				WHERE A.YYMM = #{yymm}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND A.ORG_ID IN 
+					AND A.ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND A.ORG_ID = #{orgId}
+					AND A.ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 					<if test="depth == 1"> 
-						AND B.1_DEPTH_LOCAL_CD = #{localCd}
+					AND B.1_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 					<if test="depth == 2"> 
-						AND B.2_DEPTH_LOCAL_CD = #{localCd}
+					AND B.2_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 					<if test="depth == 3"> 
-						AND B.3_DEPTH_LOCAL_CD = #{localCd}
+					AND B.3_DEPTH_LOCAL_CD = #{localCd}
 					</if>
 			</when>
 			<otherwise>
 				WHERE A.YYMM = #{yymm}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND A.ORG_ID IN 
+					AND A.ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND A.ORG_ID = #{orgId}
+					AND A.ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 			</otherwise>
 		</choose>
 		<if test="lrnSignal != null and lrnSignal != ''">
-			AND A.LRN_SIGNAL = #{lrnSignal}
+					AND A.LRN_SIGNAL = #{lrnSignal}
 		</if>
 		<if test="studPlan != null and studPlan != ''">
 			<choose>
@@ -1087,7 +1101,12 @@
 				</otherwise>
 			</choose>
 		</if>
-		<!-- <if test="keyword != null and keyword != ''">
+		<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					AND A.STUD_ID IN 
+				<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+                   		#{item}
+                </foreach>
+		<!-- 
 			<choose>
 				<when test="searchType == 'studId'">
 					AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
@@ -1095,8 +1114,8 @@
 				<otherwise>
 					AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
 				</otherwise>
-			</choose>
-		</if> -->
+			</choose> -->
+		</if> 
 	</select>
 	
 	<select id="selectWeeklyGroupLocalList" parameterType="hashMap" resultType="resultMap">
