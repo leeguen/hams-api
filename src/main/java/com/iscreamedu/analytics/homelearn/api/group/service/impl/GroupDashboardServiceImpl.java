@@ -356,76 +356,130 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				}
 			}
 
-			// selectWeeklyGroupStudList / selectMonthlyGroupStudList (2022-01-27)
-			// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외  
-			// keyword : LOGIN_ID, STUD_NM 로 검색 - 학습서비스개발실의  fast api 개발 이후 적용 예정(2022-02-23 예상중)
-			// default 정렬 lrnSignal, studId 순 임의 지정함. (2022-01-27)
-			Map<String, Object> page = new LinkedHashMap<>();
-			if(paramMap.get("monthWord").equals("w")) { // 주간
-				if(paramMap.get("schType").toString().equals("ms")) {
-					data.put("list", ms_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
+	        // keyword : LOGIN_ID 로 검색 -> dw-api 에서 학생아이디 추출후 검색
+	        // keyword : STUD_NM 로 검색  -> dw-api 에서 학생아이디 리스트 추출후 검색
+			// 검색 : keyword/searchType : studId(LOGIN_ID), STUD_NM		
+			if(!mapperName.equals("Group_ES_Demo")) {
+		        if(paramMap.get("keyword") != null && paramMap.get("keyword") != "" ) {
+		        	//홈런 API 조회
+	    			ArrayList<Map<String,Object>> data_hl = new ArrayList();
+					Map<String, Object> paramMap_ex = new HashMap<>();
+					paramMap_ex.put("apiName", "students");	      
+					if(paramMap.get("searchType").equals("studId")) {
+			        	paramMap_ex.put("login_ids", paramMap.get("keyword"));
+					} else {
+						paramMap_ex.put("stu_nms", paramMap.get("keyword"));
+					}
 					
-				} else {
-					data.put("list", es_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
-				}
-				if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
-					try {
-						listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap.get("orderNm"), paramMap, page.get("studCnt"));
+					try {	
+						data_hl = (ArrayList<Map<String,Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
+						if(data_hl != null) {
+							//paramMap.put("studId", data_hl.get("STU_ID").toString());
+							ArrayList paramStudList = new ArrayList<>();
+							if(data_hl.size() > 0) {
+								for(Map<String, Object> item : data_hl) {
+									paramStudList.add(item.get("STU_ID"));
+								}								
+								paramMap.put("studList", paramStudList);
+							}
+						} 
+					} catch (Exception e) {
+						LOGGER.error("selectGroupStudList 홈런 API 조회[students] Error");
+						paramMap.put("studList", null);
+					}	        	
+		        } else {
+		        	paramMap.put("studList", null);
+		        }
+			} else {
+				paramMap.put("studList", null);
+			}
+			
+			// 검색대상 조회 실패시 NO_DATA
+			if(!mapperName.equals("Group_ES_Demo") && paramMap.get("keyword") != null && paramMap.get("keyword") != "" && paramMap.get("studList") == null) {
+				message.put("resultCode", ValidationCode.NO_DATA.getCode());
+				message.put("result", ValidationCode.NO_DATA.getMessage());
+				setResult(msgKey,message);
+			} else {
+		        // selectWeeklyGroupStudList / selectMonthlyGroupStudList (2022-01-27)
+		     	// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외 -> listEncodeS 에서 정렬 기능 추가
+		        // default 정렬 lrnSignal, studId 순 임의 지정함. (2022-01-27)
+				Map<String, Object> page = new LinkedHashMap<>();
+				if(paramMap.get("monthWord").equals("w")) { // 주간
+					if(paramMap.get("schType").toString().equals("ms")) {
+						data.put("list", ms_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
 						
-						message.put("resultCode", ValidationCode.SUCCESS.getCode());
-						message.put("result", ValidationCode.SUCCESS.getMessage());
-						if(paramMap.get("schType").toString().equals("ms")) {
-							page = (Map<String, Object>) ms_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStudListCnt");
-						} else {
-							page = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStudListCnt");
-						}
-						data.put("pageCount", page.get("pageCnt"));
-						data.put("totalCount", page.get("studCnt"));
+					} else {
+						data.put("list", es_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
+					}
+					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
+						try {
+							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap);
+							
+							message.put("resultCode", ValidationCode.SUCCESS.getCode());
+							message.put("result", ValidationCode.SUCCESS.getMessage());
+							if(paramMap.get("studList") == null) {
+								if(paramMap.get("schType").toString().equals("ms")) {
+									page = (Map<String, Object>) ms_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStudListCnt");
+								} else {
+									page = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStudListCnt");
+								}
+								data.put("pageCount", page.get("pageCnt"));
+								data.put("totalCount", page.get("studCnt"));
+							} else {
+								data.put("pageCount", 1);
+								data.put("totalCount", ((List)data.get("list")).size());								
+							}
+							setResult(msgKey,message);
+							setResult(dataKey,data);
+						} catch (Exception e) {
+							LOGGER.error("Error : "+e.getMessage());
+							message.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+							message.put("result", ValidationCode.SYSTEM_ERROR.getMessage());
+							setResult(msgKey, message);
+						} 
+					} else {
+						message.put("resultCode", ValidationCode.NO_DATA.getCode());
+						message.put("result", ValidationCode.NO_DATA.getMessage());
 						setResult(msgKey,message);
-						setResult(dataKey,data);
-					} catch (Exception e) {
-						LOGGER.error("Error : "+e.getMessage());
-						message.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
-						message.put("result", ValidationCode.SYSTEM_ERROR.getMessage());
-						setResult(msgKey, message);
-					} 
-				} else {
-					message.put("resultCode", ValidationCode.NO_DATA.getCode());
-					message.put("result", ValidationCode.NO_DATA.getMessage());
-					setResult(msgKey,message);
-				}
-				
-			} else if(paramMap.get("monthWord").equals("m")){ // 월간
-				if(paramMap.get("schType").toString().equals("ms")) {
-					data.put("list", ms_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
-				} else {
-					data.put("list", es_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
-				}
-				if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
-					try {
-						listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap.get("orderNm"), paramMap, page.get("studCnt"));
+					}
 					
-						message.put("resultCode", ValidationCode.SUCCESS.getCode());
-						message.put("result", ValidationCode.SUCCESS.getMessage());
-						if(paramMap.get("schType").toString().equals("ms")) {
-							page = (Map<String, Object>) ms_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStudListCnt");
-						} else {
-							page = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStudListCnt");
-						}
-						data.put("pageCount", page.get("pageCnt"));
-						data.put("totalCount", page.get("studCnt"));
+				} else if(paramMap.get("monthWord").equals("m")){ // 월간
+					if(paramMap.get("schType").toString().equals("ms")) {
+						data.put("list", ms_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
+					} else {
+						data.put("list", es_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
+					}
+					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
+						try {
+							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap);
+						
+							message.put("resultCode", ValidationCode.SUCCESS.getCode());
+							message.put("result", ValidationCode.SUCCESS.getMessage());
+							if(paramMap.get("studList") == null) {
+								if(paramMap.get("schType").toString().equals("ms")) {
+									page = (Map<String, Object>) ms_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStudListCnt");
+								} else {
+									page = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStudListCnt");
+								}
+								data.put("pageCount", page.get("pageCnt"));
+								data.put("totalCount", page.get("studCnt"));
+							} else {
+								data.put("pageCount", 1);
+								data.put("totalCount", ((List)data.get("list")).size());								
+							}
+							setResult(msgKey,message);
+							setResult(dataKey,data);
+						} catch (Exception e) {
+							LOGGER.error("Error : "+e.getMessage());
+							message.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+							message.put("result", ValidationCode.SYSTEM_ERROR.getMessage());
+							setResult(msgKey, message);
+						} 
+					} else {
+						message.put("resultCode", ValidationCode.NO_DATA.getCode());
+						message.put("result", ValidationCode.NO_DATA.getMessage());
 						setResult(msgKey,message);
-						setResult(dataKey,data);
-					} catch (Exception e) {
-						LOGGER.error("Error : "+e.getMessage());
-						message.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
-						message.put("result", ValidationCode.SYSTEM_ERROR.getMessage());
-						setResult(msgKey, message);
-					} 
-				} else {
-					message.put("resultCode", ValidationCode.NO_DATA.getCode());
-					message.put("result", ValidationCode.NO_DATA.getMessage());
-					setResult(msgKey,message);
+					}
 				}
 			}
 			
@@ -1278,9 +1332,14 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			if(data_hl != null) {
 				studInfo.put("studNm", new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
 				studInfo.put("studId", data_hl.get("LOGIN_ID").toString());
+			} else {
+				studInfo.put("studNm", null);
+				studInfo.put("studId", null);
 			}
 		} catch (Exception e) {
 			LOGGER.error("getStudentInfo 홈런 API 조회[student] Error");
+			studInfo.put("studNm", null);
+			studInfo.put("studId", null);
 		}
 	}
 	
@@ -1541,9 +1600,12 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
 						if(data_hl != null) {
 							studNm = new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8");
+						} else {
+							studNm = null;
 						}
 					} catch (Exception e) {
 						LOGGER.error("getLrnPlanStudLrnStt 홈런 API 조회[student] Error");
+						studNm = null;
 					}
 				}
 				
@@ -1711,7 +1773,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 * @param studList
 	 * @throws Exception
 	 */
-	private void listEncodeS(List<HashMap<String,Object>> studList, String mapperName, Object orderNm, Map<String, Object> paramMap, Object studCnt) throws Exception{
+	private void listEncodeS(List<HashMap<String,Object>> studList, String mapperName, Map<String, Object> paramMap) throws Exception{
         CipherUtil cp = CipherUtil.getInstance();
         String retStr = "";
         
@@ -1760,34 +1822,38 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			}
 			
 		}
-		// 정렬
-		if(orderNm != null && studList.size() > 1 && data_hl != null) {
-			switch(orderNm.toString()) {
-				case "studNmOn" :
-				case "studNmOff" :
-				case "studIdOn" :
-				case "studIdOff" :
-					Collections.sort(studList, new Comparator<HashMap<String, Object>>() {
-						@Override
-						public int compare(HashMap<String, Object> o1, HashMap<String, Object> o2) {
-							String studNm1 = (String) o1.get("studNm");
-							String studNm2 = (String) o2.get("studNm");
-							String loginId1 = (String) o1.get("loginId");
-							String loginId2 = (String) o2.get("loginId");
-							if(orderNm.toString().equals("studNmOn")) {
-								return studNm1.compareTo(studNm2); 
-							} else if(orderNm.toString().equals("studNmOff")) {
-								return studNm2.compareTo(studNm1); 
-							} else if(orderNm.toString().equals("studIdOn")) {
-								return loginId1.compareTo(loginId2); 
-							} else if(orderNm.toString().equals("studIdOff")) {
-								return loginId2.compareTo(loginId1); 
-							} else return 0;
-						}
-					});							
-					break;
+        
+        if(studList.size() > 1 && data_hl != null) {
+	        
+			// 정렬
+			if(paramMap.get("orderNm") != null && paramMap.get("orderNm") != "") {
+				switch(paramMap.get("orderNm").toString()) {
+					case "studNmOn" :
+					case "studNmOff" :
+					case "studIdOn" :
+					case "studIdOff" :
+						Collections.sort(studList, new Comparator<HashMap<String, Object>>() {
+							@Override
+							public int compare(HashMap<String, Object> o1, HashMap<String, Object> o2) {
+								String studNm1 = (String) o1.get("studNm");
+								String studNm2 = (String) o2.get("studNm");
+								String loginId1 = (String) o1.get("loginId");
+								String loginId2 = (String) o2.get("loginId");
+								if(paramMap.get("orderNm").toString().equals("studNmOn")) {
+									return studNm1.compareTo(studNm2); 
+								} else if(paramMap.get("orderNm").toString().equals("studNmOff")) {
+									return studNm2.compareTo(studNm1); 
+								} else if(paramMap.get("orderNm").toString().equals("studIdOn")) {
+									return loginId1.compareTo(loginId2); 
+								} else if(paramMap.get("orderNm").toString().equals("studIdOff")) {
+									return loginId2.compareTo(loginId1); 
+								} else return 0;
+							}
+						});							
+						break;
+				}
 			}
-		}
+        }
 	
     }
 	

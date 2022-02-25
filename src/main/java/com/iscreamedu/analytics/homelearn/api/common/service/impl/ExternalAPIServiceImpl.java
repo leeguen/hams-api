@@ -82,7 +82,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	String HLMARKETING_API; //마케팅 - 기관조회 API 주소
 	
 	@Value("${extapi.hlfast.url}")
-	String HLFAST_API; //학생,교사 정보 - FAST API 주소
+	String HLDW_API; //학생,교사 정보 - DW FAST API 주소
 	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -511,7 +511,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        } else if(apiName.equals("student")){
 	        	try {
-	        		String url = HLFAST_API + apiName + "?item_id={itemId}";
+	        		String url = HLDW_API + apiName + "?item_id={itemId}";
 	        		if(paramMap.containsKey("studId") || paramMap.containsKey("loginId") || paramMap.containsKey("stuNm")) {
 	        			if(paramMap.containsKey("studId")) {
 	        				paramMap.put("itemId","I"); 
@@ -562,15 +562,27 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	}
 	        } else if(apiName.equals("students")){
 	        	try {
-	        		String url = HLFAST_API + apiName + "?item_id={itemId}";
+	        		String url = HLDW_API + apiName + "?item_id={itemId}";
+        			Map<String,Object> paramData = new HashMap<>();			    
 	        		if(paramMap.containsKey("stu_ids")) {
-						url += "&stu_ids={studIds}";
-	        			Map<String,Object> paramData = new HashMap<>();			            
-	        			paramData.put("itemId", "I");
-						paramData.put("studIds", paramMap.get("stu_ids").toString());   
-	    	        	LOGGER.debug("url : " + url);
+	        			paramData.put("itemId","I"); 
+	        			paramData.put("studIds", paramMap.get("stu_ids").toString());   
+        				url += "&stu_ids={studIds}";
+        			} else if(paramMap.containsKey("login_ids")) {
+        				paramData.put("itemId","L");
+        				paramData.put("loginIds", paramMap.get("login_ids").toString());   
+        				url += "&stu_lgns={loginIds}";
+        			} else if(paramMap.containsKey("stu_nms")) {
+        				paramData.put("itemId","N"); 
+        				paramData.put("stuNms", paramMap.get("stu_nms").toString());   
+        				url += "&stu_nms={stuNms}";
+        			} 
+	        		if(paramMap.containsKey("stu_ids") || paramMap.containsKey("login_ids") || paramMap.containsKey("stu_nms")) {
+				    	LOGGER.debug("url : " + url);
 			        	LOGGER.debug("item_id : " + paramData.get("itemId"));
 			        	LOGGER.debug("stu_ids : " + paramData.get("studIds"));
+			        	LOGGER.debug("stu_lgns : " + paramData.get("loginIds"));
+			        	LOGGER.debug("stu_nms : " + paramData.get("stuNms"));
 			            
 						JSONParser parser = new JSONParser();
 						HttpHeaders headers = new HttpHeaders();

@@ -94,8 +94,8 @@
 				where wly.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
 					and org.org_cd = #{orgId}
 		<choose>
-			<when test="localcd != null and localcd != ''">
-					and wly.regn_cd = #{localcd}		
+			<when test="localCd != null and localCd != ''">
+					and wly.regn_cd = #{localCd}		
 			</when>
 			<otherwise>
 					and wly.regn_lv = 0
@@ -130,8 +130,8 @@
 				where yyyymm_key = #{yymm}::INTEGER
 					and org.org_cd = #{orgId}
 		<choose>
-			<when test="localcd != null and localcd != ''">
-					and regn_cd = #{localcd}		-- 추후 확인		
+			<when test="localCd != null and localCd != ''">
+					and regn_cd = #{localCd}		-- 추후 확인		
 			</when>
 			<otherwise>
 					and regn_lv = 0
@@ -339,7 +339,7 @@
 					end as mm,
 					substring(a.yyyymmw_key::TEXT from 7 for 1)::INTEGER as wk,
 					a.stud_key as stud_id,
-					a.grd as stud_grade,
+					case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
 					c.scr_typ as lrn_signal,
 					round(a.att_rt * 100) as att_rt,
 					round(a.exec_rt * 100) as ex_rt,
@@ -373,18 +373,24 @@
 				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and lower(c.scr_typ) = #{lrnSignal}
+ 					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
  							<when test="studPlan == 'N'.toString()">
- 								and a.att_rt is null
+ 					and a.att_rt is null
  							</when>
  							<otherwise>
- 								and a.att_rt is not null
+ 					and a.att_rt is not null
  							</otherwise>
  						</choose>
  					</if>
+ 					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					and a.stud_key in 
+						<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
  						order by a.grd
@@ -463,7 +469,7 @@
 		                else substring(a.yyyymm_key::TEXT from 6 for 1)::INTEGER
 					end as mm,
 					a.stud_key as stud_id,
-					a.grd as stud_grade,
+					case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
 					c.scr_typ as lrn_signal,
 					round(a.att_rt * 100) as att_rt,
 					round(a.exec_rt * 100) as ex_rt,
@@ -474,7 +480,7 @@
 								when mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60) = 0 then concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'시간')	-- 60, 120, 180...
 								else concat(concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60),60),'시간'), concat(mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'분'))
 							end
-						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]>  1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]> 1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
 						else concat(floor(coalesce(a.dd_avg_lrn_ss,0)/60),'분')
 					end as day_avg_lrn_tm,
 					round(a.answ_rt * 100) as crt_rt,
@@ -497,18 +503,24 @@
 				where a.yyyymm_key = #{yymm}::INTEGER
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
- 						and lower(c.scr_typ) = #{lrnSignal}
+ 					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
  						<choose>
  							<when test="studPlan == 'N'.toString()">
- 								AND a.att_rt is null
+ 					and a.att_rt is null
  							</when>
  							<otherwise>
- 								AND a.att_rt is not null
+ 					and a.att_rt is not null
  							</otherwise>
  						</choose>
  					</if>
+ 					<if test="keyword != null and keyword != '' and studList != null and studList.size != 0">
+					and a.stud_key in 
+						<foreach collection="studList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
  						order by a.grd
@@ -568,36 +580,36 @@
 	<choose>
 		<when test="lrnSignal != null and lrnSignal != ''">			
 			<choose>
-				<when test="lrnSignal = 'a'">
+				<when test="lrnSignal == 'a'.toString()">
 				a.prais_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.prais_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.prais_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'b'">
+				<when test="lrnSignal == 'b'.toString()">
 				a.keep_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.keep_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.keep_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
-				<when test="lrnSignal = 'c'">
+				<when test="lrnSignal == 'c'.toString()">
 				a.encr_stud_cnt as stud_cnt,
 					<choose>
 						<when test="pageSize == null or pageSize == ''">
-							ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+							ceil(a.encr_stud_cnt::float / 10)::INTEGER as page_cnt
 						</when>
 						<otherwise>
-							ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+							ceil(a.encr_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 						</otherwise>
 					</choose>
 				</when>
@@ -607,10 +619,10 @@
 			a.tot_stud_cnt as stud_cnt,
 			<choose>
 				<when test="pageSize == null or pageSize == ''">
-					ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+					ceil(a.tot_stud_cnt::float / 10)::INTEGER as page_cnt
 				</when>
 				<otherwise>
-					ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+					ceil(a.tot_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 				</otherwise>
 			</choose>
 		</otherwise>
@@ -623,40 +635,40 @@
 		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
-					and b.org_cd in 
+			and b.org_cd in 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					and b.org_cd = #{orgId}
+			and b.org_cd = #{orgId}
 				</otherwise>
 			</choose>
 			<choose>
 				<when test="localCd != null and localCd != ''">
 					<choose>
 	                	<when test="depth == 1"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 1
+			and c.regn_cd = #{localCd} and c.regn_lv = 1
 						</when>
 						<when test="depth == 2"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 2
+			and c.regn_cd = #{localCd} and c.regn_lv = 2
 						</when>
 						<when test="depth == 3"> 
-					and c.regn_cd = #{localCd} and c.regn_lv = 3
+			and c.regn_cd = #{localCd} and c.regn_lv = 3
 						</when>
 					</choose>
 				</when>
 				<otherwise>
-					and a.regn_lv = 0
+			and a.regn_lv = 0
 				</otherwise>
 			</choose>
 		<if test="studPlan != null and studPlan != ''">
 			<choose>
 				<when test="studPlan == 'N'.toString()">
-					and a.att_rt is null
+			and a.att_rt is null
 				</when>
 				<otherwise>
-					and a.att_rt is not null
+			and a.att_rt is not null
 				</otherwise>
 			</choose>
 		</if>
@@ -668,36 +680,36 @@
 		<choose>
 			<when test="lrnSignal != null and lrnSignal != ''">			
 				<choose>
-					<when test="lrnSignal = 'a'">
+					<when test="lrnSignal == 'a'.toString()">
 					a.prais_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.prais_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.prais_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.prais_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.prais_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'b'">
+					<when test="lrnSignal == 'b'.toString()">
 					a.keep_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.keep_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.keep_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.keep_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.keep_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
-					<when test="lrnSignal = 'c'">
+					<when test="lrnSignal == 'c'.toString()">
 					a.encr_stud_cnt as stud_cnt,
 						<choose>
 							<when test="pageSize == null or pageSize == ''">
-								ceil(a.encr_stud_cnt / 10)::INTEGER as page_cnt
+								ceil(a.encr_stud_cnt::float / 10)::INTEGER as page_cnt
 							</when>
 							<otherwise>
-								ceil(a.encr_stud_cnt / ${pageSize})::INTEGER as page_cnt
+								ceil(a.encr_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 							</otherwise>
 						</choose>
 					</when>
@@ -707,10 +719,10 @@
 				a.tot_stud_cnt as stud_cnt,
 				<choose>
 					<when test="pageSize == null or pageSize == ''">
-						ceil(a.tot_stud_cnt / 10)::INTEGER as page_cnt
+						ceil(a.tot_stud_cnt::float / 10)::INTEGER as page_cnt
 					</when>
 					<otherwise>
-						ceil(a.tot_stud_cnt / ${pageSize})::INTEGER as page_cnt
+						ceil(a.tot_stud_cnt::float / ${pageSize})::INTEGER as page_cnt
 					</otherwise>
 				</choose>
 			</otherwise>
@@ -759,7 +771,7 @@
 					and a.att_rt is not null
 				</otherwise>
 			</choose>
-		</if>
+		</if>	
 	</select>
 	
 	<select id="selectWeeklyGroupLocalList" parameterType="hashMap" resultType="resultMap">
@@ -1665,7 +1677,7 @@
 	 	/* Group_MS.selectWeekLrnPlanStudLrnStt : 학습계획 학생 학습 현황 주간 */
  		select 
  			stud_key as stud_id,
- 		    grd as stud_grade,
+ 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
@@ -1683,7 +1695,7 @@
 	/* Group_MS.selectMonthLrnPlanStudLrnStt : 학습계획 학생 학습 현황 월간 */
 		select 
  			stud_key as stud_id,
- 		    grd as stud_grade,
+ 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
