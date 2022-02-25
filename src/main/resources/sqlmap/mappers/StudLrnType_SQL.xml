@@ -127,4 +127,82 @@
 		WHERE STUD_ID = #{studId};
     </update>
     
+    <select id="getReportEmotion" parameterType="hashMap" resultType="resultMap">
+    	SELECT
+    		IFNULL(MR1.MSG, NULL) AS MSG,
+			IF(CNT = 0, 'N', 'Y') AS EMOTION_YN,
+		    IFNULL(MR1.EMOTICON, NULL) AS EMOTICON
+    	<choose>
+	    	<when test='currConCheck == "m"'>
+   		FROM (
+			SELECT
+				YYMM,
+				STUD_ID,
+				COUNT(*) AS CNT
+			FROM MONTH_REPORT_EMOTION
+			WHERE YYMM = #{yymm}
+				AND STUD_ID = #{studId}
+		) MR
+		LEFT OUTER JOIN MONTH_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.STUD_ID = MR1.STUD_ID;
+	    	</when>
+	    	<otherwise>
+    	FROM (
+			SELECT
+				YYMM,
+				WK,
+				STUD_ID,
+				COUNT(*) AS CNT
+			FROM WEEK_REPORT_EMOTION
+			WHERE YYMM = #{yymm}
+				AND WK = #{wk}
+				AND STUD_ID = #{studId}
+		) MR
+		LEFT OUTER JOIN WEEK_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.WK = MR1.WK AND MR.STUD_ID = MR1.STUD_ID;
+	    	</otherwise>
+    	</choose>
+    </select>
+    
+    <insert id="insertReportEmotion" parameterType="hashMap">
+    	<choose>
+	    	<when test='currConCheck == "m"'>
+	   		INSERT INTO MONTH_REPORT_EMOTION
+			(
+				YYMM,
+				STUD_ID,
+			    EMOTICON,
+			    REG_DTTM,
+			    UPD_DTTM
+			)
+			VALUES
+			(
+				#{yymm},
+				#{studId},
+				#{emoticon},
+				DATE_ADD(NOW(), INTERVAL 9 HOUR),
+				DATE_ADD(NOW(), INTERVAL 9 HOUR)
+			);
+	    	</when>
+	    	<otherwise>
+    		INSERT INTO WEEK_REPORT_EMOTION
+			(
+				YYMM,
+				WK,
+				STUD_ID,
+			    EMOTICON,
+			    REG_DTTM,
+			    UPD_DTTM
+			)
+			VALUES
+			(
+				#{yymm},
+				#{wk},
+				#{studId},
+				#{emoticon},
+				DATE_ADD(NOW(), INTERVAL 9 HOUR),
+				DATE_ADD(NOW(), INTERVAL 9 HOUR)
+			);
+	    	</otherwise>
+    	</choose>
+    </insert>
+    
 </mapper>

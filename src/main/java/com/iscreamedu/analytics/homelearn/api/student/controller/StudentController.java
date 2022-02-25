@@ -246,9 +246,9 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/getReportImpression")
-    public ResponseEntity getReportImpression(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnAnalService.getReportImpression(params);
+    @GetMapping("/getReportEmotion")
+    public ResponseEntity getReportEmotion(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getReportEmotion(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
     
@@ -258,10 +258,10 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/insertReportImpression")
+    @PostMapping("/insertReportEmotion")
 	@ResponseBody
-	public ResponseEntity insertReportImpression(@RequestBody Map<String, Object> params) throws Exception {
-		body = (LinkedHashMap<String, Object>)studLrnAnalService.insertReportImpression(params);
+	public ResponseEntity insertReportEmotion(@RequestBody Map<String, Object> params) throws Exception {
+		body = (LinkedHashMap<String, Object>)studLrnAnalService.insertReportEmotion(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 

@@ -9,6 +9,7 @@ import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnType;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -44,6 +45,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 
     @Autowired
     CommonMapperLrnDm studLrnAnalMapper;
+    
+    @Autowired
+    CommonMapperLrnType commonMapperLrnType;
     
     @Override
     public Map getYymmwk(Map<String, Object> paramMap) throws Exception {
@@ -1933,7 +1937,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
-    public Map getReportImpression(Map<String, Object> paramMap) throws Exception {
+    public Map getReportEmotion(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
@@ -1964,11 +1968,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-	        				
-	        				data.put("msg", "리포트 소감 메시지");
-	        				data.put("impressionYn", "Y");
-	        				data.put("emoticon", "이모티콘");
+	        				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -2000,11 +2000,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-    						//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
-	        				
-	        				data.put("msg", "리포트 소감 메시지");
-	        				data.put("impressionYn", "Y");
-	        				data.put("emoticon", "이모티콘");
+	        				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -2032,8 +2028,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
-    public Map insertReportImpression(Map<String, Object> paramMap) throws Exception {
+    public Map insertReportEmotion(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
+    	Map<String, Object> msg = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vuM = new ValidationUtil();
@@ -2063,12 +2060,36 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
 	        			
 	        			if(vu1.isValid()) {
-	        				//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				Map<String,Object> emotionData = new LinkedHashMap<>();
+	        				emotionData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
 	        				
-	        				data.put("msg", "Success");
-	        				data.put("insertYn", "Y");
+	        				String emotionCheck = emotionData.get("emotionYn").toString();
 	        				
-	        				setResult(dataKey,data);
+	        				if(emotionCheck.equals("N")) {
+	        					Map<String,Object> insertParamMap = new LinkedHashMap<>();
+	        					
+	        					insertParamMap.put("yymm", paramMap.get("yymm"));
+	        					insertParamMap.put("studId", paramMap.get("studId"));
+	        					insertParamMap.put("emoticon", paramMap.get("emoticon"));
+	        					
+	        					int row = 0;
+	        					row = commonMapperLrnType.insert(paramMap, "StudLrnType.insertReportEmotion");
+	        					
+	        					if(row > 0) {
+	        						data.put("msg", "Success");
+	        						data.put("insertYn", "Y");
+	        						
+	        						setResult(dataKey,data);
+	        					}else {
+	        						msg.put("resultCode", 9999);
+		        					msg.put("result", "Insert Error");
+		        					setResult(msgKey, msg);
+	        					}
+	        				} else {
+	        					msg.put("resultCode", 9999);
+	        					msg.put("result", "Duplicate Error");
+	        					setResult(msgKey, msg);
+	        				}
 	        			} else {
 	        				setResult(msgKey, vu1.getResult());
 	        			}
@@ -2098,12 +2119,37 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			vu2.isNumeric("wk", wk);
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
-    						//data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeSummary");
+	        				Map<String,Object> emotionData = new LinkedHashMap<>();
+	        				emotionData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
 	        				
-	        				data.put("msg", "Success1");
-	        				data.put("insertYn", "Y");
+	        				String emotionCheck = emotionData.get("emotionYn").toString();
 	        				
-	        				setResult(dataKey,data);
+	        				if(emotionCheck.equals("N")) {
+	        					Map<String,Object> insertParamMap = new LinkedHashMap<>();
+	        					
+	        					insertParamMap.put("yymm", paramMap.get("yymm"));
+	        					insertParamMap.put("wk", paramMap.get("wk"));
+	        					insertParamMap.put("studId", paramMap.get("studId"));
+	        					insertParamMap.put("emoticon", paramMap.get("emoticon"));
+	        					
+	        					int row = 0;
+	        					row = commonMapperLrnType.insert(paramMap, "StudLrnType.insertReportEmotion");
+	        					
+	        					if(row > 0) {
+	        						data.put("msg", "Success");
+	        						data.put("insertYn", "Y");
+	        						
+	        						setResult(dataKey,data);
+	        					}else {
+	        						msg.put("resultCode", 9999);
+		        					msg.put("result", "Insert Error");
+		        					setResult(msgKey, msg);
+	        					}
+	        				} else {
+	        					msg.put("resultCode", 9999);
+	        					msg.put("result", "Duplicate Error");
+	        					setResult(msgKey, msg);
+	        				}
 	        			} else {
 	        				if(!vu1.isValid()) {
 								setResult(msgKey, vu1.getResult());
