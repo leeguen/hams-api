@@ -339,7 +339,7 @@
 					end as mm,
 					substring(a.yyyymmw_key::TEXT from 7 for 1)::INTEGER as wk,
 					a.stud_key as stud_id,
-					a.grd as stud_grade,
+					case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
 					c.scr_typ as lrn_signal,
 					round(a.att_rt * 100) as att_rt,
 					round(a.exec_rt * 100) as ex_rt,
@@ -469,7 +469,7 @@
 		                else substring(a.yyyymm_key::TEXT from 6 for 1)::INTEGER
 					end as mm,
 					a.stud_key as stud_id,
-					a.grd as stud_grade,
+					case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
 					c.scr_typ as lrn_signal,
 					round(a.att_rt * 100) as att_rt,
 					round(a.exec_rt * 100) as ex_rt,
@@ -480,7 +480,7 @@
 								when mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60) = 0 then concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'시간')	-- 60, 120, 180...
 								else concat(concat(div(floor(coalesce(a.dd_avg_lrn_ss,0)/60),60),'시간'), concat(mod(floor(coalesce(a.dd_avg_lrn_ss,0)/60), 60),'분'))
 							end
-						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]>  1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
+						when floor(coalesce(a.dd_avg_lrn_ss,0)/60) <![CDATA[<]]> 1 then	concat(a.dd_avg_lrn_ss,'초')-- 1분 미만
 						else concat(floor(coalesce(a.dd_avg_lrn_ss,0)/60),'분')
 					end as day_avg_lrn_tm,
 					round(a.answ_rt * 100) as crt_rt,
@@ -1677,7 +1677,7 @@
 	 	/* Group_MS.selectWeekLrnPlanStudLrnStt : 학습계획 학생 학습 현황 주간 */
  		select 
  			stud_key as stud_id,
- 		    grd as stud_grade,
+ 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
@@ -1695,7 +1695,7 @@
 	/* Group_MS.selectMonthLrnPlanStudLrnStt : 학습계획 학생 학습 현황 월간 */
 		select 
  			stud_key as stud_id,
- 		    grd as stud_grade,
+ 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
