@@ -550,7 +550,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"areaCode1", "areaCode2", "schType"}, paramMap);
+		vu.checkRequired(new String[] {"schType"}, paramMap);
 		if(vu.isValid()) { 
 			if((paramMap.containsKey("areaCode1") && paramMap.containsKey("areaCode2"))) {
 				if(!paramMap.get("areaCode1").equals("") && paramMap.get("areaCode1").toString().length() != 0) {
