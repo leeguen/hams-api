@@ -63,36 +63,40 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				//홈런 API 조회
 				paramMap.put("apiName", "agencyServiceApiDetail");	       	
 				data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
-				data.put("agn_nm", data_hl.get("agn_nm"));
-				data.put("agn_id", data_hl.get("agn_id"));
-				data.put("img_url", data_hl.get("img_url"));
-				data.put("svc_open_de", data_hl.get("svc_open_de"));
-				data.put("map_yn", data_hl.get("map_yn"));
-				data.put("agn_code", data_hl.get("agn_code"));
-				data.put("area_code1", data_hl.get("area_code1"));
-				data.put("area_code2", data_hl.get("area_code2"));
-				
-				//demo 계정 관련 로직 
-				String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
-				
-				data_es = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getSchoolType");
-				data_ms = (Map<String, Object>) ms_mapper.get(paramMap, "Group_MS.getSchoolType");
-				int cnt_es = (data_es != null && data_es.get("esTotStudCnt") != null && !data_es.get("esTotStudCnt").equals("")) ? (int) data_es.get("esTotStudCnt") : 0;
-				int cnt_ms = (data_ms != null && data_ms.get("msTotStudCnt") != null && !data_ms.get("msTotStudCnt").equals("")) ? (int) data_ms.get("msTotStudCnt") : 0;
-				if(mapperName.equals("Group_ES_Demo")) {
-					data.put("sch_type", "es");
-					data.put("ms_type_cnt", 0);
+				if(data_hl != null && ((Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get(msgKey)).get("resultCode").equals(ValidationCode.SUCCESS.getCode())) {
+					data.put("agn_nm", data_hl.get("agn_nm"));
+					data.put("agn_id", data_hl.get("agn_id"));
+					data.put("img_url", data_hl.get("img_url"));
+					data.put("svc_open_de", data_hl.get("svc_open_de"));
+					data.put("map_yn", data_hl.get("map_yn"));
+					data.put("agn_code", data_hl.get("agn_code"));
+					data.put("area_code1", data_hl.get("area_code1"));
+					data.put("area_code2", data_hl.get("area_code2"));
+					
+					//demo 계정 관련 로직 
+					String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+					
+					data_es = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getSchoolType");
+					data_ms = (Map<String, Object>) ms_mapper.get(paramMap, "Group_MS.getSchoolType");
+					int cnt_es = (data_es != null && data_es.get("esTotStudCnt") != null && !data_es.get("esTotStudCnt").equals("")) ? (int) data_es.get("esTotStudCnt") : 0;
+					int cnt_ms = (data_ms != null && data_ms.get("msTotStudCnt") != null && !data_ms.get("msTotStudCnt").equals("")) ? (int) data_ms.get("msTotStudCnt") : 0;
+					if(mapperName.equals("Group_ES_Demo")) {
+						data.put("sch_type", "es");
+						data.put("ms_type_cnt", 0);
+					} else {
+						data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
+						data.put("ms_type_cnt", cnt_ms);
+					}
+					data.put("es_type_cnt", cnt_es);
+					setResult(dataKey, data);
 				} else {
-					data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
-					data.put("ms_type_cnt", cnt_ms);
+					setResult(msgKey, externalAPIservice.callExternalAPI(paramMap).get(msgKey));
 				}
-				data.put("es_type_cnt", cnt_es);
-				setResult(dataKey, data);
 			} catch (Exception e) {
-				LOGGER.error("홈런 API 조회[agencyServiceApiDetail] Error");
+				LOGGER.error("[agencyServiceApiDetail] Error");
 				LinkedHashMap message = new LinkedHashMap();	
-				message.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-				message.put("result", ValidationCode.EX_API_ERROR.getMessage());
+				message.put("resultCode", ValidationCode.SYSTEM_ERROR.getCode());
+				message.put("result", ValidationCode.SYSTEM_ERROR.getMessage());
 				setResult(msgKey, message);
 			}
 		} else {
@@ -550,7 +554,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"areaCode1", "areaCode2", "schType"}, paramMap);
+		vu.checkRequired(new String[] {"schType"}, paramMap);
 		if(vu.isValid()) { 
 			if((paramMap.containsKey("areaCode1") && paramMap.containsKey("areaCode2"))) {
 				if(!paramMap.get("areaCode1").equals("") && paramMap.get("areaCode1").toString().length() != 0) {

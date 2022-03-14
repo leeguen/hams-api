@@ -272,7 +272,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		} catch(Exception e) {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", "External API Error");
+		        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 		        		setResult(msgKey, msgMap);
 	        		}
 	    		}else {
@@ -304,7 +304,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        // 일일 로그인 기록
@@ -353,7 +353,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("aiReport/")){
@@ -390,7 +390,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        }else if(apiName.equals("recommand/")){
@@ -438,7 +438,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        }else if(apiName.equals("/study/course-due-dates")){
@@ -475,7 +475,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("agencyServiceApiDetail")){
@@ -497,16 +497,21 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	
 		        	if("200".equals(responseData.get("code").toString())) {
 		        		setResult(dataKey, responseData.get("data"));
-		        	} else {
+		        	} else if("400".equals(responseData.get("code").toString())) {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+						msgMap.put("resultCode", ValidationCode.EX_API_NO_DATA.getCode());
+						msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage());
+						setResult(msgKey, msgMap);
+					} else {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage() + ":(" + responseData.get("code") + ")" + responseData.get("message"));
 		        		setResult(msgKey, msgMap);
 		        	}
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("student")){
@@ -541,11 +546,10 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 			        		LOGGER.debug("statusCode : "+statusCode);
 //				        	LOGGER.debug("response : " + response.getBody());
 							setResult(dataKey, responseData);
-						}
-						else {
+						} else {
 							LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-							msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
-							msgMap.put("result", ValidationCode.REQUIRED.getClass());
+							msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+							msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage() + ":(" + statusCode + ")");
 							setResult(msgKey, msgMap);
 						}
 	        		} else {
@@ -557,7 +561,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("students")){
@@ -601,22 +605,22 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 						}
 						else {
 							LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-							msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
-							msgMap.put("result", ValidationCode.REQUIRED.getClass());
-							setResult(msgKey, msgMap);
+							msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+							msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage() + ":(" + statusCode + ")");
+			        		setResult(msgKey, msgMap);
 						}
 			        	
 	        		} else {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
-		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", ValidationCode.EX_API_ERROR.getClass());
+		        		msgMap.put("resultCode", ValidationCode.REQUIRED.getCode());
+		        		msgMap.put("result", ValidationCode.REQUIRED.getClass());
 		        		setResult(msgKey, msgMap);
 	        		}
 	        	} catch(Exception e) {
 	        		LOGGER.debug("error:" + e.getMessage());
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else {
@@ -670,13 +674,13 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	} else {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage() + ":(" + responseData.get("code") + ")" + responseData.get("message"));
 		        		setResult(msgKey, msgMap);
 		        	}
 	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
-	        		msgMap.put("result", "External API Error");
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
 	        }

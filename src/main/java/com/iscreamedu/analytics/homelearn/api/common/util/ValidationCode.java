@@ -26,7 +26,8 @@ public enum ValidationCode {
 	RANGE(400,"1340", "숫자범위 오류"),
 	SUBJNM(400,"1350", "과목명 오류(subjNm) 체크 – 국어, 수학, 사회, 과학, 영어, 통합"),
 	NO_DATA(204,"2000", "데이터 없음"),
-	EX_API_ERROR(500,"9000", "외부API 호출오류"),
+	EX_API_NO_DATA(400,"2000", "(400) External API Error : 데이터 없음"),
+	EX_API_ERROR(500,"9000", "External API Error"),
 	SYSTEM_ERROR(500,"9999", "시스템 오류,기타 오류");
 
 	private int status;
