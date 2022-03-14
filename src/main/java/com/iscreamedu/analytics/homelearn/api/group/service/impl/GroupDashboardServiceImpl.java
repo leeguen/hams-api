@@ -58,6 +58,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			Map<String,Object> data = new HashMap<>();
 			Map<String,Object> data_hl = new HashMap<>();
 			Map<String,Object> data_es = new HashMap<>();
+			Map<String,Object> data_es_org = new HashMap<>();
 			Map<String,Object> data_ms = new HashMap<>();	 
 			try {		
 				//홈런 API 조회
@@ -86,6 +87,13 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					} else {
 						data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
 						data.put("ms_type_cnt", cnt_ms);
+					}
+					// 초등 : 통합기관의 서비스시작일 조정
+					if(mapperName.equals("Group_ES")) {
+						data_es_org = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getIntegrateAgencyInfo");
+						if(data_es_org!= null) {
+							data.put("svc_open_de", data_es_org.get("svcOpenDate"));
+						}
 					}
 					data.put("es_type_cnt", cnt_es);
 					setResult(dataKey, data);
