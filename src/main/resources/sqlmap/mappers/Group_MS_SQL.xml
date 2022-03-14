@@ -90,8 +90,10 @@
 					wly.keep_stud_cnt as lrn_signal_b,
 					wly.encr_stud_cnt as lrn_signal_c
 				from sc_dsb.ds_ag_sc_org_lrn_sts_wly as wly
+				join sc_dsb.vw_dm_ssvc as ssvc on ssvc.ssvc_akey = wly.ssvc_akey 
 				join sc_dsb.vw_dm_org as org on wly.org_key = org.org_key 
-				where wly.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+				where wly.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER				
+					and ssvc.schl_typ = #{schType}
 					and org.org_cd = #{orgId}
 		<choose>
 			<when test="localCd != null and localCd != ''">
@@ -126,8 +128,10 @@
 					keep_stud_cnt as lrn_signal_b,
 					encr_stud_cnt as lrn_signal_c
 				from sc_dsb.ds_ag_sc_org_lrn_sts_mly as mly
+				join sc_dsb.vw_dm_ssvc as ssvc on ssvc.ssvc_akey = mly.ssvc_akey 
 				join sc_dsb.vw_dm_org as org on mly.org_key = org.org_key 
 				where yyyymm_key = #{yymm}::INTEGER
+					and ssvc.schl_typ = #{schType}
 					and org.org_cd = #{orgId}
 		<choose>
 			<when test="localCd != null and localCd != ''">
@@ -183,10 +187,13 @@
 				end as null_check			
 			from sc_dsb.vw_dm_wk_dt as a
 			cross join sc_dsb.vw_dm_org as b 
-			left outer join sc_dsb.ds_ag_sc_org_lrn_sts_wly as c
-				on c.yyyymmw_key = a.yyyymmw_key
-					and c.org_key = b.org_key
-					and c.regn_lv = 0
+			left outer join (
+				select c.*
+				from sc_dsb.ds_ag_sc_org_lrn_sts_wly as c
+				join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
+				where c.regn_lv = 0 and d.schl_typ = #{schType}
+			) as c on c.yyyymmw_key = a.yyyymmw_key
+					and c.org_key = b.org_key			
 			where a.yyyymmw_key <![CDATA[<=]]> concat(#{yymm}, #{wk})::INTEGER
 				and b.org_cd = #{orgId} 
 			order by a.yyyymmw_key desc 
@@ -237,10 +244,13 @@
 				end as null_check			
 			from sc_dsb.vw_dm_wk_dt as a
 			cross join sc_dsb.vw_dm_org as b 
-			left outer join sc_dsb.ds_ag_sc_org_lrn_sts_mly as c
-				on c.yyyymm_key = a.yyyymm_key
+			left outer join (
+				select c.*
+				from sc_dsb.ds_ag_sc_org_lrn_sts_mly as c
+				join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
+				where c.regn_lv = 0 and d.schl_typ = #{schType}
+			) as c on c.yyyymm_key = a.yyyymm_key
 					and c.org_key = b.org_key 
-					and c.regn_lv = 0
 			where a.yyyymm_key <![CDATA[<=]]> #{yymm}::INTEGER
 				and b.org_cd = #{orgId}
 			order by a.yyyymm_key desc 
@@ -257,24 +267,26 @@
 			round(a.answ_rt * 100) as crt_rt,
 			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
 			a.regn_cd as local_cd, 
-			c.regn_knm as local_nm,
+			d.regn_knm as local_nm,
 			a.regn_lv as depth,
-			c.lat as latitude,
-			c.lon as longitude   
+			d.lat as latitude,
+			d.lon as longitude   
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
-		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
-		join sc_dsb.vw_dm_regn as c on a.regn_lv = c.regn_lv and a.regn_cd = c.regn_cd
+		join sc_dsb.vw_dm_ssvc as b on b.ssvc_akey = a.ssvc_akey 
+		join sc_dsb.vw_dm_org as c on c.org_key = a.org_key
+		join sc_dsb.vw_dm_regn as d on d.regn_lv = a.regn_lv and d.regn_cd = a.regn_cd
 		where
 			a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER 
+			and b.schl_typ = #{schType}
 		<choose>
 			<when test="orgList != null and orgList.size!=0">
-				and b.org_cd in 
+				and c.org_cd in 
 				<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
                     #{item}
                 </foreach>
 			</when>
 			<otherwise>
-				and b.org_cd = #{orgId}
+				and c.org_cd = #{orgId}
 			</otherwise>
 		</choose>
 		order by a.regn_lv asc, a.regn_cd asc			
@@ -289,24 +301,26 @@
 			round(a.answ_rt * 100) as crt_rt,
 			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
 			a.regn_cd as local_cd, 
-			c.regn_knm as local_nm,
+			d.regn_knm as local_nm,
 			a.regn_lv as depth,
-			c.lat as latitude,
-			c.lon as longitude   
+			d.lat as latitude,
+			d.lon as longitude   
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
-		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
-		join sc_dsb.vw_dm_regn as c on a.regn_lv = c.regn_lv and a.regn_cd = c.regn_cd
+		join sc_dsb.vw_dm_ssvc as b on b.ssvc_akey = a.ssvc_akey 
+		join sc_dsb.vw_dm_org as c on c.org_key = a.org_key
+		join sc_dsb.vw_dm_regn as d on d.regn_lv = a.regn_lv and d.regn_cd = a.regn_cd
 		where
 			a.yyyymm_key = #{yymm}::INTEGER 
+			and b.schl_typ = #{schType}
 		<choose>
 			<when test="orgList != null and orgList.size!=0">
-				and b.org_cd in 
+				and c.org_cd in 
 				<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
                     #{item}
                 </foreach>
 			</when>
 			<otherwise>
-				and b.org_cd = #{orgId}
+				and c.org_cd = #{orgId}
 			</otherwise>
 		</choose>
 		order by a.regn_lv asc, a.regn_cd asc	
@@ -356,10 +370,11 @@
 					round(a.answ_rt * 100) as crt_rt,
 					a.zip_cd as zipcode
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_wly as a
-				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
-				join sc_dsb.vw_dm_scr_typ as c on a.scr_typ_key = c.scr_typ_key				
+				join sc_dsb.vw_dm_ssvc as e on e.ssvc_akey = a.ssvc_akey
+				join sc_dsb.vw_dm_org as b on b.org_key = a.org_key
+				join sc_dsb.vw_dm_scr_typ as c on c.scr_typ_key = a.scr_typ_key				
  				<if test="localCd != null and localCd != ''">
- 				join sc_dsb.vw_dm_zip d on a.zip_cd = d.zip_cd
+ 				join sc_dsb.vw_dm_zip d on d.zip_cd = a.zip_cd
  	                <if test="depth == 1"> 
  						and d.lv_1_sido_cd = #{localCd}
  					</if>
@@ -371,6 +386,7 @@
  					</if>
                  </if>
 				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+					and e.schl_typ = #{schType}
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
  					and lower(c.scr_typ) = #{lrnSignal}
@@ -486,8 +502,9 @@
 					round(a.answ_rt * 100) as crt_rt,
 					a.zip_cd as zipcode					
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
-				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
-				join sc_dsb.vw_dm_scr_typ as c on a.scr_typ_key = c.scr_typ_key		
+				join sc_dsb.vw_dm_ssvc as e on e.ssvc_akey = a.ssvc_akey
+				join sc_dsb.vw_dm_org as b on b.org_key = a.org_key
+				join sc_dsb.vw_dm_scr_typ as c on c.scr_typ_key = a.scr_typ_key	
 				<if test="localCd != null and localCd != ''">
  				join sc_dsb.vw_dm_zip d on a.zip_cd = d.zip_cd
  	                <if test="depth == 1"> 
@@ -501,6 +518,7 @@
  					</if>
                  </if>
 				where a.yyyymm_key = #{yymm}::INTEGER
+					and e.schl_typ = #{schType}
  					and b.org_cd = #{orgId}
  					<if test="lrnSignal != null and lrnSignal != ''">
  					and lower(c.scr_typ) = #{lrnSignal}
@@ -628,11 +646,13 @@
 		</otherwise>
 	</choose>
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 	<if test="localCd != null and localCd != ''">
 		join sc_dsb.vw_dm_regn c on a.regn_cd = c.regn_cd and a.regn_lv = c.regn_lv
 	</if>
 		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
+			and d.schl_typ = #{schType}
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 			and b.org_cd in 
@@ -728,11 +748,13 @@
 			</otherwise>
 		</choose>
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 	<if test="localCd != null and localCd != ''">
 		join sc_dsb.vw_dm_regn as c on a.regn_cd = c.regn_cd and a.regn_lv = c.regn_lv
 	</if>
 		where a.yyyymm_key = #{yymm}::INTEGER
+			and d.schl_typ = #{schType}
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 					and b.org_cd in 
@@ -785,11 +807,13 @@
 			c.regn_cd as depth_3_local_cd, 
 			c.regn_knm as depth_3_local_nm
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as f on f.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join sc_dsb.vw_dm_regn as c on c.regn_cd = a.regn_cd and a.regn_lv = 3 and not c.del_yn 
 		join sc_dsb.vw_dm_regn as d on d.regn_cd = c.upp_regn_cd and d.regn_lv = 2 and not d.del_yn 
 		join sc_dsb.vw_dm_regn as e on e.regn_cd = d.upp_regn_cd and e.regn_lv = 1 and not e.del_yn 
-		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER and a.regn_lv = 3 
+		where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER and a.regn_lv = 3
+			and f.schl_typ = #{schType} 
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 					and b.org_cd in 
@@ -815,11 +839,13 @@
 			c.regn_cd as depth_3_local_cd, 
 			c.regn_knm as depth_3_local_nm
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as f on f.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join sc_dsb.vw_dm_regn as c on c.regn_cd = a.regn_cd and a.regn_lv = 3 and not c.del_yn 
 		join sc_dsb.vw_dm_regn as d on d.regn_cd = c.upp_regn_cd and d.regn_lv = 2 and not d.del_yn 
 		join sc_dsb.vw_dm_regn as e on e.regn_cd = d.upp_regn_cd and e.regn_lv = 1 and not e.del_yn 
 		where a.yyyymm_key = #{yymm}::INTEGER and a.regn_lv = 3 
+			and f.schl_typ = #{schType} 
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 					and b.org_cd in 
@@ -859,12 +885,14 @@
 		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
 		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join sc_dsb.vw_dm_wk_dt as c on c.yyyymmw_key = a.yyyymmw_key
 		where
 			a.yyyymmw_key between concat(#{searchStartYymm}, '1')::INTEGER and concat(#{searchEndYymm}, '6')::INTEGER
 			and a.regn_lv = 0
-		    and b.org_cd = #{orgId}
+		    and d.schl_typ = #{schType} 
+			and b.org_cd = #{orgId}
 		group by b.org_cd
 	</select>
 	
@@ -879,6 +907,7 @@
 		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
 		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join (
 			select distinct yyyymm_key, yyyymm_wk_ko
@@ -888,7 +917,8 @@
 		where
 			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 			and a.regn_lv = 0
-		    and b.org_cd = #{orgId} 
+		    and d.schl_typ = #{schType} 
+			and b.org_cd = #{orgId} 
 		group by b.org_cd
 	</select>
 	
@@ -902,12 +932,14 @@
 		    round(a.answ_rt * 100) as avg_crt_rt,
 		    a.tot_stud_cnt as stud_cnt
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join sc_dsb.vw_dm_wk_dt as c on c.yyyymmw_key = a.yyyymmw_key
 		where
 			a.yyyymmw_key between concat(#{searchStartYymm}, '1')::INTEGER and concat(#{searchEndYymm}, '6')::INTEGER
 			and a.regn_lv = 0
-		    and b.org_cd = #{orgId}			
+		    and d.schl_typ = #{schType} 
+			and b.org_cd = #{orgId}			
 	</select>
 	
 	<select id="selectMonthLrnSttTrend" parameterType="hashMap" resultType="resultMap">
@@ -920,6 +952,7 @@
 		    round(a.answ_rt * 100) as avg_crt_rt,
 		    a.tot_stud_cnt as stud_cnt
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join (
 			select distinct yyyymm_key, yyyymm_wk_ko
@@ -929,7 +962,8 @@
 		where
 			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 			and a.regn_lv = 0
-		    and b.org_cd = #{orgId}
+		    and d.schl_typ = #{schType} 
+			and b.org_cd = #{orgId}
 	</select>
 	
 	<select id="selectOrgLrnStt" parameterType="hashMap" resultType="resultMap">
@@ -951,11 +985,13 @@
 				coalesce(round(sum(a.answ_rt * 100) / count(a.answ_rt)), 0) as org_avg_crt_rt,
 				coalesce(round(sum(a.dd_avg_lrn_ss) / count(a.dd_avg_lrn_ss)), 0) as org_avg_day_lrn_sec
 			from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+			join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 			where
 				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 				and a.regn_lv = 0
-		   		and b.org_cd = #{orgId}
+		   		and c.schl_typ = #{schType} 
+				and b.org_cd = #{orgId}
 		) as org_rst,
 		(
 			select 
@@ -974,8 +1010,10 @@
 					, percent_rank() over (partition by a.answ_rt is not null ORDER BY a.answ_rt desc) as answ_rt_prnk
 					, percent_rank() over (partition by a.dd_avg_lrn_ss is not null ORDER BY a.dd_avg_lrn_ss desc) as dd_avg_lrn_ss_prnk
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_ssvc as b on b.ssvc_akey = a.ssvc_akey
 				where
 					a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					and b.schl_typ = #{schType} 
 			) A
 		) as top10_rst
 	</select>
@@ -994,9 +1032,11 @@
 		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
 				count(a.answ_rt) as crt_rt_cnt 
 			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 			where 
 				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1032,9 +1072,11 @@
 		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
 				count(a.answ_rt) as crt_rt_cnt 
 			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 			where 
 				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1070,9 +1112,11 @@
 		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
 				count(a.exec_rt) as ex_rt_cnt 
 			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 			where 
 				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1108,9 +1152,11 @@
 		        coalesce(round(avg(a.att_rt) * 100), 0) as avg_att_rt,
 				count(a.exec_rt) as ex_rt_cnt 
 			from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+			join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 			join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 			where 
 				a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1141,11 +1187,13 @@
 		    a.encr_stud_cnt as signal3,
 		    a.tot_stud_cnt as total
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
 		join sc_dsb.vw_dm_wk_dt as c on a.yyyymmw_key = c.yyyymmw_key
 		where
 			a.yyyymmw_key between concat(#{searchStartYymm},'1')::INTEGER and concat(#{searchEndYymm},'6')::INTEGER
 			and a.regn_lv = 0
+			and d.schl_typ = #{schType} 
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 			and b.org_cd in 
@@ -1168,6 +1216,7 @@
 		    a.encr_stud_cnt as signal3,
 		    a.tot_stud_cnt as total
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key 
 		join (
 			select distinct yyyymm_key, yyyymm_wk_ko
@@ -1177,6 +1226,7 @@
 		where
 			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 			and a.regn_lv = 0
+			and d.schl_typ = #{schType} 
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
 			and b.org_cd in 
@@ -1199,6 +1249,7 @@
 		    round(a.exec_rt * 100) as avg_ex_rt,
 		    round(a.dd_avg_lrn_ss) as avg_day_lrn_sec
 		from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as e on e.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 		join 
 		(
@@ -1223,8 +1274,10 @@
 					count(a.stud_key) as month_cnt,
 					sum(case when a.answ_rt is null then 1 else 0 end) as null_cnt
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					and c.schl_typ = #{schType} 
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
 							and b.org_cd in 
@@ -1244,6 +1297,7 @@
 			limit 1
 		) d on d.stud_key = a.stud_key
 		where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+				and e.schl_typ = #{schType} 
 		<choose>
 			<when test="orgList != null and orgList.size!=0">
 				and b.org_cd in 
@@ -1308,8 +1362,10 @@
 					count(a.stud_key) as month_cnt
 					, sum(case when a.answ_rt is null then 1 else 0 end) as null_cnt
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+					and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1335,8 +1391,10 @@
 						max_add_lrn_subj_nm,
 						max_add_lrn_subj_exec_cnt
 					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+						and c.schl_typ = #{schType} 
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
 						and b.org_cd in 
@@ -1351,7 +1409,7 @@
 					order by stud_key, max_add_lrn_subj_exec_cnt desc
 				) c1_1
 			) c on a.stud_key = c.stud_key and c.ord = 1
-			 where a.avg_crt_rt <![CDATA[>=]]> 80
+			where a.avg_crt_rt <![CDATA[>=]]> 80
 				 and a.crt_rt_cnt <![CDATA[>=]]> 2
 			order by a.avg_crt_rt desc, crt_rt_check desc, a.avg_ex_rt desc, a.avg_att_rt desc, a.stud_key
 			limit 1
@@ -1378,19 +1436,21 @@
 					coalesce(round(avg(a.wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
 					coalesce(round(avg(a.dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
-					<choose>
-						<when test="orgList != null and orgList.size!=0">
-							and b.org_cd in 
-							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
-			                    #{item}
-			                </foreach>
-						</when>
-						<otherwise>
-							and b.org_cd = #{orgId}
-						</otherwise>
-					</choose>
+						and c.schl_typ = #{schType} 
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>
 				group by a.stud_key, a.org_key
 			) b1
 			join (
@@ -1417,6 +1477,7 @@
 								a.stud_key,
 								a.answ_rt
 							from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+							join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 							join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 							join (
 								select distinct yyyymm_key, pre_1m_yyyymm_key
@@ -1424,6 +1485,7 @@
 								where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 							) as c on a.yyyymm_key = c.yyyymm_key
 							where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+								and d.schl_typ = #{schType} 
 						<choose>
 							<when test="orgList != null and orgList.size!=0">
 								and b.org_cd in 
@@ -1445,8 +1507,10 @@
 							min(yyyymm_key) as min_yymm,
 							stud_key
 						from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+						join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 						join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 						where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+							and c.schl_typ = #{schType} 
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
 							and b.org_cd in 
@@ -1522,19 +1586,21 @@
 					count(answ_rt) as crt_rt_cnt,
 					count(a.stud_key) as month_cnt
 				from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+				join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 				join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 				where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
-					<choose>
-						<when test="orgList != null and orgList.size!=0">
-							and b.org_cd in 
-							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
-			                    #{item}
-			                </foreach>
-						</when>
-						<otherwise>
-							and b.org_cd = #{orgId}
-						</otherwise>
-					</choose>
+						and c.schl_typ = #{schType} 
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>
 				group by a.stud_key
 			) a
 			join (				
@@ -1549,19 +1615,21 @@
 						coalesce(round(avg(a.wnote_unfnsh_cnt)), 0) as avg_incrt_nt_nc_cnt,
 						coalesce(round(avg(a.dd_avg_lrn_ss)), 0) as avg_day_avg_lrn_sec
 					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
-						<choose>
-							<when test="orgList != null and orgList.size!=0">
-								and b.org_cd in 
-								<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
-				                    #{item}
-				                </foreach>
-							</when>
-							<otherwise>
-								and b.org_cd = #{orgId}
-							</otherwise>
-						</choose>
+							and c.schl_typ = #{schType} 
+					<choose>
+						<when test="orgList != null and orgList.size!=0">
+							and b.org_cd in 
+							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+			                    #{item}
+			                </foreach>
+						</when>
+						<otherwise>
+							and b.org_cd = #{orgId}
+						</otherwise>
+					</choose>
 					group by a.stud_key, a.org_key
 				) b1
 				join (
@@ -1589,6 +1657,7 @@
 									a.stud_key,
 									a.answ_rt -- ,
 								from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+								join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 								join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 								join (
 									select distinct yyyymm_key, pre_1m_yyyymm_key
@@ -1596,6 +1665,7 @@
 									where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 								) as c on a.yyyymm_key = c.yyyymm_key
 								where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+									and d.schl_typ = #{schType} 
 							<choose>
 								<when test="orgList != null and orgList.size!=0">
 									and b.org_cd in 
@@ -1617,8 +1687,10 @@
 								min(yyyymm_key) as min_yymm,
 								stud_key
 							from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+							join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 							join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 							where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+								and c.schl_typ = #{schType} 
 						<choose>
 							<when test="orgList != null and orgList.size!=0">
 								and b.org_cd in 
@@ -1654,19 +1726,21 @@
 						max_add_lrn_subj_nm,
 						max_add_lrn_subj_exec_cnt
 					from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+					join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 					join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
 					where a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
-			<choose>
-				<when test="orgList != null and orgList.size!=0">
-					and b.org_cd in 
-					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
-	                    #{item}
-	                </foreach>
-				</when>
-				<otherwise>
-					and b.org_cd = #{orgId}
-				</otherwise>
-			</choose>
+						and c.schl_typ = #{schType} 
+				<choose>
+					<when test="orgList != null and orgList.size!=0">
+						and b.org_cd in 
+						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
+		                    #{item}
+		                </foreach>
+					</when>
+					<otherwise>
+						and b.org_cd = #{orgId}
+					</otherwise>
+				</choose>
 					order by stud_key, max_add_lrn_subj_exec_cnt desc
 				) c1_1
 			) c on a.stud_key = c.stud_key and c.ord = 1
@@ -1684,9 +1758,11 @@
  		    floor(dd_avg_lrn_ss) as day_avg_lrn_sec,
  		    round(answ_rt * 100) as crt_rt
  		from sc_dsb.ds_ag_sc_stud_lrn_sts_wly as a
+		join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
  		where
  			yyyymmw_key = concat(#{searchYymm}, #{searchWk})::INTEGER
+ 			and c.schl_typ = #{schType} 
  			and stud_key = #{studId}::INTEGER
  			and b.org_cd = #{orgId}
  	</select>
@@ -1702,9 +1778,11 @@
  		    floor(dd_avg_lrn_ss) as day_avg_lrn_sec,
  		    round(answ_rt * 100) as crt_rt
  		from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
+		join sc_dsb.vw_dm_ssvc as c on c.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
  		where
  			yyyymm_key = #{searchYymm}::INTEGER
+ 			and c.schl_typ = #{schType} 
  			and stud_key = #{studId}::INTEGER
  			and b.org_cd = #{orgId}
 	</select>
