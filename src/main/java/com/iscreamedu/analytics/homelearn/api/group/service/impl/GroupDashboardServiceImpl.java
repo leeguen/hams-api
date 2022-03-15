@@ -88,13 +88,6 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
 						data.put("ms_type_cnt", cnt_ms);
 					}
-					// 초등 : 통합기관의 서비스시작일 조정
-					if(mapperName.equals("Group_ES")) {
-						data_es_org = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getIntegrateAgencyInfo");
-						if(data_es_org!= null) {
-							data.put("svc_open_de", data_es_org.get("svcOpenDate"));
-						}
-					}
 					data.put("es_type_cnt", cnt_es);
 					setResult(dataKey, data);
 				} else {

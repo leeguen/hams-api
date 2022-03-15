@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="Group_ES">
-
-	<select id="getIntegrateAgencyInfo" parameterType="hashMap" resultType="resultMap">
-	/* Group_ES.getSchoolType : 학교타입 디폴트값 지정을 위한 학생수 추출 */
-		SELECT MIN(SVC_OPEN_DATE) AS SVC_OPEN_DATE
-		FROM INTEGRATE_ORG_INFO 
-		WHERE ORG_ID = #{orgId} 
-	</select>
 	
 	<select id="getSchoolType" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.getSchoolType : 학교타입 디폴트값 지정을 위한 학생수 추출 */
