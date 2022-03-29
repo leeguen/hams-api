@@ -173,31 +173,34 @@
 				else null
 			end as day_avg_lrn_tm
         from (
-			select 
-				distinct(a.yyyymmw_key) as yyyymmw_key
-				, a.mmw_ko as mmw_ko
-				, b.org_cd as org_id
-				, round(c.att_rt * 100) as att_rt
-				, round(c.exec_rt * 100) as ex_rt
-				, round(c.answ_rt * 100) as crt_rt
-				, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
-				, case 
-					when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
-					else 'Y'
-				end as null_check			
-			from sc_dsb.vw_dm_wk_dt as a
-			cross join sc_dsb.vw_dm_org as b 
-			left outer join (
-				select c.*
-				from sc_dsb.ds_ag_sc_org_lrn_sts_wly as c
-				join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
-				where c.regn_lv = 0 and d.schl_typ = #{schType}
-			) as c on c.yyyymmw_key = a.yyyymmw_key
-					and c.org_key = b.org_key			
-			where a.yyyymmw_key <![CDATA[<=]]> concat(#{yymm}, #{wk})::INTEGER
-				and b.org_cd = #{orgId} 
-			order by a.yyyymmw_key desc 
-			limit 6
+        	select e.* 
+	        from (
+				select 
+					distinct(a.yyyymmw_key) as yyyymmw_key
+					, a.mmw_ko as mmw_ko
+					, b.org_cd as org_id
+					, round(c.att_rt * 100) as att_rt
+					, round(c.exec_rt * 100) as ex_rt
+					, round(c.answ_rt * 100) as crt_rt
+					, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
+					, case 
+						when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
+						else 'Y'
+					end as null_check			
+				from sc_dsb.vw_dm_wk_dt as a
+				cross join sc_dsb.vw_dm_org as b 
+				left outer join (
+					select c.*
+					from sc_dsb.ds_ag_sc_org_lrn_sts_wly as c
+					join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
+					where c.regn_lv = 0 and d.schl_typ = #{schType}
+				) as c on c.yyyymmw_key = a.yyyymmw_key
+						and c.org_key = b.org_key			
+				where a.yyyymmw_key <![CDATA[<=]]> concat(#{yymm}, #{wk})::INTEGER
+					and b.org_cd = #{orgId} 
+				order by a.yyyymmw_key desc 
+				limit 6
+			) e order by e.yyyymmw_key asc 
         ) as d
 	</select>
 	
@@ -230,31 +233,34 @@
 				else null
 			end as day_avg_lrn_tm
         from (
-			select 
-				distinct(a.yyyymm_key) as yyyymm_key
-				, substring(a.mmw_ko::TEXT from 1 for 3) as mm_ko
-				, b.org_cd as org_id
-				, round(c.att_rt * 100) as att_rt
-				, round(c.exec_rt * 100) as ex_rt
-				, round(c.answ_rt * 100) as crt_rt
-				, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
-				, case 
-					when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
-					else 'Y'
-				end as null_check			
-			from sc_dsb.vw_dm_wk_dt as a
-			cross join sc_dsb.vw_dm_org as b 
-			left outer join (
-				select c.*
-				from sc_dsb.ds_ag_sc_org_lrn_sts_mly as c
-				join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
-				where c.regn_lv = 0 and d.schl_typ = #{schType}
-			) as c on c.yyyymm_key = a.yyyymm_key
-					and c.org_key = b.org_key 
-			where a.yyyymm_key <![CDATA[<=]]> #{yymm}::INTEGER
-				and b.org_cd = #{orgId}
-			order by a.yyyymm_key desc 
-			limit 4
+        	select e.* 
+	        from (
+				select 
+					distinct(a.yyyymm_key) as yyyymm_key
+					, substring(a.mmw_ko::TEXT from 1 for 3) as mm_ko
+					, b.org_cd as org_id
+					, round(c.att_rt * 100) as att_rt
+					, round(c.exec_rt * 100) as ex_rt
+					, round(c.answ_rt * 100) as crt_rt
+					, floor(c.dd_avg_lrn_ss / 60) as day_avg_lrn_tm
+					, case 
+						when c.att_rt is null and c.exec_rt is null and c.answ_rt is null and c.dd_avg_lrn_ss is null then 'N'
+						else 'Y'
+					end as null_check			
+				from sc_dsb.vw_dm_wk_dt as a
+				cross join sc_dsb.vw_dm_org as b 
+				left outer join (
+					select c.*
+					from sc_dsb.ds_ag_sc_org_lrn_sts_mly as c
+					join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = c.ssvc_akey 
+					where c.regn_lv = 0 and d.schl_typ = #{schType}
+				) as c on c.yyyymm_key = a.yyyymm_key
+						and c.org_key = b.org_key 
+				where a.yyyymm_key <![CDATA[<=]]> #{yymm}::INTEGER
+					and b.org_cd = #{orgId}
+				order by a.yyyymm_key desc 
+				limit 4
+			) e order by e.yyyymm_key asc 
         ) as d
 	</select>
 	
@@ -878,12 +884,12 @@
 	/* Group_MS.selectWeekLrnStt : 학습지표 주간 */
 		select 		
 			b.org_cd as org_id,
-		    string_agg(c.yyyymmw_ko, ',') as category_sp,
-		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',') as stud_cnt_sp,
-		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',') as avg_att_rt_sp,
-		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',') as avg_ex_rt_sp,
-		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
-		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
+		    string_agg(c.yyyymmw_ko, ',' order by a.yyyymmw_key) as category_sp,
+		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',' order by a.yyyymmw_key) as stud_cnt_sp,
+		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',' order by a.yyyymmw_key) as avg_att_rt_sp,
+		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',' order by a.yyyymmw_key) as avg_ex_rt_sp,
+		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',' order by a.yyyymmw_key) as avg_crt_rt_sp,
+		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',' order by a.yyyymmw_key) as avg_day_lrn_sec_sp
 		from sc_dsb.ds_ag_sc_org_lrn_sts_wly as a
 		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
@@ -900,12 +906,12 @@
 	/* Group_MS.selectMonthLrnStt : 학습지표 월간 */
 		select 
 			b.org_cd as org_id,			
-		    string_agg(distinct c.yyyymm_wk_ko, ',') as category_sp,
-		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',') as stud_cnt_sp,
-		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',') as avg_att_rt_sp,
-		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',') as avg_ex_rt_sp,
-		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',') as avg_crt_rt_sp,
-		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',') as avg_day_lrn_sec_sp
+		    string_agg(distinct c.yyyymm_wk_ko, ',' order by a.yyyymm_key) as category_sp,
+		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',' order by a.yyyymm_key) as stud_cnt_sp,
+		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',' order by a.yyyymm_key) as avg_att_rt_sp,
+		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',' order by a.yyyymm_key) as avg_ex_rt_sp,
+		    string_agg(coalesce(round(a.answ_rt*100)::TEXT,''), ',' order by a.yyyymm_key) as avg_crt_rt_sp,
+		    string_agg(coalesce(round(a.dd_avg_lrn_ss)::TEXT,''), ',' order by a.yyyymm_key) as avg_day_lrn_sec_sp
 		from sc_dsb.ds_ag_sc_org_lrn_sts_mly as a
 		join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 		join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
@@ -939,7 +945,8 @@
 			a.yyyymmw_key between concat(#{searchStartYymm}, '1')::INTEGER and concat(#{searchEndYymm}, '6')::INTEGER
 			and a.regn_lv = 0
 		    and d.schl_typ = #{schType} 
-			and b.org_cd = #{orgId}			
+			and b.org_cd = #{orgId}		
+		order by a.yyyymmw_key 	
 	</select>
 	
 	<select id="selectMonthLrnSttTrend" parameterType="hashMap" resultType="resultMap">
@@ -963,7 +970,8 @@
 			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
 			and a.regn_lv = 0
 		    and d.schl_typ = #{schType} 
-			and b.org_cd = #{orgId}
+			and b.org_cd = #{orgId}		
+		order by a.yyyymm_key 	
 	</select>
 	
 	<select id="selectOrgLrnStt" parameterType="hashMap" resultType="resultMap">
@@ -1205,6 +1213,7 @@
 			and b.org_cd = #{orgId}
 				</otherwise>
 			</choose>
+		order by a.yyyymmw_key 
 	</select>
 	
 	<select id="selectMonthLrnSignalTrend" parameterType="hashMap" resultType="resultMap">
@@ -1238,6 +1247,7 @@
 			and b.org_cd = #{orgId}
 				</otherwise>
 			</choose>
+		order by a.yyyymm_key 
 	</select>
 	
 	<select id="selectStrengthHabitExcellentStud" parameterType="hashMap" resultType="resultMap">
