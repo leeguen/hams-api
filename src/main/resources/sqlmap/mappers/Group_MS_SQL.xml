@@ -135,7 +135,7 @@
 					and org.org_cd = #{orgId}
 		<choose>
 			<when test="localCd != null and localCd != ''">
-					and regn_cd = #{localCd}		-- 추후 확인		
+					and regn_cd = #{localCd}				
 			</when>
 			<otherwise>
 					and regn_lv = 0
@@ -906,7 +906,7 @@
 	/* Group_MS.selectMonthLrnStt : 학습지표 월간 */
 		select 
 			b.org_cd as org_id,			
-		    string_agg(distinct c.yyyymm_wk_ko, ',' order by a.yyyymm_key) as category_sp,
+		    string_agg(distinct c.yyyymm_wk_ko, ',') as category_sp,
 		    string_agg(coalesce(a.tot_stud_cnt::TEXT,''), ',' order by a.yyyymm_key) as stud_cnt_sp,
 		    string_agg(coalesce(round(a.att_rt*100)::TEXT,''), ',' order by a.yyyymm_key) as avg_att_rt_sp,
 		    string_agg(coalesce(round(a.exec_rt*100)::TEXT,''), ',' order by a.yyyymm_key) as avg_ex_rt_sp,
@@ -919,6 +919,7 @@
 			select distinct yyyymm_key, yyyymm_wk_ko
 			from sc_dsb.vw_dm_wk_dt
 			where yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
+			order by yyyymm_key
 		) as c on c.yyyymm_key = a.yyyymm_key
 		where
 			a.yyyymm_key between #{searchStartYymm}::INTEGER and #{searchEndYymm}::INTEGER
@@ -1507,7 +1508,6 @@
 								and b.org_cd = #{orgId}
 							</otherwise>
 						</choose>
-							group by a.stud_key, a.yyyymm_key, c.pre_1m_yyyymm_key
 						) d
 						left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as pre_1m on pre_1m.yyyymm_key = d.lyymm and pre_1m.stud_key = d.stud_key
 						group  by d.stud_key
@@ -1648,8 +1648,7 @@
 						diff_crt_rt,
 						coalesce(first_crt_rt, 0) as first_crt_rt,
 						coalesce(last_crt_rt, 0) as last_crt_rt,
-						coalesce(( last_crt_rt - first_crt_rt ), 0) as diff_month_crt_rt
-						
+						coalesce(( last_crt_rt - first_crt_rt ), 0) as diff_month_crt_rt						
 					from (
 						select 
 							b2_1.stud_key,
@@ -1665,7 +1664,7 @@
 									a.yyyymm_key,	
 									c.pre_1m_yyyymm_key as lyymm,
 									a.stud_key,
-									a.answ_rt -- ,
+									a.answ_rt
 								from sc_dsb.ds_ag_sc_stud_lrn_sts_mly as a
 								join sc_dsb.vw_dm_ssvc as d on d.ssvc_akey = a.ssvc_akey
 								join sc_dsb.vw_dm_org as b on a.org_key = b.org_key
@@ -1687,7 +1686,6 @@
 									and b.org_cd = #{orgId}
 								</otherwise>
 							</choose>
-								group by a.stud_key, a.yyyymm_key, c.pre_1m_yyyymm_key
 							) d
 							left outer join sc_dsb.ds_ag_sc_stud_lrn_sts_mly as pre_1m on pre_1m.yyyymm_key = d.lyymm and pre_1m.stud_key = d.stud_key
 							group  by d.stud_key
