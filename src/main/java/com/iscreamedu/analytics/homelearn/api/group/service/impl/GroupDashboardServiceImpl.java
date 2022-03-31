@@ -58,6 +58,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			Map<String,Object> data = new HashMap<>();
 			Map<String,Object> data_hl = new HashMap<>();
 			Map<String,Object> data_es = new HashMap<>();
+			Map<String,Object> data_es_org = new HashMap<>();
 			Map<String,Object> data_ms = new HashMap<>();	 
 			try {		
 				//홈런 API 조회

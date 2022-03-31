@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="Group_ES">
-
+	
 	<select id="getSchoolType" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.getSchoolType : 학교타입 디폴트값 지정을 위한 학생수 추출 */
 	/* DB UTC 기준 + 배치 월요일 03:30 경 완료 시점 기준 default 선택 주차 계산 */
