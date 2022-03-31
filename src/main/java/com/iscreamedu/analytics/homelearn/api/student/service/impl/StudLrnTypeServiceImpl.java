@@ -227,6 +227,20 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 
 	    return result;
     }
+    
+    @Override
+    public Map getStudLrnTypeInfo(int studId) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        Map<String,Object> paramMap = new HashMap<>();
+        
+        paramMap.put("studId", studId);
+        
+        data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
+        			
+        setResult(dataKey,data);
+
+	    return result;
+    }
 
 
     /**

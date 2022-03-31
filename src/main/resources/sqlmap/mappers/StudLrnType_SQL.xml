@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="StudLrnType">
     <select id="getLrnTypeSummary" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeSummary */
     	SELECT
 			LRN_TYPE_NM,
 			-- LRN_TYPE_IMG
@@ -12,6 +13,7 @@
     </select>
     
     <select id="getLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeInfo */
     	SELECT
 		    LRN_TYPE_NM,
 		    LRN_TYPE_IMG,
@@ -42,6 +44,7 @@
     </select>
     
     <select id="getLrnTypeInfoYn" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeInfoYn */
     	SELECT
 			IF(LRN_TYPE_CNT = 1, 'Y', 'N') AS LRN_TYPE_ANAL_YN,
 		    IF(LRN_TYPE_CHECK_CNT = 1, 'Y', 'N') AS LRN_TYPE_CHECK_YN
@@ -56,6 +59,7 @@
     </select>
     
     <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeDetail */
     	SELECT
 			LI.LRN_TYPE_NM,
 			LD.LRN_TYPE_CD,
@@ -73,6 +77,7 @@
     </select>
     
     <select id="getLrnTypeGrp" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeGrp */
     	SELECT
 			LI.LRN_TYPE_NM AS MAX_LRN_TYPE_NM
 		FROM GRP_LRN_TYPE_STT GL
@@ -83,6 +88,7 @@
     </select>
     
     <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeHistory */
     	SELECT
 		    ST.MM,
 		    LI.LRN_TYPE_NM,
@@ -120,6 +126,7 @@
     </select>
     
     <update id="updateLrnTypeInfo" parameterType="hashMap">
+    	/* StudLrnType.updateLrnTypeInfo */
     	UPDATE LRN_TYPE_GUIDE 
 		SET 
 			LRN_TYPE_GUIDE = #{guideValue},
@@ -128,6 +135,7 @@
     </update>
     
     <select id="getReportEmotion" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getReportEmotion */
     	SELECT
     		IFNULL(MR1.MSG, NULL) AS MSG,
 			IF(CNT = 0, 'N', 'Y') AS EMOTION_YN,
@@ -163,6 +171,7 @@
     </select>
     
     <insert id="insertReportEmotion" parameterType="hashMap">
+    	/* StudLrnType.insertReportEmotion */
     	<choose>
 	    	<when test='currConCheck == "m"'>
 	   		INSERT INTO MONTH_REPORT_EMOTION
@@ -204,5 +213,28 @@
 	    	</otherwise>
     	</choose>
     </insert>
+    
+    <select id="getStudLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getStudLrnTypeInfo */
+    	SELECT
+			(SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = MS.LRN_TYPE_CD) AS LRN_TYPE_CD,
+		    MS.LRN_TYPE_GROUP_CD,
+			(SELECT CD_NM FROM COMM_CD WHERE CD = ST.LRN_STT_CD AND GRP = 'LRN_STT_CD') AS LRN_STT_CD,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_TYPE AND GRP = 'STUD_TYPE') AS STUD_TYPE,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_STATUS AND GRP = 'STUD_STATUS') AS STUD_STATUS,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_STATUS_DETAIL AND GRP = 'STUD_STATUS_DETAIL') AS STUD_STATUS_DETAIL
+		FROM STUD ST 
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        LRN_TYPE_CD,
+		        LRN_TYPE_GROUP_CD
+			FROM MONTH_STUD
+			WHERE STUD_ID = #{studId}
+		    ORDER BY YYMM DESC
+		    LIMIT 1
+		) MS ON ST.STUD_ID = MS.STUD_ID
+		WHERE ST.STUD_ID = #{studId};
+    </select>
     
 </mapper>

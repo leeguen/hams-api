@@ -109,6 +109,18 @@ public class StudentController {
     }
     
     /**
+     * 학습유형 안내 (STUD-LT-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping({"/getStudLrnTypeInfo/{studId}", "/getStudLrnTypeInfo/{studId}.ai"})
+    public ResponseEntity getStudLrnTypeInfo(@PathVariable("studId") int studId) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getStudLrnTypeInfo(studId);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
      * 리포트 리스트 (STUD-LA-001)
      * @param params
      * @return
