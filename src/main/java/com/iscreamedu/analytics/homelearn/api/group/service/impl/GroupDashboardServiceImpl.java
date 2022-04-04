@@ -1644,17 +1644,30 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					crtRt = lrnPlanStudLrnSttResult.get("crtRt").toString();
 				}
 				
+				/*** ( HL-26999 : 최초 추가 )
+				==  학습계획 팝업 호출 시 파라미터 정보  ==
+				a. Key : p
+				b. Value : AES 암호화된 값
+				c. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&&&학교구분코드(ES/MS) 
+				( HL-41327 : &&학교구분코드(ES/MS) 추가 )
+				d. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&기관코드&기관아이디&학교구분코드(ES/MS) 
+				( HL-31959 : 학습계획에 특별학습을 추가 기능 : 특정 학교만 허용(오정초) )
+				*/
 				String beforEncoding = searchYy + "&" + searchMm + "&" + searchWk + "&" + studId + "&" + studNm + "&" + grade + "&" + lrnSignal + "&" + attRt + "&" + exRt + "&" + dayAvgLrnSec + "&" + crtRt;
 				
 				if(paramMap.get("agnId") != null && paramMap.get("orgId") != null) {
 					String orgId = paramMap.get("orgId").toString();
 					String agnId = paramMap.get("agnId").toString();
-					beforEncoding = searchYy + "&" + searchMm + "&" + searchWk + "&" + studId + "&" + studNm + "&" + grade + "&" + lrnSignal + "&" + attRt + "&" + exRt + "&" + dayAvgLrnSec + "&" + crtRt + "&" + orgId + "&" + agnId;
+					beforEncoding += "&" + orgId + "&" + agnId;
+				} else {
+					beforEncoding += "&&";
 				}
 				
+				if(mapperName.equals("Group_MS")) beforEncoding += "&" + "MS";
+				else beforEncoding += "&" + "ES";
+				
 				String afterEncoding = getEncodedStr(beforEncoding);
-	//	2021&12&1&2008074&최서정&6&2&100&56&3499&39&seocho4&30
-	//			lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
+//				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
 				lrnPlanStudLrnSttMap.put("p", afterEncoding);
 				data.put("lrnPlanStudLrnStt", lrnPlanStudLrnSttMap);
 			}
