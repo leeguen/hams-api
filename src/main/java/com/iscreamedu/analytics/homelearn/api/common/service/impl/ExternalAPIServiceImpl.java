@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	
 	@Value("${extapi.hlfast.url}")
 	String HLDW_API; //학생,교사 정보 - DW FAST API 주소
+	
+	@Value("${extapi.hl.stud.auth.url}")
+	String STUD_AUTH_API; //학생 인증 API 주소
 	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -618,6 +622,58 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		}
 	        	} catch(Exception e) {
 	        		LOGGER.debug("error:" + e.getMessage());
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if (apiName.equals("studAuth")) {
+	        	try {
+	        		String url = STUD_AUTH_API;
+	        		String token = paramMap.get("token").toString();
+	        		
+	        		JSONParser parser = new JSONParser();
+	        		HttpHeaders studAuthHeaders = new HttpHeaders();
+	        		studAuthHeaders.set("token", token);
+	        		
+	        		HttpEntity<String> studAuthEntity = new HttpEntity<>(studAuthHeaders);
+	        		
+		        	ResponseEntity<String> responseData = restTemplate.exchange(url, HttpMethod.GET, studAuthEntity, String.class, studAuthHeaders);
+		        	Object studAuthObj = parser.parse(responseData.getBody());
+		            JSONObject studAuthResponseObj = (JSONObject) studAuthObj;
+		            
+		            int statusCode = Integer.parseInt(responseData.getStatusCode().toString());
+		            
+		        	LOGGER.debug("apiUri : " + url);
+		        	
+		        	if(statusCode == 200) {
+		        		setResult(dataKey, studAuthResponseObj);
+		        	} else if(statusCode == 400) {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+						msgMap.put("resultCode", ValidationCode.EX_API_NO_DATA.getCode());
+						msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage());
+						setResult(msgKey, msgMap);
+					} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage());
+		        		setResult(msgKey, msgMap);
+		        	}
+		        	
+		        	/*if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else if("400".equals(responseData.get("code").toString())) {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+						msgMap.put("resultCode", ValidationCode.EX_API_NO_DATA.getCode());
+						msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage());
+						setResult(msgKey, msgMap);
+					} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", ValidationCode.EX_API_NO_DATA.getMessage() + ":(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}*/
+	        	} catch(Exception e) {
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());

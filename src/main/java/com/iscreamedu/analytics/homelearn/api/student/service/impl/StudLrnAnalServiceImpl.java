@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.student.service.impl;
 
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
@@ -48,6 +49,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     
     @Autowired
     CommonMapperLrnType commonMapperLrnType;
+    
+    @Autowired
+	ExternalAPIService externalAPIservice;
     
     @Override
     public Map getYymmwk(Map<String, Object> paramMap) throws Exception {
@@ -118,6 +122,47 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	} else {
         		setResult(msgKey, decodeResult);
         	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
+    public Map getStudInfo(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+    	
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"token"}, paramMap);
+        
+        if(vu.isValid()) {
+        	paramMap.put("apiName", "studAuth");
+        	/*getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		
+        		Map<String, Object> yymmwkMap = new LinkedHashMap<>();
+				Map<String, Object> yymmwkDataMap = new LinkedHashMap<>();
+				
+				yymmwkDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getYymm");
+				
+				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 6));
+				int mmData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(4, 6));
+				
+				data.put("yyyy", yyData);
+				data.put("mm", mmData);
+				
+				setResult(dataKey,data);
+        			
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}*/
+        	
+        	Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
         	
         } else {
         	setResult(msgKey, vu.getResult());

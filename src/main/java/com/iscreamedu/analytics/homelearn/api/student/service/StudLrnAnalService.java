@@ -8,6 +8,8 @@ public interface StudLrnAnalService {
 	
 	public Map getYymm(Map<String,Object> paramMap) throws Exception;
 	
+	public Map getStudInfo(Map<String,Object> paramMap) throws Exception;
+	
     public Map getReportList(Map<String,Object> paramMap) throws Exception;
 
     public Map getHomeSummary(Map<String, Object> paramMap) throws Exception;
