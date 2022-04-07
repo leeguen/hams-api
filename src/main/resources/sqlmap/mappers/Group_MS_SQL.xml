@@ -271,7 +271,7 @@
 			round(a.att_rt * 100) as att_rt,
 			round(a.exec_rt * 100) as ex_rt, 
 			round(a.answ_rt * 100) as crt_rt,
-			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
+			round(a.dd_avg_lrn_ss) as day_avg_lrn_tm,
 			a.regn_cd as local_cd, 
 			d.regn_knm as local_nm,
 			a.regn_lv as depth,
@@ -305,7 +305,7 @@
 			round(a.att_rt * 100) as att_rt,
 			round(a.exec_rt * 100) as ex_rt, 
 			round(a.answ_rt * 100) as crt_rt,
-			floor(a.dd_avg_lrn_ss / 60) as day_avg_lrn_tm,
+			round(a.dd_avg_lrn_ss) as day_avg_lrn_tm,
 			a.regn_cd as local_cd, 
 			d.regn_knm as local_nm,
 			a.regn_lv as depth,
@@ -394,7 +394,7 @@
 				where a.yyyymmw_key = concat(#{yymm}, #{wk})::INTEGER
 					and e.schl_typ = #{schType}
  					and b.org_cd = #{orgId}
- 					<if test="lrnSignal != null and lrnSignal != ''">
+ 					<if test="lrnSignal != null and lrnSignal != '' and lrnSignal != '#1' and lrnSignal != '#2'">
  					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
@@ -526,7 +526,7 @@
 				where a.yyyymm_key = #{yymm}::INTEGER
 					and e.schl_typ = #{schType}
  					and b.org_cd = #{orgId}
- 					<if test="lrnSignal != null and lrnSignal != ''">
+ 					<if test="lrnSignal != null and lrnSignal != '' and lrnSignal != '#1' and lrnSignal != '#2'">
  					and lower(c.scr_typ) = #{lrnSignal}
  					</if>
  					<if test="studPlan != null and studPlan != ''">
@@ -602,7 +602,7 @@
 	/* Group_MS.selectWeeklyGroupStudListCnt : 기관 주간 학생 리스트 총 수 */
 		select
 	<choose>
-		<when test="lrnSignal != null and lrnSignal != ''">			
+		<when test="lrnSignal != null and lrnSignal != '' and lrnSignal != '#1' and lrnSignal != '#2'">			
 			<choose>
 				<when test="lrnSignal == 'a'.toString()">
 				a.prais_stud_cnt as stud_cnt,
@@ -704,7 +704,7 @@
 	/* Group_MS.selectMonthlyGroupStudListCnt : 기관 월간 학생 리스트 총 수 */
 		select
 		<choose>
-			<when test="lrnSignal != null and lrnSignal != ''">			
+			<when test="lrnSignal != null and lrnSignal != '' and lrnSignal != '#1' and lrnSignal != '#2'">			
 				<choose>
 					<when test="lrnSignal == 'a'.toString()">
 					a.prais_stud_cnt as stud_cnt,

@@ -406,7 +406,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				setResult(msgKey,message);
 			} else {
 		        // selectWeeklyGroupStudList / selectMonthlyGroupStudList (2022-01-27)
-		     	// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외 -> listEncodeS 에서 정렬 기능 추가
+		     	// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외 
 		        // default 정렬 lrnSignal, studId 순 임의 지정함. (2022-01-27)
 				Map<String, Object> page = new LinkedHashMap<>();
 				if(paramMap.get("monthWord").equals("w")) { // 주간
@@ -1648,9 +1648,9 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				==  학습계획 팝업 호출 시 파라미터 정보  ==
 				a. Key : p
 				b. Value : AES 암호화된 값
-				c. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&&&학교구분코드(ES/MS) 
-				( HL-41327 : &&학교구분코드(ES/MS) 추가 )
-				d. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&기관코드&기관아이디&학교구분코드(ES/MS) 
+				c. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&&
+				( HL-41327 : &&학교구분코드(ES/MS) 추가 - 사용안함(원복) )
+				d. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&기관코드&기관아이디
 				( HL-31959 : 학습계획에 특별학습을 추가 기능 : 특정 학교만 허용(오정초) )
 				*/
 				String beforEncoding = searchYy + "&" + searchMm + "&" + searchWk + "&" + studId + "&" + studNm + "&" + grade + "&" + lrnSignal + "&" + attRt + "&" + exRt + "&" + dayAvgLrnSec + "&" + crtRt;
@@ -1661,10 +1661,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					beforEncoding += "&" + orgId + "&" + agnId;
 				} else {
 					beforEncoding += "&&";
-				}
-				
-				if(mapperName.equals("Group_MS")) beforEncoding += "&" + "MS";
-				else beforEncoding += "&" + "ES";
+				}				
 				
 				String afterEncoding = getEncodedStr(beforEncoding);
 //				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
@@ -1840,38 +1837,6 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			}
 			
 		}
-        
-        if(studList.size() > 1 && data_hl != null) {
-	        
-			// 정렬
-			if(paramMap.get("orderNm") != null && paramMap.get("orderNm") != "") {
-				switch(paramMap.get("orderNm").toString()) {
-					case "studNmOn" :
-					case "studNmOff" :
-					case "studIdOn" :
-					case "studIdOff" :
-						Collections.sort(studList, new Comparator<HashMap<String, Object>>() {
-							@Override
-							public int compare(HashMap<String, Object> o1, HashMap<String, Object> o2) {
-								String studNm1 = (String) o1.get("studNm");
-								String studNm2 = (String) o2.get("studNm");
-								String loginId1 = (String) o1.get("loginId");
-								String loginId2 = (String) o2.get("loginId");
-								if(paramMap.get("orderNm").toString().equals("studNmOn")) {
-									return studNm1.compareTo(studNm2); 
-								} else if(paramMap.get("orderNm").toString().equals("studNmOff")) {
-									return studNm2.compareTo(studNm1); 
-								} else if(paramMap.get("orderNm").toString().equals("studIdOn")) {
-									return loginId1.compareTo(loginId2); 
-								} else if(paramMap.get("orderNm").toString().equals("studIdOff")) {
-									return loginId2.compareTo(loginId1); 
-								} else return 0;
-							}
-						});							
-						break;
-				}
-			}
-        }
 	
     }
 	
