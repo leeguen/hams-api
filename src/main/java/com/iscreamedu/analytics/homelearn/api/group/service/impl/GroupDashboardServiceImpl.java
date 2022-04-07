@@ -1648,9 +1648,9 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				==  학습계획 팝업 호출 시 파라미터 정보  ==
 				a. Key : p
 				b. Value : AES 암호화된 값
-				c. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&&&학교구분코드(ES/MS) 
-				( HL-41327 : &&학교구분코드(ES/MS) 추가 )
-				d. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&기관코드&기관아이디&학교구분코드(ES/MS) 
+				c. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&&
+				( HL-41327 : &&학교구분코드(ES/MS) 추가 - 사용안함(원복) )
+				d. 복호화 시 값 : 조회년도&조회월&조회주차(월단위시공백)&학생ID&학생명&학년&학습신호&출석률&수행률&일일학습시간(초단위)&정답률&기관코드&기관아이디
 				( HL-31959 : 학습계획에 특별학습을 추가 기능 : 특정 학교만 허용(오정초) )
 				*/
 				String beforEncoding = searchYy + "&" + searchMm + "&" + searchWk + "&" + studId + "&" + studNm + "&" + grade + "&" + lrnSignal + "&" + attRt + "&" + exRt + "&" + dayAvgLrnSec + "&" + crtRt;
@@ -1661,10 +1661,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					beforEncoding += "&" + orgId + "&" + agnId;
 				} else {
 					beforEncoding += "&&";
-				}
-				
-				if(mapperName.equals("Group_MS")) beforEncoding += "&" + "MS";
-				else beforEncoding += "&" + "ES";
+				}				
 				
 				String afterEncoding = getEncodedStr(beforEncoding);
 //				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
