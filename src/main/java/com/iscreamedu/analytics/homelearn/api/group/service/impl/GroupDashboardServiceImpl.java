@@ -1667,7 +1667,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				else beforEncoding += "&" + "ES";
 				
 				String afterEncoding = getEncodedStr(beforEncoding);
-				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
+//				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
 				lrnPlanStudLrnSttMap.put("p", afterEncoding);
 				data.put("lrnPlanStudLrnStt", lrnPlanStudLrnSttMap);
 			}
