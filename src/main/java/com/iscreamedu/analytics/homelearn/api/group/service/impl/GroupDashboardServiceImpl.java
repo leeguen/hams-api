@@ -406,7 +406,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				setResult(msgKey,message);
 			} else {
 		        // selectWeeklyGroupStudList / selectMonthlyGroupStudList (2022-01-27)
-		     	// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외 -> listEncodeS 에서 정렬 기능 추가
+		     	// LOGIN_ID, STUD_NM DB 조회 및 정렬 부분 제외 
 		        // default 정렬 lrnSignal, studId 순 임의 지정함. (2022-01-27)
 				Map<String, Object> page = new LinkedHashMap<>();
 				if(paramMap.get("monthWord").equals("w")) { // 주간
@@ -1667,7 +1667,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				else beforEncoding += "&" + "ES";
 				
 				String afterEncoding = getEncodedStr(beforEncoding);
-//				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
+				lrnPlanStudLrnSttMap.put("데이터확인용_beforEncoding", beforEncoding);
 				lrnPlanStudLrnSttMap.put("p", afterEncoding);
 				data.put("lrnPlanStudLrnStt", lrnPlanStudLrnSttMap);
 			}
@@ -1840,38 +1840,6 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			}
 			
 		}
-        
-        if(studList.size() > 1 && data_hl != null) {
-	        
-			// 정렬
-			if(paramMap.get("orderNm") != null && paramMap.get("orderNm") != "") {
-				switch(paramMap.get("orderNm").toString()) {
-					case "studNmOn" :
-					case "studNmOff" :
-					case "studIdOn" :
-					case "studIdOff" :
-						Collections.sort(studList, new Comparator<HashMap<String, Object>>() {
-							@Override
-							public int compare(HashMap<String, Object> o1, HashMap<String, Object> o2) {
-								String studNm1 = (String) o1.get("studNm");
-								String studNm2 = (String) o2.get("studNm");
-								String loginId1 = (String) o1.get("loginId");
-								String loginId2 = (String) o2.get("loginId");
-								if(paramMap.get("orderNm").toString().equals("studNmOn")) {
-									return studNm1.compareTo(studNm2); 
-								} else if(paramMap.get("orderNm").toString().equals("studNmOff")) {
-									return studNm2.compareTo(studNm1); 
-								} else if(paramMap.get("orderNm").toString().equals("studIdOn")) {
-									return loginId1.compareTo(loginId2); 
-								} else if(paramMap.get("orderNm").toString().equals("studIdOff")) {
-									return loginId2.compareTo(loginId1); 
-								} else return 0;
-							}
-						});							
-						break;
-				}
-			}
-        }
 	
     }
 	
