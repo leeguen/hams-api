@@ -162,7 +162,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		setResult(msgKey, decodeResult);
         	}*/
         	
-        	Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+        	//Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
         	
         } else {
         	setResult(msgKey, vu.getResult());
