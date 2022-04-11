@@ -580,7 +580,7 @@
  						order by a.answ_rt nulls first
  					</when>
  					<when test="orderNm == 'crtRtOff'.toString()">
- 						order by a.answ_rt desc null last
+ 						order by a.answ_rt desc nulls last
  					</when>
  					<otherwise>
 						order by replace(c.scr_typ, '#','Z'), a.stud_key nulls first
