@@ -72,7 +72,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				
 				yymmwkDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getYymmwk");
 				
-				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 6));
+				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 4));
 				int mmData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(4, 6));
 				
 				data.put("yyyy", yyData);
