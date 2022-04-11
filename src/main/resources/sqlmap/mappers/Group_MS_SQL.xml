@@ -420,10 +420,11 @@
  					<when test="orderNm == 'studGradeOff'.toString()">
  						order by a.grd desc nulls last
  					</when>
- 					<when test="orderNm == 'lrnSignalOn'.toString()">
+ 					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
  						order by replace(c.scr_typ, '#','Z') nulls first
  					</when>
- 					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 					<when test="orderNm == 'lrnSignalOn'.toString()">
  						order by replace(c.scr_typ, '#','Z') desc nulls last
  					</when>
  					<when test="orderNm == 'attRtOn'.toString()">
@@ -552,10 +553,11 @@
  					<when test="orderNm == 'studGradeOff'.toString()">
  						order by a.grd desc nulls last
  					</when>
- 					<when test="orderNm == 'lrnSignalOn'.toString()">
- 						order by replace(c.scr_typ, '#','Z') nulls first
- 					</when>
  					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
+ 						order by replace(c.scr_typ, '#','Z') nulls first	
+ 					</when>
+ 					<when test="orderNm == 'lrnSignalOn'.toString()">
  						order by replace(c.scr_typ, '#','Z') desc nulls last
  					</when>
  					<when test="orderNm == 'attRtOn'.toString()">
