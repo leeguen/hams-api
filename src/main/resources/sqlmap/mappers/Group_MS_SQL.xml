@@ -415,43 +415,43 @@
 			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
- 						order by a.grd
+ 						order by a.grd nulls first
  					</when>
  					<when test="orderNm == 'studGradeOff'.toString()">
- 						order by a.grd desc
+ 						order by a.grd desc nulls last
  					</when>
  					<when test="orderNm == 'lrnSignalOn'.toString()">
- 						order by c.scr_typ
+ 						order by replace(c.scr_typ, '#','Z') nulls first
  					</when>
  					<when test="orderNm == 'lrnSignalOff'.toString()">
- 						order by c.scr_typ desc
+ 						order by replace(c.scr_typ, '#','Z') desc nulls last
  					</when>
  					<when test="orderNm == 'attRtOn'.toString()">
- 						order by a.att_rt
+ 						order by a.att_rt nulls first
  					</when>
  					<when test="orderNm == 'attRtOff'.toString()">
- 						order by a.att_rt desc
+ 						order by a.att_rt desc nulls last
  					</when>
  					<when test="orderNm == 'exRtOn'.toString()">
- 						order by a.exec_rt
+ 						order by a.exec_rt nulls first
  					</when>
  					<when test="orderNm == 'exRtOff'.toString()">
- 						order by a.exec_rt desc
+ 						order by a.exec_rt desc nulls last
  					</when>
  					<when test="orderNm == 'dayAvgLrnTmOn'.toString()">
- 						order by a.dd_avg_lrn_ss
+ 						order by a.dd_avg_lrn_ss nulls first
  					</when>
  					<when test="orderNm == 'dayAvgLrnTmOff'.toString()">
- 						order by a.dd_avg_lrn_ss desc
+ 						order by a.dd_avg_lrn_ss desc nulls last
  					</when>
  					<when test="orderNm == 'crtRtOn'.toString()">
- 						order by a.answ_rt
+ 						order by a.answ_rt nulls first
  					</when>
  					<when test="orderNm == 'crtRtOff'.toString()">
- 						order by a.answ_rt desc
+ 						order by a.answ_rt desc nulls last
  					</when>
  					<otherwise>
-						order by c.scr_typ, a.stud_key
+						order by replace(c.scr_typ, '#','Z'), a.stud_key nulls first
  					</otherwise>
  				</choose>
 				) d
@@ -547,43 +547,43 @@
 			        </if>
  				<choose>
  					<when test="orderNm == 'studGradeOn'.toString()">
- 						order by a.grd
+ 						order by a.grd nulls first
  					</when>
  					<when test="orderNm == 'studGradeOff'.toString()">
- 						order by a.grd desc
+ 						order by a.grd desc nulls last
  					</when>
  					<when test="orderNm == 'lrnSignalOn'.toString()">
- 						order by c.scr_typ
+ 						order by replace(c.scr_typ, '#','Z') nulls first
  					</when>
  					<when test="orderNm == 'lrnSignalOff'.toString()">
- 						order by c.scr_typ desc
+ 						order by replace(c.scr_typ, '#','Z') desc nulls last
  					</when>
  					<when test="orderNm == 'attRtOn'.toString()">
- 						order by a.att_rt
+ 						order by a.att_rt nulls first
  					</when>
  					<when test="orderNm == 'attRtOff'.toString()">
- 						order by a.att_rt desc
+ 						order by a.att_rt desc nulls last
  					</when>
  					<when test="orderNm == 'exRtOn'.toString()">
- 						order by a.exec_rt
+ 						order by a.exec_rt nulls first
  					</when>
  					<when test="orderNm == 'exRtOff'.toString()">
- 						order by a.exec_rt desc
+ 						order by a.exec_rt desc nulls last
  					</when>
  					<when test="orderNm == 'dayAvgLrnTmOn'.toString()">
- 						order by a.dd_avg_lrn_ss
+ 						order by a.dd_avg_lrn_ss nulls first
  					</when>
  					<when test="orderNm == 'dayAvgLrnTmOff'.toString()">
- 						order by a.dd_avg_lrn_ss desc
+ 						order by a.dd_avg_lrn_ss desc nulls last
  					</when>
  					<when test="orderNm == 'crtRtOn'.toString()">
- 						order by a.answ_rt
+ 						order by a.answ_rt nulls first
  					</when>
  					<when test="orderNm == 'crtRtOff'.toString()">
- 						order by a.answ_rt desc
+ 						order by a.answ_rt desc null last
  					</when>
  					<otherwise>
-						order by c.scr_typ, a.stud_key
+						order by replace(c.scr_typ, '#','Z'), a.stud_key nulls first
  					</otherwise>
  				</choose>
 				) d
