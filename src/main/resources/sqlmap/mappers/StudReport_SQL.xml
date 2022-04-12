@@ -17,6 +17,36 @@
 		where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
 				between stt_wk_dt and end_wk_dt;
     </select>
+    
+    <select id="getYymmwkList" parameterType="hashMap" resultType="resultMap">
+		select
+			yyyy_key as yyyy,
+			substring(yyyymm_key::text,5,6)::integer as mm,
+			w::integer as wk
+		from sc_dsb.vw_dm_wk_dt
+		where yyyymmw_key between (
+			select
+				wk.yyyymmw_key
+			from lrndmt.mt_dm_stud st
+			join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
+			where st.stud_key = #{studId}
+		) and (
+			select
+				yyyymmw_key
+			from sc_dsb.vw_dm_wk_dt
+			where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
+					between stt_wk_dt and end_wk_dt
+		);
+    </select>
+    
+    <select id="getStudInfo" parameterType="hashMap" resultType="resultMap">
+		select 
+			pkg_typ,
+			stt_dt,
+			end_dt
+		from lrndmt.mt_dm_stud 
+		where stud_key = #{studId};
+    </select>
 	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
 		<choose>

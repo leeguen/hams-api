@@ -73,6 +73,18 @@ public class StudentController {
     }
     
     /**
+     * 현재 월 정보 (STUD-CM-004)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getYymmwkList")
+    public ResponseEntity getYymmwkList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getYymmwkList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
      * 학습유형 요약 (STUD-LT-001)
      * @param params
      * @return

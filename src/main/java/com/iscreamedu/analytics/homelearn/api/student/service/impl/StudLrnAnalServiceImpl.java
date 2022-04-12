@@ -142,30 +142,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         
         if(vu.isValid()) {
         	paramMap.put("apiName", "studAuth");
-        	/*getStudId(paramMap);
-        	
-        	if(decodeResult.isEmpty()) {
-        		
-        		Map<String, Object> yymmwkMap = new LinkedHashMap<>();
-				Map<String, Object> yymmwkDataMap = new LinkedHashMap<>();
-				
-				yymmwkDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getYymm");
-				
-				int yyData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(0, 6));
-				int mmData = Integer.parseInt(yymmwkDataMap.get("yyyymmKey").toString().substring(4, 6));
-				
-				data.put("yyyy", yyData);
-				data.put("mm", mmData);
-				
-				setResult(dataKey,data);
-        			
-        	} else {
-        		setResult(msgKey, decodeResult);
-        	}*/
         	
         	Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
         	
         	String userId = (externalApiMap != null && externalApiMap.get("userId") != null) ? externalApiMap.get("userId").toString() : null;
+        	int studId = (externalApiMap != null && externalApiMap.get("userId") != null) ? Integer.parseInt(externalApiMap.get("userId").toString()) : 0;
         	String p = encodeStudId("0&"+userId);
         	
         	studInfoParamMap.put("p", p);
@@ -176,14 +157,48 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	
             String decodeStudId = encodeStudId(userId);
             
+            paramMap.put("studId", studId);
+            
+            Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+            
         	data.put("p", decodeStudId);
         	data.put("studId", studInfoMap.get("stuId"));
         	data.put("studNm", studInfoMap.get("name"));
         	data.put("gender", studInfoMap.get("gender"));
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
+        	data.put("sttDt", studData.get("sttDt"));
         	
         	setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
+    public Map getYymmwkList(Map<String, Object> paramMap) throws Exception {
+    	ArrayList<Map<String, Object>> data = new ArrayList<>();
+    	
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+				
+				data = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getYymmwkList");
+				
+				setResult(dataKey,data);
+        			
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
         } else {
         	setResult(msgKey, vu.getResult());
         }
