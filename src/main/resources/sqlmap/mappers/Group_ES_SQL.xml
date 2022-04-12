@@ -715,10 +715,11 @@
 					<when test="orderNm == 'studGradeOff'.toString()">
 						ORDER BY A.STUD_GRADE DESC
 					</when>
-					<when test="orderNm == 'lrnSignalOn'.toString()">
+					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
 						ORDER BY A.LRN_SIGNAL
 					</when>
-					<when test="orderNm == 'lrnSignalOff'.toString()">
+					<when test="orderNm == 'lrnSignalOn'.toString()">
 						ORDER BY A.LRN_SIGNAL DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
@@ -902,10 +903,11 @@
 					<when test="orderNm == 'studGradeOff'.toString()">
 						ORDER BY A.STUD_GRADE DESC
 					</when>
-					<when test="orderNm == 'lrnSignalOn'.toString()">
+					<when test="orderNm == 'lrnSignalOff'.toString()">
+ 						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
 						ORDER BY A.LRN_SIGNAL
 					</when>
-					<when test="orderNm == 'lrnSignalOff'.toString()">
+					<when test="orderNm == 'lrnSignalOn'.toString()">
 						ORDER BY A.LRN_SIGNAL DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
