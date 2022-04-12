@@ -133,7 +133,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     @Override
     public Map getStudInfo(Map<String, Object> paramMap) throws Exception {
         Map<String,Object> data = new LinkedHashMap<>();
-    	
+        Map<String,Object> studInfoParamMap = new LinkedHashMap<>();
+        
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
@@ -162,8 +163,27 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		setResult(msgKey, decodeResult);
         	}*/
         	
-        	//Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+        	Map<String, Object> externalApiMap =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
         	
+        	String userId = (externalApiMap != null && externalApiMap.get("userId") != null) ? externalApiMap.get("userId").toString() : null;
+        	String p = encodeStudId("0&"+userId);
+        	
+        	studInfoParamMap.put("p", p);
+        	studInfoParamMap.put("apiName", "aiReport.");
+            
+            LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+            Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        	
+            String decodeStudId = encodeStudId(userId);
+            
+        	data.put("p", decodeStudId);
+        	data.put("studId", studInfoMap.get("stuId"));
+        	data.put("studNm", studInfoMap.get("name"));
+        	data.put("gender", studInfoMap.get("gender"));
+        	data.put("grade", studInfoMap.get("grade"));
+        	data.put("studType", studInfoMap.get("divCdNm"));
+        	
+        	setResult(dataKey,data);
         } else {
         	setResult(msgKey, vu.getResult());
         }
@@ -2274,6 +2294,15 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
             decodeResult.put("result", "p : Incorrect");
         }
+	}
+	
+	private String encodeStudId(String studId) throws Exception {
+		String encodeStudId = null;
+		
+		CipherUtil cps = CipherUtil.getInstance();
+		encodeStudId = cps.AES_Encode(studId);
+		
+		return encodeStudId;
 	}
 	
 	private Map createTestDataMap(String dt, String day, Object planCnt, Object fnshCnt) {

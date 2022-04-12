@@ -85,8 +85,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	@Value("${extapi.hlfast.url}")
 	String HLDW_API; //학생,교사 정보 - DW FAST API 주소
 	
-	//@Value("${extapi.hl.stud.auth.url}")
-	//String STUD_AUTH_API; //학생 인증 API 주소
+	@Value("${extapi.hl.stud.auth.url}")
+	String STUD_AUTH_API; //학생 인증 API 주소
 	
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -628,7 +628,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if (apiName.equals("studAuth")) {
-	        	/*try {
+	        	try {
 	        		String url = STUD_AUTH_API;
 	        		String token = paramMap.get("token").toString();
 	        		
@@ -665,7 +665,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
-	        	}*/
+	        	}
 	        } else {
 	        	try {
 		        	String url = HL_API + apiName + ".json";
