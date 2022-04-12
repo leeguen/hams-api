@@ -717,10 +717,10 @@
 					</when>
 					<when test="orderNm == 'lrnSignalOff'.toString()">
  						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
-						ORDER BY A.LRN_SIGNAL
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z')
 					</when>
 					<when test="orderNm == 'lrnSignalOn'.toString()">
-						ORDER BY A.LRN_SIGNAL DESC
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z') DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
 						ORDER BY A.ATT_RT
@@ -905,10 +905,10 @@
 					</when>
 					<when test="orderNm == 'lrnSignalOff'.toString()">
  						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
-						ORDER BY A.LRN_SIGNAL
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z')
 					</when>
 					<when test="orderNm == 'lrnSignalOn'.toString()">
-						ORDER BY A.LRN_SIGNAL DESC
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z') DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
 						ORDER BY A.ATT_RT
