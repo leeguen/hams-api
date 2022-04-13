@@ -240,7 +240,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     				weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
     				
     				monthMap.put("reportNm", mm + "월 월간 리포트");
-    				monthMap.put("publishYn ", monthDataMap.get("reportYn"));
+    				monthMap.put("publishYn", monthDataMap.get("reportYn"));
     				
     				data.put("month", monthMap);
     				data.put("week", weekList);
