@@ -4,9 +4,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.SplittableRandom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 정합성 체크 유틸
@@ -29,6 +31,28 @@ public class ValidationUtil {
 	
 	//정합성 체크 결과
 	private LinkedHashMap<String, Object> result;
+	// 데모 계정 여부 : demo 계정 이면 true, 리얼 계정이면 false
+	private boolean isDemo = false;
+	private String alternativeAccount = null;
+	private SplittableRandom splittableRandom = null;
+	
+	@Value("${validation-util.org.demo-account.studid}")
+	private String ORG_DEMO_ACCOUNT_STUD_ID; //기관 데모 계정 - 고정용 학생 아이디
+	
+	
+	/**
+	 * 데모 계정 Info 리턴
+	 * @return
+	 */
+	public String getDemoAccountInfo(String target, String item) {
+		if(target.equals("ORG")) {
+			if(item.equals("STUD_ID")) return ORG_DEMO_ACCOUNT_STUD_ID;
+			else if(item.equals("LOGIN_ID")) return "***test" + splittableRandom.nextInt(1, 10);
+			else if(item.equals("STUD_NM")) return "김*" + splittableRandom.nextInt(1, 10);
+			else return null;
+		}
+		else return null;
+	}
 	
 	/**
 	 * 정합성 체크결과 리턴
@@ -49,7 +73,48 @@ public class ValidationUtil {
 			return false; //log값이 있을때 false 반환
 		}
 	}
+	
+	/**
+	 * 데모 계정 여부 : demo 계정 이면 true, 리얼 계정이면 false
+	 * @return
+	 */
+	public boolean isDemoAccount() {
+		return isDemo;
+	}
+	
+	/**
+	 * 데모 계정 : 대체 계정 추출
+	 * @return
+	 */
+	public String getAlternativeAccount() {
+		return alternativeAccount;
+	}
 
+	
+	/**
+	 * 데모 계정 여부 체크
+	 * @param value : 계정
+	 * @return
+	 */
+	public void checkDemoAccount(String accountId) {
+		try {
+			if(accountId.contains("demo")) {
+				isDemo = true;
+				alternativeAccount = accountId.replaceAll("demo", "");
+				splittableRandom = new SplittableRandom();
+			}
+			else {
+				isDemo = false;
+				alternativeAccount = null;
+				splittableRandom = null;
+			}
+		} catch (NumberFormatException e) {
+			isDemo = false;
+			alternativeAccount = null;
+			splittableRandom = null;
+		} 
+	}
+	
 	/*
 	 * 시스템 error 처리
 	 */
