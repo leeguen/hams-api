@@ -592,16 +592,13 @@
 			YYYY,
 			MM,
 			WK,
-			-- STUD_NM,
 			STUD_ID,
-			-- LOGIN_ID,
 			STUD_GRADE,
 			LRN_SIGNAL,
 			ATT_RT,
 			EX_RT,
 			DAY_AVG_LRN_TM,
-			CRT_RT -- ,
-			-- TCHR_ID
+			CRT_RT
 		FROM (
 			SELECT 
 				@ROWNUM := @ROWNUM + 1 AS ROWNUM, 
@@ -614,9 +611,7 @@
 		                ELSE CAST(SUBSTRING(A.YYMM,6,1) AS SIGNED INTEGER)
 					END AS MM,
 					CAST(A.WK AS SIGNED INTEGER) AS WK,
-					-- A.STUD_NM,
 					A.STUD_ID,
-					-- A.LOGIN_ID,
 					A.STUD_GRADE,
 					A.LRN_SIGNAL,
 					A.ATT_RT,
@@ -631,18 +626,8 @@
 						ELSE CONCAT(FLOOR(IFNULL(A.DAY_AVG_LRN_SEC,0)/60),'분')
 					END AS DAY_AVG_LRN_TM,
 					A.CRT_RT,
-					A.ZIPCODE -- ,
-					-- B.TCHR_ID
+					A.ZIPCODE
 				FROM WEEK_STUD_LRN_RST A
-				<!-- 
-				LEFT OUTER JOIN (
-					SELECT 
-						DISTINCT
-		                A.STUD_ID,
-		                A.TCHR_ID
-					FROM STUD_TCHR A
-					JOIN COMM_WK_DT B ON A.DT = IFNULL(B.SU, IFNULL(B.SA, IFNULL(B.FR, IFNULL(B.TH, IFNULL(B.WE, IFNULL(B.TU, B.MO)))))) AND B.YYMM = #{yymm} AND B.WK = #{wk}
-				) B ON A.STUD_ID = B.STUD_ID  -->
 				<if test="localCd != null and localCd != ''">
 				JOIN ZIPCODE_LOCAL_LOCATION C ON A.ZIPCODE = C.ZIPCODE
 	                <if test="depth == 1"> 
@@ -686,29 +671,8 @@
 							<foreach collection="studList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
-					<!--  
-						<choose>
-							<when test="searchType == 'studId'">
-								AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
-							</when>
-							<otherwise>
-								AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
-							</otherwise>
-						</choose> -->
 					</if> 
 				<choose>
-				<!-- <when test="orderNm == 'studNmOn'.toString()">
-						ORDER BY A.STUD_NM 
-					</when>
-					<when test="orderNm == 'studNmOff'.toString()">
-						ORDER BY A.STUD_NM DESC
-					</when>  
-					<when test="orderNm == 'studIdOn'.toString()">
-						ORDER BY A.LOGIN_ID
-					</when>
-					<when test="orderNm == 'studIdOff'.toString()">
-						ORDER BY A.LOGIN_ID DESC
-					</when> -->
 					<when test="orderNm == 'studGradeOn'.toString()">
 						ORDER BY A.STUD_GRADE
 					</when>
@@ -717,10 +681,10 @@
 					</when>
 					<when test="orderNm == 'lrnSignalOff'.toString()">
  						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
-						ORDER BY A.LRN_SIGNAL
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z')
 					</when>
 					<when test="orderNm == 'lrnSignalOn'.toString()">
-						ORDER BY A.LRN_SIGNAL DESC
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z') DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
 						ORDER BY A.ATT_RT
@@ -747,7 +711,6 @@
 						ORDER BY A.CRT_RT DESC
 					</when>
 					<otherwise>
-						<!--  ORDER BY A.LOGIN_ID ASC  -->
 						ORDER BY A.STUD_ID ASC
 					</otherwise>
 				</choose>
@@ -770,16 +733,13 @@
 			ROWNUM, 
 			YYYY,
 			MM,
-			-- STUD_NM,
 			STUD_ID,
-			-- LOGIN_ID,
 			STUD_GRADE,
 			LRN_SIGNAL,
 			ATT_RT,
 			EX_RT,
 			DAY_AVG_LRN_TM,
-			CRT_RT -- ,
-			-- TCHR_ID
+			CRT_RT
 		FROM (
 			SELECT 
 				@ROWNUM := @ROWNUM + 1 AS ROWNUM, 
@@ -791,9 +751,7 @@
 						WHEN SUBSTRING(A.YYMM,5,2) >= 10 THEN CAST(SUBSTRING(A.YYMM,5,2) AS SIGNED INTEGER)
 		                ELSE CAST(SUBSTRING(A.YYMM,6,1) AS SIGNED INTEGER)
 					END AS MM,
-					-- A.STUD_NM,
 					A.STUD_ID,
-					-- A.LOGIN_ID,
 					A.STUD_GRADE,
 					A.LRN_SIGNAL,
 					A.ATT_RT,
@@ -808,31 +766,8 @@
 						ELSE CONCAT(FLOOR(IFNULL(A.DAY_AVG_LRN_SEC,0)/60),'분')
 					END AS DAY_AVG_LRN_TM,
 					A.CRT_RT,
-					A.ZIPCODE -- ,
-					-- B.TCHR_ID
+					A.ZIPCODE
 				FROM MONTH_STUD_LRN_RST A
-				<!--  
-				LEFT OUTER JOIN (
-					SELECT 
-						DISTINCT
-		                A.STUD_ID,
-		                A.TCHR_ID
-					FROM STUD_TCHR A
-					JOIN (
-						SELECT 
-							MO,
-							TU,
-							WE,
-							TH,
-							FR,
-							SA,
-							SU
-						FROM COMM_WK_DT
-						WHERE YYMM = #{yymm}
-						ORDER BY WK DESC
-						LIMIT 1
-					) B ON A.DT = IFNULL(B.SU, IFNULL(B.SA, IFNULL(B.FR, IFNULL(B.TH, IFNULL(B.WE, IFNULL(B.TU, B.MO))))))
-				) B ON A.STUD_ID = B.STUD_ID  -->
 				<if test="localCd != null and localCd != ''">
 				JOIN ZIPCODE_LOCAL_LOCATION C ON A.ZIPCODE = C.ZIPCODE
 	                <if test="depth == 1"> 
@@ -875,28 +810,8 @@
 							<foreach collection="studList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
-						<!-- <choose>
-							<when test="searchType == 'studId'">
-								AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
-							</when>
-							<otherwise>
-								AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
-							</otherwise>
-						</choose> -->
 					</if>
 				<choose>
-					<!-- <when test="orderNm == 'studNmOn'.toString()">
-						ORDER BY A.STUD_NM
-					</when>
-					<when test="orderNm == 'studNmOff'.toString()">
-						ORDER BY A.STUD_NM DESC
-					</when>
-					<when test="orderNm == 'studIdOn'.toString()">
-						ORDER BY A.LOGIN_ID
-					</when>
-					<when test="orderNm == 'studIdOff'.toString()">
-						ORDER BY A.LOGIN_ID DESC
-					</when> -->
 					<when test="orderNm == 'studGradeOn'.toString()">
 						ORDER BY A.STUD_GRADE
 					</when>
@@ -905,10 +820,10 @@
 					</when>
 					<when test="orderNm == 'lrnSignalOff'.toString()">
  						-- (초/중등) 학습신호 정렬 : 칭찬(A) > 유지(B) > 독려(C) > - (null)
-						ORDER BY A.LRN_SIGNAL
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z')
 					</when>
 					<when test="orderNm == 'lrnSignalOn'.toString()">
-						ORDER BY A.LRN_SIGNAL DESC
+						ORDER BY IFNULL(A.LRN_SIGNAL, 'Z') DESC
 					</when>
 					<when test="orderNm == 'attRtOn'.toString()">
 						ORDER BY A.ATT_RT
@@ -935,7 +850,6 @@
 						ORDER BY A.CRT_RT DESC
 					</when>
 					<otherwise>
-						-- ORDER BY A.LOGIN_ID ASC 
 						ORDER BY A.STUD_ID ASC 
 					</otherwise>
 				</choose>
@@ -1024,16 +938,7 @@
 					AND A.STUD_ID IN 
 				<foreach collection="studList" item="item"  open="(" close=")" separator=",">
                    		#{item}
-                </foreach>
-		<!--
-			<choose>
-				<when test="searchType == 'studId'">
-					AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
-				</when>
-				<otherwise>
-					AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
-				</otherwise>
-			</choose>-->
+                </foreach>	
 		</if> 
 	</select>
 	
@@ -1108,15 +1013,6 @@
 				<foreach collection="studList" item="item"  open="(" close=")" separator=",">
                    		#{item}
                 </foreach>
-		<!-- 
-			<choose>
-				<when test="searchType == 'studId'">
-					AND A.LOGIN_ID LIKE CONCAT('%',#{keyword},'%')
-				</when>
-				<otherwise>
-					AND A.STUD_NM LIKE CONCAT('%',#{keyword},'%')
-				</otherwise>
-			</choose> -->
 		</if> 
 	</select>
 	
@@ -1139,13 +1035,13 @@
 		    	AND WK = #{wk}
 		    	<choose>
 				<when test="orgList != null and orgList.size!=0">
-					AND ORG_ID IN 
+				AND ORG_ID IN 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					AND ORG_ID = #{orgId}
+				AND ORG_ID = #{orgId}
 				</otherwise>
 			</choose>
 		) B ON A.ZIPCODE = B.ZIPCODE
@@ -1314,7 +1210,6 @@
 	<select id="selectHlUtilizationCrtRtExcellentGrp" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.selectHlUtilizationCrtRtExcellentGrp : 홈런 활용 정답률 우수군 */
 		SELECT 
-			-- STUD_NM,
 			STUD_ID,
 			AVG_CRT_RT
 		FROM ( 
@@ -1351,7 +1246,6 @@
 	<select id="selectHlUtilizationCrtRtNeedEffortGrp" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.selectHlUtilizationCrtRtNeedEffortGrp : 홈런 활용 정답률 노력필요군 */
 		SELECT 
-			-- STUD_NM,
 			STUD_ID,
 			AVG_CRT_RT
 		FROM ( 
@@ -1366,20 +1260,20 @@
 				YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 				<choose>
 					<when test="orgList != null and orgList.size!=0">
-						AND ORG_ID IN 
+				AND ORG_ID IN 
 						<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 		                    #{item}
 		                </foreach>
 					</when>
 					<otherwise>
-						AND ORG_ID = #{orgId}
+				AND ORG_ID = #{orgId}
 					</otherwise>
 				</choose>
 			GROUP BY STUD_ID
 		) AS CRT_RT_RST
 		WHERE AVG_CRT_RT <![CDATA[<=]]> 60
 			<if test="diffMonth > 1">
-				AND CRT_RT_CNT >= 2
+				AND CRT_RT_CNT <![CDATA[>=]]> 2
 			</if>
 		ORDER BY AVG_CRT_RT, CRT_RT_CNT, AVG_EX_RT, AVG_ATT_RT, STUD_ID
 			LIMIT 0, 5
@@ -1388,7 +1282,6 @@
 	<select id="selectHlUtilizationExRtExcellentGrp" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.selectHlUtilizationExRtExcellentGrp : 홈런 활용 수행률 우수군 */
 		SELECT 
-			-- STUD_NM,
 			STUD_ID,
 		    AVG_EX_RT
 		FROM ( 
@@ -1425,7 +1318,6 @@
 	<select id="selectHlUtilizationExRtNeedEffortGrp" parameterType="hashMap" resultType="resultMap">
 	/* Group_ES.selectHlUtilizationExRtNeedEffortGrp : 홈런 활용 수행률 노력필요군 */
 		SELECT 
-			-- STUD_NM,
 			STUD_ID,
 		    AVG_EX_RT
 		FROM ( 
@@ -1473,13 +1365,13 @@
 			AND WK BETWEEN 1 AND 6
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
-					AND ORG_ID IN 
+			AND ORG_ID IN 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					AND ORG_ID = #{orgId}
+			AND ORG_ID = #{orgId}
 				</otherwise>
 			</choose>
 		GROUP BY YYMM, WK
@@ -1498,13 +1390,13 @@
 			YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
-					AND ORG_ID IN 
+			AND ORG_ID IN 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					AND ORG_ID = #{orgId}
+			AND ORG_ID = #{orgId}
 				</otherwise>
 			</choose>
 		GROUP BY YYMM
@@ -1514,9 +1406,6 @@
 	/* Group_ES.selectStrengthHabitExcellentStud : 강점 습관 분석 우수회원 */
 		SELECT
 		    CONCAT(SUBSTRING(A.YYMM,5), '월') AS CATEGORY,
-		    A.STUD_ID,
-			-- A.LOGIN_ID AS STUD_ID,
-		    -- A.STUD_NM,
 		    A.STUD_ID,
 		    A.CRT_RT AS AVG_CRT_RT,
 		    A.EX_RT AS AVG_EX_RT,
@@ -1533,7 +1422,6 @@
 				SELECT
 					YYMM,
 					STUD_ID,
-					-- STUD_NM,
 					IFNULL(ROUND(SUM(EX_RT) / COUNT(EX_RT)), 0) AS AVG_EX_RT,
 					IFNULL(ROUND(SUM(CRT_RT) / COUNT(CRT_RT)), 0) AS AVG_CRT_RT,
 					IFNULL(ROUND(SUM(ATT_RT) / COUNT(ATT_RT)), 0) AS AVG_ATT_RT,
@@ -1543,13 +1431,13 @@
 				WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND ORG_ID IN 
+					AND ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND ORG_ID = #{orgId}
+					AND ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 				GROUP BY STUD_ID
@@ -1562,13 +1450,13 @@
 				WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm} 
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND ORG_ID IN 
+					AND ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND ORG_ID = #{orgId}
+					AND ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 					AND CRT_RT IS NULL
@@ -1633,7 +1521,6 @@
 				SELECT
 					YYMM,
 					STUD_ID,
-					-- STUD_NM,
 					IFNULL(ROUND(SUM(EX_RT) / COUNT(EX_RT)), 0) AS AVG_EX_RT,
 					IFNULL(ROUND(SUM(CRT_RT) / COUNT(CRT_RT)), 0) AS AVG_CRT_RT,
 					IFNULL(ROUND(SUM(ATT_RT) / COUNT(ATT_RT)), 0) AS AVG_ATT_RT,
@@ -1647,13 +1534,13 @@
 				WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND ORG_ID IN 
+						AND ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND ORG_ID = #{orgId}
+						AND ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
 				GROUP BY STUD_ID
@@ -1666,16 +1553,16 @@
 				WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 					<choose>
 						<when test="orgList != null and orgList.size!=0">
-							AND ORG_ID IN 
+						AND ORG_ID IN 
 							<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 			                    #{item}
 			                </foreach>
 						</when>
 						<otherwise>
-							AND ORG_ID = #{orgId}
+						AND ORG_ID = #{orgId}
 						</otherwise>
 					</choose>
-					AND CRT_RT IS NULL
+						AND CRT_RT IS NULL
 				GROUP BY STUD_ID
 			) B ON A.STUD_ID = B.STUD_ID
 			JOIN (
@@ -1736,8 +1623,6 @@
 		SELECT 
 			CONCAT(SUBSTRING(A.YYMM,5), '월') AS CATEGORY,
 			A.STUD_ID, 
-			-- A.LOGIN_ID AS STUD_ID,
-		    -- A.STUD_NM,
 		    A.CRT_RT AS AVG_CRT_RT
 		FROM MONTH_STUD_LRN_RST A 
 		JOIN (
@@ -1747,7 +1632,6 @@
 				SELECT
 					YYMM,
 					STUD_ID,
-					-- STUD_NM,
 					IFNULL(ROUND(SUM(EX_RT) / COUNT(EX_RT)), 0) AS AVG_EX_RT,
 					IFNULL(ROUND(SUM(CRT_RT) / COUNT(CRT_RT)), 0) AS AVG_CRT_RT,
 					IFNULL(ROUND(SUM(INCRT_NT_NC_CNT) / COUNT(INCRT_NT_NC_CNT)), 0) AS AVG_INCRT_NT_NC_CNT,
@@ -1778,7 +1662,6 @@
 					SELECT
 						B2_1.YYMM,
 						B2_1.STUD_ID,
-						-- B2_1.STUD_NM,
 						IF(CRT_RT - (SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  B2_1.LYYMM AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) > 0 ,1, 0) AS DIFF_CRT_RT,
 						(SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  B2_2.MIN_YYMM AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) AS FIRST_CRT_RT,
 						(SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  #{searchEndYymm} AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) AS LAST_CRT_RT
@@ -1787,19 +1670,18 @@
 							YYMM,
 							DATE_FORMAT(CONCAT(SUBSTRING(YYMM,1,4),'-',SUBSTRING(YYMM,5),'-01') - INTERVAL 1 MONTH, '%Y%m') AS LYYMM,
 							STUD_ID,
-							-- STUD_NM,
 							CRT_RT
 						FROM MONTH_STUD_LRN_RST
 						WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 							<choose>
 								<when test="orgList != null and orgList.size!=0">
-									AND ORG_ID IN 
+								AND ORG_ID IN 
 									<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 					                    #{item}
 					                </foreach>
 								</when>
 								<otherwise>
-									AND ORG_ID = #{orgId}
+								AND ORG_ID = #{orgId}
 								</otherwise>
 							</choose>
 					) B2_1
@@ -1820,7 +1702,7 @@
 									AND ORG_ID = #{orgId}
 								</otherwise>
 							</choose>
-							AND CRT_RT IS NOT NULL
+								AND CRT_RT IS NOT NULL
 						GROUP BY STUD_ID
 					) B2_2 ON B2_1.STUD_ID = B2_2.STUD_ID
 				) B2_3 
@@ -1832,13 +1714,13 @@
 		WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 			<choose>
 				<when test="orgList != null and orgList.size!=0">
-					AND ORG_ID IN 
+				AND ORG_ID IN 
 					<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 	                    #{item}
 	                </foreach>
 				</when>
 				<otherwise>
-					AND ORG_ID = #{orgId}
+				AND ORG_ID = #{orgId}
 				</otherwise>
 			</choose>
 	</select>
@@ -1879,7 +1761,6 @@
 				SELECT
 					YYMM,
 					STUD_ID,
-					-- STUD_NM,
 					IFNULL(ROUND(SUM(EX_RT) / COUNT(EX_RT)), 0) AS AVG_EX_RT,
 					IFNULL(ROUND(SUM(CRT_RT) / COUNT(CRT_RT)), 0) AS AVG_CRT_RT,
 					IFNULL(ROUND(SUM(ATT_RT) / COUNT(ATT_RT)), 0) AS AVG_ATT_RT,
@@ -1911,7 +1792,6 @@
 					SELECT
 						YYMM,
 						STUD_ID,
-						-- STUD_NM,
 						IFNULL(ROUND(SUM(EX_RT) / COUNT(EX_RT)), 0) AS AVG_EX_RT,
 						IFNULL(ROUND(SUM(CRT_RT) / COUNT(CRT_RT)), 0) AS AVG_CRT_RT,
 						IFNULL(ROUND(SUM(INCRT_NT_NC_CNT) / COUNT(INCRT_NT_NC_CNT)), 0) AS AVG_INCRT_NT_NC_CNT,
@@ -1942,7 +1822,6 @@
 						SELECT
 							B2_1.YYMM,
 							B2_1.STUD_ID,
-							-- B2_1.STUD_NM,
 							IF(CRT_RT - (SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  B2_1.LYYMM AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) > 0 ,1, 0) AS DIFF_CRT_RT,
 							(SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  B2_2.MIN_YYMM AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) AS FIRST_CRT_RT,
 							(SELECT CRT_RT FROM MONTH_STUD_LRN_RST WHERE YYMM =  #{searchEndYymm} AND STUD_ID = B2_1.STUD_ID AND ORG_ID = #{orgId}) AS LAST_CRT_RT
@@ -1951,7 +1830,6 @@
 								YYMM,
 								DATE_FORMAT(CONCAT(SUBSTRING(YYMM,1,4),'-',SUBSTRING(YYMM,5),'-01') - INTERVAL 1 MONTH, '%Y%m') AS LYYMM,
 								STUD_ID,
-								-- STUD_NM,
 								CRT_RT
 							FROM MONTH_STUD_LRN_RST
 							WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
@@ -1975,16 +1853,16 @@
 							WHERE YYMM BETWEEN #{searchStartYymm} AND #{searchEndYymm}
 								<choose>
 									<when test="orgList != null and orgList.size!=0">
-										AND ORG_ID IN 
+									AND ORG_ID IN 
 										<foreach collection="orgList" item="item"  open="(" close=")" separator=",">
 						                    #{item}
 						                </foreach>
 									</when>
 									<otherwise>
-										AND ORG_ID = #{orgId}
+									AND ORG_ID = #{orgId}
 									</otherwise>
 								</choose>
-								AND CRT_RT IS NOT NULL
+									AND CRT_RT IS NOT NULL
 							GROUP BY STUD_ID
 						) B2_2 ON B2_1.STUD_ID = B2_2.STUD_ID
 					) B2_3 
@@ -2046,7 +1924,6 @@
 	 	/* Group_ES.selectWeekLrnPlanStudLrnStt : 학습계획 학생 학습 현황 주간 */
  		SELECT 
  			STUD_ID,
- 		    -- STUD_NM,
  		    STUD_GRADE,
  		    LRN_SIGNAL,
  		    ATT_RT,
@@ -2065,7 +1942,6 @@
 	/* Group_ES.selectMonthLrnPlanStudLrnStt : 학습계획 학생 학습 현황 월간 */
 		SELECT 
 			STUD_ID,
-		    -- STUD_NM,
 		    STUD_GRADE,
 		    LRN_SIGNAL,
 		    ATT_RT,

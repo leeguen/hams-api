@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.SplittableRandom;
+import java.util.stream.IntStream;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -53,8 +56,13 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 		ValidationUtil vu = new ValidationUtil();
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"orgId"}, paramMap);
-
 		if(vu.isValid()) { 
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getAgencyInfo] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getAgencyInfo] vu.isDemoAccount() : " + vu.isDemoAccount());
+			
 			Map<String,Object> data = new HashMap<>();
 			Map<String,Object> data_hl = new HashMap<>();
 			Map<String,Object> data_es = new HashMap<>();
@@ -74,20 +82,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					data.put("area_code1", data_hl.get("area_code1"));
 					data.put("area_code2", data_hl.get("area_code2"));
 					
-					//demo 계정 관련 로직 
-					String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+					//2-2. 데모 계정 대체 아이디로 교체
+					if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+					LOGGER.debug("[getAgencyInfo] orgId(db) : " + paramMap.get("orgId").toString());
 					
-					data_es = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".getSchoolType");
+					data_es = (Map<String, Object>) es_mapper.get(paramMap, "Group_ES.getSchoolType");
 					data_ms = (Map<String, Object>) ms_mapper.get(paramMap, "Group_MS.getSchoolType");
 					int cnt_es = (data_es != null && data_es.get("esTotStudCnt") != null && !data_es.get("esTotStudCnt").equals("")) ? (int) data_es.get("esTotStudCnt") : 0;
 					int cnt_ms = (data_ms != null && data_ms.get("msTotStudCnt") != null && !data_ms.get("msTotStudCnt").equals("")) ? (int) data_ms.get("msTotStudCnt") : 0;
-					if(mapperName.equals("Group_ES_Demo")) {
-						data.put("sch_type", "es");
-						data.put("ms_type_cnt", 0);
-					} else {
-						data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
-						data.put("ms_type_cnt", cnt_ms);
-					}
+					
+					data.put("sch_type", (cnt_es >= cnt_ms ? "es" : "ms"));
+					data.put("ms_type_cnt", cnt_ms);
 					data.put("es_type_cnt", cnt_es);
 					setResult(dataKey, data);
 				} else {
@@ -114,11 +119,10 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGetYymmWk(Map<String, Object> paramMap) throws Exception{
-		//Validation
+		// Validation
 		ValidationUtil vu = new ValidationUtil();
-		//1.필수값 체크
+		// 1.필수값 체크
 		vu.checkRequired(new String[] {"currCon", "svcOpenDe"}, paramMap);
-
 		if(vu.isValid()) { 			
 			if(paramMap.get("currCon").toString().toLowerCase().equals("w")) {
 				setResult(dataKey, ms_mapper.getList(paramMap, "Group_MS.selectGetYymmWk") );
@@ -139,16 +143,22 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map getGradeClassYn(Map<String, Object> paramMap) throws Exception{
-		//Validation
+		// Validation
 		ValidationUtil vu = new ValidationUtil();
-		//1.필수값 체크
+		//1. 필수값 체크
 		vu.checkRequired(new String[] {"orgId"}, paramMap);
-		
 		if(vu.isValid()) {
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getGradeClassYn] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getGradeClassYn] vu.isDemoAccount() : " + vu.isDemoAccount());
 			
-			setResult(dataKey, es_mapper.getList(paramMap, mapperName + ".selectGradeClassYn"));
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getGradeClassYn] orgId(db) : " + paramMap.get("orgId").toString());
+
+			setResult(dataKey, es_mapper.getList(paramMap, "Group_ES.selectGradeClassYn"));
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -163,25 +173,41 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map getGradeClassInfo(Map<String, Object> paramMap) throws Exception{
-		//Validation
+		// Validation
 		ValidationUtil vu = new ValidationUtil();
-		//1.필수값 체크
+		//1. 필수값 체크
 		vu.checkRequired(new String[] {"orgId"}, paramMap);
-		
 		if(vu.isValid()) {
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
-				mapperName = "Group_MS";
-				setResult(dataKey, ms_mapper.getList(paramMap, mapperName + ".selectGradeClassInfo"));
+				setResult_NoData();
 			}
 			else {
-				setResult(dataKey, es_mapper.getList(paramMap, mapperName + ".selectGradeClassInfo"));
+				//2. demo 계정 관련 로직
+				//2-1. 데모 계정 체크
+				vu.checkDemoAccount(paramMap.get("orgId").toString());
+				LOGGER.debug("[getGradeClassYn] orgId(param) : " + paramMap.get("orgId").toString());
+				LOGGER.debug("[getGradeClassYn] vu.isDemoAccount() : " + vu.isDemoAccount());
+				
+				//2-2. 데모 계정 대체 아이디로 교체
+				if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+				LOGGER.debug("[getGradeClassYn] orgId(db) : " + paramMap.get("orgId").toString());
+				
+				setResult(dataKey, es_mapper.getList(paramMap, "Group_ES.selectGradeClassInfo"));
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
 		return result;
+	}
+
+	/***
+	 * No Data 메시지 결과 리턴 
+	 */
+	private void setResult_NoData() {
+		LinkedHashMap message = new LinkedHashMap(); // 메시지 코드
+		message.put("resultCode", ValidationCode.NO_DATA.getCode());
+		message.put("result", ValidationCode.NO_DATA.getMessage());
+		setResult(msgKey, message);
 	}
 	
 	/**
@@ -192,10 +218,21 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupStatusMain(Map<String, Object> paramMap) throws Exception{
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
-		if(vu.isValid()) {
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+		if(vu.isValid()) {			
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupStatusMain] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupStatusMain] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupStatusMain] orgId(db) : " + paramMap.get("orgId").toString());
+		
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				if(paramMap.get("monthWord").equals("w")) {
@@ -224,10 +261,21 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupLrnChart(Map<String, Object> paramMap) throws Exception{
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
 		if(vu.isValid()) { 
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupLrnChart] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupLrnChart] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupLrnChart] orgId(db) : " + paramMap.get("orgId").toString());
+			
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) { 
 				mapperName = "Group_MS";
 				if(paramMap.get("monthWord").equals("w")) {
@@ -256,10 +304,21 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupMapInfo(Map<String, Object> paramMap) throws Exception{
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
 		if(vu.isValid()) { 
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupMapInfo] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupMapInfo] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupMapInfo] orgId(db) : " + paramMap.get("orgId").toString());
+			
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				if(paramMap.get("monthWord").equals("w")) {
@@ -304,16 +363,23 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupOnlineSchool(Map<String, Object> paramMap) throws Exception {
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
 		if(vu.isValid()) { 
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupOnlineSchool] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupOnlineSchool] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupOnlineSchool] orgId(db) : " + paramMap.get("orgId").toString());
+			
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
-//				mapperName = "Group_MS";
-				LinkedHashMap message = new LinkedHashMap(); // 메시지 코드
-				message.put("resultCode", ValidationCode.NO_DATA.getCode());
-				message.put("result", ValidationCode.NO_DATA.getMessage());
-				setResult(msgKey, message);
+				setResult_NoData();
 			} else {
 				if(paramMap.get("monthWord").equals("w")) {
 					setResult(dataKey, es_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupOnlineSchool") );
@@ -335,14 +401,25 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupStudList(Map<String, Object> paramMap) throws Exception {
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
 		vu.checkRequired(new String[] {"startIdx", "schType"}, paramMap);		
 		if(vu.isValid()) { 
 			LinkedHashMap data = new LinkedHashMap(); // data 결과
 			LinkedHashMap message = new LinkedHashMap(); // 메시지 코드
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupStudList] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupStudList] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupStudList] orgId(db) : " + paramMap.get("orgId").toString());
+			
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 			} else {			
@@ -363,8 +440,8 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 
 	        // keyword : LOGIN_ID 로 검색 -> dw-api 에서 학생아이디 추출후 검색
 	        // keyword : STUD_NM 로 검색  -> dw-api 에서 학생아이디 리스트 추출후 검색
-			// 검색 : keyword/searchType : studId(LOGIN_ID), STUD_NM		
-			if(!mapperName.equals("Group_ES_Demo")) {
+			// 검색 : keyword/searchType : studId(LOGIN_ID), STUD_NM					
+			if(!vu.isDemoAccount()) {
 		        if(paramMap.get("keyword") != null && paramMap.get("keyword") != "" ) {
 		        	//홈런 API 조회
 	    			ArrayList<Map<String,Object>> data_hl = new ArrayList();
@@ -398,9 +475,10 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			} else {
 				paramMap.put("studList", null);
 			}
-			
+
+			// 데모 계정이 아니고 키워드가 있을 경우,
 			// 검색대상 조회 실패시 NO_DATA
-			if(!mapperName.equals("Group_ES_Demo") && paramMap.get("keyword") != null && paramMap.get("keyword") != "" && paramMap.get("studList") == null) {
+			if(!vu.isDemoAccount() && paramMap.get("keyword") != null && paramMap.get("keyword") != "" && paramMap.get("studList") == null) {
 				message.put("resultCode", ValidationCode.NO_DATA.getCode());
 				message.put("result", ValidationCode.NO_DATA.getMessage());
 				setResult(msgKey,message);
@@ -418,7 +496,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					}
 					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
 						try {
-							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap);
+							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, vu);
 							
 							message.put("resultCode", ValidationCode.SUCCESS.getCode());
 							message.put("result", ValidationCode.SUCCESS.getMessage());
@@ -456,7 +534,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 					}
 					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
 						try {
-							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, paramMap);
+							listEncodeS( (List<HashMap<String, Object>>) data.get("list"), mapperName, vu);
 						
 							message.put("resultCode", ValidationCode.SUCCESS.getCode());
 							message.put("result", ValidationCode.SUCCESS.getMessage());
@@ -502,13 +580,23 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 */
 	@Override
 	public Map selectGroupLocalList(Map<String, Object> paramMap) throws Exception{
+		// Validation
+		// 1.필수값 체크
 		ValidationUtil vu = commonValidation(new ValidationUtil(), paramMap);
 		if(vu.isValid()) { 
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[selectGroupLocalList] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[]selectGroupLocalList vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[selectGroupLocalList] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) mapperName = "Group_MS";
-			
-			if(paramMap.get("schType").toString().equals("es")) {
+			else {
 				if(paramMap.get("gcYn") != null) {
 					if("Y".equals(paramMap.get("gcYn"))) {
 						ArrayList<Map<String,Object>> orgList = (ArrayList<Map<String, Object>>) es_mapper.getList(paramMap, mapperName + ".selectGradeClassOrgId");
@@ -516,8 +604,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						if(orgList.size() > 0) {
 							for(Map<String, Object> item : orgList) {
 								paramOrgList.add(item.get("depthOrgId"));
-							}
-							
+							}							
 							paramMap.put("orgList", paramOrgList);
 						}
 					}
@@ -635,10 +722,19 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			Map<String, Object> lrnStt = new LinkedHashMap<>();
 			Map<String,Object> lrnSttResult = new LinkedHashMap<>();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
-			if(paramMap.get("schType").toString().equals("ms")) mapperName = "Group_MS";		
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnStt] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnStt] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getLrnStt] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
+				mapperName = "Group_MS";		
 				if(wkYn) {
 					lrnSttResult = (Map) ms_mapper.get(paramMap, mapperName + ".selectWeekLrnStt");
 				} else {
@@ -736,8 +832,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			List<Map<String, Object>> lrnSttTrend = new ArrayList();
 			List<Map<String, Object>> lrnSttTrendResult = new ArrayList();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnSttTrend] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnSttTrend] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getLrnSttTrend] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				if(wkYn) {
@@ -802,8 +907,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 
 			Map<String, Object> orgLrnSttResult = new LinkedHashMap();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getOrgLrnStt] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getOrgLrnStt] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getOrgLrnStt] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				orgLrnSttResult = (Map) ms_mapper.get(paramMap, mapperName + ".selectOrgLrnStt");
@@ -904,8 +1018,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			List<Map<String,Object>> exRtExcellentGrpResult = new ArrayList();
 			List<Map<String,Object>> exRtNeedEffortGrpResult = new ArrayList();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getHlUtilization] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getHlUtilization] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getHlUtilization] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) { 
 				mapperName = "Group_MS";
 			
@@ -943,7 +1066,8 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			try {
 					
 				if(crtRtExcellentGrpResult.size() > 0) {
-					if(!mapperName.equals("Group_ES_Demo")) {
+					
+					if(!vu.isDemoAccount()) {
 						paramMap_ex.put("apiName", "students");	     
 						ArrayList<String> stu_ids_list = new ArrayList();
 						String stu_ids = "";
@@ -962,7 +1086,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						}
 						paramMap_ex.put("stu_ids", stu_ids);
 						data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
-						for(Map<String,Object> studMap : crtRtExcellentGrpResult) {
+						for(Map<String,Object> studMap : crtRtExcellentGrpResult) {							
 							if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
 				        		String sId = studMap.get("studId").toString();
 				        		if(data_hl != null) {
@@ -978,154 +1102,206 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				        			studMap.remove("studId");
 								}
 				        	}
+							
+							Map<String, Object> crtRtExcellentGrpResultMap = new LinkedHashMap<>();
+							crtRtExcellentGrpResultMap.put("studNm", studMap.get("studNm"));
+							crtRtExcellentGrpResultMap.put("avgCrtRt", studMap.get("avgCrtRt"));
+							
+							crtRtExcellentGrp.add(crtRtExcellentGrpResultMap);
+						}
+						
+					} else {
+						for(Map<String,Object> studMap : crtRtExcellentGrpResult) {
+							studMap.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM")); 
+		        			studMap.remove("studId");
+
+							Map<String, Object> crtRtExcellentGrpResultMap = new LinkedHashMap<>();
+							crtRtExcellentGrpResultMap.put("studNm", studMap.get("studNm"));
+							crtRtExcellentGrpResultMap.put("avgCrtRt", studMap.get("avgCrtRt"));
+							
+							crtRtExcellentGrp.add(crtRtExcellentGrpResultMap);
 						}
 					}
 					
-					for(int i = 0; i < crtRtExcellentGrpResult.size(); i++) {
-						Map<String, Object> crtRtExcellentGrpResultMap = new LinkedHashMap<>();
-						crtRtExcellentGrpResultMap.put("studNm", crtRtExcellentGrpResult.get(i).get("studNm"));
-						crtRtExcellentGrpResultMap.put("avgCrtRt", crtRtExcellentGrpResult.get(i).get("avgCrtRt"));
-						
-						crtRtExcellentGrp.add(crtRtExcellentGrpResultMap);
-					}
 				}
 				hlUtilization.put("crtRtExcellentGrp", crtRtExcellentGrp);
 				
 				if(crtRtNeedEffortGrpResult.size() > 0) {
-					paramMap_ex.put("apiName", "students");	     
-					ArrayList<String> stu_ids_list = new ArrayList();
-					String stu_ids = "";
-					for(Map<String,Object> studMap : crtRtNeedEffortGrpResult) {
-			        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		stu_ids_list.add(sId);       
-			        	}
-			        }
-					for(int i = 0; i < stu_ids_list.size(); i++) {
-						if(i == 0) {
-							stu_ids += stu_ids_list.get(i);
-						} else {
-							stu_ids += ","+stu_ids_list.get(i);
+					
+					if(!vu.isDemoAccount()) {
+						paramMap_ex.put("apiName", "students");	     
+						ArrayList<String> stu_ids_list = new ArrayList();
+						String stu_ids = "";
+						for(Map<String,Object> studMap : crtRtNeedEffortGrpResult) {
+				        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		stu_ids_list.add(sId);       
+				        	}
+				        }
+						for(int i = 0; i < stu_ids_list.size(); i++) {
+							if(i == 0) {
+								stu_ids += stu_ids_list.get(i);
+							} else {
+								stu_ids += ","+stu_ids_list.get(i);
+							}
+						}
+						paramMap_ex.put("stu_ids", stu_ids);
+						data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
+						for(Map<String,Object> studMap : crtRtNeedEffortGrpResult) {
+							if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		if(data_hl != null) {
+						    		for(Map<String, Object> item : data_hl) {
+						    			if(sId.equals(item.get("STU_ID").toString())) {
+						        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
+						        			studMap.remove("studId");
+						    			}
+									}
+								} else {
+									LOGGER.error("getHlUtilization > crtRtNeedEffortGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
+									studMap.put("studNm", null);
+				        			studMap.remove("studId");
+								}
+				        	}
+							
+							Map<String, Object> crtRtNeedEffortGrpResultMap = new LinkedHashMap<>();
+							crtRtNeedEffortGrpResultMap.put("studNm", studMap.get("studNm"));
+							crtRtNeedEffortGrpResultMap.put("avgCrtRt", studMap.get("avgCrtRt"));
+							
+							crtRtNeedEffortGrp.add(crtRtNeedEffortGrpResultMap);
+						}
+					} else {
+						for(Map<String,Object> studMap : crtRtNeedEffortGrpResult) {
+							studMap.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM")); 	
+		        			studMap.remove("studId");
+
+							Map<String, Object> crtRtNeedEffortGrpResultMap = new LinkedHashMap<>();
+							crtRtNeedEffortGrpResultMap.put("studNm", studMap.get("studNm"));
+							crtRtNeedEffortGrpResultMap.put("avgCrtRt", studMap.get("avgCrtRt"));
+														
+							crtRtNeedEffortGrp.add(crtRtNeedEffortGrpResultMap);
 						}
 					}
-					paramMap_ex.put("stu_ids", stu_ids);
-					data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
-					for(Map<String,Object> studMap : crtRtNeedEffortGrpResult) {
-						if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		if(data_hl != null) {
-					    		for(Map<String, Object> item : data_hl) {
-					    			if(sId.equals(item.get("STU_ID").toString())) {
-					        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
-					        			studMap.remove("studId");
-					    			}
-								}
-							} else {
-								LOGGER.error("getHlUtilization > crtRtNeedEffortGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
-								studMap.put("studNm", null);
-			        			studMap.remove("studId");
-							}
-			        	}
-					}
-					for(int i = 0; i < crtRtNeedEffortGrpResult.size(); i++) {
-						Map<String, Object> crtRtNeedEffortGrpResultMap = new LinkedHashMap<>();
-						crtRtNeedEffortGrpResultMap.put("studNm", crtRtNeedEffortGrpResult.get(i).get("studNm"));
-						crtRtNeedEffortGrpResultMap.put("avgCrtRt", crtRtNeedEffortGrpResult.get(i).get("avgCrtRt"));
-						
-						crtRtNeedEffortGrp.add(crtRtNeedEffortGrpResultMap);
-					}
-				}
+					
+				} 
 				hlUtilization.put("crtRtNeedEffortGrp", crtRtNeedEffortGrp);
 				
 				if(exRtExcellentGrpResult.size() > 0) {
-					paramMap_ex.put("apiName", "students");	     
-					ArrayList<String> stu_ids_list = new ArrayList();
-					String stu_ids = "";
-					for(Map<String,Object> studMap : exRtExcellentGrpResult) {
-			        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		stu_ids_list.add(sId);       
-			        	}
-			        }
-					for(int i = 0; i < stu_ids_list.size(); i++) {
-						if(i == 0) {
-							stu_ids += stu_ids_list.get(i);
-						} else {
-							stu_ids += ","+stu_ids_list.get(i);
+					
+					if(!vu.isDemoAccount()) {
+						paramMap_ex.put("apiName", "students");	     
+						ArrayList<String> stu_ids_list = new ArrayList();
+						String stu_ids = "";
+						for(Map<String,Object> studMap : exRtExcellentGrpResult) {
+				        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		stu_ids_list.add(sId);       
+				        	}
+				        }
+						for(int i = 0; i < stu_ids_list.size(); i++) {
+							if(i == 0) {
+								stu_ids += stu_ids_list.get(i);
+							} else {
+								stu_ids += ","+stu_ids_list.get(i);
+							}
+						}
+						paramMap_ex.put("stu_ids", stu_ids);
+						data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
+						for(Map<String,Object> studMap : exRtExcellentGrpResult) {
+							if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		if(data_hl != null) {
+						    		for(Map<String, Object> item : data_hl) {
+						    			if(sId.equals(item.get("STU_ID").toString())) {
+						        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
+						        			studMap.remove("studId");
+						    			}
+									}
+								} else {
+									LOGGER.error("getHlUtilization > exRtExcellentGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
+									studMap.put("studNm", null);
+				        			studMap.remove("studId");
+								}
+				        	}
+							
+							Map<String, Object> exRtExcellentGrpResultMap = new LinkedHashMap<>();
+							exRtExcellentGrpResultMap.put("studNm", studMap.get("studNm"));
+							exRtExcellentGrpResultMap.put("avgExRt", studMap.get("avgExRt"));
+							
+							exRtExcellentGrp.add(exRtExcellentGrpResultMap);
+						}
+					} else {
+						for(Map<String,Object> studMap : exRtExcellentGrpResult) {
+							studMap.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM"));
+		        			studMap.remove("studId");
+
+		        			Map<String, Object> exRtExcellentGrpResultMap = new LinkedHashMap<>();
+							exRtExcellentGrpResultMap.put("studNm", studMap.get("studNm"));
+							exRtExcellentGrpResultMap.put("avgExRt", studMap.get("avgExRt"));
+							
+							exRtExcellentGrp.add(exRtExcellentGrpResultMap);
 						}
 					}
-					paramMap_ex.put("stu_ids", stu_ids);
-					data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
-					for(Map<String,Object> studMap : exRtExcellentGrpResult) {
-						if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		if(data_hl != null) {
-					    		for(Map<String, Object> item : data_hl) {
-					    			if(sId.equals(item.get("STU_ID").toString())) {
-					        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
-					        			studMap.remove("studId");
-					    			}
-								}
-							} else {
-								LOGGER.error("getHlUtilization > exRtExcellentGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
-								studMap.put("studNm", null);
-			        			studMap.remove("studId");
-							}
-			        	}
-					}
-					for(int i = 0; i < exRtExcellentGrpResult.size(); i++) {
-						Map<String, Object> exRtExcellentGrpResultMap = new LinkedHashMap<>();
-						exRtExcellentGrpResultMap.put("studNm", exRtExcellentGrpResult.get(i).get("studNm"));
-						exRtExcellentGrpResultMap.put("avgExRt", exRtExcellentGrpResult.get(i).get("avgExRt"));
-						
-						exRtExcellentGrp.add(exRtExcellentGrpResultMap);
-					}
+					
 				}
 				hlUtilization.put("exRtExcellentGrp", exRtExcellentGrp);
 				
 				if(exRtNeedEffortGrpResult.size() > 0) {
-					paramMap_ex.put("apiName", "students");	     
-					ArrayList<String> stu_ids_list = new ArrayList();
-					String stu_ids = "";
-					for(Map<String,Object> studMap : exRtNeedEffortGrpResult) {
-			        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		stu_ids_list.add(sId);       
-			        	}
-			        }
-					for(int i = 0; i < stu_ids_list.size(); i++) {
-						if(i == 0) {
-							stu_ids += stu_ids_list.get(i);
-						} else {
-							stu_ids += ","+stu_ids_list.get(i);
+					if(!vu.isDemoAccount()) {
+						paramMap_ex.put("apiName", "students");	     
+						ArrayList<String> stu_ids_list = new ArrayList();
+						String stu_ids = "";
+						for(Map<String,Object> studMap : exRtNeedEffortGrpResult) {
+				        	if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		stu_ids_list.add(sId);       
+				        	}
+				        }
+						for(int i = 0; i < stu_ids_list.size(); i++) {
+							if(i == 0) {
+								stu_ids += stu_ids_list.get(i);
+							} else {
+								stu_ids += ","+stu_ids_list.get(i);
+							}
+						}
+						paramMap_ex.put("stu_ids", stu_ids);
+						data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
+						for(Map<String,Object> studMap : exRtNeedEffortGrpResult) {
+							if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
+				        		String sId = studMap.get("studId").toString();
+				        		if(data_hl != null) {
+						    		for(Map<String, Object> item : data_hl) {
+						    			if(sId.equals(item.get("STU_ID").toString())) {
+						        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
+						        			studMap.remove("studId");
+						    			}
+									}
+								} else {
+									LOGGER.error("getHlUtilization > exRtNeedEffortGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
+									studMap.put("studNm", null);
+				        			studMap.remove("studId");
+								}
+				        	}
+							
+							Map<String, Object> exRtNeedEffortGrpResultMap = new LinkedHashMap<>();
+							exRtNeedEffortGrpResultMap.put("studNm", studMap.get("studNm"));
+							exRtNeedEffortGrpResultMap.put("avgExRt", studMap.get("avgExRt"));
+							
+							exRtNeedEffortGrp.add(exRtNeedEffortGrpResultMap);						
+						}
+					} else {
+						for(Map<String,Object> studMap : exRtNeedEffortGrpResult) {
+							studMap.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM")); 	
+		        			studMap.remove("studId");
+		        			
+							Map<String, Object> exRtNeedEffortGrpResultMap = new LinkedHashMap<>();
+							exRtNeedEffortGrpResultMap.put("studNm", studMap.get("studNm"));
+							exRtNeedEffortGrpResultMap.put("avgExRt", studMap.get("avgExRt"));
+							
+							exRtNeedEffortGrp.add(exRtNeedEffortGrpResultMap);
 						}
 					}
-					paramMap_ex.put("stu_ids", stu_ids);
-					data_hl = (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
-					for(Map<String,Object> studMap : exRtNeedEffortGrpResult) {
-						if(studMap.get("studId") != null && !"".equals(studMap.get("studId"))) {
-			        		String sId = studMap.get("studId").toString();
-			        		if(data_hl != null) {
-					    		for(Map<String, Object> item : data_hl) {
-					    			if(sId.equals(item.get("STU_ID").toString())) {
-					        			studMap.put("studNm", new String(item.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
-					        			studMap.remove("studId");
-					    			}
-								}
-							} else {
-								LOGGER.error("getHlUtilization > exRtNeedEffortGrpResult 홈런 API 조회[students] 매칭 실패 sId : "+sId);
-								studMap.put("studNm", null);
-			        			studMap.remove("studId");
-							}
-			        	}
-					}
-					for(int i = 0; i < exRtNeedEffortGrpResult.size(); i++) {
-						Map<String, Object> exRtNeedEffortGrpResultMap = new LinkedHashMap<>();
-						exRtNeedEffortGrpResultMap.put("studNm", exRtNeedEffortGrpResult.get(i).get("studNm"));
-						exRtNeedEffortGrpResultMap.put("avgExRt", exRtNeedEffortGrpResult.get(i).get("avgExRt"));
-						
-						exRtNeedEffortGrp.add(exRtNeedEffortGrpResultMap);
-					}
+					
 				}
 				hlUtilization.put("exRtNeedEffortGrp", exRtNeedEffortGrp);
 							
@@ -1188,8 +1364,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			List<Map<String, Object>> lrnSignalTrendResult = new ArrayList();
 			Map<String, Object> lrnSignalTrendMap = new LinkedHashMap<>();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnSignalTrend] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getLrnSignalTrend] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getLrnSignalTrend] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms"))  {
 				mapperName = "Group_MS";
 				if(wkYn) {
@@ -1262,8 +1447,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			ArrayList<Object> lrnData = new ArrayList<Object>();
 			List<Map<String,Object>> strengthHabitExcellentStudResult =  new ArrayList();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[getStrengthHabitExcellentStud] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[getStrengthHabitExcellentStud] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[getStrengthHabitExcellentStud] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				strengthHabitExcellentStudResult = (List) ms_mapper.getList(paramMap, mapperName + ".selectStrengthHabitExcellentStud");
@@ -1286,13 +1480,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			
 			if(strengthHabitExcellentStudResult.size() > 0) {
 				Map<String, Object> studInfo = new LinkedHashMap<>();
-				
-				if(mapperName.equals("Group_ES_Demo")) {
-					studInfo.put("studId", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studId"));
-					studInfo.put("studNm", strengthHabitExcellentStudResult.get(strengthHabitExcellentStudResult.size() - 1).get("studNm"));
-				} else {
-					getStudentInfo(strengthHabitExcellentStudResult, studInfo);
-				}
+				getStudentInfo(strengthHabitExcellentStudResult, studInfo, vu);
 				strengthHabitExcellentStud.put("studInfo", studInfo);
 				
 				for(Map<String,Object> item : strengthHabitExcellentStudResult) {
@@ -1326,20 +1514,25 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 * @param studInfo
 	 * @throws Exception
 	 */
-	private void getStudentInfo(List<Map<String, Object>> studResultList, Map<String, Object> studInfo) throws Exception {
+	private void getStudentInfo(List<Map<String, Object>> studResultList, Map<String, Object> studInfo, ValidationUtil vu) throws Exception {
 		try {	
-			//홈런 API 조회
-			Map<String,Object> data_hl = new HashMap<>();
-			Map<String, Object> paramMap_ex= new HashMap<>();
-			paramMap_ex.put("apiName", "student");	       	
-			paramMap_ex.put("studId", studResultList.get(studResultList.size() - 1).get("studId"));
-			data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
-			if(data_hl != null) {
-				studInfo.put("studNm", new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
-				studInfo.put("studId", data_hl.get("LOGIN_ID").toString());
+			if(!vu.isDemoAccount()) {
+				//홈런 API 조회
+				Map<String,Object> data_hl = new HashMap<>();
+				Map<String, Object> paramMap_ex= new HashMap<>();
+				paramMap_ex.put("apiName", "student");	       	
+				paramMap_ex.put("studId", studResultList.get(studResultList.size() - 1).get("studId"));
+				data_hl = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap_ex).get("data");
+				if(data_hl != null) {
+					studInfo.put("studNm", new String(data_hl.get("STUD_NM").toString().getBytes("8859_1"), "UTF-8"));
+					studInfo.put("studId", data_hl.get("LOGIN_ID").toString());
+				} else {
+					studInfo.put("studNm", null);
+					studInfo.put("studId", null);
+				}
 			} else {
-				studInfo.put("studNm", null);
-				studInfo.put("studId", null);
+				studInfo.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM"));
+				studInfo.put("studId", vu.getDemoAccountInfo("ORG", "LOGIN_ID"));
 			}
 		} catch (Exception e) {
 			LOGGER.error("getStudentInfo 홈런 API 조회[student] Error");
@@ -1367,8 +1560,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			ArrayList<Object> lrnData = new ArrayList<Object>();
 			
 			Map<String,Object> strengthHabitExcellentStudResult = new LinkedHashMap<>();
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				strengthHabitExcellentStudResult = (Map) ms_mapper.get(paramMap, mapperName + ".selectStrengthHabitExcellentStudHabit");
@@ -1428,8 +1630,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			ArrayList<Object> lrnData = new ArrayList<Object>();
 			
 			List<Map<String,Object>> strengthHabitHighGrowthStudResult = new ArrayList();
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				strengthHabitHighGrowthStudResult = (List) ms_mapper.getList(paramMap, mapperName + ".selectStrengthHabitHighGrowthStud");
@@ -1452,12 +1663,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			
 			if(strengthHabitHighGrowthStudResult.size() > 0) {
 				Map<String, Object> studInfo = new LinkedHashMap<>();
-				if(mapperName.equals("Group_ES_Demo")) {
-					studInfo.put("studId", strengthHabitHighGrowthStudResult.get(strengthHabitHighGrowthStudResult.size() - 1).get("studId"));
-					studInfo.put("studNm", strengthHabitHighGrowthStudResult.get(strengthHabitHighGrowthStudResult.size() - 1).get("studNm"));
-				} else {
-					getStudentInfo(strengthHabitHighGrowthStudResult, studInfo);
-				}
+				getStudentInfo(strengthHabitHighGrowthStudResult, studInfo, vu);
 				strengthHabitHighGrowthStud.put("studInfo", studInfo);
 				
 				for(Map<String,Object> item : strengthHabitHighGrowthStudResult) {
@@ -1501,8 +1707,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			Map<String, Object> strengthHabitHighGrowthStudHabit = new LinkedHashMap<>();
 			ArrayList<Object> lrnData = new ArrayList<Object>();
 			Map<String,Object> strengthHabitHighGrowthStudHabitResult = new LinkedHashMap<>();
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				strengthHabitHighGrowthStudHabitResult = (Map) ms_mapper.get(paramMap, mapperName + ".selectStrengthHabitHighGrowthStudHabit");
@@ -1561,8 +1776,17 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 			Map<String, Object> lrnPlanStudLrnSttResult = new LinkedHashMap<>();
 			Map<String, Object> lrnPlanStudLrnSttMap = new LinkedHashMap<>();
 			
-			//demo 계정 관련 로직 
-			String mapperName = (paramMap.get("orgId") != null && paramMap.get("orgId").toString().contains("demo")) ? "Group_ES_Demo" : "Group_ES";
+			//2. demo 계정 관련 로직
+			//2-1. 데모 계정 체크
+			vu.checkDemoAccount(paramMap.get("orgId").toString());
+			LOGGER.debug("[] orgId(param) : " + paramMap.get("orgId").toString());
+			LOGGER.debug("[] vu.isDemoAccount() : " + vu.isDemoAccount());
+
+			//2-2. 데모 계정 대체 아이디로 교체
+			if(vu.isDemoAccount()) paramMap.put("orgId", vu.getAlternativeAccount());	
+			LOGGER.debug("[] orgId(db) : " + paramMap.get("orgId").toString());
+
+			String mapperName = "Group_ES";
 			if(paramMap.containsKey("schType") && paramMap.get("schType").toString().equals("ms")) {
 				mapperName = "Group_MS";
 				if(paramMap.containsKey("searchWk") && paramMap.get("searchWk") != null && !paramMap.get("searchWk").equals("")) {
@@ -1576,8 +1800,10 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				} else {
 					lrnPlanStudLrnSttResult = (Map) es_mapper.get(paramMap, mapperName + ".selectMonthLrnPlanStudLrnStt");
 				}
+				
 			}
-			
+			if(vu.isDemoAccount()) lrnPlanStudLrnSttResult.put("studId", vu.getDemoAccountInfo("ORG", "STUD_ID"));
+				
 			if(lrnPlanStudLrnSttResult != null) {
 				String searchYymm = "";
 				String searchYy = "";
@@ -1592,8 +1818,8 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				String dayAvgLrnSec = "";
 				String crtRt = "";
 				
-				if(mapperName.equals("Group_ES_Demo")) {
-					studNm = lrnPlanStudLrnSttResult.get("studNm").toString(); 
+				if(vu.isDemoAccount()) {
+					studNm = vu.getDemoAccountInfo("ORG", "STUD_NM"); 
 				} else {
 					try {	
 						//홈런 API 조회
@@ -1788,7 +2014,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 	 * @param studList
 	 * @throws Exception
 	 */
-	private void listEncodeS(List<HashMap<String,Object>> studList, String mapperName, Map<String, Object> paramMap) throws Exception{
+	private void listEncodeS(List<HashMap<String,Object>> studList, String mapperName, ValidationUtil vu) throws Exception{
         CipherUtil cp = CipherUtil.getInstance();
         String retStr = "";
         
@@ -1804,8 +2030,7 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
         
         ArrayList<Map<String,Object>> data_hl = new ArrayList();
 		Map<String, Object> paramMap_ex = new HashMap<>();
-        if(!mapperName.equals("Group_ES_Demo")) {
-        	
+        if(!vu.isDemoAccount()) {        	
 	        //홈런 API 조회
 			paramMap_ex.put("apiName", "students");	       
 			String stu_ids = "";
@@ -1834,8 +2059,13 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						studMap.put("studNm", null);
 					}
 	        	}
+			}			
+		} else {
+			//demo 용
+			for(HashMap<String,Object> studMap : studList) {
+				studMap.put("loginId", vu.getDemoAccountInfo("ORG", "LOGIN_ID"));		
+    			studMap.put("studNm", vu.getDemoAccountInfo("ORG", "STUD_NM")); 		
 			}
-			
 		}
 	
     }
