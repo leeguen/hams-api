@@ -1227,25 +1227,25 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					
 	        					switch (subjCdItem) {
 								case "C00":
-									lrnTmMap.put("lrnExRtList", c00LrnTmList);
+									lrnTmMap.put("lrnTmList", c00LrnTmList);
 									break;
 								case "C01":
-									lrnTmMap.put("lrnExRtList", c01LrnTmList);
+									lrnTmMap.put("lrnTmList", c01LrnTmList);
 									break;
 								case "C02":
-									lrnTmMap.put("lrnExRtList", c02LrnTmList);
+									lrnTmMap.put("lrnTmList", c02LrnTmList);
 									break;
 								case "C03":
-									lrnTmMap.put("lrnExRtList", c03LrnTmList);
+									lrnTmMap.put("lrnTmList", c03LrnTmList);
 									break;
 								case "C04":
-									lrnTmMap.put("lrnExRtList", c04LrnTmList);
+									lrnTmMap.put("lrnTmList", c04LrnTmList);
 									break;
 								case "C05":
-									lrnTmMap.put("lrnExRtList", c05LrnTmList);
+									lrnTmMap.put("lrnTmList", c05LrnTmList);
 									break;
 								default:
-									lrnTmMap.put("lrnExRtList", c06LrnTmList);
+									lrnTmMap.put("lrnTmList", c06LrnTmList);
 									break;
 	        					}
 	        					
@@ -1354,25 +1354,25 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					
 	        					switch (subjCdItem) {
 								case "C00":
-									lrnTmMap.put("lrnExRtList", c00LrnTmList);
+									lrnTmMap.put("lrnTmList", c00LrnTmList);
 									break;
 								case "C01":
-									lrnTmMap.put("lrnExRtList", c01LrnTmList);
+									lrnTmMap.put("lrnTmList", c01LrnTmList);
 									break;
 								case "C02":
-									lrnTmMap.put("lrnExRtList", c02LrnTmList);
+									lrnTmMap.put("lrnTmList", c02LrnTmList);
 									break;
 								case "C03":
-									lrnTmMap.put("lrnExRtList", c03LrnTmList);
+									lrnTmMap.put("lrnTmList", c03LrnTmList);
 									break;
 								case "C04":
-									lrnTmMap.put("lrnExRtList", c04LrnTmList);
+									lrnTmMap.put("lrnTmList", c04LrnTmList);
 									break;
 								case "C05":
-									lrnTmMap.put("lrnExRtList", c05LrnTmList);
+									lrnTmMap.put("lrnTmList", c05LrnTmList);
 									break;
 								default:
-									lrnTmMap.put("lrnExRtList", c06LrnTmList);
+									lrnTmMap.put("lrnTmList", c06LrnTmList);
 									break;
 	        					}
 	        					

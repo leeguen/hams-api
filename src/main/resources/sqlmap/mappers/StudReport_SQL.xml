@@ -232,9 +232,10 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				a.yyyymm_key,
-				a.subj_cd,
-				b.ex_rt
+				distinct
+					a.yyyymm_key,
+					a.subj_cd,
+					b.ex_rt
 			from (
 				select
 					a.yyyymm_key,
@@ -261,13 +262,14 @@
 				where a.yyyymm_key between #{startYymm} and #{endYymm}
 					and a.w = '1'
 			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymm_key desc;
+			order by a.subj_cd, a.yyyymm_key;
 			</when>
 			<otherwise>
 			select
-				a.yyyymmw_key,
-				a.subj_cd,
-				b.ex_rt
+				distinct
+					a.yyyymmw_key,
+					a.subj_cd,
+					b.ex_rt
 			from (
 				select
 					a.yyyymmw_key,
@@ -292,7 +294,7 @@
 				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymmw_key desc;
+			order by a.subj_cd, a.yyyymmw_key;
 			</otherwise>
 		</choose>
     </select>
@@ -324,9 +326,10 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				a.yyyymm_key,
-				a.subj_cd,
-				b.tot_lrn_ss as lrn_sec
+				distinct
+					a.yyyymm_key,
+					a.subj_cd,
+					b.tot_lrn_ss as lrn_sec
 			from (
 				select
 					a.yyyymm_key,
@@ -353,13 +356,14 @@
 				where a.yyyymm_key between #{startYymm} and #{endYymm}
 					and a.w = '1'
 			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymm_key desc;
+			order by a.subj_cd, a.yyyymm_key;
 			</when>
 			<otherwise>
 			select
-				a.yyyymmw_key,
-				a.subj_cd,
-				b.tot_lrn_ss as lrn_sec
+				distinct
+					a.yyyymmw_key,
+					a.subj_cd,
+					b.tot_lrn_ss as lrn_sec
 			from (
 				select
 					a.yyyymmw_key,
@@ -384,7 +388,7 @@
 				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymmw_key desc;
+			order by a.subj_cd, a.yyyymmw_key;
 			</otherwise>
 		</choose>
     </select>
@@ -423,9 +427,10 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				a.yyyymm_key,
-				a.subj_cd,
-				b.ex_rt
+				distinct
+					a.yyyymm_key,
+					a.subj_cd,
+					b.ex_rt
 			from (
 				select
 					a.yyyymm_key,
@@ -452,13 +457,14 @@
 				where a.yyyymm_key between #{startYymm} and #{endYymm}
 					and a.w = '1'
 			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymm_key desc;
+			order by a.subj_cd, a.yyyymm_key;
 			</when>
 			<otherwise>
 			select
-				a.yyyymmw_key,
-				a.subj_cd,
-				b.ex_rt
+				distinct
+					a.yyyymmw_key,
+					a.subj_cd,
+					b.ex_rt
 			from (
 				select
 					a.yyyymmw_key,
@@ -483,7 +489,7 @@
 				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymmw_key desc;
+			order by a.subj_cd, a.yyyymmw_key;
 			</otherwise>
 		</choose>
     </select>
@@ -515,11 +521,12 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				a.yyyymm_key,
-				b.ques_skip_cnt,
-				b.ques_hrry_cnt,
-				b.ques_guss_cnt,
-				b.ques_mstke_cnt
+				distinct
+					a.yyyymm_key,
+					b.ques_skip_cnt,
+					b.ques_hrry_cnt,
+					b.ques_guss_cnt,
+					b.ques_mstke_cnt
 			from (
 				select
 					a.yyyymm_key
@@ -539,15 +546,16 @@
 				where a.yyyymm_key between #{startYymm} and #{endYymm}
 					and a.w = '1'
 			) b on a.yyyymm_key = b.yyyymm_key
-			order by a.yyyymm_key desc;
+			order by a.yyyymm_key;
 			</when>
 			<otherwise>
 			select
-				a.yyyymmw_key,
-				b.ques_skip_cnt,
-				b.ques_hrry_cnt,
-				b.ques_guss_cnt,
-				b.ques_mstke_cnt
+				distinct
+					a.yyyymmw_key,
+					b.ques_skip_cnt,
+					b.ques_hrry_cnt,
+					b.ques_guss_cnt,
+					b.ques_mstke_cnt
 			from (
 				select
 					a.yyyymmw_key
@@ -565,7 +573,7 @@
 				left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0 and b.grp_item_key = 3
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			) b on a.yyyymmw_key = b.yyyymmw_key
-			order by a.yyyymmw_key desc;
+			order by a.yyyymmw_key;
 			</otherwise>
 		</choose>
     </select>
