@@ -772,7 +772,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     	}
     	
     	if(ptnRt >= 50 && msgCdList.size() < 6) {
-    		msgCdList.add("CPG0009");
+//    		msgCdList.add("CPG0009");	// 2022-05-24 임시 비노출 by jhlim, jhkim    		
     	}
     	
     	if(aLrnCnt > 0 && msgCdList.size() < 6) {
