@@ -107,6 +107,7 @@
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">
     	select
+    		c.att_dd as att_cnt,
 			plan_lrn_cnt as plan_cnt,
 			lrn_exec_cnt as lrn_cnt,
 			round(exec_rt * 100) as ex_rt,
@@ -124,11 +125,13 @@
 			<when test='currConCheck == "m"'>
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
 			left outer join lrn_dsb.ds_ag_lrn_use_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
+			left outer join lrn_dsb.ds_ag_stud_att_sts_mly c on a.yyyymm_key = c.yyyymm_key and a.stud_key = c.stud_key and a.ssvc_akey = c.ssvc_akey 
 			where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
 			left outer join lrn_dsb.ds_ag_lrn_use_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
+			left outer join lrn_dsb.ds_ag_stud_att_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and a.stud_key = c.stud_key and a.ssvc_akey = c.ssvc_akey 
 			where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
 		</choose>
@@ -164,6 +167,9 @@
     <select id="getExamQuesSummary" parameterType="hashMap" resultType="resultMap">
     	select
 			round(a.answ_rt * 100) as exam_score,
+			c.wnote_tot_cnt,
+			c.wnote_unfnsh_cnt,
+			b.ques_tot_cnt,
 			b.ques_skip_cnt,
 			b.ques_hrry_cnt,
 			b.ques_guss_cnt,
@@ -173,12 +179,16 @@
 			from lrn_dsb.ds_ag_exam_assm_sts_mly a
 			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key 
 				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.grp_item_key = b.grp_item_key
+			left outer join lrn_dsb.ds_ag_exam_wnote_sts_mly c on a.yyyymm_key = c.yyyymm_key and a.stud_key = c.stud_key 
+				and a.ssvc_akey = c.ssvc_akey and a.exam_typ_key = c.exam_typ_key and a.grp_item_key = c.grp_item_key
 			where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 			from lrn_dsb.ds_ag_exam_assm_sts_wly a
 			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key 
 				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.grp_item_key = b.grp_item_key
+			left outer join lrn_dsb.ds_ag_exam_wnote_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and a.stud_key = c.stud_key 
+				and a.ssvc_akey = c.ssvc_akey and a.exam_typ_key = c.exam_typ_key and a.grp_item_key = c.grp_item_key
 			where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
 		</choose>
