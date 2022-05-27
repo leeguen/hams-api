@@ -235,7 +235,13 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         
         paramMap.put("studId", studId);
         
-        data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
+        /*QA 계정용 로직 > QA 진행 완료 후 주석 필요 - 오희택*/
+        String[] dkt_check_stud = {"2083366", "2083367", "2083374", "2083378", "2083381", "2083377"};
+        List<String> dktCheckStudList = Arrays.asList(dkt_check_stud);
+        
+        if(!dktCheckStudList.contains(String.valueOf(studId))) {
+        	data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
+        }
         			
         setResult(dataKey,data);
 
