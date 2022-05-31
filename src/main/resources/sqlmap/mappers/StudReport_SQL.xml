@@ -47,6 +47,40 @@
 		from lrndmt.mt_dm_stud 
 		where stud_key = #{studId};
     </select>
+    
+    <select id="getStudRecentReport" parameterType="hashMap" resultType="resultMap">
+		select
+			recent_report
+		from (
+			select
+				recent_report,
+				yymm_check
+			from (
+				select
+					yyyymm_key as recent_report,
+					concat(yyyymm_key,'9')::integer as yymm_check
+				from lrn_dsb.ds_ag_stud_att_sts_mly 
+				where stud_key = #{studId} and ssvc_akey = 3
+				order by yyyymm_key desc
+				limit 1
+			) mm
+			union all
+			select 
+				recent_report,
+				yymm_check
+			from (
+				select
+					yyyymmw_key as recent_report,
+					yyyymmw_key as yymm_check
+				from lrn_dsb.ds_ag_stud_att_sts_wly
+				where stud_key = #{studId} and ssvc_akey = 3
+				order by yyyymmw_key desc
+				limit 1
+			) wk
+		) rem
+		order by yymm_check desc
+		limit 1;
+    </select>
 	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
 		<choose>
@@ -92,6 +126,30 @@
 		where a.yyyymmw_key = #{yymmwk};
     </select>
     
+    <select id="getMonthReportList" parameterType="hashMap" resultType="resultMap">
+    	select
+			dm.yyyymm_key,
+			case 
+				when mp.stud_key is null then 'N'
+				else 'Y'
+			end as report_yn
+		from (
+			select
+				distinct
+					yyyymm_key,
+					cast(#{studId} as integer) as stud_key
+			from lrndmt.mt_dm_wk_dt
+			where yyyymm_key between (
+				select
+					wk.yyyymm_key as start_yymm
+				from lrndmt.mt_dm_stud st
+				join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
+				where st.stud_key = #{studId}
+			) and cast(to_char(cast(now() - interval '1 month' as DATE), 'YYYYmm') as integer)
+		) dm
+		left outer join lrn_dsb.ds_ag_stud_att_sts_mly mp on dm.yyyymm_key = mp.yyyymm_key and dm.stud_key = mp.stud_key and mp.ssvc_akey = 3;
+    </select>
+    
     <select id="getWeeklyReportYn" parameterType="hashMap" resultType="resultMap">
     	select
 			-- a.yyyymmw_key,
@@ -103,6 +161,39 @@
 		from lrndmt.mt_dm_wk_dt a
 		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and stud_key = #{studId} and ssvc_akey = 3 and grp_item_key = 3
 		where a.yyyymm_key = #{yymm};
+    </select>
+    
+    <select id="getWeeklyReportList" parameterType="hashMap" resultType="resultMap">
+    	select
+			wm.yyyymm_key,
+			wm.yyyymmw_key,
+			case 
+				when wp.stud_key is null then 'N'
+				else 'Y'
+			end as report_yn
+		from (
+			select
+				distinct
+					yyyymm_key,
+					yyyymmw_key,
+					cast(#{studId} as integer) as stud_key
+			from lrndmt.mt_dm_wk_dt
+			where yyyymmw_key between (
+				select
+					wk.yyyymmw_key
+				from lrndmt.mt_dm_stud st
+				join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
+				where st.stud_key = #{studId}
+			) and (
+				select
+					yyyymmw_key
+				from sc_dsb.vw_dm_wk_dt
+				where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
+						between stt_wk_dt and end_wk_dt
+			)
+		) wm
+		left outer join lrn_dsb.ds_ag_stud_att_sts_wly wp on wm.yyyymmw_key = wp.yyyymmw_key and wm.stud_key = wp.stud_key and wp.ssvc_akey = 3
+		order by wm.yyyymmw_key desc;
     </select>
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">

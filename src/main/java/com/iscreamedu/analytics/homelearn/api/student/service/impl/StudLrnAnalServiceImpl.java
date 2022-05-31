@@ -160,6 +160,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             paramMap.put("studId", studId);
             
             Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+            Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
             
         	data.put("p", decodeStudId);
         	data.put("studId", studInfoMap.get("stuId"));
@@ -168,6 +169,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
         	data.put("sttDt", studData.get("sttDt"));
+        	data.put("recentReport", studRecentData.get("recentReport"));
         	
         	setResult(dataKey,data);
         } else {
@@ -233,14 +235,21 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     			
     			if(vu1.isValid()) {
     				Map<String, Object> monthMap = new LinkedHashMap<>();
-    				Map<String, Object> monthDataMap = new LinkedHashMap<>();
+    				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
+    				ArrayList<Map<String, Object>> monthList = new ArrayList<>();
     				ArrayList<Map<String, Object>> weekList = new ArrayList<>();
     				
-    				monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
-    				weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
+    				ArrayList<Map<String, Object>> reoortYymmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getYymmwkList");
     				
-    				monthMap.put("reportNm", mm + "월 월간 리포트");
-    				monthMap.put("publishYn", monthDataMap.get("reportYn"));
+    				monthList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getMonthReportList");
+    				weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportList");
+    				
+    				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
+    				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
+    				
+    				
+    				/*monthMap.put("reportNm", mm + "월 월간 리포트");
+    				monthMap.put("publishYn", monthDataMap.get("reportYn"));*/
     				
     				data.put("month", monthMap);
     				data.put("week", weekList);
