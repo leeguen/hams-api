@@ -270,7 +270,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 						if(reportYymm == monthReportYymm) {
 							String checkYn = "Y";
 							
-							monthReportMap.put("monthReportMap", monthReportItem.get("reportNm"));
+							monthReportMap.put("reportNm", monthReportItem.get("reportNm"));
 							monthReportMap.put("publishYn", monthReportItem.get("reportYn"));
 							
 							if(recentYymm == monthReportYymm) {
