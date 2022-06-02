@@ -114,21 +114,30 @@
 		</choose>
     </select>
 	
-	<select id="getMonthReportYn" parameterType="hashMap" resultType="resultMap">
-    	select
-			a.yyyymm_key,
-			case 
-				when b.stud_key is null then 'N'
-				else 'Y'
-			end as report_yn
-		from lrndmt.mt_dm_wk_dt a
-		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and stud_key = #{studId} and ssvc_akey = 3 and grp_item_key = 3
-		where a.yyyymmw_key = #{yymmwk};
+	<select id="getReportYymmList" parameterType="hashMap" resultType="resultMap">
+		select
+			distinct
+				yyyymm_key as yymm
+		from sc_dsb.vw_dm_wk_dt
+		where yyyymmw_key between (
+			select
+				wk.yyyymmw_key
+			from lrndmt.mt_dm_stud st
+			join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
+			where st.stud_key = #{studId}
+		) and (
+			select
+				yyyymmw_key
+			from sc_dsb.vw_dm_wk_dt
+			where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
+					between stt_wk_dt and end_wk_dt
+		);
     </select>
     
     <select id="getMonthReportList" parameterType="hashMap" resultType="resultMap">
     	select
-			dm.yyyymm_key,
+			dm.yyyymm_key as month_report_yymm,
+			replace('mm월 월간 리포트','mm',mm::text) as report_nm,
 			case 
 				when mp.stud_key is null then 'N'
 				else 'Y'
@@ -137,6 +146,7 @@
 			select
 				distinct
 					yyyymm_key,
+					substring(yyyymm_key::text,5,6)::integer as mm,
 					cast(#{studId} as integer) as stud_key
 			from lrndmt.mt_dm_wk_dt
 			where yyyymm_key between (
@@ -150,23 +160,11 @@
 		left outer join lrn_dsb.ds_ag_stud_att_sts_mly mp on dm.yyyymm_key = mp.yyyymm_key and dm.stud_key = mp.stud_key and mp.ssvc_akey = 3;
     </select>
     
-    <select id="getWeeklyReportYn" parameterType="hashMap" resultType="resultMap">
-    	select
-			-- a.yyyymmw_key,
-			replace(split_part(yyyymmw_ko, ' ', 3),'차', ' 주간 리포트') as report_nm,
-			case 
-				when b.stud_key is null then 'N'
-				else 'Y'
-			end as report_yn
-		from lrndmt.mt_dm_wk_dt a
-		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and stud_key = #{studId} and ssvc_akey = 3 and grp_item_key = 3
-		where a.yyyymm_key = #{yymm};
-    </select>
-    
     <select id="getWeeklyReportList" parameterType="hashMap" resultType="resultMap">
     	select
-			wm.yyyymm_key,
-			wm.yyyymmw_key,
+			wm.yyyymm_key as week_report_yymm,
+			wm.yyyymmw_key as week_report_yymmwk,
+			replace(replace('mm월 wk주 주간 리포트','mm',mm::text),'wk',wk::text) as report_nm,
 			case 
 				when wp.stud_key is null then 'N'
 				else 'Y'
@@ -176,6 +174,8 @@
 				distinct
 					yyyymm_key,
 					yyyymmw_key,
+					substring(yyyymm_key::text,5,6)::integer as mm,
+					w::integer as wk,
 					cast(#{studId} as integer) as stud_key
 			from lrndmt.mt_dm_wk_dt
 			where yyyymmw_key between (

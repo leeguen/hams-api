@@ -215,49 +215,81 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"p"}, paramMap);
         
         if(vu.isValid()) {
         	getStudId(paramMap);
         	
         	if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			int yymm = Integer.parseInt(yyyy+convertMm);
-    			int yymmwk = Integer.parseInt(yyyy+convertMm+1);
-    			
-    			paramMap.put("yymm", yymm);
-    			paramMap.put("yymmwk", yymmwk);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				Map<String, Object> monthMap = new LinkedHashMap<>();
-    				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
-    				ArrayList<Map<String, Object>> monthList = new ArrayList<>();
-    				ArrayList<Map<String, Object>> weekList = new ArrayList<>();
-    				
-    				ArrayList<Map<String, Object>> reoortYymmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getYymmwkList");
-    				
-    				monthList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getMonthReportList");
-    				weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportList");
-    				
-    				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
-    				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
-    				
-    				
-    				/*monthMap.put("reportNm", mm + "월 월간 리포트");
-    				monthMap.put("publishYn", monthDataMap.get("reportYn"));*/
-    				
-    				data.put("month", monthMap);
-    				data.put("week", weekList);
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
+        		Map<String, Object> monthMap = new LinkedHashMap<>();
+				ArrayList<Map<String, Object>> reportList = new ArrayList<>();
+				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
+				
+				ArrayList<Map<String, Object>> reportYymmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getReportYymmList");
+				ArrayList<Map<String, Object>> monthList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getMonthReportList");
+				ArrayList<Map<String, Object>> weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportList");
+				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+				
+				int recentYymm = (studRecentData != null) ? Integer.valueOf(studRecentData.get("recentReport").toString()) : 0;
+				
+				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
+				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
+				
+				for(Map<String, Object> yymmList : reportYymmList) {
+					ArrayList<Map<String, Object>> weekReportList = new ArrayList<>();
+					Map<String, Object> reportMap = new LinkedHashMap<>();
+					Map<String, Object> monthReportMap = new HashMap<String, Object>();
+					
+					int reportYymm = Integer.valueOf(yymmList.get("yymm").toString());
+					
+					for(Map<String, Object> weekReportItem : weekList) {
+						int weekReportYymm = Integer.valueOf(weekReportItem.get("weekReportYymm").toString());
+						int weekReportYymmwk = Integer.valueOf(weekReportItem.get("weekReportYymmwk").toString());
+						
+						if(reportYymm == weekReportYymm) {
+							Map<String, Object> weekReportMap = new HashMap<String, Object>();
+							
+							String checkYn = "Y";
+							
+							weekReportMap.put("reportNm", weekReportItem.get("reportNm"));
+							weekReportMap.put("publishYn", weekReportItem.get("reportYn"));
+							
+							if(recentYymm == weekReportYymmwk) {
+								checkYn = "N";
+							}
+							
+							weekReportMap.put("checkYn", checkYn);
+							
+							weekReportList.add(weekReportMap);
+						}
+					}
+					
+					for(Map<String, Object> monthReportItem : monthList) {
+						int monthReportYymm = Integer.valueOf(monthReportItem.get("monthReportYymm").toString());
+						
+						if(reportYymm == monthReportYymm) {
+							String checkYn = "Y";
+							
+							monthReportMap.put("monthReportMap", monthReportItem.get("reportNm"));
+							monthReportMap.put("publishYn", monthReportItem.get("reportYn"));
+							
+							if(recentYymm == monthReportYymm) {
+								checkYn = "N";
+							}
+							
+							monthReportMap.put("checkYn", checkYn);
+						}
+					}
+					
+					reportMap.put("monthReport", monthReportMap);
+					reportMap.put("weekReportlist", weekReportList);
+					
+					reportList.add(reportMap);
+				}
+				
+				data.put("reportList", reportList);
+				
+				setResult(dataKey,data);
         			
         	} else {
         		setResult(msgKey, decodeResult);
