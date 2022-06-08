@@ -238,16 +238,18 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				for(Map<String, Object> yymmList : reportYymmList) {
 					ArrayList<Map<String, Object>> weekReportList = new ArrayList<>();
 					Map<String, Object> reportMap = new LinkedHashMap<>();
-					Map<String, Object> monthReportMap = new HashMap<String, Object>();
+					Map<String, Object> monthReportMap = new LinkedHashMap<>();
 					
 					int reportYymm = Integer.valueOf(yymmList.get("yymm").toString());
+					int reportYyyy = Integer.valueOf(yymmList.get("yyyy").toString());
+					int reportMm = Integer.valueOf(yymmList.get("mm").toString());
 					
 					for(Map<String, Object> weekReportItem : weekList) {
 						int weekReportYymm = Integer.valueOf(weekReportItem.get("weekReportYymm").toString());
 						int weekReportYymmwk = Integer.valueOf(weekReportItem.get("weekReportYymmwk").toString());
 						
 						if(reportYymm == weekReportYymm) {
-							Map<String, Object> weekReportMap = new HashMap<String, Object>();
+							Map<String, Object> weekReportMap = new LinkedHashMap<>();
 							
 							String checkYn = "Y";
 							
@@ -281,8 +283,10 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 						}
 					}
 					
+					reportMap.put("yyyy", reportYyyy);
+					reportMap.put("month", reportMm);
 					reportMap.put("monthReport", monthReportMap);
-					reportMap.put("weekReportlist", weekReportList);
+					reportMap.put("weekReportList", weekReportList);
 					
 					reportList.add(reportMap);
 				}
@@ -371,7 +375,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
 	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
-	        				if(examQuesMap != null && learnMap != null) {
+	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);
 	        					data.put("exam", examMap);
 	        				}
@@ -445,7 +449,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
 	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
-	        				if(examQuesMap != null && learnMap != null) {
+	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);
 	        					data.put("exam", examMap);
 	        				}

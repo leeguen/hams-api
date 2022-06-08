@@ -117,7 +117,9 @@
 	<select id="getReportYymmList" parameterType="hashMap" resultType="resultMap">
 		select
 			distinct
-				yyyymm_key as yymm
+				yyyymm_key as yymm,
+				yyyy_key as yyyy,
+				substring(yyyymm_key::text,5,6)::integer as mm
 		from sc_dsb.vw_dm_wk_dt
 		where yyyymmw_key between (
 			select
@@ -198,6 +200,17 @@
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">
     	select
+    		-- round(c.att_rt * 100) as att_rt,
+   		<choose>
+			<when test='currConCheck == "m"'>
+			round(c.att_dd * 100 / (select max(dd)from lrndmt.st_dm_dt where yyyymm_key = c.yyyymm_key)::integer)::integer as att_rt,
+			(select max(dd) from lrndmt.st_dm_dt where yyyymm_key = c.yyyymm_key) as att_dt_cnt,
+			</when>
+			<otherwise>
+			round(c.att_dd * 100 / 7 )::integer as att_rt,
+			7 as att_dt_cnt,
+			</otherwise>
+		</choose>
     		c.att_dd as att_cnt,
 			plan_lrn_cnt as plan_cnt,
 			lrn_exec_cnt as lrn_cnt,
@@ -210,18 +223,18 @@
 			round(dely_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as d_lrn_rt,
 			null as concn_score,
 			null as concn_msg,
-			b.tot_lrn_cnt as lrn_sec,
-			b.add_lrn_cnt as a_lrn_cnt
+			-- b.tot_lrn_cnt as lrn_sec,
+			a.add_lrn_cnt as a_lrn_cnt
 		<choose>
 			<when test='currConCheck == "m"'>
-			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
-			left outer join lrn_dsb.ds_ag_lrn_use_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
+			from lrn_dsb.ds_ag_lrn_use_sts_mly a
+			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
 			left outer join lrn_dsb.ds_ag_stud_att_sts_mly c on a.yyyymm_key = c.yyyymm_key and a.stud_key = c.stud_key and a.ssvc_akey = c.ssvc_akey 
 			where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
-			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
-			left outer join lrn_dsb.ds_ag_lrn_use_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
+			from lrn_dsb.ds_ag_lrn_use_sts_wly a
+			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key and a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key 
 			left outer join lrn_dsb.ds_ag_stud_att_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and a.stud_key = c.stud_key and a.ssvc_akey = c.ssvc_akey 
 			where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
