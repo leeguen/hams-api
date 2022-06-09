@@ -1302,7 +1302,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
-	        				Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> examScoreDataMap = new LinkedHashMap<String, Object>();
 	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
@@ -1326,12 +1326,12 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymm", startYymm);
 	        				paramMap.put("endYymm", endYymm);
 	        				
-	        				examScoreMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
+	        				examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
 	        				
-	        				data.put("msg", examScoreMap.get("msg"));
-	        				data.put("imgUrl", examScoreMap.get("imgUrl"));
+	        				data.put("msg", examScoreDataMap.get("msg"));
+	        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
 	        				
-	        				int subjCnt = Integer.parseInt(examScoreMap.get("subjCnt").toString());
+	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
 	        				
 	        				if(subjCnt > 1) {
 	        					
