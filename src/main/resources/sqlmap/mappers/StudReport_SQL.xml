@@ -200,14 +200,13 @@
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">
     	select
-    		-- round(c.att_rt * 100) as att_rt,
    		<choose>
 			<when test='currConCheck == "m"'>
-			round(c.att_dd * 100 / (select max(dd)from lrndmt.st_dm_dt where yyyymm_key = c.yyyymm_key)::integer)::integer as att_rt,
+			round(c.login_rt * 100)::integer as att_rt,
 			(select max(dd) from lrndmt.st_dm_dt where yyyymm_key = c.yyyymm_key) as att_dt_cnt,
 			</when>
 			<otherwise>
-			round(c.att_dd * 100 / 7 )::integer as att_rt,
+			round(c.login_rt * 100)::integer as att_rt,
 			7 as att_dt_cnt,
 			</otherwise>
 		</choose>
@@ -302,44 +301,118 @@
 			and a.grp_item_key = 3;
     </select>
     
-    <select id="getLrnStt" parameterType="hashMap" resultType="resultMap">
+    <select id="getAttRt" parameterType="hashMap" resultType="resultMap">
     	select
-			count(case when plan_lrn_cnt > 0 then plan_lrn_cnt else null end) as plan_dt_cnt,
-			count(case when plan_lrn_fnsh_yn then lrn_exec_cnt else null end) as fnsh_dt_cnt,
-			sum(plan_lrn_cnt) as plan_cnt,
-			sum(lrn_exec_cnt) as fnsh_cnt
-		from lrn_dsb.ds_ag_lrn_plan_exec_sts_dly a
+			msg,
+			img_url,
 		<choose>
 			<when test='currConCheck == "m"'>
-			join lrndmt.mt_dm_dt b on a.dt_key = b.dt_key and b.yyyymm_key = #{yymm}
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId}) as data_cnt
 			</when>
 			<otherwise>
-			join lrndmt.mt_dm_dt b on a.dt_key = b.dt_key and b.yyyymmw_key = #{yymmwk} 
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId}) as data_cnt
 			</otherwise>
-		</choose>
-			and a.stud_key = #{studId}
-			and a.ssvc_akey = 3
-			and a.grp_item_key = 3;
+		</choose>	
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		att.stud_key,
+				msg.msg, 
+				msg.msg_url as img_url 
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_stud_att_sts_mly att
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', att.yyyymm_key, att.stud_key, att.ssvc_akey)
+				where att.yyyymm_key = #{yymm} 
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_stud_att_sts_wly att
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', att.yyyymmw_key, att.stud_key, att.ssvc_akey)
+				where att.yyyymmw_key = #{yymmwk} 
+				</otherwise>
+			</choose>
+				and att.stud_key = #{studId}
+				and att.ssvc_akey = 3
+		) att_msg on st.stud_key = att_msg.stud_key
+		where st.stud_key = #{studId};
     </select>
     
-    <select id="getLrnSttList" parameterType="hashMap" resultType="resultMap">
-    	select
-			a.dt,
-			a.day_ko,
-			b.plan_lrn_cnt,
-			b.lrn_exec_cnt
+    <select id="getAttRtList" parameterType="hashMap" resultType="resultMap">
 		<choose>
 			<when test='currConCheck == "m"'>
-			from lrndmt.mt_dm_dt a
-			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_dly b on a.dt_key = b.dt_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.grp_item_key = 3
-			where a.yyyymm_key = #{yymm};
+			select
+				ym.mm,
+				att_rt
+			from (
+				select
+					yyyymm_key,
+					substring(yyyymm_key::text,5,6)::integer as mm
+				from lrndmt.mt_dm_wk_dt
+				where yyyymm_key between #{startYymm} and #{endYymm}
+					and w = '1'
+			) ym
+			left outer join (
+				select
+					yyyymm_key,
+					round(login_rt * 100)::integer as att_rt
+				from lrn_dsb.ds_ag_stud_att_sts_mly att
+				where att.yyyymm_key between #{startYymm} and #{endYymm}
+					and stud_key = #{studId}
+			) att on ym.yyyymm_key = att.yyyymm_key;
 			</when>
 			<otherwise>
-			from lrndmt.mt_dm_dt a
-			left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_dly b on a.dt_key = b.dt_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.grp_item_key = 3
-			where a.yyyymmw_key = #{yymmwk};
+			select
+				ym.mm,
+				ym.w,
+				att_rt
+			from (
+				select
+					yyyymmw_key,
+					substring(yyyymm_key::text,5,6)::integer as mm,
+					w::integer
+				from lrndmt.mt_dm_wk_dt
+				where yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) ym
+			left outer join (
+				select
+					yyyymmw_key,
+					round(login_rt * 100)::integer as att_rt
+				from lrn_dsb.ds_ag_stud_att_sts_wly att
+				where att.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+					and stud_key = #{studId}
+			) att on ym.yyyymmw_key = att.yyyymmw_key;
 			</otherwise>
 		</choose>
+    </select>
+    
+    <select id="getlrnExRt" parameterType="hashMap" resultType="resultMap">
+    	select
+    		grd as grade,
+			msg,
+			img_url,
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		a.stud_key,
+				msg.msg, 
+				msg.msg_url as img_url 
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymm_key = #{yymm} 
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymmw_key = #{yymmwk} 
+				</otherwise>
+			</choose>
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+				and a.grp_item_key = 3
+		) lrn_msg on st.stud_key = att_msg.stud_key
+		where st.stud_key = #{studId};
     </select>
     
     <select id="getSubjLrnExRt" parameterType="hashMap" resultType="resultMap">
@@ -414,6 +487,47 @@
     </select>
     
     <select id="getLrnHabit" parameterType="hashMap" resultType="resultMap">
+    	select
+    		msg,
+			img_url,
+			b_lrn_cnt,
+			t_lrn_cnt,
+			d_lrn_cnt,
+			b_lrn_rt,
+			t_lrn_rt,
+			d_lrn_rt
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		stud_key,
+				pre_lrn_exec_cnt as b_lrn_cnt,
+				intm_lrn_exec_cnt as t_lrn_cnt,
+				dely_lrn_exec_cnt as d_lrn_cnt,
+				round(pre_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as b_lrn_rt,
+				round(intm_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as t_lrn_rt,
+				round(dely_lrn_exec_cnt * 100 / lrn_exec_cnt)::integer as d_lrn_rt,
+				msg.msg, 
+				msg.msg_url as img_url 
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymm_key = #{yymm} 
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymmw_key = #{yymmwk} 
+				</otherwise>
+			</choose>
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+				and a.grp_item_key = 3
+		) lrn_msg on st.stud_key = lrn_msg.stud_key
+		where st.stud_key = #{studId};
+    </select>
+    
+    <select id="getMaxLrnHabit" parameterType="hashMap" resultType="resultMap">
     	select 
 			case
 				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, dely_lrn_exec_cnt) then 'tLrn'
@@ -436,105 +550,214 @@
 			and grp_item_key = 3;
     </select>
     
-    <select id="getSubjLrnTm" parameterType="hashMap" resultType="resultMap">
+    <select id="getConcn" parameterType="hashMap" resultType="resultMap">
+    	select
+			msg,
+			img_url,
+		<choose>
+			<when test='currConCheck == "m"'>
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId}) as data_cnt
+			</when>
+			<otherwise>
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId}) as data_cnt
+			</otherwise>
+		</choose>	
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		a.stud_key,
+				msg.msg, 
+				msg.msg_url as img_url 
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_stud_att_sts_mly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymm_key = #{yymm} 
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_stud_att_sts_wly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymmw_key = #{yymmwk} 
+				</otherwise>
+			</choose>
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+		) concn_msg on st.stud_key = concn_msg.stud_key
+		where st.stud_key = #{studId};
+    </select>
+    
+    <select id="getConcnList" parameterType="hashMap" resultType="resultMap">
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				distinct
-					a.yyyymm_key,
-					a.subj_cd,
-					b.tot_lrn_ss as lrn_sec
+				ym.mm,
+				concn_score,
+				concn_cd
 			from (
 				select
-					a.yyyymm_key,
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(b.item_cd,'A','C')
-					end as subj_cd
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and ( position('#' in b.item_cd) = 0 and position('N' in b.item_cd) = 0)
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) a
+					yyyymm_key,
+					substring(yyyymm_key::text,5,6)::integer as mm
+				from lrndmt.mt_dm_wk_dt
+				where yyyymm_key between #{startYymm} and #{endYymm}
+					and w = '1'
+			) ym
 			left outer join (
-				select 
-					a.yyyymm_key, 
+				select
+					yyyymm_key,
+					round(login_rt * 100)::integer as concn_score,
 					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(c.item_cd,'A','C')
-					end as subj_cd,
-					tot_lrn_ss
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_ag_lrn_use_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3
-				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymm_key;
+						when round(login_rt * 100)::integer between 0 and 20 then '매우 부족'
+						when round(login_rt * 100)::integer between 21 and 40 then '부족'
+						when round(login_rt * 100)::integer between 41 and 60 then '보통'
+						when round(login_rt * 100)::integer between 61 and 80 then '좋음'
+						else '매우 좋음'
+					end as concn_cd
+				from lrn_dsb.ds_ag_stud_att_sts_mly
+				where yyyymm_key between #{startYymm} and #{endYymm}
+					and stud_key = #{studId}
+			) att on ym.yyyymm_key = att.yyyymm_key;
 			</when>
 			<otherwise>
 			select
-				distinct
-					a.yyyymmw_key,
-					a.subj_cd,
-					b.tot_lrn_ss as lrn_sec
+				ym.mm,
+				ym.w,
+				concn_score,
+				concn_cd
 			from (
 				select
-					a.yyyymmw_key,
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(b.item_cd,'A','C')
-					end as subj_cd
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and ( position('#' in b.item_cd) = 0 and position('N' in b.item_cd) = 0)
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) a
+					yyyymmw_key,
+					substring(yyyymm_key::text,5,6)::integer as mm,
+					w::integer
+				from lrndmt.mt_dm_wk_dt
+				where yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			) ym
 			left outer join (
 				select
-					a.yyyymmw_key, 
+					yyyymmw_key,
+					round(login_rt * 100)::integer as concn_score,
 					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(c.item_cd,'A','C')
-					end as subj_cd,
-					tot_lrn_ss
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_ag_lrn_use_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3
-				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymmw_key;
+						when round(login_rt * 100)::integer between 0 and 20 then '매우 부족'
+						when round(login_rt * 100)::integer between 21 and 40 then '부족'
+						when round(login_rt * 100)::integer between 41 and 60 then '보통'
+						when round(login_rt * 100)::integer between 61 and 80 then '좋음'
+						else '매우 좋음'
+					end as concn_cd
+				from lrn_dsb.ds_ag_stud_att_sts_wly
+				where yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+					and stud_key = #{studId}
+			) att on ym.yyyymmw_key = att.yyyymmw_key;
 			</otherwise>
 		</choose>
     </select>
     
+    <select id="getConcnDayList" parameterType="hashMap" resultType="resultMap">
+    	select
+			dy_ko as day_nm,
+			case
+				when fnsh_add_lrn_cnt is null then null
+				when fnsh_add_lrn_cnt between 0 and 1 then 1
+				when fnsh_add_lrn_cnt between 2 and 4 then 2
+				when fnsh_add_lrn_cnt between 4 and 6 then 3
+				else 4
+			end as concn_step
+		from lrndmt.mt_dm_dt a
+		left outer join lrn_dsb.ds_ag_lrn_use_sts_dly b on a.dt_key = b.dt_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.grp_item_key = 3
+		where yyyymmw_key = #{yymmwk} 
+    </select>
+    
     <select id="getALrnStt" parameterType="hashMap" resultType="resultMap">
     	select
-    		<choose>
-				<when test="size != null">
-				case
-					when b.grp_item_key = 3 then 'C00'
-					else replace(b.item_cd,'A','C')
-				end as subj_cd,
-				a.fnsh_add_lrn_cnt
-				</when>
-				<otherwise>
-				b.subj_clss_nm as subj_nm
-				</otherwise>
-			</choose>
+    		msg,
+			img_url,
+			subj_nm
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		stud_key,
+				msg.msg, 
+				msg.msg_url as img_url 
+			from lrn_dsb.ds_ag_lrn_use_sts_mly a
+			left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+			where a.yyyymm_key = #{yymm} 
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+				and a.grp_item_key = 3
+		) alrn_msg on st.stud_key = alrn_msg.stud_key
+		left outer join (
+	    	select
+	    		a.stud_key,
+				b.item_nm as subj_nm
+			from lrn_dsb.ds_ag_lrn_use_sts_mly a
+			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
+			where a.yyyymm_key = #{yymm} 
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+			order by a.fnsh_add_lrn_cnt desc
+			limit 1
+		) alrn on st.stud_key = alrn.stud_key
+		where st.stud_key = #{studId};
+    </select>
+    
+    <select id="getALrnSttList" parameterType="hashMap" resultType="resultMap">
+    	select 
+			a.fnsh_add_lrn_cnt as a_lrn_cnt,
+			b.item_nm as subj_nm
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
 		where a.yyyymm_key = #{yymm}
-			and a.stud_key = #{studId} 
+			and a.stud_key = #{studId}  
 			and a.ssvc_akey = 3
-		order by a.fnsh_add_lrn_cnt desc
-		<choose>
-			<when test="size != null">
-			limit 3;
-			</when>
-			<otherwise>
-			limit 1;
-			</otherwise>
-		</choose>
+		order by a.fnsh_add_lrn_cnt desc 
+		limit 3;
+    </select>
+    
+    <select id="getExamScore" parameterType="hashMap" resultType="resultMap">
+    	select
+			msg,
+			img_url,
+			coalesce(subj_cnt,0) as subj_cnt
+		from lrndmt.mt_dm_stud st
+		left outer join (
+	    	select
+	    		a.stud_key,
+				msg.msg, 
+				msg.msg_url as img_url 
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_exam_assm_sts_mly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymm_key = #{yymm} 
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_exam_assm_sts_wly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				where a.yyyymmw_key = #{yymmwk} 
+				</otherwise>
+			</choose>
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+				and a.grp_item_key = 3
+		) exam_msg on st.stud_key = exam_msg.stud_key
+		left outer join (
+	    	select
+	    		a.stud_key,
+				count(distinct a.grp_item_key) as subj_cnt
+			<choose>
+				<when test='currConCheck == "m"'>
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
+				join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0
+				where yyyymm_key between #{startYymm} and #{endYymm}
+				</when>
+				<otherwise>
+				from lrn_dsb.ds_ag_exam_assm_sts_wly a
+				join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+				</otherwise>
+			</choose>
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 3
+		) cnt on st.stud_key = cnt.stud_key
+		where st.stud_key = #{studId};
     </select>
     
     <select id="getSubjExamScore" parameterType="hashMap" resultType="resultMap">

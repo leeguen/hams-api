@@ -16,15 +16,13 @@ public interface StudLrnAnalService {
 
     public Map getHomeSummary(Map<String, Object> paramMap) throws Exception;
 
-    public Map getLrnStt(Map<String, Object> paramMap) throws Exception;
+    public Map getAttRt(Map<String, Object> paramMap) throws Exception;
 
     public Map getLrnExRt(Map<String, Object> paramMap) throws Exception;
 
     public Map getLrnHabit(Map<String, Object> paramMap) throws Exception;
     
     public Map getConcn(Map<String, Object> paramMap) throws Exception;
-    
-    public Map getLrnTm(Map<String, Object> paramMap) throws Exception;
     
     public Map getAlrn(Map<String, Object> paramMap) throws Exception;
     

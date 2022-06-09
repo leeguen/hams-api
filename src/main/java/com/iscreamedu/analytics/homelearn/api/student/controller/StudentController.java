@@ -174,9 +174,9 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/getLrnStt")
-    public ResponseEntity getLrnStt(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnStt(params);
+    @GetMapping("/getAttRt")
+    public ResponseEntity getAttRt(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getAttRt(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
     
@@ -217,19 +217,7 @@ public class StudentController {
     }
     
     /**
-     * 홈런 타임 (STUD-LA-007)
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    @GetMapping("/getLrnTm")
-    public ResponseEntity getLrnTm(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnAnalService.getLrnTm(params);
-        return new ResponseEntity(body,headers, HttpStatus.OK);
-    }
-    
-    /**
-     * 스스로학습 (STUD-LA-008)
+     * 스스로학습 (STUD-LA-007)
      * @param params
      * @return
      * @throws Exception
