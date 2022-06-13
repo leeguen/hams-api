@@ -1307,17 +1307,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
 	        				
-	        				ArrayList<Map<String, Object>> c00ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c01ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c02ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c03ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c04ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c05ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c06ExamScoreList = new ArrayList<>();
-	        				
-	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
-	        				List<String> convertSubjList = Arrays.asList(subjList);
-	        				
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -1326,89 +1315,56 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymm", startYymm);
 	        				paramMap.put("endYymm", endYymm);
 	        				
-	        				examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
-	        				
-	        				data.put("msg", examScoreDataMap.get("msg"));
-	        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
+	        				examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
 	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
 	        				
 	        				if(subjCnt > 1) {
-	        					
+	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
 	        				} else if(subjCnt == 1) {
-	        					
+	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
 	        				} else {
 	        					examScoreList = null;
 	        				}
 	        				
-	        				examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
-	        				
-	        				for(Map<String, Object> examScoreItem : examScoreList) {
-	        					
-	        					String subjCd = examScoreItem.get("subjCd").toString();
-	        					int mmData = Integer.parseInt(examScoreItem.get("yyyymmKey").toString().substring(4, 6));
-	        					
-	        					switch (subjCd) {
-								case "C00":
-									c00ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C01":
-									c01ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C02":
-									c02ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C03":
-									c03ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C04":
-									c04ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C05":
-									c05ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								case "C06":
-									c06ExamScoreList.add(createExRtDataMap(mmData, 0, examScoreItem.get("exRt")));
-									break;
-								default:
-									break;
-								}
-	        				}
-	        				
-	        				for(String subjCdItem : convertSubjList) {
-	        					Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
-	        					examScoreMap.put("subjCd", subjCdItem);
-	        					
-	        					switch (subjCdItem) {
-								case "C00":
-									examScoreMap.put("lrnExRtList", c00ExamScoreList);
-									break;
-								case "C01":
-									examScoreMap.put("lrnExRtList", c01ExamScoreList);
-									break;
-								case "C02":
-									examScoreMap.put("lrnExRtList", c02ExamScoreList);
-									break;
-								case "C03":
-									examScoreMap.put("lrnExRtList", c03ExamScoreList);
-									break;
-								case "C04":
-									examScoreMap.put("lrnExRtList", c04ExamScoreList);
-									break;
-								case "C05":
-									examScoreMap.put("lrnExRtList", c05ExamScoreList);
-									break;
-								default:
-									examScoreMap.put("lrnExRtList", c06ExamScoreList);
-									break;
+	        				if(examScoreList != null) {
+	        					for(Map<String, Object> examScoreItem : examScoreList) {
+	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
+	        						ArrayList<Map<String, Object>> exSubjList = new ArrayList<>();
+	        						
+	        						int exRtCnt = Integer.parseInt(examScoreItem.get("exRtCnt").toString());
+	        						
+	        						String subjCd = (examScoreItem.get("subjCd").toString().equals("ALL")) ? "C00" : examScoreItem.get("subjCd").toString().replace("A", "C");
+	        						
+	        						examScoreSubjMap.put("subjCd", subjCd);
+	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
+	        						
+	        						if(exRtCnt > 0) {
+	        							
+	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(examScoreItem.get("exRtSp").toString().split(","));
+	        							
+	        							for(int i = 0; i < 5; i++) {
+	        								Map<String, Object> exSubjMap = new LinkedHashMap<String, Object>();
+	        								exSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								exSubjMap.put("examScore", (scoreList.get(i).equals("")) ? null : scoreList.get(i));
+	        								
+	        								exSubjList.add(exSubjMap);
+	        							}
+	        						} else {
+	        							exSubjList = null;
+	        						}
+	        						
+	        						examScoreSubjMap.put("examScoreList", exSubjList);
+	        						
+	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
 	        					
-	        					examScoreSubjList.add(examScoreMap);
+	        					data.put("msg", examScoreDataMap.get("msg"));
+		        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
+		        				data.put("examScoreSubjList", examScoreSubjList);
 	        				}
 	        				
-	        				data.put("msg", "평가점수 메시지");
-	        				
-	        				data.put("examScoreSubjList", examScoreSubjList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -1443,20 +1399,10 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> examScoreDataMap = new LinkedHashMap<String, Object>();
 	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
-	        				
-	        				ArrayList<Map<String, Object>> c00ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c01ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c02ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c03ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c04ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c05ExamScoreList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c06ExamScoreList = new ArrayList<>();
-	        				
-	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
-	        				List<String> convertSubjList = Arrays.asList(subjList);
 	        				
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -1466,74 +1412,57 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
-	        				examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
+        					examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
-	        				for(Map<String, Object> examScoreItem : examScoreList) {
-	        					
-	        					String subjCd = examScoreItem.get("subjCd").toString();
-	        					int mmData = Integer.parseInt(examScoreItem.get("yyyymmwKey").toString().substring(4, 6));
-	        					int wkData = Integer.parseInt(examScoreItem.get("yyyymmwKey").toString().substring(6));
-	        					
-	        					switch (subjCd) {
-								case "C00":
-									c00ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C01":
-									c01ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C02":
-									c02ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C03":
-									c03ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C04":
-									c04ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C05":
-									c05ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								case "C06":
-									c06ExamScoreList.add(createExRtDataMap(mmData, wkData, examScoreItem.get("exRt")));
-									break;
-								default:
-									break;
-								}
+	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
+	        				
+	        				if(subjCnt > 1) {
+	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
+	        				} else if(subjCnt == 1) {
+	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
+	        				} else {
+	        					examScoreList = null;
 	        				}
 	        				
-	        				for(String subjCdItem : convertSubjList) {
-	        					Map<String, Object> examScoreMap = new LinkedHashMap<String, Object>();
-	        					examScoreMap.put("subjCd", subjCdItem);
-	        					
-	        					switch (subjCdItem) {
-								case "C00":
-									examScoreMap.put("lrnExRtList", c00ExamScoreList);
-									break;
-								case "C01":
-									examScoreMap.put("lrnExRtList", c01ExamScoreList);
-									break;
-								case "C02":
-									examScoreMap.put("lrnExRtList", c02ExamScoreList);
-									break;
-								case "C03":
-									examScoreMap.put("lrnExRtList", c03ExamScoreList);
-									break;
-								case "C04":
-									examScoreMap.put("lrnExRtList", c04ExamScoreList);
-									break;
-								case "C05":
-									examScoreMap.put("lrnExRtList", c05ExamScoreList);
-									break;
-								default:
-									examScoreMap.put("lrnExRtList", c06ExamScoreList);
-									break;
+	        				if(examScoreList != null) {
+	        					for(Map<String, Object> examScoreItem : examScoreList) {
+	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
+	        						ArrayList<Map<String, Object>> exSubjList = new ArrayList<>();
+	        						
+	        						int exRtCnt = Integer.parseInt(examScoreItem.get("exRtCnt").toString());
+	        						
+	        						String subjCd = (examScoreItem.get("subjCd").toString().equals("ALL")) ? "C00" : examScoreItem.get("subjCd").toString().replace("A", "C");
+	        						
+	        						examScoreSubjMap.put("subjCd", subjCd);
+	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
+	        						
+	        						if(exRtCnt > 0) {
+	        							
+	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
+	        							List<String> wkList = Arrays.asList(examScoreItem.get("wkSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(examScoreItem.get("exRtSp").toString().split(","));
+	        							
+	        							for(int i = 0; i < 5; i++) {
+	        								Map<String, Object> exSubjMap = new LinkedHashMap<String, Object>();
+	        								exSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								exSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
+	        								exSubjMap.put("examScore", (scoreList.get(i).equals("")) ? null : scoreList.get(i));
+	        								
+	        								exSubjList.add(exSubjMap);
+	        							}
+	        						} else {
+	        							exSubjList = null;
+	        						}
+	        						
+	        						examScoreSubjMap.put("examScoreList", exSubjList);
+	        						
+	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
 	        					
-	        					examScoreSubjList.add(examScoreMap);
+	        					data.put("msg", examScoreDataMap.get("msg"));
+		        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
+		        				data.put("examScoreSubjList", examScoreSubjList);
 	        				}
-	        				data.put("msg", "평가점수 메시지");
-	        				
-	        				data.put("examScoreSubjList", examScoreSubjList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {

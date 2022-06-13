@@ -321,13 +321,13 @@
 				msg.msg_url as img_url 
 			<choose>
 				<when test='currConCheck == "m"'>
-				from lrn_dsb.ds_ag_stud_att_sts_mly att
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', att.yyyymm_key, att.stud_key, att.ssvc_akey)
+				from lrn_dsb.ds_ag_stud_att_sts_mly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 				where att.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
-				from lrn_dsb.ds_ag_stud_att_sts_wly att
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', att.yyyymmw_key, att.stud_key, att.ssvc_akey)
+				from lrn_dsb.ds_ag_stud_att_sts_wly a
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
 				where att.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
@@ -399,12 +399,12 @@
 			<choose>
 				<when test='currConCheck == "m"'>
 				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
 				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
@@ -511,12 +511,12 @@
 			<choose>
 				<when test='currConCheck == "m"'>
 				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
 				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
@@ -571,12 +571,12 @@
 			<choose>
 				<when test='currConCheck == "m"'>
 				from lrn_dsb.ds_ag_stud_att_sts_mly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
 				from lrn_dsb.ds_ag_stud_att_sts_wly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
@@ -677,7 +677,7 @@
 				msg.msg, 
 				msg.msg_url as img_url 
 			from lrn_dsb.ds_ag_lrn_use_sts_mly a
-			left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+			left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 			where a.yyyymm_key = #{yymm} 
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 3
@@ -725,18 +725,19 @@
 			<choose>
 				<when test='currConCheck == "m"'>
 				from lrn_dsb.ds_ag_exam_assm_sts_mly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymm_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
 				from lrn_dsb.ds_ag_exam_assm_sts_wly a
-				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_LRNWADRI('cd', a.yyyymmw_key, a.stud_key, a.ssvc_akey)
+				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 3
 				and a.grp_item_key = 3
+				and a.exam_typ_key = 0
 		) exam_msg on st.stud_key = exam_msg.stud_key
 		left outer join (
 	    	select
@@ -749,13 +750,14 @@
 				where yyyymm_key between #{startYymm} and #{endYymm}
 				</when>
 				<otherwise>
-				from lrn_dsb.ds_ag_exam_assm_sts_wly a
+				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
 				join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 				</otherwise>
 			</choose>
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 3
+			group by a.stud_key
 		) cnt on st.stud_key = cnt.stud_key
 		where st.stud_key = #{studId};
     </select>
@@ -764,69 +766,137 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				distinct
-					a.yyyymm_key,
-					a.subj_cd,
-					b.ex_rt
+				item_cd as subj_cd,
+				item_nm as subj_nm,
+				string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
+				string_agg(coalesce(ex_rt::text,''), ',' order by item_cd, yyyymm_key) as ex_rt_sp,
+				count(ex_rt) as ex_rt_cnt
 			from (
 				select
 					a.yyyymm_key,
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(b.item_cd,'A','C')
-					end as subj_cd
+					substring(a.yyyymm_key::text,5,6)::integer as mm,
+					b.item_cd,
+					b.item_nm,
+					round(c.answ_rt * 100) as ex_rt
 				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and ( position('#' in b.item_cd) = 0 and position('N' in b.item_cd) = 0)
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				left outer join lrn_dsb.ds_ag_exam_assm_sts_mly c on a.yyyymm_key = c.yyyymm_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
 				where a.yyyymm_key between #{startYymm} and #{endYymm}
 					and a.w = '1'
-			) a
-			left outer join (
-				select 
-					a.yyyymm_key, 
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(c.item_cd,'A','C')
-					end as subj_cd,
-					round(b.answ_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_ag_exam_assm_sts_mly b on a.yyyymm_key = b.yyyymm_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0
-				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) b on a.yyyymm_key = b.yyyymm_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymm_key;
+			) exam
+			group by item_cd, item_nm;
 			</when>
 			<otherwise>
 			select
-				distinct
-					a.yyyymmw_key,
-					a.subj_cd,
-					b.ex_rt
+				item_cd as subj_cd,
+				item_nm as subj_nm,
+				string_agg(mm::text, ',' order by item_cd, yyyymmw_key, wk) as mm_sp,
+				string_agg(wk::text, ',' order by item_cd, yyyymmw_key, wk) as wk_sp,
+				string_agg(coalesce(ex_rt::text,''), ',' order by item_cd, yyyymmw_key, wk) as ex_rt_sp,
+				count(ex_rt) as ex_rt_cnt
 			from (
 				select
 					a.yyyymmw_key,
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(b.item_cd,'A','C')
-					end as subj_cd
+					substring(a.yyyymm_key::text,5,6)::integer as mm,
+					a.w as wk,
+					b.item_cd,
+					b.item_nm,
+					round(c.answ_rt * 100) as ex_rt
 				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and ( position('#' in b.item_cd) = 0 and position('N' in b.item_cd) = 0)
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				left outer join lrn_dsb.ds_ag_exam_assm_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) a
+			) exam
+			group by item_cd, item_nm;
+			</otherwise>
+		</choose>
+    </select>
+    
+    <select id="getSubjExamScore2" parameterType="hashMap" resultType="resultMap">
+		<choose>
+			<when test='currConCheck == "m"'>
+			select
+				wk.item_cd as subj_cd,
+				wk.item_nm as subj_nm,
+				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymm_key) as mm_sp,
+				string_agg(coalesce(ex_rt::text,''), ',' order by wk.item_cd, wk.yyyymm_key) as ex_rt_sp,
+				count(ex_rt) as ex_rt_cnt
+			from (
+				select
+					a.yyyymm_key,
+					substring(a.yyyymm_key::text,5,6)::integer as mm,
+					b.item_cd,
+					b.item_nm 
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+					and b.grp_item_key in (
+						select
+							distinct 
+								b.grp_item_key
+						from lrn_dsb.ds_ag_exam_assm_sts_mly a
+						left outer join lrn_dsb.ds_dm_grp_item b on a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key and (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0
+						where a.yyyymm_key between #{startYymm} and #{endYymm}
+							and a.stud_key = #{studId}
+							and a.ssvc_akey = 3 
+							and a.exam_typ_key = 0
+					)
+			) wk 
+			left outer join (
+				select
+					a.yyyymm_key,
+					b.item_cd,
+					round(c.answ_rt * 100) as ex_rt
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				join lrn_dsb.ds_ag_exam_assm_sts_mly c on a.yyyymm_key = c.yyyymm_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
+				where a.yyyymm_key between #{startYymm} and #{endYymm}
+					and a.w = '1'
+			) exam on wk.yyyymm_key = exam.yyyymm_key and wk.item_cd = exam.item_cd
+			group by wk.item_cd, wk.item_nm;
+			</when>
+			<otherwise>
+			select
+				wk.item_cd as subj_cd,
+				wk.item_nm as subj_nm,
+				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as mm_sp,
+				string_agg(wk::text, ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as wk_sp,
+				string_agg(coalesce(ex_rt::text,''), ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as ex_rt_sp,
+				count(ex_rt) as ex_rt_cnt
+			from (
+				select
+					a.yyyymmw_key,
+					substring(a.yyyymm_key::text,5,6)::integer as mm,
+					a.w as wk,
+					b.item_cd,
+					b.item_nm 
+				from lrndmt.mt_dm_wk_dt a
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+					and b.grp_item_key in (
+						select
+							distinct 
+								b.grp_item_key
+						from lrn_dsb.ds_ag_exam_assm_sts_wly a
+						left outer join lrn_dsb.ds_dm_grp_item b on a.ssvc_akey = b.ssvc_akey and a.grp_item_key = b.grp_item_key and (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0
+						where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+							and a.stud_key = #{studId}
+							and a.ssvc_akey = 3 
+							and a.exam_typ_key = 0
+					)
+			) wk 
 			left outer join (
 				select
 					a.yyyymmw_key,
-					case
-						when b.grp_item_key = 3 then 'C00'
-						else replace(c.item_cd,'A','C')
-					end as subj_cd,
-					round(b.answ_rt * 100) as ex_rt
+					b.item_cd,
+					round(c.answ_rt * 100) as ex_rt
 				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_ag_exam_assm_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and b.stud_key = #{studId} and b.ssvc_akey = 3 and b.exam_typ_key = 0
-				join lrn_dsb.ds_dm_grp_item c on b.grp_item_key = c.grp_item_key and (c.grp_typ = 'ALL' or c.grp_typ = 'SUBJ_CD') and position('#' in c.item_cd) = 0
+				left outer join lrn_dsb.ds_dm_grp_item b on (b.grp_typ = 'ALL' or b.grp_typ = 'SUBJ_CD') and position('#' in b.item_cd) = 0 and position('A' in b.item_cd) > 0 and b.ssvc_akey = 3
+				join lrn_dsb.ds_ag_exam_assm_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
 				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) b on a.yyyymmw_key = b.yyyymmw_key and a.subj_cd = b.subj_cd
-			order by a.subj_cd, a.yyyymmw_key;
+			) exam on wk.yyyymmw_key = exam.yyyymmw_key and wk.item_cd = exam.item_cd
+			group by wk.item_cd, wk.item_nm;
 			</otherwise>
 		</choose>
     </select>
