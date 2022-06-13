@@ -662,17 +662,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
 	        				
-	        				ArrayList<Map<String, Object>> c00LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c01LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c02LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c03LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c04LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c05LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c06LrnExRtList = new ArrayList<>();
-	        				
-	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
-	        				List<String> convertSubjList = Arrays.asList(subjList);
-	        				
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -683,78 +672,51 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				lrnExRtDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getlrnExRt");
 	        				
-	        				lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+	        				int grade = Integer.parseInt(lrnExRtDataMap.get("grade").toString());
 	        				
-	        				for(Map<String, Object> lrnExRtItem : lrnExRtList) {
-	        					
-	        					String subjCd = lrnExRtItem.get("subjCd").toString();
-	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmKey").toString().substring(4, 6));
-	        					
-	        					switch (subjCd) {
-								case "C00":
-									c00LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C01":
-									c01LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C02":
-									c02LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C03":
-									c03LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C04":
-									c04LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C05":
-									c05LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								case "C06":
-									c06LrnExRtList.add(createLrnExRtDataMap(mmData, 0, lrnExRtItem.get("exRt")));
-									break;
-								default:
-									break;
-								}
+	        				if(grade > 3) {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtHigh");
+	        				} else {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtLow");
 	        				}
 	        				
-	        				for(String subjCdItem : convertSubjList) {
-	        					Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
-	        					lrnExRtMap.put("subjCd", subjCdItem);
-	        					
-	        					switch (subjCdItem) {
-								case "C00":
-									lrnExRtMap.put("lrnExRtList", c00LrnExRtList);
-									break;
-								case "C01":
-									lrnExRtMap.put("lrnExRtList", c01LrnExRtList);
-									break;
-								case "C02":
-									lrnExRtMap.put("lrnExRtList", c02LrnExRtList);
-									break;
-								case "C03":
-									lrnExRtMap.put("lrnExRtList", c03LrnExRtList);
-									break;
-								case "C04":
-									lrnExRtMap.put("lrnExRtList", c04LrnExRtList);
-									break;
-								case "C05":
-									lrnExRtMap.put("lrnExRtList", c05LrnExRtList);
-									break;
-								default:
-									lrnExRtMap.put("lrnExRtList", c06LrnExRtList);
-									break;
+	        				if(lrnExRtList != null) {
+	        					for(Map<String, Object> lrnExRtItem : lrnExRtList) {
+	        						Map<String, Object> lrnExRtSubjMap = new LinkedHashMap<String, Object>();
+	        						ArrayList<Map<String, Object>> exRtSubjList = new ArrayList<>();
+	        						
+	        						int exRtCnt = Integer.parseInt(lrnExRtItem.get("exRtCnt").toString());
+	        						
+	        						String subjCd = (lrnExRtItem.get("subjCd").toString().equals("ALL")) ? "C00" : lrnExRtItem.get("subjCd").toString();
+	        						
+	        						lrnExRtSubjMap.put("subjCd", subjCd);
+	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
+	        						
+	        						if(exRtCnt > 0) {
+	        							
+	        							List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(lrnExRtItem.get("exRtSp").toString().split(","));
+	        							
+	        							for(int i = 0; i < 5; i++) {
+	        								Map<String, Object> exRtSubjMap = new LinkedHashMap<String, Object>();
+	        								exRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								exRtSubjMap.put("lrnExRt", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+	        								
+	        								exRtSubjList.add(exRtSubjMap);
+	        							}
+	        						} else {
+	        							exRtSubjList = null;
+	        						}
+	        						
+	        						lrnExRtSubjMap.put("examScoreList", exRtSubjList);
+	        						
+	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
 	        					
-								lrnExRtSubjList.add(lrnExRtMap);
+	        					data.put("msg", lrnExRtDataMap.get("msg"));
+		        				data.put("imgUrl", lrnExRtDataMap.get("imgUrl"));
+		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
-	        				
-	        				String msg = (lrnExRtDataMap.get("msg") != null) ? lrnExRtDataMap.get("msg").toString() : null;
-	        				String imgUrl = (lrnExRtDataMap.get("imgUrl") != null) ? lrnExRtDataMap.get("imgUrl").toString() : null;
-	        				
-	        				data.put("msg", msg);
-	        				data.put("imgUrl", imgUrl);
-	        				
-	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -790,19 +752,10 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				
+        					Map<String, Object> lrnExRtDataMap = new LinkedHashMap<String, Object>();
+	        				
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
-	        				
-	        				ArrayList<Map<String, Object>> c00LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c01LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c02LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c03LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c04LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c05LrnExRtList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> c06LrnExRtList = new ArrayList<>();
-	        				
-	        				String[] subjList = {"C00", "C01", "C02", "C03", "C04", "C05", "C06"};
-	        				List<String> convertSubjList = Arrays.asList(subjList);
 	        				
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -812,75 +765,55 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
-	        				lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+        					lrnExRtDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getlrnExRt");
 	        				
-	        				for(Map<String, Object> lrnExRtItem : lrnExRtList) {
-	        					
-	        					String subjCd = lrnExRtItem.get("subjCd").toString();
-	        					int mmData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(4, 6));
-	        					int wkData = Integer.parseInt(lrnExRtItem.get("yyyymmwKey").toString().substring(6));
-	        					
-	        					switch (subjCd) {
-								case "C00":
-									c00LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C01":
-									c01LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C02":
-									c02LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C03":
-									c03LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C04":
-									c04LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C05":
-									c05LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								case "C06":
-									c06LrnExRtList.add(createLrnExRtDataMap(mmData, wkData, lrnExRtItem.get("exRt")));
-									break;
-								default:
-									break;
-								}
+	        				int grade = Integer.parseInt(lrnExRtDataMap.get("grade").toString());
+	        				
+	        				if(grade > 3) {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtHigh");
+	        				} else {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtLow");
 	        				}
 	        				
-	        				for(String subjCdItem : convertSubjList) {
-	        					Map<String, Object> lrnExRtMap = new LinkedHashMap<String, Object>();
-	        					lrnExRtMap.put("subjCd", subjCdItem);
-	        					
-	        					switch (subjCdItem) {
-								case "C00":
-									lrnExRtMap.put("lrnExRtList", c00LrnExRtList);
-									break;
-								case "C01":
-									lrnExRtMap.put("lrnExRtList", c01LrnExRtList);
-									break;
-								case "C02":
-									lrnExRtMap.put("lrnExRtList", c02LrnExRtList);
-									break;
-								case "C03":
-									lrnExRtMap.put("lrnExRtList", c03LrnExRtList);
-									break;
-								case "C04":
-									lrnExRtMap.put("lrnExRtList", c04LrnExRtList);
-									break;
-								case "C05":
-									lrnExRtMap.put("lrnExRtList", c05LrnExRtList);
-									break;
-								default:
-									lrnExRtMap.put("lrnExRtList", c06LrnExRtList);
-									break;
+	        				if(lrnExRtList != null) {
+	        					for(Map<String, Object> lrnExRtItem : lrnExRtList) {
+	        						Map<String, Object> lrnExRtSubjMap = new LinkedHashMap<String, Object>();
+	        						ArrayList<Map<String, Object>> exRtSubjList = new ArrayList<>();
+	        						
+	        						int exRtCnt = Integer.parseInt(lrnExRtItem.get("exRtCnt").toString());
+	        						
+	        						String subjCd = (lrnExRtItem.get("subjCd").toString().equals("ALL")) ? "C00" : lrnExRtItem.get("subjCd").toString();
+	        						
+	        						lrnExRtSubjMap.put("subjCd", subjCd);
+	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
+	        						
+	        						if(exRtCnt > 0) {
+	        							
+	        							List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
+	        							List<String> wkList = Arrays.asList(lrnExRtItem.get("wkSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(lrnExRtItem.get("exRtSp").toString().split(","));
+	        							
+	        							for(int i = 0; i < 5; i++) {
+	        								Map<String, Object> exRtSubjMap = new LinkedHashMap<String, Object>();
+	        								exRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								exRtSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
+	        								exRtSubjMap.put("lrnExRt", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+	        								
+	        								exRtSubjList.add(exRtSubjMap);
+	        							}
+	        						} else {
+	        							exRtSubjList = null;
+	        						}
+	        						
+	        						lrnExRtSubjMap.put("examScoreList", exRtSubjList);
+	        						
+	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
 	        					
-								lrnExRtSubjList.add(lrnExRtMap);
+	        					data.put("msg", lrnExRtDataMap.get("msg"));
+		        				data.put("imgUrl", lrnExRtDataMap.get("imgUrl"));
+		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
-	        				
-	        				data.put("msg", "수행률 메시지");
-	        				
-	        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -1330,7 +1263,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				if(examScoreList != null) {
 	        					for(Map<String, Object> examScoreItem : examScoreList) {
 	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
-	        						ArrayList<Map<String, Object>> exSubjList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> crtRtSubjList = new ArrayList<>();
 	        						
 	        						int exRtCnt = Integer.parseInt(examScoreItem.get("exRtCnt").toString());
 	        						
@@ -1342,20 +1275,20 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						if(exRtCnt > 0) {
 	        							
 	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
-	        							List<String> scoreList = Arrays.asList(examScoreItem.get("exRtSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(examScoreItem.get("crtRtSp").toString().split(","));
 	        							
 	        							for(int i = 0; i < 5; i++) {
-	        								Map<String, Object> exSubjMap = new LinkedHashMap<String, Object>();
-	        								exSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
-	        								exSubjMap.put("examScore", (scoreList.get(i).equals("")) ? null : scoreList.get(i));
+	        								Map<String, Object> crtRtSubjMap = new LinkedHashMap<String, Object>();
+	        								crtRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								crtRtSubjMap.put("examScore", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
 	        								
-	        								exSubjList.add(exSubjMap);
+	        								crtRtSubjList.add(crtRtSubjMap);
 	        							}
 	        						} else {
-	        							exSubjList = null;
+	        							crtRtSubjList = null;
 	        						}
 	        						
-	        						examScoreSubjMap.put("examScoreList", exSubjList);
+	        						examScoreSubjMap.put("examScoreList", crtRtSubjList);
 	        						
 	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
@@ -1427,7 +1360,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				if(examScoreList != null) {
 	        					for(Map<String, Object> examScoreItem : examScoreList) {
 	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
-	        						ArrayList<Map<String, Object>> exSubjList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> crtRtSubjList = new ArrayList<>();
 	        						
 	        						int exRtCnt = Integer.parseInt(examScoreItem.get("exRtCnt").toString());
 	        						
@@ -1440,21 +1373,21 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							
 	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
 	        							List<String> wkList = Arrays.asList(examScoreItem.get("wkSp").toString().split(","));
-	        							List<String> scoreList = Arrays.asList(examScoreItem.get("exRtSp").toString().split(","));
+	        							List<String> scoreList = Arrays.asList(examScoreItem.get("crtRtSp").toString().split(","));
 	        							
 	        							for(int i = 0; i < 5; i++) {
-	        								Map<String, Object> exSubjMap = new LinkedHashMap<String, Object>();
-	        								exSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
-	        								exSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
-	        								exSubjMap.put("examScore", (scoreList.get(i).equals("")) ? null : scoreList.get(i));
+	        								Map<String, Object> crtRtSubjMap = new LinkedHashMap<String, Object>();
+	        								crtRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+	        								crtRtSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
+	        								crtRtSubjMap.put("examScore", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
 	        								
-	        								exSubjList.add(exSubjMap);
+	        								crtRtSubjList.add(crtRtSubjMap);
 	        							}
 	        						} else {
-	        							exSubjList = null;
+	        							crtRtSubjList = null;
 	        						}
 	        						
-	        						examScoreSubjMap.put("examScoreList", exSubjList);
+	        						examScoreSubjMap.put("examScoreList", crtRtSubjList);
 	        						
 	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
@@ -1527,9 +1460,10 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				if(incrtNoteMap != null) {
-	        					data.put("msg", "오답노트 현황 메시지");
+	        					data.put("msg", incrtNoteMap.get("msg"));
+	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
-		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
+		        				data.put("incrtNoteFnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
 		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
 		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
@@ -1572,9 +1506,10 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     						incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				
     						if(incrtNoteMap != null) {
-	        					data.put("msg", "오답노트 현황 메시지");
+	        					data.put("msg", incrtNoteMap.get("msg"));
+	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
-		        				data.put("incrtNotefnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
+		        				data.put("incrtNoteFnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
 		        				data.put("incrtNoteFnshRt", incrtNoteMap.get("incrtNoteFnshRt"));
 		        				data.put("incrtNoteNcRt", incrtNoteMap.get("incrtNoteNcRt"));
@@ -1640,8 +1575,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -1651,25 +1587,67 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymm", startYymm);
 	        				paramMap.put("endYymm", endYymm);
 	        				
-	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitStt");
+	        				slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
 	        				
-	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
-	        					Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				if(slvHabitMap != null) {
+	        					Map<String, Object> slvHabitMonthDataMap = new LinkedHashMap<String, Object>();
 	        					
-	        					int mmData = Integer.parseInt(slvHavitItem.get("yyyymmKey").toString().substring(4, 6));
+	        					slvHabitMonthDataMap.put("skipQuesCnt", slvHabitMap.get("quesSkipCnt"));
+	        					slvHabitMonthDataMap.put("cursoryQuesCnt", slvHabitMap.get("quesHrryCnt"));
+	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
+	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
 	        					
-	        					slvHabitMap.put("mm", mmData);
-		        				slvHabitMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
-		        				slvHabitMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
-		        				slvHabitMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
-		        				slvHabitMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	        					data.put("msg", slvHabitMap.get("msg"));
+	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					
-		        				slvHabitList.add(slvHabitMap);
+	        					slvHabitQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitQuesStt");
+	        					
+	        					if(slvHabitQuesMap != null) {
+	        						ArrayList<Map<String, Object>> slvHabitSkipList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitHrryList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitGussList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitMstkeList = new ArrayList<>();
+	        						
+	        						int skipCnt = Integer.parseInt(slvHabitQuesMap.get("skipCnt").toString());
+	        						int hrryCnt = Integer.parseInt(slvHabitQuesMap.get("hrryCnt").toString());
+	        						int gussCnt = Integer.parseInt(slvHabitQuesMap.get("gussCnt").toString());
+	        						int mstkeCnt = Integer.parseInt(slvHabitQuesMap.get("mstkeCnt").toString());
+	        						
+	        						String mmList = slvHabitQuesMap.get("mmSp").toString();
+	        						
+	        						if(skipCnt > 0) {
+	        							slvHabitSkipList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, null, slvHabitQuesMap.get("skipSp").toString());
+	        						} else {
+	        							slvHabitSkipList = null;
+	        						}
+	        						
+	        						if(hrryCnt > 0) {
+	        							slvHabitHrryList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, null, slvHabitQuesMap.get("hrrySp").toString());
+	        						} else {
+	        							slvHabitHrryList = null;
+	        						}
+	        						
+	        						if(gussCnt > 0) {
+	        							slvHabitGussList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, null, slvHabitQuesMap.get("gussSp").toString());
+	        						} else {
+	        							slvHabitGussList = null;
+	        						}
+	        						
+	        						if(mstkeCnt > 0) {
+	        							slvHabitMstkeList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, null, slvHabitQuesMap.get("mstkeSp").toString());
+	        						} else {
+	        							slvHabitMstkeList = null;
+	        						}
+	        						
+	        						slvHabitList.add(createSlvHabitDataMap("skipQues", slvHabitSkipList));
+	        						slvHabitList.add(createSlvHabitDataMap("cursoryQues", slvHabitHrryList));
+	        						slvHabitList.add(createSlvHabitDataMap("guessQues", slvHabitGussList));
+	        						slvHabitList.add(createSlvHabitDataMap("mistakeQues", slvHabitMstkeList));
+	        					}
+	        					
+	        					data.put("slvHabitList", slvHabitList);
 	        				}
-	        				
-	        				data.put("msg", "문제풀이 습관 메시지");
-	        				
-	        				data.put("slvHabitList", slvHabitList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -1704,8 +1682,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
-	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -1715,27 +1694,68 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
-	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitStt");
+        					slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
 	        				
-	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
-	        					Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				if(slvHabitMap != null) {
+	        					Map<String, Object> slvHabitMonthDataMap = new LinkedHashMap<String, Object>();
 	        					
-	        					int mmData = Integer.parseInt(slvHavitItem.get("yyyymmwKey").toString().substring(4, 6));
-	        					int wkData = Integer.parseInt(slvHavitItem.get("yyyymmwKey").toString().substring(6));
+	        					slvHabitMonthDataMap.put("skipQuesCnt", slvHabitMap.get("quesSkipCnt"));
+	        					slvHabitMonthDataMap.put("cursoryQuesCnt", slvHabitMap.get("quesHrryCnt"));
+	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
+	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
 	        					
-	        					slvHabitMap.put("mm", mmData);
-	        					slvHabitMap.put("wk", wkData);
-		        				slvHabitMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
-		        				slvHabitMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
-		        				slvHabitMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
-		        				slvHabitMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	        					data.put("msg", slvHabitMap.get("msg"));
+	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					
-		        				slvHabitList.add(slvHabitMap);
+	        					slvHabitQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitQuesStt");
+	        					
+	        					if(slvHabitQuesMap != null) {
+	        						ArrayList<Map<String, Object>> slvHabitSkipList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitHrryList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitGussList = new ArrayList<>();
+	        						ArrayList<Map<String, Object>> slvHabitMstkeList = new ArrayList<>();
+	        						
+	        						int skipCnt = Integer.parseInt(slvHabitQuesMap.get("skipCnt").toString());
+	        						int hrryCnt = Integer.parseInt(slvHabitQuesMap.get("hrryCnt").toString());
+	        						int gussCnt = Integer.parseInt(slvHabitQuesMap.get("gussCnt").toString());
+	        						int mstkeCnt = Integer.parseInt(slvHabitQuesMap.get("mstkeCnt").toString());
+	        						
+	        						String mmList = slvHabitQuesMap.get("mmSp").toString();
+	        						String wkList = slvHabitQuesMap.get("wkSp").toString();
+	        						
+	        						if(skipCnt > 0) {
+	        							slvHabitSkipList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, wkList, slvHabitQuesMap.get("skipSp").toString());
+	        						} else {
+	        							slvHabitSkipList = null;
+	        						}
+	        						
+	        						if(hrryCnt > 0) {
+	        							slvHabitHrryList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, wkList, slvHabitQuesMap.get("hrrySp").toString());
+	        						} else {
+	        							slvHabitHrryList = null;
+	        						}
+	        						
+	        						if(gussCnt > 0) {
+	        							slvHabitGussList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, wkList, slvHabitQuesMap.get("gussSp").toString());
+	        						} else {
+	        							slvHabitGussList = null;
+	        						}
+	        						
+	        						if(mstkeCnt > 0) {
+	        							slvHabitMstkeList = (ArrayList<Map<String, Object>>) createSlvHabitDataList(mmList, wkList, slvHabitQuesMap.get("mstkeSp").toString());
+	        						} else {
+	        							slvHabitMstkeList = null;
+	        						}
+	        						
+	        						slvHabitList.add(createSlvHabitDataMap("skipQues", slvHabitSkipList));
+	        						slvHabitList.add(createSlvHabitDataMap("cursoryQues", slvHabitHrryList));
+	        						slvHabitList.add(createSlvHabitDataMap("guessQues", slvHabitGussList));
+	        						slvHabitList.add(createSlvHabitDataMap("mistakeQues", slvHabitMstkeList));
+	        					}
+	        					
+	        					data.put("slvHabitList", slvHabitList);
 	        				}
-	        				
-	        				data.put("msg", "문제풀이 습관 메시지");
-	        				
-	        				data.put("slvHabitList", slvHabitList);
 	        				
 	        				setResult(dataKey,data);
 	        			} else {
@@ -2108,16 +2128,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 
 	}
 	
-	private Map createLrnSecDataMap(int mm, int wk, Object lrnSec) {
+	private Map createSlvHabitDataMap(String quesType, ArrayList quesList) {
         LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
         
-        dummyMap.put("mm",mm);
-        
-        if(wk > 0) {
-        	dummyMap.put("wk",wk);
-        }
-        
-        dummyMap.put("lrnSec",lrnSec);
+        dummyMap.put("quesType", quesType);
+        dummyMap.put("quesList", quesList);
         
         return dummyMap;
 
@@ -2135,6 +2150,36 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         dummyMap.put("exRt",exRt);
         
         return dummyMap;
+
+	}
+	
+	private List createSlvHabitDataList(String mm, String wk, String slvList) {
+		ArrayList<Map<String, Object>> dummyList = new ArrayList<>();
+		
+		List<String> mmList = Arrays.asList(mm.split(","));
+		List<String> slvHabitList = Arrays.asList(slvList.split(","));
+		
+		if(wk != null) {
+			List<String> wkList = Arrays.asList(wk.split(","));
+			
+			for(int i = 0; i < 5; i++) {
+				LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+				dummyMap.put("mm", Integer.parseInt(mmList.get(i)));
+				dummyMap.put("wk", Integer.parseInt(wkList.get(i)));
+				dummyMap.put("quesCnt", (slvHabitList.get(i).equals(" ")) ? null : slvHabitList.get(i));
+				
+				dummyList.add(dummyMap);
+			}
+		} else {
+			for(int i = 0; i < 5; i++) {
+				LinkedHashMap<String,Object> dummyMap = new LinkedHashMap<>();
+				dummyMap.put("mm", Integer.parseInt(mmList.get(i)));
+				dummyMap.put("quesCnt", (slvHabitList.get(i).equals(" ")) ? null : slvHabitList.get(i));
+				
+				dummyList.add(dummyMap);
+			}
+		}
+        return dummyList;
 
 	}
 	
