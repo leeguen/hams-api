@@ -239,8 +239,8 @@
 			</otherwise>
 		</choose>
 			and a.stud_key = #{studId}
-			and a.ssvc_akey = 3
-			and a.grp_item_key = 3;
+			and a.ssvc_akey = 4
+			and a.grp_item_key = 4;
     </select>
     
     <select id="getExamSubjSummary" parameterType="hashMap" resultType="resultMap">
@@ -307,32 +307,32 @@
 			img_url,
 		<choose>
 			<when test='currConCheck == "m"'>
-			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId}) as data_cnt
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
 			</when>
 			<otherwise>
-			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId}) as data_cnt
+			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
 			</otherwise>
 		</choose>	
 		from lrndmt.mt_dm_stud st
 		left outer join (
 	    	select
-	    		att.stud_key,
+	    		a.stud_key,
 				msg.msg, 
 				msg.msg_url as img_url 
 			<choose>
 				<when test='currConCheck == "m"'>
 				from lrn_dsb.ds_ag_stud_att_sts_mly a
 				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
-				where att.yyyymm_key = #{yymm} 
+				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
 				from lrn_dsb.ds_ag_stud_att_sts_wly a
 				left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymmw_key, a.stud_key, a.ssvc_akey)
-				where att.yyyymmw_key = #{yymmwk} 
+				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
 			</choose>
-				and att.stud_key = #{studId}
-				and att.ssvc_akey = 3
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 4
 		) att_msg on st.stud_key = att_msg.stud_key
 		where st.stud_key = #{studId};
     </select>
@@ -358,6 +358,7 @@
 				from lrn_dsb.ds_ag_stud_att_sts_mly att
 				where att.yyyymm_key between #{startYymm} and #{endYymm}
 					and stud_key = #{studId}
+					and ssvc_akey = 4
 			) att on ym.yyyymm_key = att.yyyymm_key;
 			</when>
 			<otherwise>
@@ -380,6 +381,7 @@
 				from lrn_dsb.ds_ag_stud_att_sts_wly att
 				where att.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 					and stud_key = #{studId}
+					and ssvc_akey = 4
 			) att on ym.yyyymmw_key = att.yyyymmw_key;
 			</otherwise>
 		</choose>
@@ -627,8 +629,8 @@
 				</otherwise>
 			</choose>
 				and a.stud_key = #{studId}
-				and a.ssvc_akey = 3
-				and a.grp_item_key = 3
+				and a.ssvc_akey = 4
+				and a.grp_item_key = 4
 		) lrn_msg on st.stud_key = lrn_msg.stud_key
 		where st.stud_key = #{studId};
     </select>
@@ -652,8 +654,8 @@
 			</otherwise>
 		</choose>
 			and stud_key = #{studId} 
-			and ssvc_akey = 3
-			and grp_item_key = 3;
+			and ssvc_akey = 4
+			and grp_item_key = 4;
     </select>
     
     <select id="getConcn" parameterType="hashMap" resultType="resultMap">
@@ -786,8 +788,8 @@
 			left outer join lrndmt.mt_dm_rul_msg_bdy_es msg on msg.rul_cd = lrn_dsb.fn_get_msg_rul_LRNWATTADRI_cd(a.yyyymm_key, a.stud_key, a.ssvc_akey)
 			where a.yyyymm_key = #{yymm} 
 				and a.stud_key = #{studId}
-				and a.ssvc_akey = 3
-				and a.grp_item_key = 3
+				and a.ssvc_akey = 4
+				and a.grp_item_key = 4
 		) alrn_msg on st.stud_key = alrn_msg.stud_key
 		left outer join (
 	    	select
@@ -797,7 +799,7 @@
 			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
 			where a.yyyymm_key = #{yymm} 
 				and a.stud_key = #{studId}
-				and a.ssvc_akey = 3
+				and a.ssvc_akey = 4
 			order by a.fnsh_add_lrn_cnt desc
 			limit 1
 		) alrn on st.stud_key = alrn.stud_key
@@ -812,7 +814,7 @@
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
 		where a.yyyymm_key = #{yymm}
 			and a.stud_key = #{studId}  
-			and a.ssvc_akey = 3
+			and a.ssvc_akey = 4
 		order by a.fnsh_add_lrn_cnt desc 
 		limit 3;
     </select>

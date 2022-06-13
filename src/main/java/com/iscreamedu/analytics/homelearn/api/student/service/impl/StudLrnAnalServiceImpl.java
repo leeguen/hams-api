@@ -708,7 +708,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							exRtSubjList = null;
 	        						}
 	        						
-	        						lrnExRtSubjMap.put("examScoreList", exRtSubjList);
+	        						lrnExRtSubjMap.put("lrnExRtList", exRtSubjList);
 	        						
 	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
@@ -805,7 +805,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							exRtSubjList = null;
 	        						}
 	        						
-	        						lrnExRtSubjMap.put("examScoreList", exRtSubjList);
+	        						lrnExRtSubjMap.put("lrnExRtList", exRtSubjList);
 	        						
 	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
