@@ -1251,10 +1251,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
 	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
+	        				int crtRtCnt = Integer.parseInt(examScoreDataMap.get("crtRtCnt").toString());
 	        				
-	        				if(subjCnt > 1) {
+	        				if(subjCnt > 1 && crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
-	        				} else if(subjCnt == 1) {
+	        				} else if(subjCnt == 1 && crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
 	        				} else {
 	        					examScoreList = null;
@@ -1348,10 +1349,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         					examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
 	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
+	        				int crtRtCnt = Integer.parseInt(examScoreDataMap.get("crtRtCnt").toString());
 	        				
-	        				if(subjCnt > 1) {
+	        				if(subjCnt > 1 && crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
-	        				} else if(subjCnt == 1) {
+	        				} else if(subjCnt == 1 && crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
 	        				} else {
 	        					examScoreList = null;
