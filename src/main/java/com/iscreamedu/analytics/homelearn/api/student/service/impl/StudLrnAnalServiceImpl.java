@@ -347,21 +347,30 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
-	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSttList");
+	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSummaryList");
 	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
 	        				examQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamQuesSummary");
 	        				
-	        				/*if(learnMap != null) {
+	        				if(learnMap != null) {
+	        					learnMap.put("aLrnStt1", null);
+	        					learnMap.put("aLrnStt2", null);
+	        					learnMap.put("aLrnStt3", null);
+	        					
 	        					if(aLrnList != null || aLrnList.size() > 0) {
+	        						int aLrnItemIndex = 0;
 	        						for(Map<String, Object> aLrnItem : aLrnList) {
+	        							aLrnItemIndex++;
+	        							
+	        							String mapKeyNm = "aLrnStt"+aLrnItemIndex;
 	        							Map<String, Object> aLrnMap = new HashMap<String, Object>();
 	        							
-	        							aLrnMap
+	        							aLrnMap.put("subjNm", aLrnItem.get("subjNm"));
+	        							aLrnMap.put("aLrnCnt", aLrnItem.get("aLrnCnt"));
+	        							
+	        							learnMap.put(mapKeyNm, aLrnMap);
 	        						}
-	        					} else {
-	        						
 	        					}
-	        				}*/
+	        				}
 	        				
 	        				/*과목별 평가 점수 초기 값*/
 	        				examMap.put("examScore", null);
@@ -428,13 +437,36 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
 	        				Map<String, Object> examMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
 	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSummaryList");
 	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
 	        				examQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamQuesSummary");
+	        				
+	        				if(learnMap != null) {
+	        					learnMap.put("aLrnStt1", null);
+	        					learnMap.put("aLrnStt2", null);
+	        					learnMap.put("aLrnStt3", null);
+	        					
+	        					if(aLrnList != null || aLrnList.size() > 0) {
+	        						int aLrnItemIndex = 0;
+	        						for(Map<String, Object> aLrnItem : aLrnList) {
+	        							aLrnItemIndex++;
+	        							
+	        							String mapKeyNm = "aLrnStt"+aLrnItemIndex;
+	        							Map<String, Object> aLrnMap = new HashMap<String, Object>();
+	        							
+	        							aLrnMap.put("subjNm", aLrnItem.get("subjNm"));
+	        							aLrnMap.put("aLrnCnt", aLrnItem.get("aLrnCnt"));
+	        							
+	        							learnMap.put(mapKeyNm, aLrnMap);
+	        						}
+	        					}
+	        				}
 	        				
 	        				/*과목별 평가 점수 초기 값*/
 	        				examMap.put("examScore", null);

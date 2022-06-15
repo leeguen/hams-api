@@ -806,6 +806,28 @@
 		where st.stud_key = #{studId};
     </select>
     
+    <select id="getALrnSummaryList" parameterType="hashMap" resultType="resultMap">
+    	select 
+			a.fnsh_add_lrn_cnt as a_lrn_cnt,
+			b.item_nm as subj_nm
+		<choose>
+			<when test='currConCheck == "m"'>
+		from lrn_dsb.ds_ag_lrn_use_sts_mly a
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
+		where a.yyyymm_key = #{yymm}
+			</when>
+			<otherwise>
+		from lrn_dsb.ds_ag_lrn_use_sts_wly a
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
+		where a.yyyymmw_key = #{yymmwk}
+			</otherwise>
+		</choose>
+			and a.stud_key = #{studId}  
+			and a.ssvc_akey = 4
+		order by a.fnsh_add_lrn_cnt desc 
+		limit 3;
+    </select>
+    
     <select id="getALrnSttList" parameterType="hashMap" resultType="resultMap">
     	select 
 			a.fnsh_add_lrn_cnt as a_lrn_cnt,
