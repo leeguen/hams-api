@@ -341,13 +341,27 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
 	        				Map<String, Object> examMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
 	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
+	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSttList");
 	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
 	        				examQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamQuesSummary");
+	        				
+	        				/*if(learnMap != null) {
+	        					if(aLrnList != null || aLrnList.size() > 0) {
+	        						for(Map<String, Object> aLrnItem : aLrnList) {
+	        							Map<String, Object> aLrnMap = new HashMap<String, Object>();
+	        							
+	        							aLrnMap
+	        						}
+	        					} else {
+	        						
+	        					}
+	        				}*/
 	        				
 	        				/*과목별 평가 점수 초기 값*/
 	        				examMap.put("examScore", null);
@@ -369,7 +383,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        				}
 	        				
-	        				examMap.put("incrtNoteNcCnt", null);
+	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
 	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
 	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
 	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
