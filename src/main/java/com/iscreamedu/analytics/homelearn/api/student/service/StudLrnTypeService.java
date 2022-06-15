@@ -4,9 +4,7 @@ import java.util.Map;
 
 public interface StudLrnTypeService {
 
-    public Map getLrnTypeSummary (Map<String,Object> paramMap) throws Exception;
-
-    public Map getLrnTypeInfo(Map<String, Object> paramMap) throws Exception;
+    public Map getLrnTypeCheck (Map<String,Object> paramMap) throws Exception;
 
     public Map getLrnTypeDetail(Map<String, Object> paramMap) throws Exception;
 

@@ -90,9 +90,9 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/getLrnTypeSummary")
+    @GetMapping("/getLrnTypeCheck")
     public ResponseEntity getLrnTypeSummary(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeSummary(params);
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeCheck(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -102,9 +102,9 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/getLrnTypeInfo")
+    @GetMapping("/getLrnTypeDetail")
     public ResponseEntity getLrnTypeInfo(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeInfo(params);
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetail(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
@@ -114,24 +114,12 @@ public class StudentController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/getLrnTypeDetail")
-    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetail(params);
-        return new ResponseEntity(body,headers, HttpStatus.OK);
-    }
-
-    /**
-     * 학습유형 내역 (STUD-LT-004)
-     * @param params
-     * @return
-     * @throws Exception
-     */
     @GetMapping("/getLrnTypeHistory")
-    public ResponseEntity getLrnTypeHistory(@RequestParam Map<String,Object> params) throws Exception {
+    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistory(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
-    
+
     /**
      * 학습유형 안내 (STUD-LT-005)
      * @param params

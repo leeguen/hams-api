@@ -1,44 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="StudLrnType">
-    <select id="getLrnTypeSummary" parameterType="hashMap" resultType="resultMap">
-    	/* StudLrnType.getLrnTypeSummary */
+    <select id="getLrnTypeCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeCheck */
     	SELECT
-			LRN_TYPE_NM,
-			-- LRN_TYPE_IMG
-		    IFNULL(LRN_TYPE_IMG,'') AS LRN_TYPE_IMG
-		FROM MONTH_LRN_TYPE ST
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
-		WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm};
+			IF(COUNT(ML.STUD_ID) = 0, 'N', 'Y') AS LRN_TYPE_YN,
+		    DATEDIFF(DATE_ADD(LAST_DAY(NOW()), INTERVAL 1 DAY), NOW()) AS REMAINING_DAY,
+		    DATE_FORMAT(CONCAT('202205','01'),'%Y') AS YYYY,
+    		CAST(DATE_FORMAT(CONCAT('202205','01'),'%m') AS UNSIGNED) AS MM
+		FROM STUD ST
+		LEFT OUTER JOIN MONTH_LRN_TYPE ML ON ST.STUD_ID = ML.STUD_ID AND ML.YYMM = #{yymm}
+		WHERE ST.STUD_ID = #{studId};
     </select>
     
     <select id="getLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getLrnTypeInfo */
     	SELECT
-		    LRN_TYPE_NM,
-		    LRN_TYPE_IMG,
-		    IFNULL(PREV_LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
-		    IFNULL(PREV_LRN_TYPE_IMG, '') AS PREV_LRN_TYPE_IMG,
-		    DATE_FORMAT(DATE_ADD(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y-%m-%d') AS NEXT_LRN_TYPE_ANAL_DT
+			LRN_TYPE_NM,
+			IFNULL(PREV_LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
+			ACT_LEVEL,
+			STR_LEVEL,
+		    (PREV_ACT_LEVEL - ACT_LEVEL) AS ACT_DIFF,
+		    (PREV_STR_LEVEL - STR_LEVEL) AS STR_DIFF
 		FROM (
 			SELECT
 				ST.STUD_ID,
-				LRN_TYPE_NM,
-				-- LRN_TYPE_IMG
-				IFNULL(LRN_TYPE_IMG,'') AS LRN_TYPE_IMG,
-		        (SELECT COUNT(LRN_TYPE_CD) FROM MONTH_LRN_TYPE WHERE STUD_ID = 4995 AND YYMM = 202201) AS LRN_TYPE_CNT
+				(SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD) AS LRN_TYPE_NM,
+				ACT_LEVEL,
+				STR_LEVEL
 			FROM MONTH_LRN_TYPE ST
-			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
 			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm}
 		) LT
 		LEFT OUTER JOIN (
 			SELECT
 				ST.STUD_ID,
-				IFNULL(LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
-				-- LRN_TYPE_IMG
-				IFNULL(LRN_TYPE_IMG,'') AS PREV_LRN_TYPE_IMG
+		        (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD) AS PREV_LRN_TYPE_NM,
+				ACT_LEVEL AS PREV_ACT_LEVEL,
+				STR_LEVEL AS PREV_STR_LEVEL
 			FROM MONTH_LRN_TYPE ST
-			LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
 			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
 		) LT1 ON LT.STUD_ID = LT1.STUD_ID;
     </select>
@@ -90,39 +91,28 @@
     <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getLrnTypeHistory */
     	SELECT
-		    ST.MM,
-		    LI.LRN_TYPE_NM,
-		    IFNULL(LI.LRN_TYPE_IMG, NULL) AS LRN_TYPE_IMG,
-		    IFNULL(LD.LRN_TEND, NULL) AS LRN_TEND,
-			IFNULL(LD.LRN_STR, NULL) AS LRN_STR
+			DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%Y') AS YYYY,
+		    CAST(DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%m') AS UNSIGNED) AS MM,
+			LI.LRN_TYPE_NM
 		FROM (
 			SELECT
 				STUD_ID,
-				YYMM,
-		        MM
+				YYMM
 			FROM STUD
 			CROSS JOIN (
 				SELECT
-					CASE 
-						WHEN lv<![CDATA[<]]>10 THEN CONCAT(YY,'0',lv)
-						ELSE CONCAT(YY,lv)
-					END YYMM,
-		            CASE
-						WHEN lv<![CDATA[<]]>10 THEN CONCAT('0',lv)
-						ELSE lv
-					END MM
-				FROM (
-					SELECT @ROWNUM:=@ROWNUM+1 AS lv
-							, #{yyyy} AS YY
-					FROM information_schema.`COLUMNS` A
-							   , (SELECT @ROWNUM:=0) R
-						LIMIT 12 
-				) AS A  
+					YYMM
+				FROM S_COMM_WK_DT
+				WHERE YYMM<![CDATA[<]]>#{yymm}
+					AND WK = 1
+				ORDER BY YYMM DESC
+				LIMIT 12
 			) YM
 			WHERE STUD_ID = #{studId}
 		) ST
 		LEFT OUTER JOIN LRN_TYPE_DETAIL LD ON ST.STUD_ID = LD.STUD_ID AND ST.YYMM = LD.YYMM
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD;
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		ORDER BY ST.YYMM;
     </select>
     
     <update id="updateLrnTypeInfo" parameterType="hashMap">
