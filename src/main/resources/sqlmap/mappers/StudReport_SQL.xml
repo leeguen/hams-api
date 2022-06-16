@@ -271,6 +271,7 @@
     	select
 			round(a.answ_rt * 100) as exam_score,
 			c.wnote_tot_cnt,
+			c.wnote_fnsh_cnt,
 			c.wnote_unfnsh_cnt,
 			b.ques_tot_cnt,
 			b.ques_skip_cnt,

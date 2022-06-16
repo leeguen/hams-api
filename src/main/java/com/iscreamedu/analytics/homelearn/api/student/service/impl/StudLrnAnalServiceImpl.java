@@ -393,6 +393,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
 	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
 	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
 	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
@@ -489,6 +490,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
 	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
 	        				examMap.put("quesTotCnt", (examQuesMap != null) ? examQuesMap.get("quesTotCnt") : null);
 	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
