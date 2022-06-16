@@ -382,7 +382,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				examMap.put("c06examScore", null);
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
-	        					String subjCd = examSubjItme.get("subjCd").toString();
+	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
 	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
 	        					
 	        					if(subjCd.equals("c00")) {
@@ -479,7 +479,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				examMap.put("c06examScore", null);
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
-	        					String subjCd = examSubjItme.get("subjCd").toString();
+	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
 	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
 	        					
 	        					if(subjCd.equals("c00")) {
@@ -586,6 +586,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				data.put("msg", attRtDataMap.get("msg"));
 	        				data.put("imgUrl", attRtDataMap.get("imgUrl"));
+	        				data.put("imgBgUrl", attRtDataMap.get("imgBgUrl"));
 	        				data.put("attRtList", attRtDataList);
 	        				
 	        				setResult(dataKey,data);
@@ -644,6 +645,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				data.put("msg", attRtDataMap.get("msg"));
 	        				data.put("imgUrl", attRtDataMap.get("imgUrl"));
+	        				data.put("imgBgUrl", attRtDataMap.get("imgBgUrl"));
 	        				data.put("attRtList", attRtDataList);
 	        				
 	        				setResult(dataKey,data);
@@ -740,6 +742,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						
 	        						lrnExRtSubjMap.put("subjCd", subjCd);
 	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
+	        						lrnExRtSubjMap.put("msg", lrnExRtItem.get("msg"));
+	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
+	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
 	        						if(exRtCnt > 0) {
 	        							
@@ -762,8 +767,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
 	        					
-	        					data.put("msg", lrnExRtDataMap.get("msg"));
-		        				data.put("imgUrl", lrnExRtDataMap.get("imgUrl"));
 		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
 	        				
@@ -835,6 +838,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						
 	        						lrnExRtSubjMap.put("subjCd", subjCd);
 	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
+	        						lrnExRtSubjMap.put("msg", lrnExRtItem.get("msg"));
+	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
+	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
 	        						if(exRtCnt > 0) {
 	        							
@@ -859,8 +865,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjList.add(lrnExRtSubjMap);
 	        					}
 	        					
-	        					data.put("msg", lrnExRtDataMap.get("msg"));
-		        				data.put("imgUrl", lrnExRtDataMap.get("imgUrl"));
 		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
 	        				
@@ -933,9 +937,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				String msg = (learnMap.get("msg") != null) ? learnMap.get("msg").toString() : null;
 	        				String imgUrl = (learnMap.get("imgUrl") != null) ? learnMap.get("imgUrl").toString() : null;
+	        				String imgBgUrl = (learnMap.get("imgBgUrl") != null) ? learnMap.get("imgBgUrl").toString() : null;
 	        				
 	        				data.put("msg", msg);
 	        				data.put("imgUrl", imgUrl);
+	        				data.put("imgBgUrl", imgBgUrl);
 	        				data.put("bLrnCnt", learnMap.get("bLrnCnt"));
     						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
     						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
@@ -994,9 +1000,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				String msg = (learnMap.get("msg") != null) ? learnMap.get("msg").toString() : null;
 	        				String imgUrl = (learnMap.get("imgUrl") != null) ? learnMap.get("imgUrl").toString() : null;
+	        				String imgBgUrl = (learnMap.get("imgBgUrl") != null) ? learnMap.get("imgBgUrl").toString() : null;
 	        				
 	        				data.put("msg", msg);
 	        				data.put("imgUrl", imgUrl);
+	        				data.put("imgBgUrl", imgBgUrl);
 	        				data.put("bLrnCnt", learnMap.get("bLrnCnt"));
     						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
     						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
@@ -1230,6 +1238,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     				
     				data.put("msg", aLrnDataMap.get("msg"));
     				data.put("imgUrl", aLrnDataMap.get("imgUrl"));
+    				data.put("imgBgUrl", aLrnDataMap.get("imgBgUrl"));
     				data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
     				data.put("aLrnList", aLrnList);
     				
@@ -1321,6 +1330,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						
 	        						examScoreSubjMap.put("subjCd", subjCd);
 	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
+	        						examScoreSubjMap.put("msg", examScoreItem.get("msg"));
+	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
+	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
 	        						if(exRtCnt > 0) {
 	        							
@@ -1343,8 +1355,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
 	        					
-	        					data.put("msg", examScoreDataMap.get("msg"));
-		        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
 		        				data.put("examScoreSubjList", examScoreSubjList);
 	        				}
 	        				
@@ -1419,6 +1429,9 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						
 	        						examScoreSubjMap.put("subjCd", subjCd);
 	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
+	        						examScoreSubjMap.put("msg", examScoreItem.get("msg"));
+	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
+	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
 	        						if(exRtCnt > 0) {
 	        							
@@ -1443,8 +1456,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjList.add(examScoreSubjMap);
 	        					}
 	        					
-	        					data.put("msg", examScoreDataMap.get("msg"));
-		        				data.put("imgUrl", examScoreDataMap.get("imgUrl"));
 		        				data.put("examScoreSubjList", examScoreSubjList);
 	        				}
 	        				
@@ -1513,6 +1524,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				if(incrtNoteMap != null) {
 	        					data.put("msg", incrtNoteMap.get("msg"));
 	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
+	        					data.put("imgBgUrl", incrtNoteMap.get("imgBgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
 		        				data.put("incrtNoteFnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
@@ -1559,6 +1571,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     						if(incrtNoteMap != null) {
 	        					data.put("msg", incrtNoteMap.get("msg"));
 	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
+	        					data.put("imgBgUrl", incrtNoteMap.get("imgBgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
 		        				data.put("incrtNoteFnshCnt", incrtNoteMap.get("wnoteFnshCnt"));
 		        				data.put("incrtNoteNcCnt", incrtNoteMap.get("wnoteUnfnshCnt"));
@@ -1650,6 +1663,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					
 	        					data.put("msg", slvHabitMap.get("msg"));
 	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					
 	        					slvHabitQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitQuesStt");
@@ -1757,6 +1771,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					
 	        					data.put("msg", slvHabitMap.get("msg"));
 	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					
 	        					slvHabitQuesMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitQuesStt");
