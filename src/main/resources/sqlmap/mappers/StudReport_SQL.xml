@@ -370,13 +370,13 @@
 			<otherwise>
 			select
 				ym.mm,
-				ym.w,
+				wk,
 				att_rt
 			from (
 				select
 					yyyymmw_key,
 					substring(yyyymm_key::text,5,6)::integer as mm,
-					w::integer
+					w::integer as wk
 				from lrndmt.mt_dm_wk_dt
 				where yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			) ym
