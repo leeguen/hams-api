@@ -127,7 +127,7 @@ public class StudentController {
      * @throws Exception
      */
     @GetMapping({"/getStudLrnTypeInfo/{studId}", "/getStudLrnTypeInfo/{studId}.ai"})
-    public ResponseEntity getStudLrnTypeInfo(@PathVariable("studId") int studId) throws Exception {
+    public ResponseEntity getStudLrnTypeInfo(@PathVariable("studId") String studId) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getStudLrnTypeInfo(studId);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
