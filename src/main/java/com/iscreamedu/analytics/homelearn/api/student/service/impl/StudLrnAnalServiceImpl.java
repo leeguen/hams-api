@@ -723,15 +723,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				lrnExRtDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getlrnExRt");
 	        				
-	        				int grade = Integer.parseInt(lrnExRtDataMap.get("grade").toString());
+	        				int exCnt = (lrnExRtDataMap.get("exCnt") != null) ? Integer.parseInt(lrnExRtDataMap.get("exCnt").toString()) : 0;
 	        				
-	        				if(grade > 3) {
-	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtHigh");
-	        				} else {
-	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtLow");
-	        				}
-	        				
-	        				if(lrnExRtList != null) {
+	        				if(exCnt > 0) {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+	        					
 	        					for(Map<String, Object> lrnExRtItem : lrnExRtList) {
 	        						Map<String, Object> lrnExRtSubjMap = new LinkedHashMap<String, Object>();
 	        						ArrayList<Map<String, Object>> exRtSubjList = new ArrayList<>();
@@ -779,6 +775,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        					
 		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
+	        				} else {
+	        					data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
 	        				
 	        				setResult(dataKey,data);
@@ -830,15 +828,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
         					lrnExRtDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getlrnExRt");
 	        				
-	        				int grade = Integer.parseInt(lrnExRtDataMap.get("grade").toString());
+	        				int exCnt = (lrnExRtDataMap.get("exCnt") != null) ? Integer.parseInt(lrnExRtDataMap.get("exCnt").toString()) : 0;
 	        				
-	        				if(grade > 3) {
-	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtHigh");
-	        				} else {
-	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRtLow");
-	        				}
-	        				
-	        				if(lrnExRtList != null) {
+	        				if(exCnt > 0) {
+	        					lrnExRtList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjLrnExRt");
+	        					
 	        					for(Map<String, Object> lrnExRtItem : lrnExRtList) {
 	        						Map<String, Object> lrnExRtSubjMap = new LinkedHashMap<String, Object>();
 	        						ArrayList<Map<String, Object>> exRtSubjList = new ArrayList<>();
@@ -889,6 +883,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        					
 		        				data.put("lrnExRtSubjList", lrnExRtSubjList);
+	        				} else {
+	        					data.put("lrnExRtSubjList", lrnExRtSubjList);
 	        				}
 	        				
 	        				setResult(dataKey,data);
@@ -1331,18 +1327,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
-	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
 	        				int crtRtCnt = Integer.parseInt(examScoreDataMap.get("crtRtCnt").toString());
 	        				
-	        				if(subjCnt > 1 && crtRtCnt > 0) {
+	        				if(crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
-	        				} else if(subjCnt == 1 && crtRtCnt > 0) {
-	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
-	        				} else {
-	        					examScoreList = null;
-	        				}
-	        				
-	        				if(examScoreList != null) {
+	        					
 	        					for(Map<String, Object> examScoreItem : examScoreList) {
 	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
 	        						ArrayList<Map<String, Object>> crtRtSubjList = new ArrayList<>();
@@ -1390,6 +1379,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        					
 		        				data.put("examScoreSubjList", examScoreSubjList);
+	        				} else {
+	        					data.put("examScoreSubjList", examScoreSubjList);
 	        				}
 	        				
 	        				
@@ -1441,18 +1432,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
         					examScoreDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getExamScore");
 	        				
-	        				int subjCnt = Integer.parseInt(examScoreDataMap.get("subjCnt").toString());
 	        				int crtRtCnt = Integer.parseInt(examScoreDataMap.get("crtRtCnt").toString());
 	        				
-	        				if(subjCnt > 1 && crtRtCnt > 0) {
+	        				if(crtRtCnt > 0) {
 	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore");
-	        				} else if(subjCnt == 1 && crtRtCnt > 0) {
-	        					examScoreList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSubjExamScore2");
-	        				} else {
-	        					examScoreList = null;
-	        				}
-	        				
-	        				if(examScoreList != null) {
+	        					
 	        					for(Map<String, Object> examScoreItem : examScoreList) {
 	        						Map<String, Object> examScoreSubjMap = new LinkedHashMap<String, Object>();
 	        						ArrayList<Map<String, Object>> crtRtSubjList = new ArrayList<>();
@@ -1504,6 +1488,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        					
 		        				data.put("examScoreSubjList", examScoreSubjList);
+	        				} else {
+	        					data.put("examScoreSubjList", examScoreSubjList);
 	        				}
 	        				
 	        				setResult(dataKey,data);

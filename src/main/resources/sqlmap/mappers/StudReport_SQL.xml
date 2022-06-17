@@ -395,12 +395,32 @@
     
     <select id="getlrnExRt" parameterType="hashMap" resultType="resultMap">
     	select
-    		grd as grade
-		from lrndmt.mt_dm_stud st
-		where st.stud_key = #{studId};
+			count(tiltrm_exec_rt) as ex_cnt
+		<choose>
+			<when test='currConCheck == "m"'>
+		from lrndmt.mt_dm_wk_dt a
+		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly c on 
+			a.yyyymm_key = c.yyyymm_key 
+			and c.stud_key = #{studId} 
+			and c.ssvc_akey = 4 
+			and c.grp_item_key = 4
+		where a.yyyymm_key between #{startYymm} and #{endYymm}
+			and a.w = '1';
+			</when>
+			<otherwise>
+		from lrndmt.mt_dm_wk_dt a
+		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly c on 
+			a.yyyymmw_key = c.yyyymmw_key 
+			and c.stud_key = #{studId} 
+			and c.ssvc_akey = 4 
+			and c.grp_item_key = 4
+		where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+			</otherwise>
+		</choose>
+		
     </select>
     
-    <select id="getSubjLrnExRtHigh" parameterType="hashMap" resultType="resultMap">
+    <select id="getSubjLrnExRt" parameterType="hashMap" resultType="resultMap">
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
@@ -837,37 +857,8 @@
     
     <select id="getExamScore" parameterType="hashMap" resultType="resultMap">
     	select
-			coalesce(subj_cnt,0) as subj_cnt,
 			coalesce(crt_rt_cnt,0) as crt_rt_cnt
 		from lrndmt.mt_dm_stud st
-		left outer join (
-	    	select
-	    		a.stud_key,
-				count(distinct a.grp_item_key) as subj_cnt
-			<choose>
-				<when test='currConCheck == "m"'>
-				from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
-				join lrn_dsb.ds_dm_grp_item b on 
-					a.grp_item_key = b.grp_item_key 
-					and b.grp_typ = 'SUBJ_CD' 
-					and position('#' in b.item_cd) = 0 
-					and position('C' in b.item_cd) > 0
-				where yyyymm_key between #{startYymm} and #{endYymm}
-				</when>
-				<otherwise>
-				from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
-				join lrn_dsb.ds_dm_grp_item b on 
-					a.grp_item_key = b.grp_item_key 
-					and b.grp_typ = 'SUBJ_CD' 
-					and position('#' in b.item_cd) = 0 
-					and position('C' in b.item_cd) > 0
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-				</otherwise>
-			</choose>
-				and a.stud_key = #{studId}
-				and a.ssvc_akey = 4
-			group by a.stud_key
-		) cnt on st.stud_key = cnt.stud_key
 		left outer join (
 	    	select
 	    		a.stud_key,
