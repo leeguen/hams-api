@@ -253,6 +253,18 @@ public class StudentController {
     }
     
     /**
+     * 문제풀이 습관 (STUD-LA-011)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getSlvHabit2")
+    public ResponseEntity getSlvHabit2(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getSlvHabit2(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
      * 리포트 소감 조회 (STUD-LA-012)
      * @param params
      * @return

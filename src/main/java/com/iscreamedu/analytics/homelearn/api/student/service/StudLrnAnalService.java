@@ -32,6 +32,8 @@ public interface StudLrnAnalService {
     
     public Map getSlvHabit(Map<String, Object> paramMap) throws Exception;
     
+    public Map getSlvHabit2(Map<String, Object> paramMap) throws Exception;
+    
     public Map getReportEmotion(Map<String, Object> paramMap) throws Exception;
     
     public Map insertReportEmotion(Map<String, Object> paramMap) throws Exception;

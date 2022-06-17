@@ -1605,7 +1605,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
-    public Map getSlvHabit(Map<String, Object> paramMap) throws Exception {
+    public Map getSlvHabit2(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
@@ -1819,6 +1819,186 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						slvHabitList.add(createSlvHabitDataMap("guessQues", slvHabitGussList));
 	        						slvHabitList.add(createSlvHabitDataMap("mistakeQues", slvHabitMstkeList));
 	        					}
+	        					
+	        					data.put("slvHabitList", slvHabitList);
+	        				}
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
+    public Map getSlvHabit(Map<String, Object> paramMap) throws Exception {
+    	Map<String,Object> data = new LinkedHashMap<>();
+    	
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vuM = new ValidationUtil();
+        ValidationUtil vuW = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        ValidationUtil vu2 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
+	        	
+	        	if(vuM.isValid()) {
+	        		getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+	        			int yymm = Integer.parseInt(yyyy+convertMm);
+	        			
+	        			paramMap.put("yymm", yymm);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			
+	        			if(vu1.isValid()) {
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
+	        				
+        					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
+	        				
+	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymm = Integer.parseInt(yymmDataMap.get("endYymm").toString());
+	        				
+	        				paramMap.put("startYymm", startYymm);
+	        				paramMap.put("endYymm", endYymm);
+	        				
+	        				slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
+	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitList");
+	        				
+	        				if(slvHabitMap != null) {
+	        					Map<String, Object> slvHabitMonthDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitMonthDataMap.put("skipQuesCnt", slvHabitMap.get("quesSkipCnt"));
+	        					slvHabitMonthDataMap.put("cursoryQuesCnt", slvHabitMap.get("quesHrryCnt"));
+	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
+	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
+	        					
+	        					data.put("msg", slvHabitMap.get("msg"));
+	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
+	        					data.put("slvHabitData", slvHabitMonthDataMap);
+
+	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
+	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();
+	 	        					
+	 	        					slvHabitDataMap.put("mm", slvHavitItem.get("mm"));
+	 	        					slvHabitDataMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
+	 	        					slvHabitDataMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
+	 		        				slvHabitDataMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
+	 		        				slvHabitDataMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	 		        				
+	 		        				slvHabitList.add(slvHabitDataMap);
+	 	        				}
+	        					
+	        					data.put("slvHabitList", slvHabitList);
+	        				}
+	        				
+	        				setResult(dataKey,data);
+	        			} else {
+	        				setResult(msgKey, vu1.getResult());
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+	        		
+	        	} else {
+	        		setResult(msgKey, vuM.getResult());
+	        	}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+
+	        			int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
+	        				
+        					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
+	        				
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				
+	        				paramMap.put("startYymmwk", startYymmwk);
+	        				paramMap.put("endYymmwk", endYymmwk);
+	        				
+	        				slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
+	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitList");
+	        				
+	        				if(slvHabitMap != null) {
+	        					Map<String, Object> slvHabitMonthDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitMonthDataMap.put("skipQuesCnt", slvHabitMap.get("quesSkipCnt"));
+	        					slvHabitMonthDataMap.put("cursoryQuesCnt", slvHabitMap.get("quesHrryCnt"));
+	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
+	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
+	        					
+	        					data.put("msg", slvHabitMap.get("msg"));
+	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
+	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
+	        					data.put("slvHabitData", slvHabitMonthDataMap);
+
+	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
+	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();
+	 	        					
+	 	        					slvHabitDataMap.put("mm", slvHavitItem.get("mm"));
+	 	        					slvHabitDataMap.put("wk", slvHavitItem.get("wk"));
+	 	        					slvHabitDataMap.put("skipQuesCnt", slvHavitItem.get("quesSkipCnt"));
+	 	        					slvHabitDataMap.put("cursoryQuesCnt", slvHavitItem.get("quesHrryCnt"));
+	 		        				slvHabitDataMap.put("guessQuesCnt", slvHavitItem.get("quesGussCnt"));
+	 		        				slvHabitDataMap.put("mistakeQuesCnt", slvHavitItem.get("quesMstkeCnt"));
+	 		        				
+	 		        				slvHabitList.add(slvHabitDataMap);
+	 	        				}
 	        					
 	        					data.put("slvHabitList", slvHabitList);
 	        				}
