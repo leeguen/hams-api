@@ -746,7 +746,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
 	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
-	        						if(exRtCnt > 0) {
+	        						/*if(exRtCnt > 0) {
 	        							
 	        							List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
 	        							List<String> scoreList = Arrays.asList(lrnExRtItem.get("exRtSp").toString().split(","));
@@ -760,7 +760,18 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							}
 	        						} else {
 	        							exRtSubjList = null;
-	        						}
+	        						}*/
+	        						
+	        						List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
+        							List<String> scoreList = Arrays.asList(lrnExRtItem.get("exRtSp").toString().split(","));
+        							
+        							for(int i = 0; i < 5; i++) {
+        								Map<String, Object> exRtSubjMap = new LinkedHashMap<String, Object>();
+        								exRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+        								exRtSubjMap.put("lrnExRt", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+        								
+        								exRtSubjList.add(exRtSubjMap);
+        							}
 	        						
 	        						lrnExRtSubjMap.put("lrnExRtList", exRtSubjList);
 	        						
@@ -842,7 +853,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
 	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
-	        						if(exRtCnt > 0) {
+	        						/*if(exRtCnt > 0) {
 	        							
 	        							List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
 	        							List<String> wkList = Arrays.asList(lrnExRtItem.get("wkSp").toString().split(","));
@@ -858,7 +869,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							}
 	        						} else {
 	        							exRtSubjList = null;
-	        						}
+	        						}*/
+	        						List<String> mmList = Arrays.asList(lrnExRtItem.get("mmSp").toString().split(","));
+        							List<String> wkList = Arrays.asList(lrnExRtItem.get("wkSp").toString().split(","));
+        							List<String> scoreList = Arrays.asList(lrnExRtItem.get("exRtSp").toString().split(","));
+        							
+        							for(int i = 0; i < 5; i++) {
+        								Map<String, Object> exRtSubjMap = new LinkedHashMap<String, Object>();
+        								exRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+        								exRtSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
+        								exRtSubjMap.put("lrnExRt", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+        								
+        								exRtSubjList.add(exRtSubjMap);
+        							}
 	        						
 	        						lrnExRtSubjMap.put("lrnExRtList", exRtSubjList);
 	        						
@@ -1334,7 +1357,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
 	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
-	        						if(exRtCnt > 0) {
+	        						/*if(exRtCnt > 0) {
 	        							
 	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
 	        							List<String> scoreList = Arrays.asList(examScoreItem.get("crtRtSp").toString().split(","));
@@ -1348,7 +1371,18 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							}
 	        						} else {
 	        							crtRtSubjList = null;
-	        						}
+	        						}*/
+	        						
+	        						List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
+        							List<String> scoreList = Arrays.asList(examScoreItem.get("crtRtSp").toString().split(","));
+        							
+        							for(int i = 0; i < 5; i++) {
+        								Map<String, Object> crtRtSubjMap = new LinkedHashMap<String, Object>();
+        								crtRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+        								crtRtSubjMap.put("examScore", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+        								
+        								crtRtSubjList.add(crtRtSubjMap);
+        							}
 	        						
 	        						examScoreSubjMap.put("examScoreList", crtRtSubjList);
 	        						
@@ -1433,7 +1467,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
 	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
-	        						if(exRtCnt > 0) {
+	        						/*if(exRtCnt > 0) {
 	        							
 	        							List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
 	        							List<String> wkList = Arrays.asList(examScoreItem.get("wkSp").toString().split(","));
@@ -1449,7 +1483,20 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        							}
 	        						} else {
 	        							crtRtSubjList = null;
-	        						}
+	        						}*/
+	        						
+	        						List<String> mmList = Arrays.asList(examScoreItem.get("mmSp").toString().split(","));
+        							List<String> wkList = Arrays.asList(examScoreItem.get("wkSp").toString().split(","));
+        							List<String> scoreList = Arrays.asList(examScoreItem.get("crtRtSp").toString().split(","));
+        							
+        							for(int i = 0; i < 5; i++) {
+        								Map<String, Object> crtRtSubjMap = new LinkedHashMap<String, Object>();
+        								crtRtSubjMap.put("mm", Integer.parseInt(mmList.get(i)));
+        								crtRtSubjMap.put("wk", Integer.parseInt(wkList.get(i)));
+        								crtRtSubjMap.put("examScore", (scoreList.get(i).equals(" ")) ? null : scoreList.get(i));
+        								
+        								crtRtSubjList.add(crtRtSubjMap);
+        							}
 	        						
 	        						examScoreSubjMap.put("examScoreList", crtRtSubjList);
 	        						

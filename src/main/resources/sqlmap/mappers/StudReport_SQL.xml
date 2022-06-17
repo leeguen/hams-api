@@ -406,9 +406,9 @@
 			select
 				item_cd as subj_cd,
 				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, lrn.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as ex_rt_sp,
 				count(ex_rt) as ex_rt_cnt
@@ -438,9 +438,9 @@
 			select
 				item_cd as subj_cd,
 				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, lrn.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by item_cd, yyyymmw_key) as mm_sp,
 				string_agg(wk::text, ',' order by item_cd, yyyymmw_key) as wk_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key) as ex_rt_sp,
@@ -476,9 +476,9 @@
 			select
 				wk.item_cd as subj_cd,
 				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, wk.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymm_key) as mm_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymm_key) as ex_rt_sp,
 				count(ex_rt) as ex_rt_cnt
@@ -533,9 +533,9 @@
 			select
 				wk.item_cd as subj_cd,
 				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, wk.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymmw_key) as mm_sp,
 				string_agg(wk::text, ',' order by wk.item_cd, wk.yyyymmw_key) as wk_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymmw_key) as ex_rt_sp,
@@ -897,9 +897,9 @@
 			select
 				item_cd as subj_cd,
 				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, exam.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as crt_rt_sp,
 				count(ex_rt) as ex_rt_cnt
@@ -925,9 +925,9 @@
 			select
 				item_cd as subj_cd,
 				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, exam.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
+				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
+				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
+				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
 				string_agg(mm::text, ',' order by item_cd, yyyymmw_key, wk) as mm_sp,
 				string_agg(wk::text, ',' order by item_cd, yyyymmw_key, wk) as wk_sp,
 				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key, wk) as crt_rt_sp,
