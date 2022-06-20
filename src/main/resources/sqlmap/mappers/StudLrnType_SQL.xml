@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StudLrnType">
+    <select id="getLrnTypeCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeCheck */
+    	SELECT
+			IF(COUNT(ML.STUD_ID) = 0, 'N', 'Y') AS LRN_TYPE_YN,
+		    DATEDIFF(DATE_ADD(LAST_DAY(NOW()), INTERVAL 1 DAY), NOW()) AS REMAINING_DAY,
+		    DATE_FORMAT(CONCAT('202205','01'),'%Y') AS YYYY,
+    		CAST(DATE_FORMAT(CONCAT('202205','01'),'%m') AS UNSIGNED) AS MM
+		FROM STUD ST
+		LEFT OUTER JOIN MONTH_LRN_TYPE ML ON ST.STUD_ID = ML.STUD_ID AND ML.YYMM = #{yymm}
+		WHERE ST.STUD_ID = #{studId};
+    </select>
+    
+    <select id="getLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeInfo */
+    	SELECT
+			LRN_TYPE_NM,
+			IFNULL(PREV_LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
+			ACT_LEVEL,
+			STR_LEVEL,
+		    (PREV_ACT_LEVEL - ACT_LEVEL) AS ACT_DIFF,
+		    (PREV_STR_LEVEL - STR_LEVEL) AS STR_DIFF
+		FROM (
+			SELECT
+				ST.STUD_ID,
+				(SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD) AS LRN_TYPE_NM,
+				ACT_LEVEL,
+				STR_LEVEL
+			FROM MONTH_LRN_TYPE ST
+			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
+			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm}
+		) LT
+		LEFT OUTER JOIN (
+			SELECT
+				ST.STUD_ID,
+		        (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD) AS PREV_LRN_TYPE_NM,
+				ACT_LEVEL AS PREV_ACT_LEVEL,
+				STR_LEVEL AS PREV_STR_LEVEL
+			FROM MONTH_LRN_TYPE ST
+			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
+			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
+		) LT1 ON LT.STUD_ID = LT1.STUD_ID;
+    </select>
+    
+    <select id="getLrnTypeInfoYn" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeInfoYn */
+    	SELECT
+			IF(LRN_TYPE_CNT = 1, 'Y', 'N') AS LRN_TYPE_ANAL_YN,
+		    IF(LRN_TYPE_CHECK_CNT = 1, 'Y', 'N') AS LRN_TYPE_CHECK_YN
+		FROM (
+			SELECT
+				STUD_ID,
+				COUNT(LRN_TYPE_CD) AS LRN_TYPE_CNT,
+				(SELECT LRN_TYPE_GUIDE FROM LRN_TYPE_GUIDE WHERE STUD_ID = #{studId}) AS LRN_TYPE_CHECK_CNT
+			FROM MONTH_LRN_TYPE
+			WHERE STUD_ID = #{studId} AND YYMM = #{yymm}
+		) LTCNT;
+    </select>
+    
+    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeDetail */
+    	SELECT
+			LI.LRN_TYPE_NM,
+			LD.LRN_TYPE_CD,
+		    IFNULL(LI.LRN_TYPE_IMG, NULL) AS LRN_TYPE_IMG,
+		    IFNULL(LI.LRN_TYPE_DEF, NULL) AS LRN_TYPE_DEF,
+		    IFNULL(LD.LRN_TEND, NULL) AS LRN_TEND,
+		    IFNULL(LD.LRN_STR, NULL) AS LRN_STR,
+		    LD.LRN_TYPE_ACT_SCORE AS ACT_SCORE, 
+		    LD.LRN_TYPE_STR_SCORE AS STR_SCORE,
+		    GL.LRN_TYPE_STUD_RT
+		FROM LRN_TYPE_DETAIL LD
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		LEFT OUTER JOIN GRP_LRN_TYPE_STT GL ON LD.LRN_TYPE_CD = GL.LRN_TYPE_CD AND LD.YYMM = GL.YYMM
+		WHERE STUD_ID = #{studId} AND LD.YYMM = #{yymm};
+    </select>
+    
+    <select id="getLrnTypeGrp" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeGrp */
+    	SELECT
+			LI.LRN_TYPE_NM AS MAX_LRN_TYPE_NM
+		FROM GRP_LRN_TYPE_STT GL
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON GL.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		WHERE YYMM = #{yymm}
+		ORDER BY LRN_TYPE_STUD_CNT DESC
+		LIMIT 1;
+    </select>
+    
+    <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeHistory */
+    	SELECT
+			DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%Y') AS YYYY,
+		    CAST(DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%m') AS UNSIGNED) AS MM,
+			LI.LRN_TYPE_NM
+		FROM (
+			SELECT
+				STUD_ID,
+				YYMM
+			FROM STUD
+			CROSS JOIN (
+				SELECT
+					YYMM
+				FROM S_COMM_WK_DT
+				WHERE YYMM<![CDATA[<]]>#{yymm}
+					AND WK = 1
+				ORDER BY YYMM DESC
+				LIMIT 12
+			) YM
+			WHERE STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN LRN_TYPE_DETAIL LD ON ST.STUD_ID = LD.STUD_ID AND ST.YYMM = LD.YYMM
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		ORDER BY ST.YYMM;
+    </select>
+    
+    <update id="updateLrnTypeInfo" parameterType="hashMap">
+    	/* StudLrnType.updateLrnTypeInfo */
+    	UPDATE LRN_TYPE_GUIDE 
+		SET 
+			LRN_TYPE_GUIDE = #{guideValue},
+		    UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		WHERE STUD_ID = #{studId};
+    </update>
+    
+    <select id="getReportEmotion" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getReportEmotion */
+    	SELECT
+    		IFNULL(MR1.MSG, NULL) AS MSG,
+			IF(CNT = 0, 'N', 'Y') AS EMOTION_YN,
+		    IFNULL(MR1.EMOTICON, NULL) AS EMOTICON
+    	<choose>
+	    	<when test='currConCheck == "m"'>
+   		FROM (
+			SELECT
+				YYMM,
+				STUD_ID,
+				COUNT(*) AS CNT
+			FROM MONTH_REPORT_EMOTION
+			WHERE YYMM = #{yymm}
+				AND STUD_ID = #{studId}
+		) MR
+		LEFT OUTER JOIN MONTH_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.STUD_ID = MR1.STUD_ID;
+	    	</when>
+	    	<otherwise>
+    	FROM (
+			SELECT
+				YYMM,
+				WK,
+				STUD_ID,
+				COUNT(*) AS CNT
+			FROM WEEK_REPORT_EMOTION
+			WHERE YYMM = #{yymm}
+				AND WK = #{wk}
+				AND STUD_ID = #{studId}
+		) MR
+		LEFT OUTER JOIN WEEK_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.WK = MR1.WK AND MR.STUD_ID = MR1.STUD_ID;
+	    	</otherwise>
+    	</choose>
+    </select>
+    
+    <insert id="insertReportEmotion" parameterType="hashMap">
+    	/* StudLrnType.insertReportEmotion */
+    	<choose>
+	    	<when test='currConCheck == "m"'>
+	   		INSERT INTO MONTH_REPORT_EMOTION
+			(
+				YYMM,
+				STUD_ID,
+			    EMOTICON,
+			    REG_DTTM,
+			    UPD_DTTM
+			)
+			VALUES
+			(
+				#{yymm},
+				#{studId},
+				#{emoticon},
+				DATE_ADD(NOW(), INTERVAL 9 HOUR),
+				DATE_ADD(NOW(), INTERVAL 9 HOUR)
+			);
+	    	</when>
+	    	<otherwise>
+    		INSERT INTO WEEK_REPORT_EMOTION
+			(
+				YYMM,
+				WK,
+				STUD_ID,
+			    EMOTICON,
+			    REG_DTTM,
+			    UPD_DTTM
+			)
+			VALUES
+			(
+				#{yymm},
+				#{wk},
+				#{studId},
+				#{emoticon},
+				DATE_ADD(NOW(), INTERVAL 9 HOUR),
+				DATE_ADD(NOW(), INTERVAL 9 HOUR)
+			);
+	    	</otherwise>
+    	</choose>
+    </insert>
+    
+    <select id="getStudLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getStudLrnTypeInfo */
+    	SELECT
+			(SELECT LRN_TYPE_DKT_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = MS.LRN_TYPE_CD) AS LRN_TYPE_CD,
+		    MS.LRN_TYPE_GROUP_CD,
+			(SELECT CD_NM FROM COMM_CD WHERE CD = ST.LRN_STT_CD AND GRP = 'LRN_STT_CD') AS LRN_STT_CD,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_TYPE AND GRP = 'STUD_TYPE') AS STUD_TYPE,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_STATUS AND GRP = 'STUD_STATUS') AS STUD_STATUS,
+		    (SELECT CD_NM FROM COMM_CD WHERE CD = ST.STUD_STATUS_DETAIL AND GRP = 'STUD_STATUS_DETAIL') AS STUD_STATUS_DETAIL
+		FROM STUD ST 
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+		        LRN_TYPE_CD,
+		        LRN_TYPE_GROUP_CD
+			FROM MONTH_LRN_TYPE
+			WHERE STUD_ID = #{studId}
+		    ORDER BY YYMM DESC
+		    LIMIT 1
+		) MS ON ST.STUD_ID = MS.STUD_ID
+		WHERE ST.STUD_ID = #{studId};
+    </select>
+    
+</mapper>
