@@ -73,6 +73,18 @@ public class StudentController {
     }
     
     /**
+     * 학생 정보 (STUD-CM-003)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getStudInfo")
+    public ResponseEntity getStudInfoForTchr(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getStudInfoForTchr(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
      * 현재 월 정보 (STUD-CM-004)
      * @param params
      * @return

@@ -325,22 +325,21 @@
     
     <select id="getAttRt" parameterType="hashMap" resultType="resultMap">
     	select
+			a.msg,
+			b.img_url,
+			b.img_bg_url,
 		<choose>
 			<when test='currConCheck == "m"'>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, st.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_bg_url,
 			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
+		from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4) a
+		cross join lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4) b;
 			</when>
 			<otherwise>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, st.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, st.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, st.stud_key, 4)) as img_bg_url,
 			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
+		from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4) a
+		cross join lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4) b;
 			</otherwise>
 		</choose>	
-		from lrndmt.mt_dm_stud st
-		where st.stud_key = #{studId};
     </select>
     
     <select id="getAttRtList" parameterType="hashMap" resultType="resultMap">
@@ -417,212 +416,104 @@
 		where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
 			</otherwise>
 		</choose>
-		
     </select>
     
     <select id="getSubjLrnExRt" parameterType="hashMap" resultType="resultMap">
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				item_cd as subj_cd,
-				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as ex_rt_sp,
-				count(ex_rt) as ex_rt_cnt
+				subj_cd,
+				subj_nm,
+				b.msg,
+				c.img_url,
+				c.img_bg_url,
+				mm_sp,
+				ex_rt_sp,
+				ex_rt_cnt
 			from (
 				select
-					a.yyyymm_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					b.item_cd,
-					b.item_nm,
-					round(c.tiltrm_exec_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly c on 
-					a.yyyymm_key = c.yyyymm_key 
-					and c.stud_key = #{studId} 
-					and b.ssvc_akey = c.ssvc_akey 
-					and b.grp_item_key = c.grp_item_key
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) lrn
-			group by item_cd, item_nm;
+					item_cd as subj_cd,
+					item_nm as subj_nm,
+					string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
+					string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as ex_rt_sp,
+					count(ex_rt) as ex_rt_cnt
+				from (
+					select
+						a.yyyymm_key,
+						substring(a.yyyymm_key::text,5,6)::integer as mm,
+						b.item_cd,
+						b.item_nm,
+						round(c.tiltrm_exec_rt * 100) as ex_rt
+					from lrndmt.mt_dm_wk_dt a
+					left outer join lrn_dsb.ds_dm_grp_item b on 
+						(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
+						and position('#' in b.item_cd) = 0 
+						and b.ssvc_akey = 4
+					left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly c on 
+						a.yyyymm_key = c.yyyymm_key 
+						and c.stud_key = #{studId}
+						and b.ssvc_akey = c.ssvc_akey 
+						and b.grp_item_key = c.grp_item_key
+					where a.yyyymm_key between #{startYymm} and #{endYymm}
+						and a.w = '1'
+				) lrn
+				group by item_cd, item_nm
+			) a
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, a.subj_cd) b
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4) c;
 			</when>
 			<otherwise>
 			select
-				item_cd as subj_cd,
-				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by item_cd, yyyymmw_key) as mm_sp,
-				string_agg(wk::text, ',' order by item_cd, yyyymmw_key) as wk_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key) as ex_rt_sp,
-				count(ex_rt) as ex_rt_cnt
+				subj_cd,
+				subj_nm,
+				b.msg,
+				c.img_url,
+				c.img_bg_url,
+				mm_sp,
+				wk_sp,
+				ex_rt_sp,
+				ex_rt_cnt
 			from (
 				select
-					a.yyyymmw_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					w as wk,
-					b.item_cd,
-					b.item_nm,
-					round(c.tiltrm_exec_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly c on 
-					a.yyyymmw_key = c.yyyymmw_key 
-					and c.stud_key = #{studId} 
-					and b.ssvc_akey = c.ssvc_akey 
-					and b.grp_item_key = c.grp_item_key
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) lrn
-			group by item_cd, item_nm;
-			</otherwise>
-		</choose>
-    </select>
-    
-    <select id="getSubjLrnExRtLow" parameterType="hashMap" resultType="resultMap">
-		<choose>
-			<when test='currConCheck == "m"'>
-			select
-				wk.item_cd as subj_cd,
-				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymm_key) as mm_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymm_key) as ex_rt_sp,
-				count(ex_rt) as ex_rt_cnt
-			from (
-				select
-					a.yyyymm_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					b.item_cd,
-					b.item_nm 
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-					and b.grp_item_key in (
-						select
-							distinct 
-								a.grp_item_key
-						from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
-						left outer join lrn_dsb.ds_dm_grp_item b on 
-							(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-							and position('#' in b.item_cd) = 0 
-							and b.ssvc_akey = 4
-						where a.yyyymm_key between #{startYymm} and #{endYymm}
-							and a.stud_key = #{studId}
-							and a.ssvc_akey = 4
-					)
-			) wk 
-			left outer join (
-				select
-					a.yyyymm_key,
-					b.item_cd,
-					round(c.tiltrm_exec_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly c on 
-					a.yyyymm_key = c.yyyymm_key 
-					and c.stud_key = #{studId} 
-					and b.ssvc_akey = c.ssvc_akey 
-					and b.grp_item_key = c.grp_item_key
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) lrn on wk.yyyymm_key = lrn.yyyymm_key and wk.item_cd = lrn.item_cd
-			group by wk.item_cd, wk.item_nm;
-			</when>
-			<otherwise>
-			select
-				wk.item_cd as subj_cd,
-				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymmw_key) as mm_sp,
-				string_agg(wk::text, ',' order by wk.item_cd, wk.yyyymmw_key) as wk_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymmw_key) as ex_rt_sp,
-				count(ex_rt) as ex_rt_cnt
-			from (
-				select
-					a.yyyymmw_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					w as wk,
-					b.item_cd,
-					b.item_nm 
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-					and b.grp_item_key in (
-						select
-							distinct 
-								a.grp_item_key
-						from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
-						left outer join lrn_dsb.ds_dm_grp_item b on 
-							(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-							and position('#' in b.item_cd) = 0 
-							and b.ssvc_akey = 4
-						where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-							and a.stud_key = #{studId}
-							and a.ssvc_akey = 4
-					)
-			) wk 
-			left outer join (
-				select
-					a.yyyymmw_key,
-					b.item_cd,
-					round(c.tiltrm_exec_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly c on 
-					a.yyyymmw_key = c.yyyymmw_key 
-					and c.stud_key = #{studId} 
-					and b.ssvc_akey = c.ssvc_akey 
-					and b.grp_item_key = c.grp_item_key
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) lrn on wk.yyyymmw_key = lrn.yyyymmw_key and wk.item_cd = lrn.item_cd
-			group by wk.item_cd, wk.item_nm;
+					item_cd as subj_cd,
+					item_nm as subj_nm,
+					string_agg(mm::text, ',' order by item_cd, yyyymmw_key) as mm_sp,
+					string_agg(wk::text, ',' order by item_cd, yyyymmw_key) as wk_sp,
+					string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key) as ex_rt_sp,
+					count(ex_rt) as ex_rt_cnt
+				from (
+					select
+						a.yyyymmw_key,
+						substring(a.yyyymm_key::text,5,6)::integer as mm,
+						w as wk,
+						b.item_cd,
+						b.item_nm,
+						round(c.tiltrm_exec_rt * 100) as ex_rt
+					from lrndmt.mt_dm_wk_dt a
+					left outer join lrn_dsb.ds_dm_grp_item b on 
+						(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
+						and position('#' in b.item_cd) = 0 
+						and b.ssvc_akey = 4
+					left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly c on 
+						a.yyyymmw_key = c.yyyymmw_key 
+						and c.stud_key = #{studId}
+						and b.ssvc_akey = c.ssvc_akey 
+						and b.grp_item_key = c.grp_item_key
+					where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+				) lrn
+				group by item_cd, item_nm
+			)a
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4) c;
 			</otherwise>
 		</choose>
     </select>
     
     <select id="getLrnHabit" parameterType="hashMap" resultType="resultMap">
     	select
-    	<choose>
-			<when test='currConCheck == "m"'>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, st.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_bg_url,
-			</when>
-			<otherwise>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, st.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, st.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, st.stud_key, 4)) as img_bg_url,
-			</otherwise>
-		</choose>
+    		b.msg,
+    		c.img_url,
+    		c.img_bg_url,
 			b_lrn_cnt,
 			t_lrn_cnt,
 			d_lrn_cnt,
@@ -653,6 +544,16 @@
 				and a.ssvc_akey = 4
 				and a.grp_item_key = 4
 		) lrn_msg on st.stud_key = lrn_msg.stud_key
+		<choose>
+			<when test='currConCheck == "m"'>
+		cross join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRM(#{yymm}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRI(#{yymm}, #{studId}, 4) c
+			</when>
+			<otherwise>
+		cross join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRM(#{yymmwk}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRI(#{yymmwk}, #{studId}, 4) c
+			</otherwise>
+		</choose>
 		where st.stud_key = #{studId};
     </select>
     
@@ -796,9 +697,9 @@
     
     <select id="getALrnStt" parameterType="hashMap" resultType="resultMap">
     	select
-    		(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, st.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, st.stud_key, 4)) as img_bg_url,
+    		b.msg,
+			c.img_url,
+			c.img_bg_url,
 			subj_nm
 		from lrndmt.mt_dm_stud st
 		left outer join (
@@ -814,6 +715,8 @@
 			order by a.fnsh_add_lrn_cnt desc
 			limit 1
 		) alrn on st.stud_key = alrn.stud_key
+		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECM(#{yymm}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECI(#{yymm}, #{studId}, 4) c
 		where st.stud_key = #{studId};
     </select>
     
@@ -886,195 +789,90 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 			select
-				item_cd as subj_cd,
-				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as crt_rt_sp,
-				count(ex_rt) as ex_rt_cnt
+				subj_cd,
+				subj_nm,
+				b.msg,
+				c.img_url,
+				c.img_bg_url,
+				mm_sp,
+				crt_rt_sp,
+				ex_rt_cnt
 			from (
 				select
-					a.yyyymm_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					b.item_cd,
-					b.item_nm,
-					round(c.answ_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				left outer join lrn_dsb.ds_ag_exam_assm_sts_mly c on a.yyyymm_key = c.yyyymm_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) exam
-			group by item_cd, item_nm;
+					item_cd as subj_cd,
+					item_nm as subj_nm,
+					string_agg(mm::text, ',' order by item_cd, yyyymm_key) as mm_sp,
+					string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymm_key) as crt_rt_sp,
+					count(ex_rt) as ex_rt_cnt
+				from (
+					select
+						a.yyyymm_key,
+						substring(a.yyyymm_key::text,5,6)::integer as mm,
+						b.item_cd,
+						b.item_nm,
+						round(c.answ_rt * 100) as ex_rt
+					from lrndmt.mt_dm_wk_dt a
+					left outer join lrn_dsb.ds_dm_grp_item b on 
+						(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
+						and position('#' in b.item_cd) = 0 
+						and b.ssvc_akey = 4
+					left outer join lrn_dsb.ds_ag_exam_assm_sts_mly c on a.yyyymm_key = c.yyyymm_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
+					where a.yyyymm_key between #{startYymm} and #{endYymm}
+						and a.w = '1'
+				) exam
+				group by item_cd, item_nm
+			) a
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRM(#{yymm}, #{studId}, 4, a.subj_cd) b
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRI(#{yymm}, #{studId}, 4) c;
 			</when>
 			<otherwise>
 			select
-				item_cd as subj_cd,
-				item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by item_cd, yyyymmw_key, wk) as mm_sp,
-				string_agg(wk::text, ',' order by item_cd, yyyymmw_key, wk) as wk_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key, wk) as crt_rt_sp,
-				count(ex_rt) as ex_rt_cnt
+				subj_cd,
+				subj_nm,
+				b.msg,
+				c.img_url,
+				c.img_bg_url,
+				mm_sp,
+				wk_sp,
+				crt_rt_sp,
+				ex_rt_cnt
 			from (
 				select
-					a.yyyymmw_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					a.w as wk,
-					b.item_cd,
-					b.item_nm,
-					round(c.answ_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				left outer join lrn_dsb.ds_ag_exam_assm_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) exam
-			group by item_cd, item_nm;
-			</otherwise>
-		</choose>
-    </select>
-    
-    <select id="getSubjExamScore2" parameterType="hashMap" resultType="resultMap">
-		<choose>
-			<when test='currConCheck == "m"'>
-			select
-				wk.item_cd as subj_cd,
-				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, wk.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymm_key) as mm_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymm_key) as crt_rt_sp,
-				count(ex_rt) as ex_rt_cnt
-			from (
-				select
-					a.yyyymm_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					b.item_cd,
-					b.item_nm 
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-					and b.grp_item_key in (
-						select
-							distinct 
-								a.grp_item_key
-						from lrn_dsb.ds_ag_exam_assm_sts_mly a
-						left outer join lrn_dsb.ds_dm_grp_item b on 
-							a.ssvc_akey = b.ssvc_akey 
-							and a.grp_item_key = b.grp_item_key 
-							and (b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-							and position('#' in b.item_cd) = 0 
-							and b.ssvc_akey = 4
-						where a.yyyymm_key between #{startYymm} and #{endYymm}
-							and a.stud_key = #{studId}
-							and a.ssvc_akey = 4
-							and a.exam_typ_key = 0
-					)
-			) wk 
-			left outer join (
-				select
-					a.yyyymm_key,
-					b.item_cd,
-					round(c.answ_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				join lrn_dsb.ds_ag_exam_assm_sts_mly c on a.yyyymm_key = c.yyyymm_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
-				where a.yyyymm_key between #{startYymm} and #{endYymm}
-					and a.w = '1'
-			) exam on wk.yyyymm_key = exam.yyyymm_key and wk.item_cd = exam.item_cd
-			group by wk.item_cd, wk.item_nm;
-			</when>
-			<otherwise>
-			select
-				wk.item_cd as subj_cd,
-				wk.item_nm as subj_nm,
-				(select msg from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, wk.item_cd)) as msg,
-				(select img_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_url,
-				(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4)) as img_bg_url,
-				string_agg(mm::text, ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as mm_sp,
-				string_agg(wk::text, ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as wk_sp,
-				string_agg(coalesce(ex_rt::text,' '), ',' order by wk.item_cd, wk.yyyymmw_key, wk.wk) as crt_rt_sp,
-				count(ex_rt) as ex_rt_cnt
-			from (
-				select
-					a.yyyymmw_key,
-					substring(a.yyyymm_key::text,5,6)::integer as mm,
-					a.w as wk,
-					b.item_cd,
-					b.item_nm 
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-					and b.grp_item_key in (
-						select
-							distinct 
-								a.grp_item_key
-						from lrn_dsb.ds_ag_exam_assm_sts_wly a
-						left outer join lrn_dsb.ds_dm_grp_item b on 
-							a.ssvc_akey = b.ssvc_akey 
-							and a.grp_item_key = b.grp_item_key 
-							and (b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-							and position('#' in b.item_cd) = 0 
-							and b.ssvc_akey = 4
-						where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-							and a.stud_key = #{studId}
-							and a.ssvc_akey = 4
-							and a.exam_typ_key = 0
-					)
-			) wk 
-			left outer join (
-				select
-					a.yyyymmw_key,
-					b.item_cd,
-					round(c.answ_rt * 100) as ex_rt
-				from lrndmt.mt_dm_wk_dt a
-				left outer join lrn_dsb.ds_dm_grp_item b on 
-					(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
-					and position('#' in b.item_cd) = 0 
-					and b.ssvc_akey = 4
-				join lrn_dsb.ds_ag_exam_assm_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
-				where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
-			) exam on wk.yyyymmw_key = exam.yyyymmw_key and wk.item_cd = exam.item_cd
-			group by wk.item_cd, wk.item_nm;
+					item_cd as subj_cd,
+					item_nm as subj_nm,
+					string_agg(mm::text, ',' order by item_cd, yyyymmw_key, wk) as mm_sp,
+					string_agg(wk::text, ',' order by item_cd, yyyymmw_key, wk) as wk_sp,
+					string_agg(coalesce(ex_rt::text,' '), ',' order by item_cd, yyyymmw_key, wk) as crt_rt_sp,
+					count(ex_rt) as ex_rt_cnt
+				from (
+					select
+						a.yyyymmw_key,
+						substring(a.yyyymm_key::text,5,6)::integer as mm,
+						a.w as wk,
+						b.item_cd,
+						b.item_nm,
+						round(c.answ_rt * 100) as ex_rt
+					from lrndmt.mt_dm_wk_dt a
+					left outer join lrn_dsb.ds_dm_grp_item b on 
+						(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
+						and position('#' in b.item_cd) = 0 
+						and b.ssvc_akey = 4
+					left outer join lrn_dsb.ds_ag_exam_assm_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and c.stud_key = #{studId} and b.ssvc_akey = c.ssvc_akey and b.grp_item_key = c.grp_item_key and c.exam_typ_key = 0
+					where a.yyyymmw_key between #{startYymmwk} and #{endYymmwk}
+				) exam
+				group by item_cd, item_nm
+			) a
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRI(#{yymmwk}, #{studId}, 4) c;
 			</otherwise>
 		</choose>
     </select>
     
     <select id="getIncrtNoteStt" parameterType="hashMap" resultType="resultMap">
     	select
-    	<choose>
-			<when test='currConCheck == "m"'>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, a.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, a.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, a.stud_key, 4)) as img_bg_url,
-			</when>
-			<otherwise>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, a.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, a.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, a.stud_key, 4)) as img_bg_url,
-			</otherwise>
-		</choose>
+    		b.msg,
+    		c.img_url,
+    		c.img_bg_url,
 			wnote_tot_cnt,
 			wnote_fnsh_cnt,
 			wnote_unfnsh_cnt,
@@ -1083,10 +881,14 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_exam_wnote_sts_mly a
+		cross join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRM(#{yymm}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRI(#{yymm}, #{studId}, 4) c
 		where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_exam_wnote_sts_wly a
+		cross join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRM(#{yymmwk}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRI(#{yymmwk}, #{studId}, 4) c
 		where a.yyyymmw_key = #{yymmwk} 
 			</otherwise>
 		</choose>
@@ -1098,18 +900,9 @@
     
     <select id="getSlvHabitStt" parameterType="hashMap" resultType="resultMap">
 		select
-   		<choose>
-			<when test='currConCheck == "m"'>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, a.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, a.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, a.stud_key, 4)) as img_bg_url,
-			</when>
-			<otherwise>
-			(select msg from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, a.stud_key, 4)) as msg,
-			(select img_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, a.stud_key, 4)) as img_url,
-			(select img_bg_url from lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, a.stud_key, 4)) as img_bg_url,
-			</otherwise>
-		</choose>
+   			b.msg,
+    		c.img_url,
+    		c.img_bg_url,
 			a.ques_skip_cnt,
 			a.ques_hrry_cnt,
 			a.ques_guss_cnt,
@@ -1117,10 +910,14 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_exam_slv_habit_sts_mly a
+		cross join lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4) c
 		where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_exam_slv_habit_sts_wly a
+		cross join lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4) c
 		where a.yyyymmw_key = #{yymmwk} 
 			</otherwise>
 		</choose>

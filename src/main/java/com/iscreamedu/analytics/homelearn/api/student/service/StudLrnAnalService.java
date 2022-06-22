@@ -10,6 +10,8 @@ public interface StudLrnAnalService {
 	
 	public Map getStudInfo(Map<String,Object> paramMap) throws Exception;
 	
+	public Map getStudInfoForTchr(Map<String,Object> paramMap) throws Exception;
+	
 	public Map getYymmwkList(Map<String,Object> paramMap) throws Exception;
 	
     public Map getReportList(Map<String,Object> paramMap) throws Exception;

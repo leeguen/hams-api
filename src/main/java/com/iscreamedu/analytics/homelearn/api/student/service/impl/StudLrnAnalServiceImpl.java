@@ -180,6 +180,51 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
+    public Map getStudInfoForTchr(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        Map<String,Object> studInfoParamMap = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	studInfoParamMap.put("p", paramMap.get("p"));
+        	studInfoParamMap.put("apiName", "aiReport.");
+            
+            LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+            Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+            
+            String studId = (paramMap.get("studId") != null) ? paramMap.get("studId").toString() : null;
+            
+            String decodeStudId = encodeStudId(studId);
+            
+            paramMap.put("studId", paramMap.get("studId"));
+            
+            Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+            Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+            
+        	data.put("p", decodeStudId);
+        	data.put("studId", studInfoMap.get("stuId"));
+        	data.put("studNm", studInfoMap.get("name"));
+        	data.put("gender", studInfoMap.get("gender"));
+        	data.put("grade", studInfoMap.get("grade"));
+        	data.put("studType", studInfoMap.get("divCdNm"));
+        	data.put("sttDt", studData.get("sttDt"));
+        	data.put("recentReport", studRecentData.get("recentReport"));
+        	
+        	setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
     public Map getYymmwkList(Map<String, Object> paramMap) throws Exception {
     	ArrayList<Map<String, Object>> data = new ArrayList<>();
     	
@@ -2341,7 +2386,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	CipherUtil cp = CipherUtil.getInstance();
     		String decodedStr = cp.AES_Decode(params.get("p").toString());
     		
-    		int studId = Integer.parseInt(decodedStr);
+    		int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
     		
     		if(decodedStr != null) {
     			//DB params
