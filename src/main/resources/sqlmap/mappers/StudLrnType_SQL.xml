@@ -124,51 +124,33 @@
 		WHERE STUD_ID = #{studId};
     </update>
     
-    <select id="getReportEmotion" parameterType="hashMap" resultType="resultMap">
-    	/* StudLrnType.getReportEmotion */
+    <select id="getReportCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getReportCheck */
     	SELECT
-    		IFNULL(MR1.MSG, NULL) AS MSG,
-			IF(CNT = 0, 'N', 'Y') AS EMOTION_YN,
-		    IFNULL(MR1.EMOTICON, NULL) AS EMOTICON
+			IF(COUNT(*) = 0, 'N', 'Y') AS DATA_CHECK
     	<choose>
-	    	<when test='currConCheck == "m"'>
-   		FROM (
-			SELECT
-				YYMM,
-				STUD_ID,
-				COUNT(*) AS CNT
-			FROM MONTH_REPORT_EMOTION
-			WHERE YYMM = #{yymm}
-				AND STUD_ID = #{studId}
-		) MR
-		LEFT OUTER JOIN MONTH_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.STUD_ID = MR1.STUD_ID;
-	    	</when>
-	    	<otherwise>
-    	FROM (
-			SELECT
-				YYMM,
-				WK,
-				STUD_ID,
-				COUNT(*) AS CNT
-			FROM WEEK_REPORT_EMOTION
-			WHERE YYMM = #{yymm}
-				AND WK = #{wk}
-				AND STUD_ID = #{studId}
-		) MR
-		LEFT OUTER JOIN WEEK_REPORT_EMOTION MR1 ON MR.YYMM = MR1.YYMM AND MR.WK = MR1.WK AND MR.STUD_ID = MR1.STUD_ID;
-	    	</otherwise>
+    		<when test="wk == null">
+		FROM MONTH_REPORT
+		WHERE YYMM = #{yymm}
+    		</when>
+    		<otherwise>
+   		FROM WEEK_REPORT
+		WHERE YYMM = #{yymm}
+			AND WK = #{wk}
+    		</otherwise>
     	</choose>
+    		AND STUD_ID = #{studId};	
     </select>
     
-    <insert id="insertReportEmotion" parameterType="hashMap">
-    	/* StudLrnType.insertReportEmotion */
+    <insert id="insertReportCheck" parameterType="hashMap">
+    	/* StudLrnType.insertReportCheck */
     	<choose>
-	    	<when test='currConCheck == "m"'>
-	   		INSERT INTO MONTH_REPORT_EMOTION
+	    	<when test='wk == null'>
+	   		INSERT INTO MONTH_REPORT
 			(
 				YYMM,
 				STUD_ID,
-			    EMOTICON,
+			    CHECKYN,
 			    REG_DTTM,
 			    UPD_DTTM
 			)
@@ -176,18 +158,18 @@
 			(
 				#{yymm},
 				#{studId},
-				#{emoticon},
+				"Y",
 				DATE_ADD(NOW(), INTERVAL 9 HOUR),
 				DATE_ADD(NOW(), INTERVAL 9 HOUR)
 			);
 	    	</when>
 	    	<otherwise>
-    		INSERT INTO WEEK_REPORT_EMOTION
+    		INSERT INTO WEEK_REPORT
 			(
 				YYMM,
 				WK,
 				STUD_ID,
-			    EMOTICON,
+			    CHECKYN,
 			    REG_DTTM,
 			    UPD_DTTM
 			)
@@ -196,7 +178,7 @@
 				#{yymm},
 				#{wk},
 				#{studId},
-				#{emoticon},
+				"Y",
 				DATE_ADD(NOW(), INTERVAL 9 HOUR),
 				DATE_ADD(NOW(), INTERVAL 9 HOUR)
 			);

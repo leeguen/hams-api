@@ -169,7 +169,7 @@ public class StudentController {
     }
     
     /**
-     * 학습현황 (STUD-LA-003)
+     * 출석률 (STUD-LA-003)
      * @param params
      * @return
      * @throws Exception
@@ -229,7 +229,7 @@ public class StudentController {
     }
     
     /**
-     * 평가점수 (STUD-LA-009)
+     * 평가점수 (STUD-LA-008)
      * @param params
      * @return
      * @throws Exception
@@ -241,7 +241,7 @@ public class StudentController {
     }
     
     /**
-     * 오답노트 현황 (STUD-LA-010)
+     * 오답노트 현황 (STUD-LA-009)
      * @param params
      * @return
      * @throws Exception
@@ -253,7 +253,7 @@ public class StudentController {
     }
     
     /**
-     * 문제풀이 습관 (STUD-LA-011)
+     * 문제풀이 습관 (STUD-LA-010)
      * @param params
      * @return
      * @throws Exception
@@ -265,7 +265,7 @@ public class StudentController {
     }
     
     /**
-     * 문제풀이 습관 (STUD-LA-011)
+     * 문제풀이 습관 (STUD-LA-010)
      * @param params
      * @return
      * @throws Exception
@@ -277,28 +277,15 @@ public class StudentController {
     }
     
     /**
-     * 리포트 소감 조회 (STUD-LA-012)
+     * 리포트 소감 조회 (STUD-LA-011)
      * @param params
      * @return
      * @throws Exception
      */
-    @GetMapping("/getReportEmotion")
-    public ResponseEntity getReportEmotion(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnAnalService.getReportEmotion(params);
+    @GetMapping("/insertReportCheck")
+    public ResponseEntity insertReportCheck(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.insertReportCheck(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
     
-    /**
-     * 리포트 소감 등록 (STUD-LA-013)
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    @PostMapping("/insertReportEmotion")
-	@ResponseBody
-	public ResponseEntity insertReportEmotion(@RequestBody Map<String, Object> params) throws Exception {
-		body = (LinkedHashMap<String, Object>)studLrnAnalService.insertReportEmotion(params);
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-
 }
