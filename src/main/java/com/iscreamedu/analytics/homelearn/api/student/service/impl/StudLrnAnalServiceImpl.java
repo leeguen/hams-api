@@ -276,7 +276,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
 				
 				int recentYymm = (studRecentData != null) ? Integer.valueOf(studRecentData.get("recentReport").toString()) : 0;
-				
 				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
 				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
 				
@@ -302,7 +301,21 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							weekReportMap.put("publishYn", weekReportItem.get("reportYn"));
 							
 							if(recentYymm == weekReportYymmwk) {
-								checkYn = "N";
+								Map<String, Object> weekReportCheckParamMap = new LinkedHashMap<>();
+				    			String recentReportValue = String.valueOf(recentYymm);
+				    			
+				    			int wk = Integer.parseInt(recentReportValue.substring(6));
+			    				int yymm = Integer.parseInt(recentReportValue.substring(0,6));
+			    				
+			    				weekReportCheckParamMap.put("studId", paramMap.get("studId"));
+			    				weekReportCheckParamMap.put("yymm", yymm);
+			    				weekReportCheckParamMap.put("wk", wk);
+			    				
+			    				Map<String, Object> checkWeekDataMap = (Map<String, Object>) commonMapperLrnType.get(weekReportCheckParamMap, "StudLrnType.getReportCheck");
+			    				
+								String dataCheck = checkWeekDataMap.get("dataCheck").toString();
+								
+								checkYn = dataCheck;
 							}
 							
 							weekReportMap.put("checkYn", checkYn);
@@ -321,7 +334,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							monthReportMap.put("publishYn", monthReportItem.get("reportYn"));
 							
 							if(recentYymm == monthReportYymm) {
-								checkYn = "N";
+								Map<String, Object> monthReportCheckParamMap = new LinkedHashMap<>();
+								
+								monthReportCheckParamMap.put("studId", paramMap.get("studId"));
+								monthReportCheckParamMap.put("yymm", recentYymm);
+			    				
+								Map<String, Object> checkMonthDataMap = (Map<String, Object>) commonMapperLrnType.get(monthReportCheckParamMap, "StudLrnType.getReportCheck");
+								
+								String dataCheck = checkMonthDataMap.get("dataCheck").toString();
+								
+								checkYn = dataCheck;
 							}
 							
 							monthReportMap.put("checkYn", checkYn);
@@ -2112,7 +2134,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     	
         ValidationUtil vu = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"p", "recentReport"}, paramMap);
+        vu.checkRequired(new String[] {"p"}, paramMap);
         
         if(vu.isValid()) {
         	getStudId(paramMap);
@@ -2126,23 +2148,45 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     			int row = 0;
     			String dataCheck = "Y";
     			
-    			// recentReport 값의 길이로 월간 / 주간 구분
-    			if(paramLength == 6) {
-    				insertParamMap.put("studId", paramMap.get("studId"));
-    				insertParamMap.put("yymm", paramMap.get("recentReport"));
-    				
-    				checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
-    				
+    			if(paramLength < 6) {
+    				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+    				int nerParamLength = studRecentData.get("recentReport").toString().length();
+    				// recentReport 값의 길이로 월간 / 주간 구분
+    				if(nerParamLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", studRecentData.get("recentReport"));
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				} else {
+    					int wk = Integer.parseInt(studRecentData.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(studRecentData.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				}
     			} else {
-    				int wk = Integer.parseInt(paramMap.get("recentReport").toString().substring(6));
-    				int yymm = Integer.parseInt(paramMap.get("recentReport").toString().replace(String.valueOf(wk), ""));
-    				
-    				insertParamMap.put("studId", paramMap.get("studId"));
-    				insertParamMap.put("yymm", yymm);
-    				insertParamMap.put("wk", wk);
-    				
-    				checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
-    				
+    				if(paramLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", paramMap.get("recentReport"));
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				} else {
+    					int wk = Integer.parseInt(paramMap.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(paramMap.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				}
     			}
     			
     			// 리포트 확인 데이터 등록 여부 확인 : 확인 - "Y" / 미확인 - "N"
