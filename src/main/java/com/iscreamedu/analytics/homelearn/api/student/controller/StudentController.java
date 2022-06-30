@@ -115,7 +115,7 @@ public class StudentController {
      * @throws Exception
      */
     @GetMapping("/getLrnTypeDetail")
-    public ResponseEntity getLrnTypeInfo(@RequestParam Map<String,Object> params) throws Exception {
+    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetail(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
@@ -127,11 +127,47 @@ public class StudentController {
      * @throws Exception
      */
     @GetMapping("/getLrnTypeHistory")
-    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
+    public ResponseEntity getLrnTypeHistory(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistory(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * 학습유형 경로 정보 (STUD-LT-004)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getLrnTypePathInfo")
+    public ResponseEntity getLrnTypePathInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypePathInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 학습유형 안내 (STUD-LT-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/admin/getLrnTypeDetail")
+    public ResponseEntity getLrnTypeDetailForAdmin(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetailForAdmin(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 
+    /**
+     * 학습유형 상세 (STUD-LT-006)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/admin/getLrnTypeHistory")
+    public ResponseEntity getLrnTypeHistoryForAdmin(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistoryForAdmin(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
     /**
      * 학습유형 안내 (STUD-LT-005)
      * @param params

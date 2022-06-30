@@ -10,5 +10,11 @@ public interface StudLrnTypeService {
 
     public Map getLrnTypeHistory(Map<String, Object> paramMap) throws Exception;
     
+    public Map getLrnTypePathInfo(Map<String, Object> paramMap) throws Exception;
+    
+    public Map getLrnTypeDetailForAdmin(Map<String, Object> paramMap) throws Exception;
+
+    public Map getLrnTypeHistoryForAdmin(Map<String, Object> paramMap) throws Exception;
+    
     public Map getStudLrnTypeInfo(String studId) throws Exception;
 }

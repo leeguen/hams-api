@@ -59,7 +59,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         	if(decodeResult.isEmpty()) {
                 Calendar beforeMonth = Calendar.getInstance();
                 beforeMonth.add(Calendar.MONTH , -1);
-                String yymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+                String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+        		int yymm = Integer.parseInt(stringYymm);
     			
     			paramMap.put("yymm", yymm);
     			
@@ -85,56 +86,57 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"p"}, paramMap);
         
         if(vu.isValid()) {
         	getStudId(paramMap);
         	
         	if(decodeResult.isEmpty()) {
-        		String yyyy = paramMap.get("yyyy").toString();
-        		int mm = Integer.valueOf(paramMap.get("mm").toString());
-        		String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+        		Calendar beforeMonth = Calendar.getInstance();
+                beforeMonth.add(Calendar.MONTH , -1);
+                String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+        		int yymm = Integer.parseInt(stringYymm);
+                
+        		paramMap.put("yymm", yymm);
         		
-        		paramMap.put("yymm", yyyy+convertMm);
-        		
-        		vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-        		
-        		if(vu1.isValid()) {
-        			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
-        			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
-        			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
-        			
-        			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfo");
-        			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
-        			
-        			if(lrnTypeMap != null) {
-        				int actDiff = Integer.parseInt(lrnTypeMap.get("actDiff").toString());
-        				int strDiff = Integer.parseInt(lrnTypeMap.get("strDiff").toString());
-        				
-        				String levelNm = (actDiff > strDiff) ? "행동영역" : (actDiff == strDiff) ? "행동영역" : "전략영역";
-        				int levelDiff = (actDiff > strDiff) ? actDiff : (actDiff == strDiff) ? actDiff : strDiff;
-        				
-        				
-        				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
-        				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
-        				lrnTypeInfoMap.put("levelNm", levelNm);
-        				lrnTypeInfoMap.put("levelDiff", 0);
-        				
-        				lrnTypeDetailMap.put("actLevel", lrnTypeMap.get("actLevel"));
-        				lrnTypeDetailMap.put("strLevel", lrnTypeMap.get("strLevel"));
-        				lrnTypeDetailMap.put("lrnTypeMsg", "학습 성향 진단 메세지");
-        				lrnTypeDetailMap.put("lrnTypeActMsg", "전략 지수 메세지");
-        				lrnTypeDetailMap.put("lrnTypeStrMsg", "행동 지수 메세지");
-        			}
-        			
-        			data.put("lrnType", lrnTypeInfoMap);
-        			data.put("lrnTypeInfo", lrnTypeDetailMap);
-        			
-        			setResult(dataKey,data);
-        			
-        		} else {
-        			setResult(msgKey, vu1.getResult());
-        		}
+    			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeDiffMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
+    			
+    			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfo");
+    			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
+    			
+    			if(lrnTypeMap != null) {
+    				
+    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
+    				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
+    				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeCd"));
+    				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
+    				lrnTypeInfoMap.put("lrnTypeInfoMsg", "\"오늘도 도전 해\"\r\n" + 
+    						"노력한다면 나도 언젠가 날 수 있을거야");
+    				
+    				lrnTypeDiffMap.put("lrnTypeLevelDiff", lrnTypeMap.get("lrnTypeLevelDiff"));
+    				lrnTypeDiffMap.put("actLevelDiff", lrnTypeMap.get("actLevelDiff"));
+    				lrnTypeDiffMap.put("actScoreDiff", lrnTypeMap.get("actScoreDiff"));
+    				lrnTypeDiffMap.put("strLevelDiff", lrnTypeMap.get("strLevelDiff"));
+    				lrnTypeDiffMap.put("strScoreDiff", lrnTypeMap.get("strScoreDiff"));
+    				
+    				lrnTypeDetailMap.put("actLevel", lrnTypeMap.get("actLevel"));
+    				lrnTypeDetailMap.put("actScore", lrnTypeMap.get("actScore"));
+    				lrnTypeDetailMap.put("strLevel", lrnTypeMap.get("strLevel"));
+    				lrnTypeDetailMap.put("strScore", lrnTypeMap.get("strScore"));
+    				lrnTypeDetailMap.put("lrnTypeMsg", "학습 행동 능력이 조금 부족해서 꾸준히 학습하는게 어렵게 느껴지기도 하지만 우수한 학습 전략 능력을 갖추고 있기 때문에 좋은 학습 결과를 얻고 있는 편이에요.");
+    				lrnTypeDetailMap.put("lrnTypeActMsg", "평가도 중요하지만 오늘의 학습에 조금 더 집중하며, 잘 알고 있거나 모르는 내용이 무엇인지 스스로 확인해 보는 습관을 가져보세요.");
+    				lrnTypeDetailMap.put("lrnTypeStrMsg", "학교공부 예복습을 성실하게 학습하며 개념을 완벽하게 이해하고 있어요. \r\n" + 
+    						"앞으로도 지금처럼 열심히 학습할 수 있도록 홈런이 응원해요!");
+    			}
+    			
+    			data.put("lrnType", lrnTypeInfoMap);
+    			data.put("lrnTypeDiff", lrnTypeDiffMap);
+    			data.put("lrnTypeInfo", lrnTypeDetailMap);
+    			
+    			setResult(dataKey,data);
         	} else {
         		setResult(msgKey, decodeResult);
         	}
@@ -173,6 +175,210 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         			ArrayList<Map<String, Object>> lrnTypeHistoryList = new ArrayList<>();
         			
         			lrnTypeHistoryList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "getLrnTypeHistory");
+        			
+        			data.put("lrnTypeList", lrnTypeHistoryList);
+        			
+        			setResult(dataKey,data);
+        		} else {
+        			setResult(msgKey, vu1.getResult());
+        		}
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+
+	    return result;
+    }
+    
+    @Override
+    public Map getLrnTypePathInfo(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		Calendar beforeMonth = Calendar.getInstance();
+                beforeMonth.add(Calendar.MONTH , -1);
+                String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+        		int yymm = Integer.parseInt(stringYymm);
+                
+        		paramMap.put("yymm", yymm);
+        		
+    			Map<String, Object> lrnTypePathMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
+    			
+    			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypePath");
+    			
+    			if(lrnTypeMap != null) {
+    				
+    				List<String> actList = Arrays.asList(lrnTypeMap.get("actPath").toString().split(","));
+    				List<String> strList = Arrays.asList(lrnTypeMap.get("strPath").toString().split(","));
+    				
+    				data.put("lrnTypeLevel", lrnTypeMap.get("lrnTypeLevel"));
+    				data.put("actPathList", actList);
+    				data.put("strPathList", strList);
+    			}
+    			
+    			setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
+    public Map getLrnTypeDetailForAdmin(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		Calendar beforeMonth = Calendar.getInstance();
+                beforeMonth.add(Calendar.MONTH , -1);
+                String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+        		int yymm = Integer.parseInt(stringYymm);
+                
+        		paramMap.put("yymm", yymm);
+        		
+    			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeActDetailMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeStrDetailMap = new LinkedHashMap<String, Object>();
+    			
+    			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoForAdmin");
+    			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
+    			
+    			if(lrnTypeMap != null) {
+    				
+    				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
+    				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMap.get("lrnTypeDef"));
+    				lrnTypeInfoMap.put("strScore", lrnTypeMap.get("strScore"));
+    				lrnTypeInfoMap.put("actScore", lrnTypeMap.get("actScore"));
+    				lrnTypeInfoMap.put("lrnTypeMsg", lrnTypeMap.get("msg"));
+    				lrnTypeInfoMap.put("lrnTypeStrMsg", lrnTypeMap.get("strMsg"));
+    				lrnTypeInfoMap.put("lrnTypeActMsg", lrnTypeMap.get("actMsg"));
+    				lrnTypeInfoMap.put("strPath", lrnTypeMap.get("strPath"));
+    				lrnTypeInfoMap.put("actPath", lrnTypeMap.get("actPath"));
+    				
+    				
+    				lrnTypeActDetailMap.put("dtCnt", 31);
+    				lrnTypeActDetailMap.put("attCnt", 28);
+    				lrnTypeActDetailMap.put("attLevel", 4);
+    				lrnTypeActDetailMap.put("attScore", 1);
+    				lrnTypeActDetailMap.put("planCnt", 19);
+    				lrnTypeActDetailMap.put("fnshCnt", 19);
+    				lrnTypeActDetailMap.put("exRtLevel", 5);
+    				lrnTypeActDetailMap.put("exRtScore", 1.25);
+    				lrnTypeActDetailMap.put("aLrnCnt", 0);
+    				lrnTypeActDetailMap.put("tLrnCnt", 9);
+    				lrnTypeActDetailMap.put("dLrnCnt", 2);
+    				lrnTypeActDetailMap.put("nLrnCnt", 20);
+    				lrnTypeActDetailMap.put("lrnHabitLevel", 3);
+    				lrnTypeActDetailMap.put("lrnHabitScore", 0.75);
+    				lrnTypeActDetailMap.put("incrtNtCnt", 30);
+    				lrnTypeActDetailMap.put("incrtNtFnshCnt", 12);
+    				lrnTypeActDetailMap.put("incrtNtNcCnt", 18);
+    				lrnTypeActDetailMap.put("incrtNtLevel", 2);
+    				lrnTypeActDetailMap.put("incrtNtScore", 0.5);
+    				lrnTypeActDetailMap.put("totalScore", 3.5);
+    				
+    				
+    				lrnTypeStrDetailMap.put("quesCnt", 20);
+    				lrnTypeStrDetailMap.put("skipQuesCnt", 3);
+    				lrnTypeStrDetailMap.put("cursoryQuesCnt", 2);
+    				lrnTypeStrDetailMap.put("mistakeQuesCnt", 4);
+    				lrnTypeStrDetailMap.put("crtQuesCnt", 5);
+    				lrnTypeStrDetailMap.put("guessQuesCnt", 6);
+    				lrnTypeStrDetailMap.put("slvHabitLevel", 4);
+    				lrnTypeStrDetailMap.put("slvHabitScore", 1.5);
+    				lrnTypeStrDetailMap.put("totalScore", 1.5);
+    				
+    				lrnTypeDetailMap.put("lrnTypeAct", lrnTypeActDetailMap);
+    				lrnTypeDetailMap.put("lrnTypeStr", lrnTypeStrDetailMap);
+    				
+    				data.put("lrnTypeInfo", lrnTypeInfoMap);
+    				data.put("lrnTypeDetail", lrnTypeDetailMap);
+    			}
+    			
+    			setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, decodeResult);
+        	}
+        	
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    
+    @Override
+    public Map getLrnTypeHistoryForAdmin(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new HashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"yymm","p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	if(decodeResult.isEmpty()) {
+        		int yymm = Integer.valueOf(paramMap.get("yymm").toString());
+        		
+        		paramMap.put("yymm", yymm);
+        		
+        		vu1.isYearMonth("yymm", paramMap.get("yymm").toString());
+        		
+        		if(vu1.isValid()) {
+        			
+        			ArrayList<Map<String, Object>> lrnTypeHistoryList = new ArrayList<>();
+        			
+        			ArrayList<Map<String, Object>> historyDataList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "getLrnTypeHistoryForAdmin");
+        			
+        			if(historyDataList != null && historyDataList.size() > 0) {
+        				for(Map<String, Object> historyItem : historyDataList) {
+        					Map<String,Object> historyMap = new LinkedHashMap<>();
+        					
+        					historyMap.put("dt", historyItem.get("dt"));
+        					historyMap.put("lrnTypeLevel", historyItem.get("lrnTypeLevel"));
+        					historyMap.put("lrnTypeImg", historyItem.get("lrnTypeImg"));
+        					historyMap.put("lrnTypeNm", historyItem.get("lrnTypeNm"));
+        					historyMap.put("lrnTypeInfoMsg", historyItem.get("lrnTypeDef"));
+        					historyMap.put("strScore", historyItem.get("strScore"));
+        					historyMap.put("actScore", historyItem.get("actScore"));
+        					historyMap.put("lrnTypeMsg", historyItem.get("msg"));
+        					historyMap.put("lrnTypeStrMsg", historyItem.get("strMsg"));
+        					historyMap.put("lrnTypeActMsg", historyItem.get("actMsg"));
+        					historyMap.put("strPath", historyItem.get("strPath"));
+        					historyMap.put("actPath", historyItem.get("actPath"));
+        					
+        					lrnTypeHistoryList.add(historyMap);
+        				}
+        			}
         			
         			data.put("lrnTypeList", lrnTypeHistoryList);
         			
