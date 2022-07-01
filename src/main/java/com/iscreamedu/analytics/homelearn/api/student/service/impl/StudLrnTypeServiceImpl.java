@@ -62,7 +62,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
     			
-    			paramMap.put("yymm", yymm);
+    			//paramMap.put("yymm", yymm);
+        		paramMap.put("yymm", 202205);
     			
     			data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeCheck");
 				
@@ -97,7 +98,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
                 
-        		paramMap.put("yymm", yymm);
+        		//paramMap.put("yymm", yymm);
+        		paramMap.put("yymm", 202205);
         		
     			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
@@ -113,8 +115,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
     				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeCd"));
     				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
-    				lrnTypeInfoMap.put("lrnTypeInfoMsg", "\"오늘도 도전 해\"\r\n" + 
-    						"노력한다면 나도 언젠가 날 수 있을거야");
+    				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMap.get("lrnTypeDef"));
     				
     				lrnTypeDiffMap.put("lrnTypeLevelDiff", lrnTypeMap.get("lrnTypeLevelDiff"));
     				lrnTypeDiffMap.put("actLevelDiff", lrnTypeMap.get("actLevelDiff"));
@@ -126,10 +127,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeDetailMap.put("actScore", lrnTypeMap.get("actScore"));
     				lrnTypeDetailMap.put("strLevel", lrnTypeMap.get("strLevel"));
     				lrnTypeDetailMap.put("strScore", lrnTypeMap.get("strScore"));
-    				lrnTypeDetailMap.put("lrnTypeMsg", "학습 행동 능력이 조금 부족해서 꾸준히 학습하는게 어렵게 느껴지기도 하지만 우수한 학습 전략 능력을 갖추고 있기 때문에 좋은 학습 결과를 얻고 있는 편이에요.");
-    				lrnTypeDetailMap.put("lrnTypeActMsg", "평가도 중요하지만 오늘의 학습에 조금 더 집중하며, 잘 알고 있거나 모르는 내용이 무엇인지 스스로 확인해 보는 습관을 가져보세요.");
-    				lrnTypeDetailMap.put("lrnTypeStrMsg", "학교공부 예복습을 성실하게 학습하며 개념을 완벽하게 이해하고 있어요. \r\n" + 
-    						"앞으로도 지금처럼 열심히 학습할 수 있도록 홈런이 응원해요!");
+    				lrnTypeDetailMap.put("lrnTypeMsg", lrnTypeMap.get("msg"));
+    				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMap.get("actMsg"));
+    				lrnTypeDetailMap.put("lrnTypeStrMsg", lrnTypeMap.get("strMsg"));
     			}
     			
     			data.put("lrnType", lrnTypeInfoMap);
@@ -156,19 +156,17 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"yymm","p"}, paramMap);
         
         if(vu.isValid()) {
         	getStudId(paramMap);
         	
         	if(decodeResult.isEmpty()) {
-        		String yyyy = paramMap.get("yyyy").toString();
-        		int mm = Integer.valueOf(paramMap.get("mm").toString());
-        		String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+        		int yymm = Integer.valueOf(paramMap.get("yymm").toString());
         		
-        		paramMap.put("yymm", yyyy+convertMm);
+        		paramMap.put("yymm", yymm);
         		
-        		vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+        		vu1.isYearMonth("yymm", paramMap.get("yymm").toString());
         		
         		if(vu1.isValid()) {
         			
@@ -211,7 +209,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
                 
-        		paramMap.put("yymm", yymm);
+        		//paramMap.put("yymm", yymm);
+        		paramMap.put("yymm", 202205);
         		
     			Map<String, Object> lrnTypePathMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
@@ -257,8 +256,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 beforeMonth.add(Calendar.MONTH , -1);
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
-                
-        		paramMap.put("yymm", yymm);
+        		
+        		//paramMap.put("yymm", yymm);
+        		paramMap.put("yymm", 202205);
         		
     			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
@@ -460,9 +460,11 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         	CipherUtil cp = CipherUtil.getInstance();
     		String decodedStr = cp.AES_Decode(params.get("p").toString());
     		
+    		int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
+    		
     		if(decodedStr != null) {
     			//DB params
-    			params.put("studId",decodedStr);
+    			params.put("studId",studId);
     		}
         } catch (Exception e) {
             LOGGER.debug("p Parameter Incorrect");
