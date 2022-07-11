@@ -450,7 +450,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
 	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
-	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					Object score = (examSubjItme.get("exRt") != null) ? Integer.valueOf(examSubjItme.get("exRt").toString()) : null;
 	        					
 	        					if(subjCd.equals("c00")) {
 	        						examMap.put("examScore", score);
@@ -459,13 +459,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        				}
 	        				
-	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
-	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
-	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
-	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
-	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
-	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
-	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
+	        				examMap.put("incrtNoteCnt", (examQuesMap != null && examQuesMap.get("wnoteTotCnt") != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null && examQuesMap.get("wnoteFnshCnt") != null) ? examQuesMap.get("wnoteFnshCnt") : null);
+	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null && examQuesMap.get("wnoteUnfnshCnt") != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
+	        				examMap.put("quesTotCnt", (examQuesMap != null && examQuesMap.get("quesTotCnt") != null) ? examQuesMap.get("quesTotCnt") : null);
+	        				examMap.put("skipQuesCnt", (examQuesMap != null && examQuesMap.get("quesSkipCnt") != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null && examQuesMap.get("quesHrryCnt") != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null && examQuesMap.get("quesGussCnt") != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null && examQuesMap.get("quesMstkeCnt") != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
 	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);
@@ -547,7 +548,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
 	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
-	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					Object score = (examSubjItme.get("exRt") != null) ? Integer.valueOf(examSubjItme.get("exRt").toString()) : null;
 	        					
 	        					if(subjCd.equals("c00")) {
 	        						examMap.put("examScore", score);
@@ -556,14 +557,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        				}
 	        				
-	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
-	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
-	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
-	        				examMap.put("quesTotCnt", (examQuesMap != null) ? examQuesMap.get("quesTotCnt") : null);
-	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
-	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
-	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
-	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
+	        				examMap.put("incrtNoteCnt", (examQuesMap != null && examQuesMap.get("wnoteTotCnt") != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null && examQuesMap.get("wnoteFnshCnt") != null) ? examQuesMap.get("wnoteFnshCnt") : null);
+	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null && examQuesMap.get("wnoteUnfnshCnt") != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
+	        				examMap.put("quesTotCnt", (examQuesMap != null && examQuesMap.get("quesTotCnt") != null) ? examQuesMap.get("quesTotCnt") : null);
+	        				examMap.put("skipQuesCnt", (examQuesMap != null && examQuesMap.get("quesSkipCnt") != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null && examQuesMap.get("quesHrryCnt") != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null && examQuesMap.get("quesGussCnt") != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null && examQuesMap.get("quesMstkeCnt") != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
 	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);

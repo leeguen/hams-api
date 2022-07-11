@@ -212,7 +212,7 @@
 		</choose>
     		c.att_dd as att_cnt,
 			plan_lrn_cnt as plan_cnt,
-			lrn_exec_cnt as lrn_cnt,
+			tiltrm_lrn_exec_cnt as lrn_cnt,
 			round(tiltrm_exec_rt * 100) as ex_rt,
 			eqtrm_pre_lrn_exec_cnt as b_lrn_cnt,
 			intm_lrn_exec_cnt as t_lrn_cnt,
@@ -285,7 +285,8 @@
 		</choose>
 			and a.stud_key = #{studId}
 			and a.ssvc_akey = 4
-			and a.exam_typ_key = 0;
+			and a.exam_typ_key = 0
+			and (a.exam_grdn_cnt - a.del_exam_grdn_cnt) != 0;
     </select>
     
     <select id="getExamQuesSummary" parameterType="hashMap" resultType="resultMap">
@@ -305,7 +306,7 @@
 			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_mly b on a.yyyymm_key = b.yyyymm_key and a.stud_key = b.stud_key 
 				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.grp_item_key = b.grp_item_key
 			left outer join lrn_dsb.ds_ag_exam_wnote_sts_mly c on a.yyyymm_key = c.yyyymm_key and a.stud_key = c.stud_key 
-				and a.ssvc_akey = c.ssvc_akey and a.exam_typ_key = c.exam_typ_key and a.grp_item_key = c.grp_item_key
+				and a.ssvc_akey = c.ssvc_akey and c.exam_typ_key = 3 and a.grp_item_key = c.grp_item_key
 			where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
@@ -313,7 +314,7 @@
 			left outer join lrn_dsb.ds_ag_exam_slv_habit_sts_wly b on a.yyyymmw_key = b.yyyymmw_key and a.stud_key = b.stud_key 
 				and a.ssvc_akey = b.ssvc_akey and a.exam_typ_key = b.exam_typ_key and a.grp_item_key = b.grp_item_key
 			left outer join lrn_dsb.ds_ag_exam_wnote_sts_wly c on a.yyyymmw_key = c.yyyymmw_key and a.stud_key = c.stud_key 
-				and a.ssvc_akey = c.ssvc_akey and a.exam_typ_key = c.exam_typ_key and a.grp_item_key = c.grp_item_key
+				and a.ssvc_akey = c.ssvc_akey and c.exam_typ_key = 3 and a.grp_item_key = c.grp_item_key
 			where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
 		</choose>
