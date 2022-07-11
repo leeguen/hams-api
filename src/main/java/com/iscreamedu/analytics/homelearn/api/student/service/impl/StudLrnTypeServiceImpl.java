@@ -105,15 +105,16 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeDiffMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypeHelpMap = new LinkedHashMap<String, Object>();
     			
     			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfo");
     			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
     			
     			if(lrnTypeMap != null) {
     				
-    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
+    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeLevel"));
     				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
-    				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeCd"));
+    				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeLevel"));
     				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
     				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMap.get("lrnTypeDef"));
     				
@@ -130,11 +131,15 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeDetailMap.put("lrnTypeMsg", lrnTypeMap.get("msg"));
     				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMap.get("actMsg"));
     				lrnTypeDetailMap.put("lrnTypeStrMsg", lrnTypeMap.get("strMsg"));
+    				
+    				lrnTypeHelpMap.put("lrnTypeHelpImg", "학습유형 도움말 이미지 주소");
+    				lrnTypeHelpMap.put("lrnTendHelpMsg", "학습성향 도움말 메세지");
     			}
     			
     			data.put("lrnType", lrnTypeInfoMap);
     			data.put("lrnTypeDiff", lrnTypeDiffMap);
     			data.put("lrnTypeInfo", lrnTypeDetailMap);
+    			data.put("lrnTypeHelp", lrnTypeHelpMap);
     			
     			setResult(dataKey,data);
         	} else {
@@ -365,6 +370,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         					
         					historyMap.put("dt", historyItem.get("dt"));
         					historyMap.put("lrnTypeLevel", historyItem.get("lrnTypeLevel"));
+        					historyMap.put("lrnTypeCd", historyItem.get("lrnTypeCd"));
         					historyMap.put("lrnTypeImg", historyItem.get("lrnTypeImg"));
         					historyMap.put("lrnTypeNm", historyItem.get("lrnTypeNm"));
         					historyMap.put("lrnTypeInfoMsg", historyItem.get("lrnTypeDef"));
