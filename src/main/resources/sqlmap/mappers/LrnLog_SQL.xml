@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LrnLog">
+
+	<insert id="ispCompleteMission" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_complete_mission (
+              #{yyyymmdd, mode=IN, jdbcType=DATE}
+		 	  , #{hhmm, mode=IN, jdbcType=VARCHAR}
+              , #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{studType, mode=IN, jdbcType=DATE}
+		 	  , #{grade, mode=IN, jdbcType=DATE}
+		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
+              , #{misNo, mode=IN, jdbcType=VARCHAR}
+              , #{misStatusCd, mode=IN, jdbcType=INTEGER}
+              , #{misContents, mode=IN, jdbcType=LONGVARCHAR}
+              , #{regAdminId, mode=IN, jdbcType=VARCHAR}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+
+</mapper>
+	
