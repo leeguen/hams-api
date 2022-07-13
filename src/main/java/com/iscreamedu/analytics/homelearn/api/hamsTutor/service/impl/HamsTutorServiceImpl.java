@@ -2,9 +2,12 @@ package com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl;
 
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
+import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.CommonLrnMtService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -27,18 +32,128 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
     @Autowired
     CommonMapperTutor mapper;
-
+    
+    @Autowired
+	ExternalAPIService externalAPIservice;
+    
+    @Autowired
+    CommonLrnMtService commonLrnMtService;
 
     @Override
     public Map getLrnBasicInfo(Map<String, Object> paramMap) throws Exception {
-            Map<String,Object> data = new HashMap<>();
-            checkRequiredWithDt(paramMap);
+        Map<String,Object> data = new HashMap<>();
+        checkRequiredWithDt(paramMap);
+        
+        Map<String,Object> studInfoParamMap = new HashMap<>();
+		String p = paramMap.get("p").toString();
+    	
+    	studInfoParamMap.put("p", p);
+    	studInfoParamMap.put("apiName", "aiReport.");
+        
+        LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        
+        if(studInfoMap != null) {
+        	//DB 조회
+        	LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
+        	
+        	//학생 정보
+        	lrnBasicInfo.put("studId", studInfoMap.get("stuId"));
+        	lrnBasicInfo.put("gender", studInfoMap.get("gender"));
+        	lrnBasicInfo.put("studNm", studInfoMap.get("name"));
+        	lrnBasicInfo.put("loginId", studInfoMap.get("loginId"));
+        	lrnBasicInfo.put("schlNm", studInfoMap.get("schoolName"));
+        	lrnBasicInfo.put("grade", studInfoMap.get("grade"));
+        	
+        	//2.0 데이터
+        	String[] sqlLists = {"LrnExStt","ALrnExStt","AttStt","ExamStt","ExamSubjList","IncrtNtStt","SlvHabitStt"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", "d");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> lrnBasicInfoMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//수행률
+    		try {
+    			Map<String,Object> lrnExSttMap = (Map<String, Object>) lrnBasicInfoMap.get("LrnExStt");
+    			
+    			lrnBasicInfo.put("exRt", lrnExSttMap.get("exRt"));
+    			lrnBasicInfo.put("dLrnExCnt", lrnExSttMap.get("dLrnCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnExStt : Error");
+			}
+    		
+    		//스스로학습
+    		try {
+    			Map<String,Object> aLrnExStt = (Map<String, Object>) lrnBasicInfoMap.get("ALrnExStt");
+    			
+    			lrnBasicInfo.put("aLrnExCnt", aLrnExStt.get("aLrnCnt"));
+    			lrnBasicInfo.put("aLrnNm", aLrnExStt.get("maxSubSubjNm"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ALrnExStt : Error");
+			}
+    		
+    		//출석률
+    		try {
+    			Map<String,Object> attStt = (Map<String, Object>) lrnBasicInfoMap.get("AttStt");
+    			
+    			lrnBasicInfo.put("attRt", attStt.get("attRt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("AttStt : Error");
+			}
+    		
+    		//평가
+    		try {
+    			Map<String,Object> examStt = (Map<String, Object>) lrnBasicInfoMap.get("ExamStt");
+    			
+    			lrnBasicInfo.put("explCnt", examStt.get("explCnt"));
+    			lrnBasicInfo.put("crtRt", examStt.get("crtRt"));
+    			lrnBasicInfo.put("explCnt", examStt.get("psExplCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamStt : Error");
+			}
+    		
+    		//과목별 평가
+    		try {
+    			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) lrnBasicInfoMap.get("ExamSubjList");
+    			
+    			for(Map<String, Object> subjitem : examSubjList) {
+    				String subjCd = subjitem.get("subjCd").toString().replace("C", "c");
+    				
+    				lrnBasicInfo.put(subjCd + "IncrtCnt", (subjitem.get("incrtCnt") != null) ? subjitem.get("incrtCnt") : 0);
+    			}
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamSubjList : Error");
+			}
+    		
+    		//오답노트
+    		try {
+    			Map<String,Object> incrtNtStt = (Map<String, Object>) lrnBasicInfoMap.get("IncrtNtStt");
+    			
+    			lrnBasicInfo.put("incrtNoteNcCnt", incrtNtStt.get("incrtNtNcCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("IncrtNtStt : Error");
+			}
+    		
+    		//문제풀이 습관
+    		try {
+    			Map<String,Object> slvHabitStt = (Map<String, Object>) lrnBasicInfoMap.get("SlvHabitStt");
+    			
+    			lrnBasicInfo.put("cursoryQues", slvHabitStt.get("hrryCnt"));
+    			lrnBasicInfo.put("skipQues", slvHabitStt.get("skipCnt"));
+    			lrnBasicInfo.put("mistakenQues", slvHabitStt.get("mistakeCnt"));
+    			lrnBasicInfo.put("guessQues", slvHabitStt.get("guessCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("SlvHabitStt : Error");
+			}
+        	
+        	
+        	data.put("lrnBasicInfo",lrnBasicInfo);
+        }
+        
 
-            //DB 조회
-        LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
-
-            data.put("lrnBasicInfo",lrnBasicInfo);
-            setResult(dataKey,data);
+        setResult(dataKey,data);
 
         return result;
     }
@@ -50,6 +165,12 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             ArrayList<Map<String,Object>> lrnGrowthStt = new ArrayList<>();
+            
+            String[] sqlLists = {"LrnExStt","ExamStt","ExamSubjList"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", (paramMap.get("isWM").equals("W")) ? "d" : "m");
+        	paramMap.put("sqlList", dwSqlList);
 
             for(int i = 0; i<4; i++) {
                 if(i != 0) {
@@ -70,10 +191,78 @@ public class HamsTutorServiceImpl implements HamsTutorService {
                         paramMap.put("startDt",startDate);
                     }
                     Map<String,Object> item = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnGrowthStt");
+                    
+                	Map<String,Object> lrnGrowthSttMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+                    
+                	//수행률
+            		try {
+            			Map<String,Object> lrnExSttMap = (Map<String, Object>) lrnGrowthSttMap.get("LrnExStt");
+            			
+            			item.put("exRt", lrnExSttMap.get("exRt"));
+            		} catch (Exception e) {
+            			LOGGER.debug("LrnExStt : Error");
+        			}
+            		
+            		//평가
+            		try {
+            			Map<String,Object> examStt = (Map<String, Object>) lrnGrowthSttMap.get("ExamStt");
+            			
+            			item.put("crtRt", examStt.get("crtRt"));
+            		} catch (Exception e) {
+            			LOGGER.debug("ExamStt : Error");
+        			}
+            		
+            		//과목별 평가
+            		try {
+            			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) lrnGrowthSttMap.get("ExamSubjList");
+            			
+            			for(Map<String, Object> subjitem : examSubjList) {
+            				String subjCd = subjitem.get("subjCd").toString().replace("C", "c");
+            				
+            				item.put(subjCd, subjitem.get("crtRt"));
+            			}
+            		} catch (Exception e) {
+            			LOGGER.debug("ExamSubjList : Error");
+        			}
+                	
                     lrnGrowthStt.add(item);
                 }
                 else {
                     Map<String,Object> item = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnGrowthStt");
+                    
+                    Map<String,Object> lrnGrowthSttMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+                    
+                	//수행률
+            		try {
+            			Map<String,Object> lrnExSttMap = (Map<String, Object>) lrnGrowthSttMap.get("LrnExStt");
+            			
+            			item.put("exRt", lrnExSttMap.get("exRt"));
+            		} catch (Exception e) {
+            			LOGGER.debug("LrnExStt : Error");
+        			}
+            		
+            		//평가
+            		try {
+            			Map<String,Object> examStt = (Map<String, Object>) lrnGrowthSttMap.get("ExamStt");
+            			
+            			item.put("crtRt", examStt.get("crtRt"));
+            		} catch (Exception e) {
+            			LOGGER.debug("ExamStt : Error");
+        			}
+            		
+            		//과목별 평가
+            		try {
+            			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) lrnGrowthSttMap.get("ExamSubjList");
+            			
+            			for(Map<String, Object> subjitem : examSubjList) {
+            				String subjCd = subjitem.get("subjCd").toString().replace("C", "c");
+            				
+            				item.put(subjCd, subjitem.get("crtRt"));
+            			}
+            		} catch (Exception e) {
+            			LOGGER.debug("ExamSubjList : Error");
+        			}
+                    
                     lrnGrowthStt.add(item);
                 }
             }
@@ -95,7 +284,54 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             LinkedHashMap<String,Object> lrnExStt = new LinkedHashMap<>();
             Map<String,Object> exStt = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnExSttEx");
             Map<String,Object> tmStt = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnExSttTm");
-
+        	
+          //2.0 데이터
+        	String[] sqlLists = {"LrnExStt","ALrnExStt","LrnTmStt"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+            LocalDate startDate = LocalDate.parse(paramMap.get("startDt").toString());
+            LocalDate endDate = LocalDate.parse(paramMap.get("endDt").toString());
+            
+            int dateDiff = (int) startDate.until(endDate, ChronoUnit.DAYS);
+            
+        	paramMap.put("period", (dateDiff < 10) ? "d" : "m");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> lrnLrnExSttMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+            
+        	//수행률
+    		try {
+    			Map<String,Object> lrnExSttMap = (Map<String, Object>) lrnLrnExSttMap.get("LrnExStt");
+    			
+    			exStt.put("exRt", lrnExSttMap.get("exRt"));
+    			exStt.put("planCnt", lrnExSttMap.get("planCnt"));
+    			exStt.put("dLrnExCnt", lrnExSttMap.get("dLrnCnt"));
+    			exStt.put("lrnExCnt", lrnExSttMap.get("tLrnCnt"));
+    			exStt.put("bLrnExCnt", lrnExSttMap.get("bLrnCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnExStt : Error");
+			}
+        	
+    		//스스로학습
+    		try {
+    			Map<String,Object> aLrnExStt = (Map<String, Object>) lrnLrnExSttMap.get("ALrnExStt");
+    			
+    			exStt.put("aLrnExCnt", aLrnExStt.get("aLrnCnt"));
+    			exStt.put("aLrnUpperNm", aLrnExStt.get("maxSubjNm"));
+    			exStt.put("aLrnNm", aLrnExStt.get("maxSubSubjNm"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ALrnExStt : Error");
+			}
+    		
+    		//학습시간
+    		try {
+    			Map<String,Object> lrnTmStt = (Map<String, Object>) lrnLrnExSttMap.get("LrnTmStt");
+    			
+    			tmStt.put("lrnTm", lrnTmStt.get("totalLrnTm"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ALrnExStt : Error");
+			}
+    		
             lrnExStt.put("exStt",exStt);
             lrnExStt.put("tmStt",tmStt);
 
@@ -117,7 +353,58 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             List<Map<String,Object>> dayLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartDayMsg");
             List<Map<String,Object>> subjLrnTmList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubj");
             List<Map<String,Object>> subjLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubjMsg");
-
+            
+            //2.0 데이터
+        	String[] sqlLists = {"LrnTmDayList", "LrnTmSubjList"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", "d");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> lrnExChartMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+            
+        	//일별 과목별 학습시간
+    		try {
+    			ArrayList<Map<String,Object>> lrnTmDayList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmDayList");
+    			
+    			dayLrnTmList.clear();
+    			
+    			for(Map<String, Object> dayitem : lrnTmDayList) {
+    				Map<String, Object> dayItemMap = new LinkedHashMap<String, Object>();
+				
+    				dayItemMap.put("dt", dayitem.get("dt"));
+    				dayItemMap.put("subjCd", dayitem.get("subjCd"));
+    				dayItemMap.put("lrnTm", dayitem.get("lrnTm"));
+    				dayItemMap.put("totalLrnTm", dayitem.get("totalLrnTm"));
+    				
+    				dayLrnTmList.add(dayItemMap);
+				}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnTmDayList : Error");
+			}
+    		
+    		//과목별 학습시간
+    		try {
+    			ArrayList<Map<String,Object>> lrnTmSubjList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmSubjList");
+    			
+    			subjLrnTmList.clear();
+    			
+    			for(Map<String, Object> subjitem : lrnTmSubjList) {
+    				Map<String, Object> subjItemMap = new LinkedHashMap<String, Object>();
+				
+    				subjItemMap.put("subjCd", subjitem.get("subjCd"));
+    				subjItemMap.put("totalLrnTm", subjitem.get("totalLrnTm"));
+    				subjItemMap.put("subSubjCd", subjitem.get("subSubjCd"));
+    				subjItemMap.put("lrnTm", subjitem.get("lrnTm"));
+    				
+    				subjLrnTmList.add(subjItemMap);
+				}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnTmDayList : Error");
+			}
+        	
             lrnExChart.put("dayLrnTmList",dayLrnTmList);
             lrnExChart.put("dayLrnTmMsgList",dayLrnTmMsgList);
             lrnExChart.put("subjLrnTmList",subjLrnTmList);
@@ -125,10 +412,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             data.put("lrnExChart",lrnExChart);
             setResult(dataKey,data);
-
-
-
-
+            
         return result;
     }
 
@@ -139,7 +423,25 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             List<Map<String,Object>> lrnTmList = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getLrnTimeLineList");
-
+            
+            //2.0 데이터
+        	String[] sqlLists = {"LrnTmlnList"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", "d");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> lrnExChartMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//타임라인
+        	try {
+        		lrnTmList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmlnList");
+    			
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamSubjStt : Error");
+			}
+            
             data.put("lrnTmList",lrnTmList);
             setResult(dataKey,data);
 
@@ -153,7 +455,49 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
-
+            
+            //2.0 데이터
+        	String[] sqlLists = {"ExamStt","IncrtNtStt","SlvHabitStt"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+            paramMap.put("period", (paramMap.get("isWM").equals("W")) ? "d" : "m");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> examSttMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//평가
+    		try {
+    			Map<String,Object> examSttData = (Map<String, Object>) examSttMap.get("ExamStt");
+    			
+    			examStt.put("explCnt", examSttData.get("explCnt"));
+    			examStt.put("crtRt", examSttData.get("crtRt"));
+    			examStt.put("ansQuesCnt", examSttData.get("quesCnt"));
+    			examStt.put("crtQuesCnt", examSttData.get("crtCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamStt : Error");
+			}
+    		
+    		//오답노트
+    		try {
+    			Map<String,Object> incrtNtStt = (Map<String, Object>) examSttMap.get("IncrtNtStt");
+    			
+    			examStt.put("incrtNoteNcCnt", incrtNtStt.get("incrtNtNcCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("IncrtNtStt : Error");
+			}
+    		
+    		//문제풀이 습관
+    		try {
+    			Map<String,Object> slvHabitStt = (Map<String, Object>) examSttMap.get("SlvHabitStt");
+    			
+    			examStt.put("cusoryQuesCnt", slvHabitStt.get("hrryCnt"));
+    			examStt.put("skipQuesCnt", slvHabitStt.get("skipCnt"));
+    			examStt.put("mistakeQuesCnt", slvHabitStt.get("mistakeCnt"));
+    			examStt.put("guessQuesCnt", slvHabitStt.get("guessCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("SlvHabitStt : Error");
+			}
+        	
             data.put("examStt",examStt);
             setResult(dataKey,data);
 
@@ -167,7 +511,85 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             List<Map<String,Object>> examChart = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getExamChart");
-
+            
+            //2.0 데이터
+        	String[] sqlLists = {"ExamSubjList","IncrtNtSubjList","SlvHabitSubjList"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+            paramMap.put("period", (paramMap.get("isWM").equals("W")) ? "d" : "m");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> examChartMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//과목별 평가
+    		try {
+    			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) examChartMap.get("ExamSubjList");
+    			
+    			for(Map<String, Object> examChartItem : examChart) {
+    				String subjCd = examChartItem.get("subjCd").toString();
+    				
+    				for(Map<String, Object> examItem : examSubjList) {
+    					if(subjCd.equals(examItem.get("subjCd"))) {
+    						examChartItem.put("crtRt", examItem.get("crtRt"));
+    						examChartItem.put("explCnt", examItem.get("explCnt"));
+    						examChartItem.put("ansQuesCnt", examItem.get("quesCnt"));
+    						examChartItem.put("crtQuesCnt", examItem.get("crtCnt"));
+    						
+    						continue;
+    					}
+    					
+    				}
+    			}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamSubjList : Error");
+			}
+    		
+    		//과목별 오답노트
+    		try {
+    			ArrayList<Map<String,Object>> incrtNtSubjList = (ArrayList<Map<String, Object>>) examChartMap.get("IncrtNtSubjList");
+    			
+    			for(Map<String, Object> examChartItem : examChart) {
+    				String subjCd = examChartItem.get("subjCd").toString();
+    				
+    				for(Map<String, Object> incrtNtItem : incrtNtSubjList) {
+    					if(subjCd.equals(incrtNtItem.get("subjCd"))) {
+    						examChartItem.put("incrtNoteNcCnt", (incrtNtItem.get("incrtNtNcCnt") != null) ? incrtNtItem.get("incrtNtNcCnt") : 0);
+    						
+    						continue;
+    					}
+    					
+    				}
+    			}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("IncrtNtSubjList : Error");
+			}
+			
+    		//과목별 문제풀이 습관
+    		try {
+    			ArrayList<Map<String,Object>> slvHabitSubjList = (ArrayList<Map<String, Object>>) examChartMap.get("SlvHabitSubjList");
+    			
+    			for(Map<String, Object> examChartItem : examChart) {
+    				String subjCd = examChartItem.get("subjCd").toString();
+    				
+    				for(Map<String, Object> slvHabitItem : slvHabitSubjList) {
+    					if(subjCd.equals(slvHabitItem.get("subjCd"))) {
+    						examChartItem.put("cusoryQuesCnt", slvHabitItem.get("hrryCnt"));
+    						examChartItem.put("skipQuesCnt", slvHabitItem.get("skipCnt"));
+    						examChartItem.put("mistakeQuesCnt", slvHabitItem.get("mistakeCnt"));
+    						examChartItem.put("guessQuesCnt", slvHabitItem.get("guessCnt"));
+    						
+    						continue;
+    					}
+    					
+    				}
+    			}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("SlvHabitSubjList : Error");
+			}
+    		
             data.put("examChart",examChart);
             setResult(dataKey,data);
         return result;
@@ -183,6 +605,26 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             LinkedHashMap<String,Object> examList = new LinkedHashMap<>();
             Map<String,Object> totalCnt = (Map)mapper.get(paramMap,TUTOR_NAMESPACE + ".getExamListCnt");
             List<Map<String,Object>> list = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getExamList");
+            
+            //2.0 데이터
+        	String[] sqlLists = {"ExamLog"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+            paramMap.put("period", "d");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> examLogList = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//과목별 평가
+    		try {
+    			list = (ArrayList<Map<String, Object>>) examLogList.get("ExamLog");
+    			
+    			totalCnt.put("totalCnt", list.size());
+    			
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamLog : Error");
+			}
 
             examList.put("totalCnt",totalCnt.get("totalCnt"));
             examList.put("list",list);
@@ -202,8 +644,35 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             LinkedHashMap<String,Object> attStt = new LinkedHashMap<>();
             LinkedHashMap<String,Object> attPtnAnalysis = (LinkedHashMap<String, Object>)mapper.get(paramMap,TUTOR_NAMESPACE + ".getAttSttAnalysis");
             List<Map<String,Object>> attPtnChart = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getAttSttChart");
-
-
+            
+            //2.0 데이터
+        	String[] sqlLists = {"AttStt","AttLog"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+            paramMap.put("period", (paramMap.get("isWM").equals("W")) ? "d" : "m");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> attDataMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//출석률
+    		try {
+    			Map<String,Object> attSttMap = (Map<String, Object>) attDataMap.get("AttStt");
+    			
+    			attPtnAnalysis.put("attRt", attSttMap.get("attRt"));
+    			attPtnAnalysis.put("lrnPlanDtCnt", attSttMap.get("planDtCnt"));
+    			attPtnAnalysis.put("attDtCnt", attSttMap.get("attDtCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("AttStt : Error");
+			}
+    		
+    		//일별 출석 내역
+    		try {
+    			attPtnChart = (ArrayList<Map<String, Object>>) attDataMap.get("AttLog");
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("AttLog : Error");
+			}
+            
             attStt.put("attPtnAnalysis",attPtnAnalysis);
             attStt.put("attPtnChart",attPtnChart);
 

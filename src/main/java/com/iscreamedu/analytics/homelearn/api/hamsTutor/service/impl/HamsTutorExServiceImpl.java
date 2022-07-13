@@ -8,6 +8,7 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
+import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.CommonLrnMtService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorExService;
 
 import org.json.simple.JSONArray;
@@ -46,6 +47,9 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     CommonMapperTutor commonMapperTutor;
     @Autowired
     CommonMapperLrnDm commonMapperLrnDm;
+    
+    @Autowired
+    CommonLrnMtService commonLrnMtService;
     
     @Autowired
 	ExternalAPIService externalAPIservice;
@@ -150,6 +154,82 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
                 
                 int positivePointCnt = 0;
                 int negativePointCnt = 0;
+                
+                //2.0 데이터
+            	String[] sqlLists = {"LrnExStt","ALrnExStt","AttStt","ExamStt","IncrtNtStt","SlvHabitStt"};
+                List<String> dwSqlList = Arrays.asList(sqlLists);
+                
+            	paramMap.put("period", "d");
+            	paramMap.put("sqlList", dwSqlList);
+            	
+            	Map<String,Object> diagnosisMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+            	
+            	//수행률
+        		try {
+        			Map<String,Object> lrnExSttMap = (Map<String, Object>) diagnosisMap.get("LrnExStt");
+        			
+        			msgInfo.put("exRt", lrnExSttMap.get("exRt"));
+        			msgInfo.put("dLrnCnt", lrnExSttMap.get("dLrnCnt"));
+        			msgInfo.put("nLrnCnt", lrnExSttMap.get("nLrnCnt"));
+        		} catch (Exception e) {
+        			LOGGER.debug("LrnExStt : Error");
+    			}
+        		
+        		//출석률
+        		try {
+        			Map<String,Object> attStt = (Map<String, Object>) diagnosisMap.get("AttStt");
+        			
+        			msgInfo.put("loginCnt", attStt.get("attDtCnt"));
+        		} catch (Exception e) {
+        			LOGGER.debug("AttStt : Error");
+    			}
+        		
+        		//스스로학습
+        		try {
+        			Map<String,Object> aLrnExStt = (Map<String, Object>) diagnosisMap.get("ALrnExStt");
+        			
+        			msgInfo.put("aLrnCnt", aLrnExStt.get("aLrnCnt"));
+        		} catch (Exception e) {
+        			LOGGER.debug("ALrnExStt : Error");
+    			}
+        		
+        		//평가
+        		try {
+        			Map<String,Object> examStt = (Map<String, Object>) diagnosisMap.get("ExamStt");
+        			
+        			msgInfo.put("explCnt", examStt.get("explCnt"));
+        			msgInfo.put("crtRt", examStt.get("crtRt"));
+        			msgInfo.put("psExplCnt", examStt.get("psExplCnt"));
+        			msgInfo.put("npsExplCnt", examStt.get("npsExplCnt"));
+        		} catch (Exception e) {
+        			LOGGER.debug("ExamStt : Error");
+    			}
+        		
+        		//오답노트
+        		try {
+        			Map<String,Object> incrtNtStt = (Map<String, Object>) diagnosisMap.get("IncrtNtStt");
+        			
+        			msgInfo.put("incrtNtCnt", incrtNtStt.get("incrtNtNcCnt"));
+        		} catch (Exception e) {
+        			LOGGER.debug("IncrtNtStt : Error");
+    			}
+        		
+        		//문제풀이 습관
+        		try {
+        			Map<String,Object> slvHabitStt = (Map<String, Object>) diagnosisMap.get("SlvHabitStt");
+        			
+        			int hrryCnt = (slvHabitStt.get("hrryCnt") != null) ? Integer.parseInt(slvHabitStt.get("hrryCnt").toString()) : 0;
+        			int mistakeCnt = (slvHabitStt.get("mistakeCnt") != null) ? Integer.parseInt(slvHabitStt.get("mistakeCnt").toString()) : 0; 
+        			
+        			msgInfo.put("slvCnt", slvHabitStt.get("slvCnt"));
+        			msgInfo.put("gucQuesCnt", slvHabitStt.get("guessCnt"));
+        			msgInfo.put("skpQuesCnt", slvHabitStt.get("skipCnt"));
+        			msgInfo.put("curQuesCnt", slvHabitStt.get("hrryCnt"));
+        			msgInfo.put("mistakeQuesCnt", slvHabitStt.get("mistakeCnt"));
+        			msgInfo.put("curMistakeQuesCnt", (hrryCnt + mistakeCnt));
+        		} catch (Exception e) {
+        			LOGGER.debug("SlvHabitStt : Error");
+    			}
                 
                 positiveMsgCdList = getPositiveMsgList(msgInfo, attentionGCheck);
                 negativeMsgCdList = getNegativeMsgList(msgInfo, attentionCCheck);
@@ -403,6 +483,81 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 		         		LinkedHashMap<String,Object> aiRecmmendCourseMap = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiRecommendCourse");
 		         		ArrayList<Map<String,Object>> aiRecommendCourseList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendCourseRstList");
 		         		ArrayList<Map<String,Object>> resultList = new ArrayList();
+		         		
+		         		//2.0 데이터
+		            	String[] sqlLists = {"LrnExSubjList","ExamSubjList"};
+		                List<String> dwSqlList = Arrays.asList(sqlLists);
+		                
+		            	paramMap.put("period", "m");
+		            	paramMap.put("sqlList", dwSqlList);
+		            	
+		            	Map<String,Object> lrnBasicInfoMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+		            	
+		            	//과목별 평가
+		        		try {
+		        			ArrayList<Map<String,Object>> lrnExSubjList = (ArrayList<Map<String, Object>>) lrnBasicInfoMap.get("LrnExSubjList");
+		        			
+		        			for(Map<String, Object> lrnChartItem : aiRecommendCourseList) {
+		        				String subjCd = lrnChartItem.get("subjCd").toString();
+		        				
+		        				for(Map<String, Object> lrnExItem : lrnExSubjList) {
+		        					if(subjCd.equals(lrnExItem.get("subjNm"))) {
+		        						int exRt  = (lrnExItem.get("exRt") != null) ? Integer.parseInt(lrnExItem.get("exRt").toString()) : -1;
+		        						String exRtTypeValue = null;
+		        						
+		        						if(0 <= exRt && exRt < 30) {
+		        							exRtTypeValue = "R";
+		        						} else if(30 <= exRt && exRt < 90) {
+		        							exRtTypeValue = "Y";
+		        						} else if(90 <= exRt && exRt <= 100) {
+		        							exRtTypeValue = "G";
+		        						}
+		        						
+		        						lrnChartItem.put("exRt", lrnExItem.get("exRt"));
+		        						lrnChartItem.put("exRtType", exRtTypeValue);
+		        						
+		        						continue;
+		        					}
+		        					
+		        				}
+		        			}
+		        			
+		        		} catch (Exception e) {
+		        			LOGGER.debug("LrnExSubjList : Error");
+		    			}
+		            	
+		            	//과목별 평가
+		        		try {
+		        			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) lrnBasicInfoMap.get("ExamSubjList");
+		        			
+		        			for(Map<String, Object> examChartItem : aiRecommendCourseList) {
+		        				String subjCd = examChartItem.get("subjCd").toString();
+		        				
+		        				for(Map<String, Object> examItem : examSubjList) {
+		        					if(subjCd.equals(examItem.get("subjNm"))) {
+		        						int crtRt  = (examItem.get("crtRt") != null) ? Integer.parseInt(examItem.get("crtRt").toString()) : -1;
+		        						String crtRtTypeValue = null;
+		        						
+		        						if(0 <= crtRt && crtRt < 50) {
+		        							crtRtTypeValue = "R";
+		        						} else if(50 <= crtRt && crtRt < 80) {
+		        							crtRtTypeValue = "Y";
+		        						} else if(80 <= crtRt && crtRt <= 100) {
+		        							crtRtTypeValue = "G";
+		        						}
+		        						
+		        						examChartItem.put("crtRt", examItem.get("crtRt"));
+		        						examChartItem.put("crtRtType", crtRtTypeValue);
+		        						
+		        						continue;
+		        					}
+		        					
+		        				}
+		        			}
+		        			
+		        		} catch (Exception e) {
+		        			LOGGER.debug("ExamSubjList : Error");
+		    			}
 		         		
 		         		for(Map<String, Object> item : subjList) {
 		         			Map<String, Object> courseTempMap = new LinkedHashMap<>();

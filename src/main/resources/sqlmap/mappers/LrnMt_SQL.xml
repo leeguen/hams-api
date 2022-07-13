@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LrnMt">
+
+	<select id="selectLrnExStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnExStt */
+		select * from lrnapi.fn_ds_ap_lrn_ex_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnExSubjList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnExSubjList */
+		select * from lrnapi.fn_ds_ap_lrn_ex_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectALrnExStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectALrnExStt */
+		select * from lrnapi.fn_ds_ap_a_lrn_ex_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnTmStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmStt */
+		select * from lrnapi.fn_ds_ap_lrn_tm_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnTmDayList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmDayList */
+		select * from lrnapi.fn_ds_ap_lrn_tm_day_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnTmDayLog" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmDayLog */
+		select * from lrnapi.fn_ds_ap_lrn_tm_day_log(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnTmSubjList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmSubjList */
+		select * from lrnapi.fn_ds_ap_lrn_tm_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectLrnTmSubjLog" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmSubjLog */
+		select
+			a.subj_cd,
+			b.subj_nm,
+			b.menu_path,
+			' > ' || b.path_lv_1_nm || ' > ' || b.path_lv_2_nm || ' > ' || b.path_lv_3_nm  || ' > ' || b.path_lv_4_nm || ' > ' || b.path_lv_5_nm  as ctgr,
+			b.lrn_clss_1_nm
+		from lrndmt.mt_ft_lrn_tmln_sts_dly_es a
+		left outer join lrndmt.mt_dm_menu b on a.menu_akey = b.menu_akey and a.ssvc_akey = b.ssvc_akey
+		where a.dt_key between #{startDt} AND #{endDt}
+			and a.stud_key = #{studId}
+			and a.ssvc_akey = 4
+		order by subj_cd;
+    </select>
+    
+    <select id="selectLrnTmlnList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnTmlnList */
+		select * from lrnapi.fn_ds_ap_lrn_tmln_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectAttStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectAttStt */
+		select * from lrnapi.fn_ds_ap_att_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectAttLog" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectAttLog */
+		select * from lrnapi.fn_ds_ap_att_day_log(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectExamStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectExamStt */
+		select * from lrnapi.fn_ds_ap_exam_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectExamSubjList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectExamSubjList */
+		select * from lrnapi.fn_ds_ap_exam_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectExamLog" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt."selectExamLog" */
+		select * from lrnapi.fn_ds_ap_exam_log(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service}, #{types}, #{search}, ${startIdx});
+    </select>
+    
+    <select id="selectIncrtNtStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectIncrtNtStt */
+		select * from lrnapi.fn_ds_ap_incrt_nt_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectIncrtNtSubjList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectIncrtNtSubjList */
+		select * from lrnapi.fn_ds_ap_incrt_nt_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectSlvHabitStt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectSlvHabitStt */
+		select * from lrnapi.fn_ds_ap_slv_habit_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+    <select id="selectSlvHabitSubjList" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectSlvHabitSubjList */
+		select * from lrnapi.fn_ds_ap_slv_habit_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+    </select>
+    
+</mapper>
