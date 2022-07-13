@@ -29,8 +29,8 @@ public enum ValidationCode {
 	EX_API_NO_DATA(400,"2000", "(400) External API Error : 데이터 없음"),
 	EX_API_ERROR(500,"9000", "External API Error"),
 	SYSTEM_ERROR(500,"9999", "시스템 오류,기타 오류"),
-	REG_SUCCESS(200,"3000", "데이터 등록 성공"),
-	REG_FAILED(200,"3001", "데이터 등록 실패");
+	REG_SUCCESS(201,"0000", "데이터 등록 성공"),
+	REG_FAILED(201,"2001", "데이터 등록 실패");
 
 	private int status;
     private String code;
