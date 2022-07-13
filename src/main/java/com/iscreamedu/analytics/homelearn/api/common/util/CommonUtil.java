@@ -6,9 +6,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.impl.HamsTutorExServiceImpl;
+
 public class CommonUtil {
 
-	
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonUtil.class);
     
     
     /***
@@ -58,4 +65,27 @@ public class CommonUtil {
 			return 0;
 		}
 	}
+	
+	/**
+	 * encoded parameter decode
+	 * @param encodedParam
+	 * @return
+	 * @throws Exception
+	 */
+    public static String[] getDecodedParam(String encodedParam) throws Exception {
+        String[] decodedParamList = null;
+
+        String decodedStr = "";
+
+        CipherUtil cp = CipherUtil.getInstance();
+
+        try {
+            decodedStr = cp.AES_Decode(encodedParam);
+            decodedParamList = decodedStr.split("&");
+        } catch (Exception e) {
+            LOGGER.debug("HL Parameter Incorrect");
+        }
+
+        return decodedParamList;
+    }
 }
