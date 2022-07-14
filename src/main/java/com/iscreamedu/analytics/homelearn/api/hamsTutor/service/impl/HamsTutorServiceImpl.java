@@ -109,7 +109,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     			
     			lrnBasicInfo.put("explCnt", examStt.get("explCnt"));
     			lrnBasicInfo.put("crtRt", examStt.get("crtRt"));
-    			lrnBasicInfo.put("explCnt", examStt.get("psExplCnt"));
+    			lrnBasicInfo.put("psExplCnt", examStt.get("psExplCnt"));
     		} catch (Exception e) {
     			LOGGER.debug("ExamStt : Error");
 			}
@@ -349,13 +349,18 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             //DB 조회
             LinkedHashMap<String,Object> lrnExChart = new LinkedHashMap<>();
 
-            List<Map<String,Object>> dayLrnTmList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartDay");
-            List<Map<String,Object>> dayLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartDayMsg");
-            List<Map<String,Object>> subjLrnTmList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubj");
-            List<Map<String,Object>> subjLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubjMsg");
+            //List<Map<String,Object>> dayLrnTmList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartDay");
+            //List<Map<String,Object>> dayLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartDayMsg");
+            //List<Map<String,Object>> subjLrnTmList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubj");
+            //List<Map<String,Object>> subjLrnTmMsgList = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getLrnExChartSubjMsg");
+            
+            List<Map<String,Object>> dayLrnTmList = new ArrayList<Map<String,Object>>();
+            List<Map<String,Object>> dayLrnTmMsgList = new ArrayList<Map<String,Object>>();
+            List<Map<String,Object>> subjLrnTmList = new ArrayList<Map<String,Object>>();
+            List<Map<String,Object>> subjLrnTmMsgList = new ArrayList<Map<String,Object>>();
             
             //2.0 데이터
-        	String[] sqlLists = {"LrnTmDayList", "LrnTmSubjList"};
+        	String[] sqlLists = {"LrnTmDayList", "LrnTmDayLog", "LrnTmSubjList", "LrnTmSubjLog"};
             List<String> dwSqlList = Arrays.asList(sqlLists);
             
         	paramMap.put("period", "d");
@@ -366,8 +371,6 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         	//일별 과목별 학습시간
     		try {
     			ArrayList<Map<String,Object>> lrnTmDayList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmDayList");
-    			
-    			dayLrnTmList.clear();
     			
     			for(Map<String, Object> dayitem : lrnTmDayList) {
     				Map<String, Object> dayItemMap = new LinkedHashMap<String, Object>();
@@ -384,11 +387,28 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     			LOGGER.debug("LrnTmDayList : Error");
 			}
     		
+    		//일별 과목별 학습시간
+    		try {
+    			ArrayList<Map<String,Object>> lrnTmDayLogList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmDayLog");
+    			
+    			for(Map<String, Object> dayLogitem : lrnTmDayLogList) {
+    				Map<String, Object> dayLogItemMap = new LinkedHashMap<String, Object>();
+				
+    				dayLogItemMap.put("dt", dayLogitem.get("dt"));
+    				dayLogItemMap.put("subjCd", dayLogitem.get("subjCd"));
+    				dayLogItemMap.put("subSubjCd", dayLogitem.get("subSubjCd"));
+    				dayLogItemMap.put("msg", dayLogitem.get("ctgr"));
+    				
+    				dayLrnTmMsgList.add(dayLogItemMap);
+				}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnTmDayList : Error");
+			}
+    		
     		//과목별 학습시간
     		try {
     			ArrayList<Map<String,Object>> lrnTmSubjList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmSubjList");
-    			
-    			subjLrnTmList.clear();
     			
     			for(Map<String, Object> subjitem : lrnTmSubjList) {
     				Map<String, Object> subjItemMap = new LinkedHashMap<String, Object>();
@@ -399,6 +419,24 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     				subjItemMap.put("lrnTm", subjitem.get("lrnTm"));
     				
     				subjLrnTmList.add(subjItemMap);
+				}
+    			
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnTmDayList : Error");
+			}
+    		
+    		//과목별 학습시간
+    		try {
+    			ArrayList<Map<String,Object>> lrnTmSubjLogList = (ArrayList<Map<String, Object>>) lrnExChartMap.get("LrnTmSubjLog");
+    			
+    			for(Map<String, Object> subjitem : lrnTmSubjLogList) {
+    				Map<String, Object> subjItemMap = new LinkedHashMap<String, Object>();
+				
+    				subjItemMap.put("subjCd", subjitem.get("subjCd"));
+    				subjItemMap.put("subSubjCd", subjitem.get("subSubjCd"));
+    				subjItemMap.put("msg", subjitem.get("ctgr"));
+    				
+    				subjLrnTmMsgList.add(subjItemMap);
 				}
     			
     		} catch (Exception e) {

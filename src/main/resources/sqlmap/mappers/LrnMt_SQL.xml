@@ -29,7 +29,7 @@
     
     <select id="selectLrnTmDayLog" parameterType="hashMap" resultType="resultMap">
 		/* LrnMt.selectLrnTmDayLog */
-		select * from lrnapi.fn_ds_ap_lrn_tm_day_log(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
+		select * from lrnapi.fn_ds_ap_lrn_tm_day_log(#{studId}, #{startDt}, #{endDt}, #{service});
     </select>
     
     <select id="selectLrnTmSubjList" parameterType="hashMap" resultType="resultMap">
@@ -39,18 +39,7 @@
     
     <select id="selectLrnTmSubjLog" parameterType="hashMap" resultType="resultMap">
 		/* LrnMt.selectLrnTmSubjLog */
-		select
-			a.subj_cd,
-			b.subj_nm,
-			b.menu_path,
-			' > ' || b.path_lv_1_nm || ' > ' || b.path_lv_2_nm || ' > ' || b.path_lv_3_nm  || ' > ' || b.path_lv_4_nm || ' > ' || b.path_lv_5_nm  as ctgr,
-			b.lrn_clss_1_nm
-		from lrndmt.mt_ft_lrn_tmln_sts_dly_es a
-		left outer join lrndmt.mt_dm_menu b on a.menu_akey = b.menu_akey and a.ssvc_akey = b.ssvc_akey
-		where a.dt_key between #{startDt} AND #{endDt}
-			and a.stud_key = #{studId}
-			and a.ssvc_akey = 4
-		order by subj_cd;
+		select * from lrnapi.fn_ds_ap_lrn_tm_subj_log(#{studId}, #{startDt}, #{endDt}, #{service});
     </select>
     
     <select id="selectLrnTmlnList" parameterType="hashMap" resultType="resultMap">
