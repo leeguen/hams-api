@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,19 +69,41 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					paramMap.put("grade", -99);
 					break;
 			}
-		    commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
-			Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
-			String strResultMsg = paramMap.get("outResultMsg").toString();
-			if(nResultCnt > 0) {
-				LinkedHashMap message = new LinkedHashMap();			
-				message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-				message.put("resulst", nResultCnt+"건 등록 : "+strResultMsg);
-				setResult(msgKey, message);
-			} else {
-				LinkedHashMap message = new LinkedHashMap();			
+			String strResultMsg = null;
+			LinkedHashMap message = new LinkedHashMap();			
+			try {
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
+				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+				strResultMsg = paramMap.get("outResultMsg").toString();
+				if(nResultCnt > 0) {
+					
+					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+					message.put("resulst", nResultCnt+"건 등록 : "+strResultMsg);
+					setResult(msgKey, message);
+				} else {
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("resulst", strResultMsg);
+					setResult(msgKey, message);
+				}
+			} catch(Exception e) {
+				String[] errorMsgList = e.getMessage().split(": ");
+				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
 				message.put("resulst", strResultMsg);
 				setResult(msgKey, message);
+				try {
+					JSONObject jsonMap = new JSONObject();
+					jsonMap.putAll(paramMap);
+					Map<String, Object> paramMap2 = new LinkedHashMap();
+					paramMap2.put("inProcName", "ispCompleteMission");
+					paramMap2.put("inProcStep", 0);
+					paramMap2.put("inYyyymmdd", paramMap.get("yyyymmdd"));
+					paramMap2.put("inParam", jsonMap.toJSONString());
+					paramMap2.put("inErrorNo", 0);
+					paramMap2.put("inErrorTitle", "insert error");
+					paramMap2.put("inErrorMsg", strResultMsg);
+					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+				} catch(Exception e2) {}
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
