@@ -18,6 +18,26 @@
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
 		)}
 	</insert>
+	
+	<insert id="ispErrorLog" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_error_log (
+			  #{inProcName, mode=IN, jdbcType=VARCHAR}
+			  , #{inProcStep, mode=IN, jdbcType=INTEGER}
+    		  , #{inYyyymmdd, mode=IN, jdbcType=DATE}
+    		  , #{inParam, mode=IN, jdbcType=LONGVARCHAR}
+    		  , #{inErrorNo, mode=IN, jdbcType=INTEGER}
+    		  , #{inErrorTitle, mode=IN, jdbcType=VARCHAR}
+    		  , #{inErrorMsg, mode=IN, jdbcType=VARCHAR}
+		)}
+	</insert>
+	
+	<select id="spChGrothMetaphorHistory" parameterType="hashMap" statementType="CALLABLE">
+		
+	</select>
+	
+	<select id="getChTodayMissionInfo" parameterType="hashMap" statementType="CALLABLE">
+		
+	</select>
 
 </mapper>
 	
