@@ -714,6 +714,8 @@
 			c.img_bg_url,
 			subj_nm
 		from lrndmt.mt_dm_stud st
+		<choose>
+			<when test='currConCheck == "m"'>
 		left outer join (
 	    	select
 	    		a.stud_key,
@@ -730,6 +732,26 @@
 		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECM(#{yymm}, #{studId}, 4) b
 		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECI(#{yymm}, #{studId}, 4) c
 		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECH() d
+			</when>
+			<otherwise>
+		left outer join (
+	    	select
+	    		a.stud_key,
+				b.item_nm as subj_nm
+			from lrn_dsb.ds_ag_lrn_use_sts_wly a
+			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
+				and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+			where a.yyyymmw_key = #{yymmwk} 
+				and a.stud_key = #{studId}
+				and a.ssvc_akey = 4
+			order by a.fnsh_add_lrn_cnt desc
+			limit 1
+		) alrn on st.stud_key = alrn.stud_key
+		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECM(#{yymmwk}, #{studId}, 4) b
+		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECI(#{yymmwk}, #{studId}, 4) c
+		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECH() d
+			</otherwise>
+		</choose>
 		where st.stud_key = #{studId};
     </select>
     
@@ -762,11 +784,22 @@
     	select 
 			a.fnsh_add_lrn_cnt as a_lrn_cnt,
 			b.item_nm as subj_nm
+		<choose>
+			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
 			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
 		where a.yyyymm_key = #{yymm}
 			and a.stud_key = #{studId}  
+			</when>
+			<otherwise>
+		from lrn_dsb.ds_ag_lrn_use_sts_wly a
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
+			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+		where a.yyyymmw_key = #{yymmwk}
+			and a.stud_key = #{studId}  
+			</otherwise>
+		</choose>
 			and a.ssvc_akey = 4
 			and a.fnsh_add_lrn_cnt != 0
 		order by a.fnsh_add_lrn_cnt desc 

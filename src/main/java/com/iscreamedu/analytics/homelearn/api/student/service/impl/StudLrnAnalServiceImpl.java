@@ -1309,50 +1309,115 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         ValidationUtil vu1 = new ValidationUtil();
         ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
         
         if(vu.isValid()) {
-    		getStudId(paramMap);
-    		
-    		if(decodeResult.isEmpty()) {
-    			String yyyy = paramMap.get("yyyy").toString();
-    			int mm = Integer.valueOf(paramMap.get("mm").toString());
-    			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-    			
-    			int yymm = Integer.parseInt(yyyy+convertMm);
-    			
-    			paramMap.put("yymm", yymm);
-    			
-    			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-    			
-    			if(vu1.isValid()) {
-    				Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
-    				ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
-    				
-    				aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
-    				
-    				if(aLrnDataMap.get("subjNm") != null) {
-    					aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSttList");
-    				} else {
-    					aLrnList = null;
-    				}
-    				
-    				data.put("msg", aLrnDataMap.get("msg"));
-    				data.put("infoMsg", aLrnDataMap.get("infoMsg"));
-    				data.put("imgUrl", aLrnDataMap.get("imgUrl"));
-    				data.put("imgBgUrl", aLrnDataMap.get("imgBgUrl"));
-    				data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
-    				data.put("aLrnList", aLrnList);
-    				
-    				setResult(dataKey,data);
-    			} else {
-    				setResult(msgKey, vu1.getResult());
-    			}
-    			
-    		} else {
-    			setResult(msgKey, decodeResult);
-    		}
-        	
+        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
+			paramMap.put("currConCheck", currConCheck);
+			
+			if(currConCheck.equals("m")) {
+				vuM.checkRequired(new String[] {"yyyy","mm","p"}, paramMap);
+				
+				if(vuM.isValid()) {
+					getStudId(paramMap);
+					
+					if(decodeResult.isEmpty()) {
+						String yyyy = paramMap.get("yyyy").toString();
+						int mm = Integer.valueOf(paramMap.get("mm").toString());
+						String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+						
+						int yymm = Integer.parseInt(yyyy+convertMm);
+						
+						paramMap.put("yymm", yymm);
+						
+						vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+						
+						if(vu1.isValid()) {
+							Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
+							ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
+							
+							aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
+							
+							if(aLrnDataMap.get("subjNm") != null) {
+								aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSttList");
+							} else {
+								aLrnList = null;
+							}
+							
+							data.put("msg", aLrnDataMap.get("msg"));
+							data.put("infoMsg", aLrnDataMap.get("infoMsg"));
+							data.put("imgUrl", aLrnDataMap.get("imgUrl"));
+							data.put("imgBgUrl", aLrnDataMap.get("imgBgUrl"));
+							data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
+							data.put("aLrnList", aLrnList);
+							
+							setResult(dataKey,data);
+						} else {
+							setResult(msgKey, vu1.getResult());
+						}
+						
+					} else {
+						setResult(msgKey, decodeResult);
+					}
+					
+				} else {
+					setResult(msgKey, vuM.getResult());
+				}
+			} else {
+				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+				
+				if(vuW.isValid()) {
+					getStudId(paramMap);
+	        		
+	        		if(decodeResult.isEmpty()) {
+	        			String yyyy = paramMap.get("yyyy").toString();
+	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
+	        			String wk = paramMap.get("wk").toString();
+	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
+	        			
+        				int yymmwk = Integer.parseInt(yyyy + convertMm + wk);
+	        			
+	        			paramMap.put("yymmwk", yymmwk);
+	        			
+	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
+	        			vu2.isNumeric("wk", wk);
+	        			
+	        			if(vu1.isValid() && vu2.isValid()) {
+	        				Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
+							ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
+							
+							aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
+							
+							if(aLrnDataMap.get("subjNm") != null) {
+								aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSttList");
+							} else {
+								aLrnList = null;
+							}
+							
+							data.put("msg", aLrnDataMap.get("msg"));
+							data.put("infoMsg", aLrnDataMap.get("infoMsg"));
+							data.put("imgUrl", aLrnDataMap.get("imgUrl"));
+							data.put("imgBgUrl", aLrnDataMap.get("imgBgUrl"));
+							data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
+							data.put("aLrnList", aLrnList);
+							
+							setResult(dataKey,data);
+	        			} else {
+	        				if(!vu1.isValid()) {
+								setResult(msgKey, vu1.getResult());
+							}else if(!vu2.isValid()) {
+								setResult(msgKey, vu2.getResult());
+							}
+	        			}
+	        			
+	        		} else {
+	        			setResult(msgKey, decodeResult);
+	        		}
+					
+				} else {
+					setResult(msgKey, vuW.getResult());
+				}
+			}
         } else {
         	setResult(msgKey, vu.getResult());
         }
