@@ -753,6 +753,7 @@
 		</choose>
 			and a.stud_key = #{studId}  
 			and a.ssvc_akey = 4
+			and a.fnsh_add_lrn_cnt != 0
 		order by a.fnsh_add_lrn_cnt desc 
 		limit 3;
     </select>
@@ -767,6 +768,7 @@
 		where a.yyyymm_key = #{yymm}
 			and a.stud_key = #{studId}  
 			and a.ssvc_akey = 4
+			and a.fnsh_add_lrn_cnt != 0
 		order by a.fnsh_add_lrn_cnt desc 
 		limit 3;
     </select>

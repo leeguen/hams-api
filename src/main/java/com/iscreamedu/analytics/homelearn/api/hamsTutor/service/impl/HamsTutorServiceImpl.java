@@ -13,7 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -29,7 +32,10 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     private LinkedHashMap<String, Object> result;
     private String msgKey = "msg";
     private String dataKey = "data";
-
+    
+    // for QA
+    private LinkedHashMap<String, Object> apiResult;
+    
     @Autowired
     CommonMapperTutor mapper;
     
@@ -51,7 +57,8 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     	studInfoParamMap.put("apiName", "aiReport.");
         
         LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
-        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
         
         if(studInfoMap != null) {
         	//DB 조회
@@ -908,5 +915,70 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         }
 
         return decodedParamList;
+    }
+    
+    // for QA
+    private Map callExApi(Map<String, Object> paramMap) throws Exception {
+    	
+    	String apiName = ((String)paramMap.remove("apiName")).replaceAll("\\.", "\\/"); // '.'을 '/'로 변환, 맵에서 삭제
+		RestTemplate restTemplate = new RestTemplate();
+		
+    	try {
+        	String studId = "";
+    		String encodedStr = paramMap.get("p").toString();
+    		
+    		String[] paramList = getDecodedParam(encodedStr);
+    		studId = paramList[1];
+    		paramMap.put("studId", studId);
+    		
+    		String url = "https://sem.home-learn.com/sigong/clientsvc/admsys/v1/ai/tutor/" + apiName + paramMap.get("studId") + ".json";
+        	
+        	//파라미터 세팅
+        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+        	builder.queryParam("for", "aiReport");
+        	URI apiUri = builder.build().encode().toUri();  
+        	
+        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+        	
+        	LOGGER.debug("code : " + responseData.get("code"));
+        	LOGGER.debug("message : " + responseData.get("message"));
+        	LOGGER.debug("data : " + responseData.get("data"));
+        	
+        	if("200".equals(responseData.get("code").toString())) {
+        		setApiResult(dataKey, responseData.get("data"));
+        	} else {
+        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+        		setApiResult(msgKey, msgMap);
+        	}
+    	} catch(Exception e) {
+    		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+    		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+    		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+    		setApiResult(msgKey, msgMap);
+    	}
+    	
+    	return apiResult;
+    }
+    
+    // for QA
+    private void setApiResult(String key, Object data) {
+        LinkedHashMap message = new LinkedHashMap();
+        apiResult = new LinkedHashMap();
+
+        if(data == null
+                || (data instanceof List && ((List)data).size() == 0)
+                || (data instanceof Map && ((Map)data).isEmpty())) {
+            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+        }
+        else if(resultNullCheck((Map)data)) {
+            throw new NoDataException(new Object[] {key,"null",ValidationCode.NO_DATA});
+        }
+        else {
+            message.put("resultCode", ValidationCode.SUCCESS.getCode());
+            apiResult.put(msgKey, message);
+            apiResult.put(dataKey, data);
+        }
     }
 }
