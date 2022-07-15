@@ -73,6 +73,18 @@ public class StudentController {
     }
     
     /**
+     * 학생 정보 (STUD-CM-003)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getStudInfo")
+    public ResponseEntity getStudInfoForTchr(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.getStudInfoForTchr(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
      * 현재 월 정보 (STUD-CM-004)
      * @param params
      * @return
@@ -103,7 +115,7 @@ public class StudentController {
      * @throws Exception
      */
     @GetMapping("/getLrnTypeDetail")
-    public ResponseEntity getLrnTypeInfo(@RequestParam Map<String,Object> params) throws Exception {
+    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetail(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
@@ -115,11 +127,47 @@ public class StudentController {
      * @throws Exception
      */
     @GetMapping("/getLrnTypeHistory")
-    public ResponseEntity getLrnTypeDetail(@RequestParam Map<String,Object> params) throws Exception {
+    public ResponseEntity getLrnTypeHistory(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistory(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * 학습유형 경로 정보 (STUD-LT-004)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getLrnTypePathInfo")
+    public ResponseEntity getLrnTypePathInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypePathInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 학습유형 안내 (STUD-LT-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/admin/getLrnTypeDetail")
+    public ResponseEntity getLrnTypeDetailForAdmin(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeDetailForAdmin(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 
+    /**
+     * 학습유형 상세 (STUD-LT-006)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/admin/getLrnTypeHistory")
+    public ResponseEntity getLrnTypeHistoryForAdmin(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnTypeService.getLrnTypeHistoryForAdmin(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
     /**
      * 학습유형 안내 (STUD-LT-005)
      * @param params
@@ -157,7 +205,7 @@ public class StudentController {
     }
     
     /**
-     * 학습현황 (STUD-LA-003)
+     * 출석률 (STUD-LA-003)
      * @param params
      * @return
      * @throws Exception
@@ -217,7 +265,7 @@ public class StudentController {
     }
     
     /**
-     * 평가점수 (STUD-LA-009)
+     * 평가점수 (STUD-LA-008)
      * @param params
      * @return
      * @throws Exception
@@ -229,7 +277,7 @@ public class StudentController {
     }
     
     /**
-     * 오답노트 현황 (STUD-LA-010)
+     * 오답노트 현황 (STUD-LA-009)
      * @param params
      * @return
      * @throws Exception
@@ -241,7 +289,7 @@ public class StudentController {
     }
     
     /**
-     * 문제풀이 습관 (STUD-LA-011)
+     * 문제풀이 습관 (STUD-LA-010)
      * @param params
      * @return
      * @throws Exception
@@ -253,7 +301,7 @@ public class StudentController {
     }
     
     /**
-     * 문제풀이 습관 (STUD-LA-011)
+     * 문제풀이 습관 (STUD-LA-010)
      * @param params
      * @return
      * @throws Exception
@@ -265,28 +313,15 @@ public class StudentController {
     }
     
     /**
-     * 리포트 소감 조회 (STUD-LA-012)
+     * 리포트 소감 조회 (STUD-LA-011)
      * @param params
      * @return
      * @throws Exception
      */
-    @GetMapping("/getReportEmotion")
-    public ResponseEntity getReportEmotion(@RequestParam Map<String,Object> params) throws Exception {
-        body = (LinkedHashMap<String, Object>) studLrnAnalService.getReportEmotion(params);
+    @GetMapping("/insertReportCheck")
+    public ResponseEntity insertReportCheck(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.insertReportCheck(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
     
-    /**
-     * 리포트 소감 등록 (STUD-LA-013)
-     * @param params
-     * @return
-     * @throws Exception
-     */
-    @PostMapping("/insertReportEmotion")
-	@ResponseBody
-	public ResponseEntity insertReportEmotion(@RequestBody Map<String, Object> params) throws Exception {
-		body = (LinkedHashMap<String, Object>)studLrnAnalService.insertReportEmotion(params);
-		return new ResponseEntity(body, headers, HttpStatus.OK);
-	}
-
 }

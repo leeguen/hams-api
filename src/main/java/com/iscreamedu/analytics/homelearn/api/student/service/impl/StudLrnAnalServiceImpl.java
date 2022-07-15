@@ -180,6 +180,51 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
+    public Map getStudInfoForTchr(Map<String, Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        Map<String,Object> studInfoParamMap = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        vu.checkRequired(new String[] {"p"}, paramMap);
+        
+        if(vu.isValid()) {
+        	getStudId(paramMap);
+        	
+        	studInfoParamMap.put("p", paramMap.get("p"));
+        	studInfoParamMap.put("apiName", "aiReport.");
+            
+            LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+            Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+            
+            String studId = (paramMap.get("studId") != null) ? paramMap.get("studId").toString() : null;
+            
+            String decodeStudId = encodeStudId(studId);
+            
+            paramMap.put("studId", paramMap.get("studId"));
+            
+            Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+            Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+            
+        	data.put("p", decodeStudId);
+        	data.put("studId", studInfoMap.get("stuId"));
+        	data.put("studNm", studInfoMap.get("name"));
+        	data.put("gender", studInfoMap.get("gender"));
+        	data.put("grade", studInfoMap.get("grade"));
+        	data.put("studType", studInfoMap.get("divCdNm"));
+        	data.put("sttDt", studData.get("sttDt"));
+        	data.put("recentReport", studRecentData.get("recentReport"));
+        	
+        	setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+	
+	    return result;
+    }
+    
+    @Override
     public Map getYymmwkList(Map<String, Object> paramMap) throws Exception {
     	ArrayList<Map<String, Object>> data = new ArrayList<>();
     	
@@ -231,7 +276,6 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
 				
 				int recentYymm = (studRecentData != null) ? Integer.valueOf(studRecentData.get("recentReport").toString()) : 0;
-				
 				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
 				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
 				
@@ -257,7 +301,21 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							weekReportMap.put("publishYn", weekReportItem.get("reportYn"));
 							
 							if(recentYymm == weekReportYymmwk) {
-								checkYn = "N";
+								Map<String, Object> weekReportCheckParamMap = new LinkedHashMap<>();
+				    			String recentReportValue = String.valueOf(recentYymm);
+				    			
+				    			int wk = Integer.parseInt(recentReportValue.substring(6));
+			    				int yymm = Integer.parseInt(recentReportValue.substring(0,6));
+			    				
+			    				weekReportCheckParamMap.put("studId", paramMap.get("studId"));
+			    				weekReportCheckParamMap.put("yymm", yymm);
+			    				weekReportCheckParamMap.put("wk", wk);
+			    				
+			    				Map<String, Object> checkWeekDataMap = (Map<String, Object>) commonMapperLrnType.get(weekReportCheckParamMap, "StudLrnType.getReportCheck");
+			    				
+								String dataCheck = checkWeekDataMap.get("dataCheck").toString();
+								
+								checkYn = dataCheck;
 							}
 							
 							weekReportMap.put("checkYn", checkYn);
@@ -276,7 +334,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							monthReportMap.put("publishYn", monthReportItem.get("reportYn"));
 							
 							if(recentYymm == monthReportYymm) {
-								checkYn = "N";
+								Map<String, Object> monthReportCheckParamMap = new LinkedHashMap<>();
+								
+								monthReportCheckParamMap.put("studId", paramMap.get("studId"));
+								monthReportCheckParamMap.put("yymm", recentYymm);
+			    				
+								Map<String, Object> checkMonthDataMap = (Map<String, Object>) commonMapperLrnType.get(monthReportCheckParamMap, "StudLrnType.getReportCheck");
+								
+								String dataCheck = checkMonthDataMap.get("dataCheck").toString();
+								
+								checkYn = dataCheck;
 							}
 							
 							monthReportMap.put("checkYn", checkYn);
@@ -383,7 +450,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
 	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
-	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					Object score = (examSubjItme.get("exRt") != null) ? Integer.valueOf(examSubjItme.get("exRt").toString()) : null;
 	        					
 	        					if(subjCd.equals("c00")) {
 	        						examMap.put("examScore", score);
@@ -392,13 +459,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        				}
 	        				
-	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
-	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
-	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
-	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
-	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
-	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
-	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
+	        				examMap.put("incrtNoteCnt", (examQuesMap != null && examQuesMap.get("wnoteTotCnt") != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null && examQuesMap.get("wnoteFnshCnt") != null) ? examQuesMap.get("wnoteFnshCnt") : null);
+	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null && examQuesMap.get("wnoteUnfnshCnt") != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
+	        				examMap.put("quesTotCnt", (examQuesMap != null && examQuesMap.get("quesTotCnt") != null) ? examQuesMap.get("quesTotCnt") : null);
+	        				examMap.put("skipQuesCnt", (examQuesMap != null && examQuesMap.get("quesSkipCnt") != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null && examQuesMap.get("quesHrryCnt") != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null && examQuesMap.get("quesGussCnt") != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null && examQuesMap.get("quesMstkeCnt") != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
 	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);
@@ -480,7 +548,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				for(Map<String, Object> examSubjItme : examSubjList) {
 	        					String subjCd = (examSubjItme.get("subjCd").toString().equals("ALL")) ? "c00" : examSubjItme.get("subjCd").toString().replace("C", "c");
-	        					int score = Integer.valueOf(examSubjItme.get("exRt").toString());
+	        					Object score = (examSubjItme.get("exRt") != null) ? Integer.valueOf(examSubjItme.get("exRt").toString()) : null;
 	        					
 	        					if(subjCd.equals("c00")) {
 	        						examMap.put("examScore", score);
@@ -489,14 +557,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					}
 	        				}
 	        				
-	        				examMap.put("incrtNoteCnt", (examQuesMap != null) ? examQuesMap.get("wnoteTotCnt") : null);
-	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null) ? examQuesMap.get("wnoteFnshCnt") : null);
-	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
-	        				examMap.put("quesTotCnt", (examQuesMap != null) ? examQuesMap.get("quesTotCnt") : null);
-	        				examMap.put("skipQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesSkipCnt") : null);
-	        				examMap.put("cursoryQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesHrryCnt") : null);
-	        				examMap.put("guessQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesGussCnt") : null);
-	        				examMap.put("mistakeQuesCnt", (examQuesMap != null) ? examQuesMap.get("quesMstkeCnt") : null);
+	        				examMap.put("incrtNoteCnt", (examQuesMap != null && examQuesMap.get("wnoteTotCnt") != null) ? examQuesMap.get("wnoteTotCnt") : null);
+	        				examMap.put("incrtNoteFnshCnt", (examQuesMap != null && examQuesMap.get("wnoteFnshCnt") != null) ? examQuesMap.get("wnoteFnshCnt") : null);
+	        				examMap.put("incrtNoteNcCnt", (examQuesMap != null && examQuesMap.get("wnoteUnfnshCnt") != null) ? examQuesMap.get("wnoteUnfnshCnt") : null);
+	        				examMap.put("quesTotCnt", (examQuesMap != null && examQuesMap.get("quesTotCnt") != null) ? examQuesMap.get("quesTotCnt") : null);
+	        				examMap.put("skipQuesCnt", (examQuesMap != null && examQuesMap.get("quesSkipCnt") != null) ? examQuesMap.get("quesSkipCnt") : null);
+	        				examMap.put("cursoryQuesCnt", (examQuesMap != null && examQuesMap.get("quesHrryCnt") != null) ? examQuesMap.get("quesHrryCnt") : null);
+	        				examMap.put("guessQuesCnt", (examQuesMap != null && examQuesMap.get("quesGussCnt") != null) ? examQuesMap.get("quesGussCnt") : null);
+	        				examMap.put("mistakeQuesCnt", (examQuesMap != null && examQuesMap.get("quesMstkeCnt") != null) ? examQuesMap.get("quesMstkeCnt") : null);
 	        				
 	        				if(examMap != null && learnMap != null) {
 	        					data.put("learn", learnMap);
@@ -585,6 +653,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				data.put("msg", attRtDataMap.get("msg"));
+	        				data.put("infoMsg", attRtDataMap.get("infoMsg"));
 	        				data.put("imgUrl", attRtDataMap.get("imgUrl"));
 	        				data.put("imgBgUrl", attRtDataMap.get("imgBgUrl"));
 	        				data.put("attRtList", attRtDataList);
@@ -644,6 +713,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				}
 	        				
 	        				data.put("msg", attRtDataMap.get("msg"));
+	        				data.put("infoMsg", attRtDataMap.get("infoMsg"));
 	        				data.put("imgUrl", attRtDataMap.get("imgUrl"));
 	        				data.put("imgBgUrl", attRtDataMap.get("imgBgUrl"));
 	        				data.put("attRtList", attRtDataList);
@@ -739,6 +809,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjMap.put("subjCd", subjCd);
 	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
 	        						lrnExRtSubjMap.put("msg", lrnExRtItem.get("msg"));
+	        						lrnExRtSubjMap.put("infoMsg", lrnExRtItem.get("infoMsg"));
 	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
 	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
@@ -844,6 +915,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						lrnExRtSubjMap.put("subjCd", subjCd);
 	        						lrnExRtSubjMap.put("subjNm", lrnExRtItem.get("subjNm"));
 	        						lrnExRtSubjMap.put("msg", lrnExRtItem.get("msg"));
+	        						lrnExRtSubjMap.put("infoMsg", lrnExRtItem.get("infoMsg"));
 	        						lrnExRtSubjMap.put("imgUrl", lrnExRtItem.get("imgUrl"));
 	        						lrnExRtSubjMap.put("imgBgUrl", lrnExRtItem.get("imgBgUrl"));
 	        						
@@ -955,17 +1027,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				String maxLrnHabitCd = null;
 	        				
 	        				String msg = (learnMap.get("msg") != null) ? learnMap.get("msg").toString() : null;
+	        				String infoMsg = (learnMap.get("infoMsg") != null) ? learnMap.get("infoMsg").toString() : null;
 	        				String imgUrl = (learnMap.get("imgUrl") != null) ? learnMap.get("imgUrl").toString() : null;
 	        				String imgBgUrl = (learnMap.get("imgBgUrl") != null) ? learnMap.get("imgBgUrl").toString() : null;
 	        				
 	        				data.put("msg", msg);
+	        				data.put("infoMsg", infoMsg);
 	        				data.put("imgUrl", imgUrl);
 	        				data.put("imgBgUrl", imgBgUrl);
 	        				data.put("bLrnCnt", learnMap.get("bLrnCnt"));
     						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
     						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
 	        				
-    						maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
+    						maxLrnHabitCd = (lrnhabitMap != null && lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
         					
         					if(maxLrnHabitCd != null) {
         						String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
@@ -1018,17 +1092,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				String maxLrnHabitCd = null;
 	        				
 	        				String msg = (learnMap.get("msg") != null) ? learnMap.get("msg").toString() : null;
+	        				String infoMsg = (learnMap.get("infoMsg") != null) ? learnMap.get("infoMsg").toString() : null;
 	        				String imgUrl = (learnMap.get("imgUrl") != null) ? learnMap.get("imgUrl").toString() : null;
 	        				String imgBgUrl = (learnMap.get("imgBgUrl") != null) ? learnMap.get("imgBgUrl").toString() : null;
 	        				
 	        				data.put("msg", msg);
+	        				data.put("infoMsg", infoMsg);
 	        				data.put("imgUrl", imgUrl);
 	        				data.put("imgBgUrl", imgBgUrl);
 	        				data.put("bLrnCnt", learnMap.get("bLrnCnt"));
     						data.put("tLrnCnt", learnMap.get("tLrnCnt"));
     						data.put("dLrnCnt", learnMap.get("dLrnCnt"));
 	        				
-    						maxLrnHabitCd = (lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
+    						maxLrnHabitCd = (lrnhabitMap != null && lrnhabitMap.get("maxNm") != null) ? lrnhabitMap.get("maxNm").toString() : null;
         					
         					if(maxLrnHabitCd != null) {
         						String maxLrnHabitNm = (maxLrnHabitCd.startsWith("b")) ? "일찍 했어요" : (maxLrnHabitCd.startsWith("t")) ? "계획대로 했어요" : "나중에 했어요";
@@ -1256,6 +1332,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     				}
     				
     				data.put("msg", aLrnDataMap.get("msg"));
+    				data.put("infoMsg", aLrnDataMap.get("infoMsg"));
     				data.put("imgUrl", aLrnDataMap.get("imgUrl"));
     				data.put("imgBgUrl", aLrnDataMap.get("imgBgUrl"));
     				data.put("maxALrnSubjNm", aLrnDataMap.get("subjNm"));
@@ -1343,6 +1420,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjMap.put("subjCd", subjCd);
 	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
 	        						examScoreSubjMap.put("msg", examScoreItem.get("msg"));
+	        						examScoreSubjMap.put("infoMsg", examScoreItem.get("infoMsg"));
 	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
 	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
@@ -1448,6 +1526,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        						examScoreSubjMap.put("subjCd", subjCd);
 	        						examScoreSubjMap.put("subjNm", examScoreItem.get("subjNm"));
 	        						examScoreSubjMap.put("msg", examScoreItem.get("msg"));
+	        						examScoreSubjMap.put("infoMsg", examScoreItem.get("infoMsg"));
 	        						examScoreSubjMap.put("imgUrl", examScoreItem.get("imgUrl"));
 	        						examScoreSubjMap.put("imgBgUrl", examScoreItem.get("imgBgUrl"));
 	        						
@@ -1556,6 +1635,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				if(incrtNoteMap != null) {
 	        					data.put("msg", incrtNoteMap.get("msg"));
+	        					data.put("infoMsg", incrtNoteMap.get("infoMsg"));
 	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
 	        					data.put("imgBgUrl", incrtNoteMap.get("imgBgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
@@ -1603,6 +1683,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
     						if(incrtNoteMap != null) {
 	        					data.put("msg", incrtNoteMap.get("msg"));
+	        					data.put("infoMsg", incrtNoteMap.get("infoMsg"));
 	        					data.put("imgUrl", incrtNoteMap.get("imgUrl"));
 	        					data.put("imgBgUrl", incrtNoteMap.get("imgBgUrl"));
 	        					data.put("incrtNoteCnt", incrtNoteMap.get("wnoteTotCnt"));
@@ -1917,6 +1998,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMsgMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
@@ -1929,6 +2011,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("endYymm", endYymm);
 	        				
 	        				slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
+	        				slvHabitMsgMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitMsg");
 	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitList");
 	        				
 	        				if(slvHabitMap != null) {
@@ -1939,10 +2022,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
 	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
 	        					
-	        					data.put("msg", slvHabitMap.get("msg"));
-	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
-	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
+	        					Map<String, Object> slvHabitMsgDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitMsgDataMap.put("skipQuesMsg", slvHabitMsgMap.get("skipMsg"));
+	        					slvHabitMsgDataMap.put("cursoryQuesMsg", slvHabitMsgMap.get("hurrMsg"));
+	        					slvHabitMsgDataMap.put("guessQuesMsg", slvHabitMsgMap.get("gussMsg"));
+	        					slvHabitMsgDataMap.put("mistakeQuesMsg", slvHabitMsgMap.get("mstkeMsg"));
+	        					
+	        					data.put("msg", slvHabitMsgMap.get("totMsg"));
+	        					data.put("infoMsg", slvHabitMsgMap.get("infoMsg"));
+	        					data.put("imgUrl", slvHabitMsgMap.get("totImgUrl"));
+	        					data.put("imgBgUrl", slvHabitMsgMap.get("totImgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
+	        					data.put("slvHabitMsgData", slvHabitMsgDataMap);
 
 	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
 	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();
@@ -1993,6 +2085,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
+	        				Map<String, Object> slvHabitMsgMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
@@ -2005,6 +2098,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				paramMap.put("endYymmwk", endYymmwk);
 	        				
 	        				slvHabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitStt");
+	        				slvHabitMsgMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getSlvHabitMsg");
 	        				slvHabitDataList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getSlvHabitList");
 	        				
 	        				if(slvHabitMap != null) {
@@ -2015,10 +2109,19 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					slvHabitMonthDataMap.put("guessQuesCnt", slvHabitMap.get("quesGussCnt"));
 	        					slvHabitMonthDataMap.put("mistakeQuesCnt", slvHabitMap.get("quesMstkeCnt"));
 	        					
-	        					data.put("msg", slvHabitMap.get("msg"));
-	        					data.put("imgUrl", slvHabitMap.get("imgUrl"));
-	        					data.put("imgBgUrl", slvHabitMap.get("imgBgUrl"));
+	        					Map<String, Object> slvHabitMsgDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitMsgDataMap.put("skipQuesMsg", slvHabitMsgMap.get("skipMsg"));
+	        					slvHabitMsgDataMap.put("cursoryQuesMsg", slvHabitMsgMap.get("hurrMsg"));
+	        					slvHabitMsgDataMap.put("guessQuesMsg", slvHabitMsgMap.get("gussMsg"));
+	        					slvHabitMsgDataMap.put("mistakeQuesMsg", slvHabitMsgMap.get("mstkeMsg"));
+	        					
+	        					data.put("msg", slvHabitMsgMap.get("totMsg"));
+	        					data.put("infoMsg", slvHabitMsgMap.get("infoMsg"));
+	        					data.put("imgUrl", slvHabitMsgMap.get("totImgUrl"));
+	        					data.put("imgBgUrl", slvHabitMsgMap.get("totImgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
+	        					data.put("slvHabitMsgData", slvHabitMsgDataMap);
 
 	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
 	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();
@@ -2062,88 +2165,98 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     }
     
     @Override
-    public Map getReportEmotion(Map<String, Object> paramMap) throws Exception {
+    public Map insertReportCheck(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
-        ValidationUtil vuM = new ValidationUtil();
-        ValidationUtil vuW = new ValidationUtil();
-        ValidationUtil vu1 = new ValidationUtil();
-        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
+        vu.checkRequired(new String[] {"p"}, paramMap);
         
         if(vu.isValid()) {
-        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			paramMap.put("currConCheck", currConCheck);
-			
-			if(currConCheck.equals("m")) {
-				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-	        	
-	        	if(vuM.isValid()) {
-	        		getStudId(paramMap);
-	        		
-	        		if(decodeResult.isEmpty()) {
-	        			String yyyy = paramMap.get("yyyy").toString();
-	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
-	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
-	        			
-	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-	        			
-	        			if(vu1.isValid()) {
-	        				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
-	        				
-	        				setResult(dataKey,data);
-	        			} else {
-	        				setResult(msgKey, vu1.getResult());
-	        			}
-	        			
-	        		} else {
-	        			setResult(msgKey, decodeResult);
-	        		}
-	        		
-	        	} else {
-	        		setResult(msgKey, vuM.getResult());
-	        	}
-			} else {
-				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+        	getStudId(paramMap);
+    		
+    		if(decodeResult.isEmpty()) {
+    			Map<String, Object> checkDataMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> insertParamMap = new LinkedHashMap<String, Object>();
+    			String recentReportValue = paramMap.get("recentReport").toString();
+    			
+    			int paramLength = paramMap.get("recentReport").toString().length();
+    			int row = 0;
+    			String dataCheck = "Y";
+    			
+    			if(paramLength < 6) {
+    				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+    				int nerParamLength = studRecentData.get("recentReport").toString().length();
+    				// recentReport 값의 길이로 월간 / 주간 구분
+    				if(nerParamLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", studRecentData.get("recentReport"));
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				} else {
+    					int wk = Integer.parseInt(studRecentData.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(studRecentData.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				}
+    			} else {
+    				if(paramLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", paramMap.get("recentReport"));
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				} else {
+    					int wk = Integer.parseInt(paramMap.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(paramMap.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    					checkDataMap = (Map<String, Object>) commonMapperLrnType.get(insertParamMap, "StudLrnType.getReportCheck");
+    					
+    				}
+    			}
+    			
+    			// 리포트 확인 데이터 등록 여부 확인 : 확인 - "Y" / 미확인 - "N"
+    			dataCheck = checkDataMap.get("dataCheck").toString();
 				
-				if(vuW.isValid()) {
-					getStudId(paramMap);
-	        		
-	        		if(decodeResult.isEmpty()) {
-	        			String yyyy = paramMap.get("yyyy").toString();
-	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
-	        			String wk = paramMap.get("wk").toString();
-	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
-	        			
-	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-	        			vu2.isNumeric("wk", wk);
-	        			
-	        			if(vu1.isValid() && vu2.isValid()) {
-	        				data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
-	        				
-	        				setResult(dataKey,data);
-	        			} else {
-	        				if(!vu1.isValid()) {
-								setResult(msgKey, vu1.getResult());
-							}else if(!vu2.isValid()) {
-								setResult(msgKey, vu2.getResult());
-							}
-	        			}
-	        			
-	        		} else {
-	        			setResult(msgKey, decodeResult);
-	        		}
+    			// 리포트 미확인 시 리포트 확인 값 등록
+				if(dataCheck.equals("N")) {
+					try {
+						row = commonMapperLrnType.insert(insertParamMap, "StudLrnType.insertReportCheck");
+						
+						if(row > 0) {
+							data.put("msg", "Success");
+							data.put("insertYn", "Y");
+							
+						} else {
+							data.put("msg", "Fail");
+							data.put("insertYn", "N");
+						}
+						
+					} catch (Exception e) {
+						data.put("msg", "Fail");
+						data.put("insertYn", "N");
+					}
 					
 				} else {
-					setResult(msgKey, vuW.getResult());
+					data.put("msg", "Duplicate");
+					data.put("insertYn", "N");
 				}
-			}
+    			
+				setResult(dataKey,data);
+    			
+    		} else {
+    			setResult(msgKey, decodeResult);
+    		}
         	
         } else {
         	setResult(msgKey, vu.getResult());
@@ -2152,7 +2265,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	    return result;
     }
     
-    @Override
+    /*@Override
     public Map insertReportEmotion(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
     	Map<String, Object> msg = new LinkedHashMap<>();
@@ -2297,7 +2410,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         }
 	
 	    return result;
-    }
+    }*/
     
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
@@ -2341,7 +2454,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	CipherUtil cp = CipherUtil.getInstance();
     		String decodedStr = cp.AES_Decode(params.get("p").toString());
     		
-    		int studId = Integer.parseInt(decodedStr);
+    		int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
     		
     		if(decodedStr != null) {
     			//DB params
