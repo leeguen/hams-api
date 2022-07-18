@@ -214,16 +214,16 @@
 			plan_lrn_cnt as plan_cnt,
 			tiltrm_lrn_exec_cnt as lrn_cnt,
 			round(tiltrm_exec_rt * 100) as ex_rt,
-			eqtrm_pre_lrn_exec_cnt as b_lrn_cnt,
+			pre_lrn_exec_cnt as b_lrn_cnt,
 			intm_lrn_exec_cnt as t_lrn_cnt,
 			eqtrm_dely_lrn_exec_cnt as d_lrn_cnt,
-			round(eqtrm_pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
+			round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
 			round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
 			round(eqtrm_dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt,
 			null as concn_score,
 			null as concn_msg,
 			-- b.tot_lrn_cnt as lrn_sec,
-			(a.add_lrn_cnt - coalesce(sub_add_lrn_cnt,0)) as a_lrn_cnt
+			add_lrn_cnts::integer as a_lrn_cnt
 		<choose>
 			<when test='currConCheck == "m"'>
 			from lrn_dsb.ds_ag_lrn_use_sts_mly a
@@ -234,11 +234,12 @@
 					yyyymm_key,
 					stud_key,
 					ssvc_akey,
-					sum(add_lrn_cnt) as sub_add_lrn_cnt
+					sum(fnsh_add_lrn_cnt) as add_lrn_cnts
 				from lrn_dsb.ds_ag_lrn_use_sts_mly a
 				where yyyymm_key = #{yymm}
 					and stud_key = #{studId}
-					and grp_item_key in (4001, 4002, 4411, 4412)
+					and ssvc_akey = 4
+					and grp_item_key between 4401 and 4410
 				group by yyyymm_key, stud_key, ssvc_akey
 			) d on a.yyyymm_key = d.yyyymm_key and a.stud_key = d.stud_key and a.ssvc_akey = d.ssvc_akey
 			where a.yyyymm_key = #{yymm}
@@ -252,11 +253,12 @@
 					yyyymmw_key,
 					stud_key,
 					ssvc_akey,
-					sum(add_lrn_cnt) as sub_add_lrn_cnt
+					sum(fnsh_add_lrn_cnt) as add_lrn_cnts
 				from lrn_dsb.ds_ag_lrn_use_sts_wly a
 				where yyyymmw_key = #{yymmwk}
 					and stud_key = #{studId}
-					and grp_item_key in (4001, 4002, 4411, 4412)
+					and ssvc_akey = 4
+					and grp_item_key between 4401 and 4410
 				group by yyyymmw_key, stud_key, ssvc_akey
 			) d on a.yyyymmw_key = d.yyyymmw_key and a.stud_key = d.stud_key and a.ssvc_akey = d.ssvc_akey
 			where a.yyyymmw_key = #{yymmwk}
@@ -572,8 +574,8 @@
     	select 
 			case
 				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'tLrn'
-				when pre_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'bLrn'
-				when eqtrm_dely_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'dLrn'
+				when pre_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'bLrn'
+				when eqtrm_dely_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'dLrn'
 				else null
 			end as max_nm
 		<choose>
@@ -722,7 +724,7 @@
 				b.item_nm as subj_nm
 			from lrn_dsb.ds_ag_lrn_use_sts_mly a
 			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-				and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+				and b.grp_item_key between 4401 and 4410
 			where a.yyyymm_key = #{yymm} 
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 4
@@ -740,7 +742,7 @@
 				b.item_nm as subj_nm
 			from lrn_dsb.ds_ag_lrn_use_sts_wly a
 			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-				and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+				and b.grp_item_key between 4401 and 4410
 			where a.yyyymmw_key = #{yymmwk} 
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 4
@@ -763,13 +765,13 @@
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+			and b.grp_item_key between 4401 and 4410
 		where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_lrn_use_sts_wly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+			and b.grp_item_key between 4401 and 4410
 		where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
 		</choose>
@@ -788,14 +790,14 @@
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+			and b.grp_item_key between 4401 and 4410
 		where a.yyyymm_key = #{yymm}
 			and a.stud_key = #{studId}  
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_lrn_use_sts_wly a
 		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key in (4401, 4402, 4403, 4404, 4405, 4406, 4407, 4408, 4409, 4410)
+			and b.grp_item_key between 4401 and 4410
 		where a.yyyymmw_key = #{yymmwk}
 			and a.stud_key = #{studId}  
 			</otherwise>
