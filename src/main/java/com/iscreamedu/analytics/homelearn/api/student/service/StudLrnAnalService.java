@@ -37,4 +37,6 @@ public interface StudLrnAnalService {
     public Map getSlvHabit2(Map<String, Object> paramMap) throws Exception;
     
     public Map insertReportCheck(Map<String, Object> paramMap) throws Exception;
+    
+    public Map deleteReportCheck(Map<String, Object> paramMap) throws Exception;
 }

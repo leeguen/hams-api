@@ -2336,152 +2336,91 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	    return result;
     }
     
-    /*@Override
-    public Map insertReportEmotion(Map<String, Object> paramMap) throws Exception {
+    @Override
+    public Map deleteReportCheck(Map<String, Object> paramMap) throws Exception {
     	Map<String,Object> data = new LinkedHashMap<>();
-    	Map<String, Object> msg = new LinkedHashMap<>();
     	
         ValidationUtil vu = new ValidationUtil();
-        ValidationUtil vuM = new ValidationUtil();
-        ValidationUtil vuW = new ValidationUtil();
-        ValidationUtil vu1 = new ValidationUtil();
-        ValidationUtil vu2 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"currCon","p"}, paramMap);
+        vu.checkRequired(new String[] {"p"}, paramMap);
         
         if(vu.isValid()) {
-        	String currConCheck = paramMap.get("currCon").toString().toLowerCase();
-			paramMap.put("currConCheck", currConCheck);
-			
-			if(currConCheck.equals("m")) {
-				vuM.checkRequired(new String[] {"yyyy","mm"}, paramMap);
-	        	
-	        	if(vuM.isValid()) {
-	        		getStudId(paramMap);
-	        		
-	        		if(decodeResult.isEmpty()) {
-	        			String yyyy = paramMap.get("yyyy").toString();
-	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
-	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
-	        			
-	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-	        			
-	        			if(vu1.isValid()) {
-	        				Map<String,Object> emotionData = new LinkedHashMap<>();
-	        				emotionData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
-	        				
-	        				String emotionCheck = emotionData.get("emotionYn").toString();
-	        				
-	        				if(emotionCheck.equals("N")) {
-	        					Map<String,Object> insertParamMap = new LinkedHashMap<>();
-	        					
-	        					insertParamMap.put("yymm", paramMap.get("yymm"));
-	        					insertParamMap.put("studId", paramMap.get("studId"));
-	        					insertParamMap.put("emoticon", paramMap.get("emoticon"));
-	        					
-	        					int row = 0;
-	        					row = commonMapperLrnType.insert(paramMap, "StudLrnType.insertReportEmotion");
-	        					
-	        					if(row > 0) {
-	        						data.put("msg", "Success");
-	        						data.put("insertYn", "Y");
-	        						
-	        						setResult(dataKey,data);
-	        					}else {
-	        						msg.put("resultCode", 9999);
-		        					msg.put("result", "Insert Error");
-		        					setResult(msgKey, msg);
-	        					}
-	        				} else {
-	        					msg.put("resultCode", 9999);
-	        					msg.put("result", "Duplicate Error");
-	        					setResult(msgKey, msg);
-	        				}
-	        			} else {
-	        				setResult(msgKey, vu1.getResult());
-	        			}
-	        			
-	        		} else {
-	        			setResult(msgKey, decodeResult);
-	        		}
-	        		
-	        	} else {
-	        		setResult(msgKey, vuM.getResult());
-	        	}
-			} else {
-				vuW.checkRequired(new String[] {"yyyy","mm", "wk"}, paramMap);
+        	getStudId(paramMap);
+    		
+    		if(decodeResult.isEmpty()) {
+    			Map<String, Object> checkDataMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> insertParamMap = new LinkedHashMap<String, Object>();
+    			String recentReportValue = paramMap.get("recentReport").toString();
+    			
+    			int paramLength = paramMap.get("recentReport").toString().length();
+    			int row = 0;
+    			String dataCheck = "Y";
+    			
+    			if(paramLength < 6) {
+    				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+    				int nerParamLength = studRecentData.get("recentReport").toString().length();
+    				// recentReport 값의 길이로 월간 / 주간 구분
+    				if(nerParamLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", studRecentData.get("recentReport"));
+    					
+    				} else {
+    					int wk = Integer.parseInt(studRecentData.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(studRecentData.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    				}
+    			} else {
+    				if(paramLength == 6) {
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", paramMap.get("recentReport"));
+    					
+    				} else {
+    					int wk = Integer.parseInt(paramMap.get("recentReport").toString().substring(6));
+    					int yymm = Integer.parseInt(paramMap.get("recentReport").toString().substring(0,6));
+    					
+    					insertParamMap.put("studId", paramMap.get("studId"));
+    					insertParamMap.put("yymm", yymm);
+    					insertParamMap.put("wk", wk);
+    					
+    				}
+    			}
+    			
+    			// 리포트 확인 데이터 등록 여부 확인 : 확인 - "Y" / 미확인 - "N"
+    			dataCheck = checkDataMap.get("dataCheck").toString();
 				
-				if(vuW.isValid()) {
-					getStudId(paramMap);
-	        		
-	        		if(decodeResult.isEmpty()) {
-	        			String yyyy = paramMap.get("yyyy").toString();
-	        			int mm = Integer.valueOf(paramMap.get("mm").toString());
-	        			String wk = paramMap.get("wk").toString();
-	        			String convertMm = (mm < 10) ? "0" + mm : String.valueOf(mm);
-	        			
-	        			paramMap.put("yymm", yyyy+convertMm);
-	        			
-	        			vu1.isYearMonth("yyyy, mm", yyyy+convertMm);
-	        			vu2.isNumeric("wk", wk);
-	        			
-	        			if(vu1.isValid() && vu2.isValid()) {
-	        				Map<String,Object> emotionData = new LinkedHashMap<>();
-	        				emotionData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getReportEmotion");
-	        				
-	        				String emotionCheck = emotionData.get("emotionYn").toString();
-	        				
-	        				if(emotionCheck.equals("N")) {
-	        					Map<String,Object> insertParamMap = new LinkedHashMap<>();
-	        					
-	        					insertParamMap.put("yymm", paramMap.get("yymm"));
-	        					insertParamMap.put("wk", paramMap.get("wk"));
-	        					insertParamMap.put("studId", paramMap.get("studId"));
-	        					insertParamMap.put("emoticon", paramMap.get("emoticon"));
-	        					
-	        					int row = 0;
-	        					row = commonMapperLrnType.insert(paramMap, "StudLrnType.insertReportEmotion");
-	        					
-	        					if(row > 0) {
-	        						data.put("msg", "Success");
-	        						data.put("insertYn", "Y");
-	        						
-	        						setResult(dataKey,data);
-	        					}else {
-	        						msg.put("resultCode", 9999);
-		        					msg.put("result", "Insert Error");
-		        					setResult(msgKey, msg);
-	        					}
-	        				} else {
-	        					msg.put("resultCode", 9999);
-	        					msg.put("result", "Duplicate Error");
-	        					setResult(msgKey, msg);
-	        				}
-	        			} else {
-	        				if(!vu1.isValid()) {
-								setResult(msgKey, vu1.getResult());
-							}else if(!vu2.isValid()) {
-								setResult(msgKey, vu2.getResult());
-							}
-	        			}
-	        			
-	        		} else {
-	        			setResult(msgKey, decodeResult);
-	        		}
+    			try {
+					row = commonMapperLrnType.delete(insertParamMap, "StudLrnType.deleteReportCheck");
 					
-				} else {
-					setResult(msgKey, vuW.getResult());
+					if(row > 0) {
+						data.put("msg", "Success");
+						data.put("deleteYn", "Y");
+						
+					} else {
+						data.put("msg", "Fail");
+						data.put("deleteYn", "N");
+					}
+					
+				} catch (Exception e) {
+					data.put("msg", "Fail");
+					data.put("deleteYn", "N");
 				}
-			}
+    			
+				setResult(dataKey,data);
+    			
+    		} else {
+    			setResult(msgKey, decodeResult);
+    		}
         	
         } else {
         	setResult(msgKey, vu.getResult());
         }
 	
 	    return result;
-    }*/
+    }
     
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.

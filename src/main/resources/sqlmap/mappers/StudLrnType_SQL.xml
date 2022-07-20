@@ -298,6 +298,18 @@
     	</choose>
     </insert>
     
+    <delete id="deleteReportCheck" parameterType="hashMap">
+    	/* StudLrnType.deleteReportCheck */
+    	<choose>
+	    	<when test='wk == null'>
+	   		DELETE FROM MONTH_REPORT WHERE YYMM = #{yymm} AND STUD_ID = #{studId};
+	    	</when>
+	    	<otherwise>
+	    	DELETE FROM WEEK_REPORT WHERE YYMM = #{yymm} AND WK = #{wk} AND STUD_ID = #{studId};
+	    	</otherwise>
+    	</choose>
+    </delete>
+    
      <select id="getStudLrnTypeInfoCheck" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getStudLrnTypeInfoCheck */
     	SELECT

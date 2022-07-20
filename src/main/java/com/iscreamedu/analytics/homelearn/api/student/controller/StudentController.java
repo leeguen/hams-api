@@ -324,4 +324,15 @@ public class StudentController {
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
     
+    /**
+     * 리포트 소감 삭제 (STUD-LA-012)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/deleteReportCheck")
+    public ResponseEntity deleteReportCheck(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnAnalService.deleteReportCheck(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 }
