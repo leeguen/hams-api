@@ -480,7 +480,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         
         if(studInfoMap != null) {
         	int lrnSttCdApi = Integer.parseInt(studInfoMap.get("statusCd").toString().replace("000", "00"));
-        	int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+        	String studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "진행중" : "진행중단";
     		String studStatusDetail = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "L" : (lrnSttCdApi == 1008 || lrnSttCdApi == 1009 || lrnSttCdApi == 1010) ? "P" : "E";
     		
     		if(data == null) {
@@ -496,9 +497,6 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     		data.put("studStatus", studStatus);
     		data.put("studStatusDetail", studStatusDetail);
         }
-        
-        
-        
         
         setResult(dataKey,data);
 

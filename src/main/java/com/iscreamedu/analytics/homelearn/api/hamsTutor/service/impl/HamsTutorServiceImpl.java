@@ -292,7 +292,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             Map<String,Object> exStt = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnExSttEx");
             Map<String,Object> tmStt = (Map)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getLrnExSttTm");
         	
-          //2.0 데이터
+            //2.0 데이터
         	String[] sqlLists = {"LrnExStt","ALrnExStt","LrnTmStt"};
             List<String> dwSqlList = Arrays.asList(sqlLists);
             
@@ -309,6 +309,10 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         	//수행률
     		try {
     			Map<String,Object> lrnExSttMap = (Map<String, Object>) lrnLrnExSttMap.get("LrnExStt");
+    			
+    			if(exStt == null) {
+    				exStt = new HashMap<>();
+    			}
     			
     			exStt.put("exRt", lrnExSttMap.get("exRt"));
     			exStt.put("planCnt", lrnExSttMap.get("planCnt"));
@@ -336,7 +340,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     			
     			tmStt.put("lrnTm", lrnTmStt.get("totalLrnTm"));
     		} catch (Exception e) {
-    			LOGGER.debug("ALrnExStt : Error");
+    			LOGGER.debug("LrnTmStt : Error");
 			}
     		
             lrnExStt.put("exStt",exStt);
