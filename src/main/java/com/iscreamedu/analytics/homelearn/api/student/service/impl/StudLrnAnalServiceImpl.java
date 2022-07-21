@@ -2385,12 +2385,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
     					insertParamMap.put("studId", paramMap.get("studId"));
     					insertParamMap.put("yymm", yymm);
     					insertParamMap.put("wk", wk);
-    					
     				}
     			}
-    			
-    			// 리포트 확인 데이터 등록 여부 확인 : 확인 - "Y" / 미확인 - "N"
-    			dataCheck = checkDataMap.get("dataCheck").toString();
 				
     			try {
 					row = commonMapperLrnType.delete(insertParamMap, "StudLrnType.deleteReportCheck");
