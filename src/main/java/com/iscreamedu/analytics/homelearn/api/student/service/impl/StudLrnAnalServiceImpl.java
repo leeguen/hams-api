@@ -2100,12 +2100,24 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					slvHabitMsgDataMap.put("guessQuesMsg", slvHabitMsgMap.get("gussMsg"));
 	        					slvHabitMsgDataMap.put("mistakeQuesMsg", slvHabitMsgMap.get("mstkeMsg"));
 	        					
+	        					Map<String, Object> slvHabitImgDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitImgDataMap.put("skipQuesImgUrl", slvHabitMsgMap.get("skipImgUrl"));
+	        					slvHabitImgDataMap.put("skipQuesImgBgUrl", slvHabitMsgMap.get("skipImgBgUrl"));
+	        					slvHabitImgDataMap.put("cursoryQuesImgUrl", slvHabitMsgMap.get("hurrImgUrl"));
+	        					slvHabitImgDataMap.put("cursoryQuesImgBgUrl", slvHabitMsgMap.get("hurrImgBgUrl"));
+	        					slvHabitImgDataMap.put("guessQuesImgUrl", slvHabitMsgMap.get("gussImgUrl"));
+	        					slvHabitImgDataMap.put("guessQuesImgBgUrl", slvHabitMsgMap.get("gussImgBgUrl"));
+	        					slvHabitImgDataMap.put("mistakeQuesImgUrl", slvHabitMsgMap.get("mstkeImgUrl"));
+	        					slvHabitImgDataMap.put("mistakeQuesImgBgUrl", slvHabitMsgMap.get("mstkeImgBgUrl"));
+	        					
 	        					data.put("msg", slvHabitMsgMap.get("totMsg"));
 	        					data.put("infoMsg", slvHabitMsgMap.get("infoMsg"));
 	        					data.put("imgUrl", slvHabitMsgMap.get("totImgUrl"));
 	        					data.put("imgBgUrl", slvHabitMsgMap.get("totImgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					data.put("slvHabitMsgData", slvHabitMsgDataMap);
+	        					data.put("slvHabitImgData", slvHabitImgDataMap);
 
 	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
 	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();
@@ -2187,12 +2199,24 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        					slvHabitMsgDataMap.put("guessQuesMsg", slvHabitMsgMap.get("gussMsg"));
 	        					slvHabitMsgDataMap.put("mistakeQuesMsg", slvHabitMsgMap.get("mstkeMsg"));
 	        					
+        						Map<String, Object> slvHabitImgDataMap = new LinkedHashMap<String, Object>();
+	        					
+	        					slvHabitImgDataMap.put("skipQuesImgUrl", slvHabitMsgMap.get("skipImgUrl"));
+	        					slvHabitImgDataMap.put("skipQuesImgBgUrl", slvHabitMsgMap.get("skipImgBgUrl"));
+	        					slvHabitImgDataMap.put("cursoryQuesImgUrl", slvHabitMsgMap.get("hurrImgUrl"));
+	        					slvHabitImgDataMap.put("cursoryQuesImgBgUrl", slvHabitMsgMap.get("hurrImgBgUrl"));
+	        					slvHabitImgDataMap.put("guessQuesImgUrl", slvHabitMsgMap.get("gussImgUrl"));
+	        					slvHabitImgDataMap.put("guessQuesImgBgUrl", slvHabitMsgMap.get("gussImgBgUrl"));
+	        					slvHabitImgDataMap.put("mistakeQuesImgUrl", slvHabitMsgMap.get("mstkeImgUrl"));
+	        					slvHabitImgDataMap.put("mistakeQuesImgBgUrl", slvHabitMsgMap.get("mstkeImgBgUrl"));
+	        					
 	        					data.put("msg", slvHabitMsgMap.get("totMsg"));
 	        					data.put("infoMsg", slvHabitMsgMap.get("infoMsg"));
 	        					data.put("imgUrl", slvHabitMsgMap.get("totImgUrl"));
 	        					data.put("imgBgUrl", slvHabitMsgMap.get("totImgBgUrl"));
 	        					data.put("slvHabitData", slvHabitMonthDataMap);
 	        					data.put("slvHabitMsgData", slvHabitMsgDataMap);
+	        					data.put("slvHabitImgData", slvHabitImgDataMap);
 
 	 	        				for(Map<String,Object> slvHavitItem : slvHabitDataList) {
 	 	        					Map<String, Object> slvHabitDataMap = new LinkedHashMap<String, Object>();

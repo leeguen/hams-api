@@ -478,7 +478,7 @@
 				group by item_cd, item_nm
 			) a
 			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4) c
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4, a.subj_cd) c
 			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRH() d;
 			</when>
 			<otherwise>
@@ -524,7 +524,7 @@
 				group by item_cd, item_nm
 			)a
 			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4) c
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c
 			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRH() d;
 			</otherwise>
 		</choose>
@@ -891,7 +891,7 @@
 				group by item_cd, item_nm
 			) a
 			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRM(#{yymm}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRI(#{yymm}, #{studId}, 4) c
+			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRI(#{yymm}, #{studId}, 4, a.subj_cd) c
 			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRH() d;
 			</when>
 			<otherwise>
@@ -933,7 +933,7 @@
 				group by item_cd, item_nm
 			) a
 			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRI(#{yymmwk}, #{studId}, 4) c
+			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c
 			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRH() d;
 			</otherwise>
 		</choose>
@@ -979,27 +979,43 @@
 			b.img_bg_url as tot_img_bg_url,
 			c.msg as info_msg,
 			d.msg as guss_msg,
+			d1.img_url as guss_img_url,
+			d1.img_bg_url as guss_img_bg_url,
 			e.msg as hurr_msg,
+			e1.img_url as hurr_img_url,
+			e1.img_bg_url as hurr_img_bg_url,
 			f.msg as mstke_msg,
-			g.msg as skip_msg
+			f1.img_url as mstke_img_url,
+			f1.img_bg_url as mstke_img_bg_url,
+			g.msg as skip_msg,
+			g1.img_url as skip_img_url,
+			g1.img_bg_url as skip_img_bg_url
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.fn_get_msg_rul_LRNMSHBAWRM(#{yymm}, #{studId}, 4) a
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBAWRI(#{yymm}, #{studId}, 4) b
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCM(#{yymm}, #{studId}, 4) d
+		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCI(#{yymm}, #{studId}, 4) d1
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCM(#{yymm}, #{studId}, 4) e
+		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCI(#{yymm}, #{studId}, 4) e1
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCM(#{yymm}, #{studId}, 4) f
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCM(#{yymm}, #{studId}, 4) g;
+		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCI(#{yymm}, #{studId}, 4) f1
+		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCM(#{yymm}, #{studId}, 4) g
+		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCI(#{yymm}, #{studId}, 4) g1;
 			</when>
 			<otherwise>
 		from lrn_dsb.fn_get_msg_rul_LRNWSHBAWRM(#{yymmwk}, #{studId}, 4) a
 		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBAWRI(#{yymmwk}, #{studId}, 4) b
 		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c
 		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCM(#{yymmwk}, #{studId}, 4) d
+		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCI(#{yymmwk}, #{studId}, 4) d1
 		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCM(#{yymmwk}, #{studId}, 4) e
+		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCI(#{yymmwk}, #{studId}, 4) e1
 		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCM(#{yymmwk}, #{studId}, 4) f
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCM(#{yymmwk}, #{studId}, 4) g;
+		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCI(#{yymmwk}, #{studId}, 4) f1
+		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCM(#{yymmwk}, #{studId}, 4) g
+		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCI(#{yymmwk}, #{studId}, 4) g1;
 			</otherwise>
 		</choose>
     </select>
