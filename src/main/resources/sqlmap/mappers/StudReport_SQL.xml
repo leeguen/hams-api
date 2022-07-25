@@ -204,13 +204,7 @@
 			<when test='currConCheck == "m"'>
 			round(c.login_rt * 100)::integer as att_rt,
 			(select max(dd) from lrndmt.st_dm_dt where yyyymm_key = c.yyyymm_key) as att_dt_cnt,
-			</when>
-			<otherwise>
-			round(c.login_rt * 100)::integer as att_rt,
-			7 as att_dt_cnt,
-			</otherwise>
-		</choose>
-    		c.att_dd as att_cnt,
+			c.att_dd as att_cnt,
 			plan_lrn_cnt as plan_cnt,
 			tiltrm_lrn_exec_cnt as lrn_cnt,
 			round(tiltrm_exec_rt * 100) as ex_rt,
@@ -220,9 +214,24 @@
 			round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
 			round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
 			round(eqtrm_dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt,
+			</when>
+			<otherwise>
+			round(c.login_rt * 100)::integer as att_rt,
+			7 as att_dt_cnt,
+			c.att_dd as att_cnt,
+			plan_lrn_cnt as plan_cnt,
+			lrn_exec_cnt as lrn_cnt,
+			round(exec_rt * 100) as ex_rt,
+			pre_lrn_exec_cnt as b_lrn_cnt,
+			intm_lrn_exec_cnt as t_lrn_cnt,
+			dely_lrn_exec_cnt as d_lrn_cnt,
+			round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
+			round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
+			round(dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt,
+			</otherwise>
+		</choose>
 			null as concn_score,
 			null as concn_msg,
-			-- b.tot_lrn_cnt as lrn_sec,
 			add_lrn_cnts::integer as a_lrn_cnt
 		<choose>
 			<when test='currConCheck == "m"'>
@@ -399,10 +408,10 @@
     </select>
     
     <select id="getlrnExRt" parameterType="hashMap" resultType="resultMap">
-    	select
-			count(tiltrm_exec_rt) as ex_cnt
 		<choose>
 			<when test='currConCheck == "m"'>
+    	select
+			count(tiltrm_exec_rt) as ex_cnt
 		from lrndmt.mt_dm_wk_dt a
 		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_mly c on 
 			a.yyyymm_key = c.yyyymm_key 
@@ -413,6 +422,8 @@
 			and a.w = '1';
 			</when>
 			<otherwise>
+		select
+			count(exec_rt) as ex_cnt
 		from lrndmt.mt_dm_wk_dt a
 		left outer join lrn_dsb.ds_ag_lrn_plan_exec_sts_wly c on 
 			a.yyyymmw_key = c.yyyymmw_key 
@@ -497,7 +508,7 @@
 						w as wk,
 						b.item_cd,
 						b.item_nm,
-						round(c.tiltrm_exec_rt * 100) as ex_rt
+						round(c.exec_rt * 100) as ex_rt
 					from lrndmt.mt_dm_wk_dt a
 					left outer join lrn_dsb.ds_dm_grp_item b on 
 						(b.grp_typ = 'ALL' or (b.grp_typ = 'SUBJ_CD' and position('C' in b.item_cd) > 0)) 
@@ -535,18 +546,24 @@
 		left outer join (
 	    	select
 	    		stud_key,
+			<choose>
+				<when test='currConCheck == "m"'>
 				pre_lrn_exec_cnt as b_lrn_cnt,
 				intm_lrn_exec_cnt as t_lrn_cnt,
 				eqtrm_dely_lrn_exec_cnt as d_lrn_cnt,
 				round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
 				round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
 				round(eqtrm_dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt
-			<choose>
-				<when test='currConCheck == "m"'>
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
 				where a.yyyymm_key = #{yymm} 
 				</when>
 				<otherwise>
+				pre_lrn_exec_cnt as b_lrn_cnt,
+				intm_lrn_exec_cnt as t_lrn_cnt,
+				dely_lrn_exec_cnt as d_lrn_cnt,
+				round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
+				round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
+				round(dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
