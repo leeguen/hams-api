@@ -460,17 +460,10 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         	}
         	
         }*/
-        
-        /*QA 계정용 로직 > QA 진행 완료 후 주석 필요 - 오희택*/
-        /*String[] dkt_check_stud = {"2083366", "2083367", "2083374", "2083378", "2083381", "2083377"};
-        List<String> dktCheckStudList = Arrays.asList(dkt_check_stud);
-        
-        if(!dktCheckStudList.contains(String.valueOf(studId))) {
-        }*/
         data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
         
         //학생 구분 값 관련 ID
-        int studTypeId = (data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
+        int studTypeId = (data != null && data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
         
         Map<String,Object> studInfoParamMap = new HashMap<>();
 		String p = encodeStudId("0&"+studId);
