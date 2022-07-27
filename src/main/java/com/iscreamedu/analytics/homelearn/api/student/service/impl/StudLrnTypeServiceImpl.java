@@ -469,6 +469,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         }*/
         data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
         
+        //학생 구분 값 관련 ID
+        int studTypeId = (data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
+        
         Map<String,Object> studInfoParamMap = new HashMap<>();
 		String p = encodeStudId("0&"+studId);
     	
@@ -492,7 +495,10 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
             }
     		
     		data.put("studId", studId);
-    		data.put("studType", studInfoMap.get("divCdNm"));
+    		
+    		if(studTypeId < 3) {
+    			data.put("studType", studInfoMap.get("divCdNm"));
+    		}
     		data.put("lrnSttCd", lrnSttCdApi);
     		data.put("studStatus", studStatus);
     		data.put("studStatusDetail", studStatusDetail);
