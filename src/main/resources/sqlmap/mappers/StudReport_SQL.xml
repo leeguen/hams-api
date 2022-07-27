@@ -551,9 +551,9 @@
 				pre_lrn_exec_cnt as b_lrn_cnt,
 				intm_lrn_exec_cnt as t_lrn_cnt,
 				eqtrm_dely_lrn_exec_cnt as d_lrn_cnt,
-				round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
-				round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
-				round(eqtrm_dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt
+				round(pre_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
+				round(intm_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
+				round(eqtrm_dely_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as d_lrn_rt
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly a
 				where a.yyyymm_key = #{yymm} 
 				</when>
@@ -561,9 +561,9 @@
 				pre_lrn_exec_cnt as b_lrn_cnt,
 				intm_lrn_exec_cnt as t_lrn_cnt,
 				dely_lrn_exec_cnt as d_lrn_cnt,
-				round(pre_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
-				round(intm_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
-				round(dely_lrn_exec_cnt * 100 / plan_lrn_cnt)::integer as d_lrn_rt
+				round(pre_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as b_lrn_rt,
+				round(intm_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as t_lrn_rt,
+				round(dely_lrn_exec_cnt::numeric * 100 / plan_lrn_cnt)::integer as d_lrn_rt
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly a
 				where a.yyyymmw_key = #{yymmwk} 
 				</otherwise>
@@ -589,18 +589,24 @@
     
     <select id="getMaxLrnHabit" parameterType="hashMap" resultType="resultMap">
     	select 
+		<choose>
+			<when test='currConCheck == "m"'>
 			case
-				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, intm_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'tLrn'
+				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'tLrn'
 				when pre_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'bLrn'
 				when eqtrm_dely_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, eqtrm_dely_lrn_exec_cnt) then 'dLrn'
 				else null
 			end as max_nm
-		<choose>
-			<when test='currConCheck == "m"'>
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_mly 
 			where yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
+			case
+				when intm_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, dely_lrn_exec_cnt) then 'tLrn'
+				when pre_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, dely_lrn_exec_cnt) then 'bLrn'
+				when dely_lrn_exec_cnt = greatest(intm_lrn_exec_cnt, pre_lrn_exec_cnt, dely_lrn_exec_cnt) then 'dLrn'
+				else null
+			end as max_nm
 			from lrn_dsb.ds_ag_lrn_plan_exec_sts_wly 
 			where yyyymmw_key = #{yymmwk} 
 			</otherwise>
