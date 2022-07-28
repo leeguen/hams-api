@@ -417,7 +417,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     
     @Override
     public Map getStudLrnTypeInfo(String studId) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+        Map<String,Object> data = new LinkedHashMap<>();
         Map<String,Object> studData = new HashMap<>();
         Map<String,Object> paramMap = new HashMap<>();
         
@@ -479,22 +479,37 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
         	String studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "진행중" : "진행중단";
     		String studStatusDetail = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "L" : (lrnSttCdApi == 1008 || lrnSttCdApi == 1009 || lrnSttCdApi == 1010) ? "P" : "E";
+    		int studTypeIds = (lrnSttCdApi == 1007) ? 1 : (lrnSttCdApi == 1003) ? 2 : 0;
     		
     		if(data == null) {
-    			data = new HashMap<>();
+    			data = new LinkedHashMap<>();
+    			
+    			data.put("studId", studId);
     			
             	data.put("lrnTypeCd", null);
         		data.put("lrnTypeGroupCd", null);
+        		data.put("lrnSttCd", lrnSttCdApi);
+        		
+        		if(studTypeId < 3) {
+        			data.put("studType", studInfoMap.get("divCdNm"));
+        		}
+        		
+        		data.put("studTypeId", studTypeIds);
+        		data.put("studStatus", studStatus);
+        		data.put("studStatusDetail", studStatusDetail);
+        		data.put("pkgNm", null);
+            } else {
+            	
+            	data.put("studId", studId);
+            	
+            	if(studTypeId < 3) {
+            		data.put("studType", studInfoMap.get("divCdNm"));
+            	}
+            	data.put("lrnSttCd", lrnSttCdApi);
+            	data.put("studStatus", studStatus);
+            	data.put("studStatusDetail", studStatusDetail);
             }
     		
-    		data.put("studId", studId);
-    		
-    		if(studTypeId < 3) {
-    			data.put("studType", studInfoMap.get("divCdNm"));
-    		}
-    		data.put("lrnSttCd", lrnSttCdApi);
-    		data.put("studStatus", studStatus);
-    		data.put("studStatusDetail", studStatusDetail);
         }
         
         setResult(dataKey,data);
