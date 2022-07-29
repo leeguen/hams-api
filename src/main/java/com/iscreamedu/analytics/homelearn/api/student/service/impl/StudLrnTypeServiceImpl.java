@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.student.service.impl;
 
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
@@ -43,6 +44,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 
     @Autowired
     CommonMapperLrnType commonMapperLrnType;
+    
+    @Autowired
+	ExternalAPIService externalAPIservice;
 
     @Override
     public Map getLrnTypeCheck(Map<String, Object> paramMap) throws Exception {
@@ -193,19 +197,101 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     
     @Override
     public Map getStudLrnTypeInfo(String studId) throws Exception {
-        Map<String,Object> data = new HashMap<>();
+    	Map<String,Object> data = new LinkedHashMap<>();
+        Map<String,Object> studData = new HashMap<>();
         Map<String,Object> paramMap = new HashMap<>();
         
         paramMap.put("studId", studId);
         
-        /*QA 계정용 로직 > QA 진행 완료 후 주석 필요 - 오희택*/
-        /*String[] dkt_check_stud = {"2083366", "2083367", "2083374", "2083378", "2083381", "2083377"};
-        List<String> dktCheckStudList = Arrays.asList(dkt_check_stud);
+        /*studData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfoCheck");
         
-        if(!dktCheckStudList.contains(String.valueOf(studId))) {
+        if(studData != null) {
+        	int lrnSttCd = Integer.parseInt(studData.get("lrnSttCd").toString());
+        	String endDt = studData.get("endDt").toString();
+        	String yesterDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1).toString();
+        	
+        	if((lrnSttCd != 1003 && lrnSttCd != 1007) && !endDt.equals(yesterDay)) {
+        		Map<String,Object> studInfoParamMap = new HashMap<>();
+        		String p = encodeStudId("0&"+studId);
+            	
+            	studInfoParamMap.put("p", p);
+            	studInfoParamMap.put("apiName", "aiReport.");
+                
+                LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+                Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+                
+                if(studInfoMap != null) {
+                	int lrnSttCdApi = Integer.parseInt(studInfoMap.get("statusCd").toString().replace("000", "00"));
+                	
+                	if(lrnSttCdApi != lrnSttCd ) { 
+                		Map<String,Object> insertParamMap = new HashMap<>();
+                		
+                		int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+                		String studStatusDetail = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "L" : (lrnSttCdApi == 1008 || lrnSttCdApi == 1009 || lrnSttCdApi == 1010) ? "P" : "E";
+                		
+                		insertParamMap.put("studId", studId);
+                		insertParamMap.put("lrnSttCd", lrnSttCdApi);
+                		insertParamMap.put("studStatus", studStatus);
+                		insertParamMap.put("studStatusDetail", studStatusDetail);
+                		
+                		int rows = commonMapperLrnType.update(insertParamMap, "updateStudLrnTypeInfo");
+                	}
+                }
+        	}
+        	
         }*/
         data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
-        			
+        
+        //학생 구분 값 관련 ID
+        int studTypeId = (data != null && data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
+        
+        Map<String,Object> studInfoParamMap = new HashMap<>();
+		String p = encodeStudId("0&"+studId);
+    	
+    	studInfoParamMap.put("p", p);
+    	studInfoParamMap.put("apiName", "aiReport.");
+        
+        LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        
+        if(studInfoMap != null) {
+        	int lrnSttCdApi = Integer.parseInt(studInfoMap.get("statusCd").toString().replace("000", "00"));
+        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+        	String studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "진행중" : "진행중단";
+    		String studStatusDetail = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? "L" : (lrnSttCdApi == 1008 || lrnSttCdApi == 1009 || lrnSttCdApi == 1010) ? "P" : "E";
+    		int studTypeIds = (lrnSttCdApi == 1007) ? 1 : (lrnSttCdApi == 1003) ? 2 : 0;
+    		
+    		if(data == null) {
+    			data = new LinkedHashMap<>();
+    			
+    			data.put("studId", studId);
+    			
+            	data.put("lrnTypeCd", null);
+        		data.put("lrnTypeGroupCd", null);
+        		data.put("lrnSttCd", lrnSttCdApi);
+        		
+        		if(studTypeId < 3) {
+        			data.put("studType", studInfoMap.get("divCdNm"));
+        		}
+        		
+        		data.put("studTypeId", studTypeIds);
+        		data.put("studStatus", studStatus);
+        		data.put("studStatusDetail", studStatusDetail);
+        		data.put("pkgNm", null);
+            } else {
+            	
+            	data.put("studId", studId);
+            	
+            	if(studTypeId < 3) {
+            		data.put("studType", studInfoMap.get("divCdNm"));
+            	}
+            	data.put("lrnSttCd", lrnSttCdApi);
+            	data.put("studStatus", studStatus);
+            	data.put("studStatusDetail", studStatusDetail);
+            }
+    		
+        }
+        
         setResult(dataKey,data);
 
 	    return result;
@@ -265,5 +351,14 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
             decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
             decodeResult.put("result", "p : Incorrect");
         }
+	}
+	
+	private String encodeStudId(String studId) throws Exception {
+		String encodeStudId = null;
+		
+		CipherUtil cps = CipherUtil.getInstance();
+		encodeStudId = cps.AES_Encode(studId);
+		
+		return encodeStudId;
 	}
 }
