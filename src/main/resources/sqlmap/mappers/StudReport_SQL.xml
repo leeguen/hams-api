@@ -19,24 +19,8 @@
     </select>
     
     <select id="getYymmwkList" parameterType="hashMap" resultType="resultMap">
-		select
-			yyyy_key as yyyy,
-			substring(yyyymm_key::text,5,6)::integer as mm,
-			w::integer as wk
-		from sc_dsb.vw_dm_wk_dt
-		where yyyymmw_key between (
-			select
-				wk.yyyymmw_key
-			from lrndmt.mt_dm_stud st
-			join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
-			where st.stud_key = #{studId}
-		) and (
-			select
-				yyyymmw_key
-			from sc_dsb.vw_dm_wk_dt
-			where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
-					between stt_wk_dt and end_wk_dt
-		);
+		/* StudReport.getYymmwkList */
+		select * from lrnapi.fn_ds_ap_yymmwk_list_stud();
     </select>
     
     <select id="getStudInfo" parameterType="hashMap" resultType="resultMap">
@@ -50,15 +34,18 @@
     
     <select id="getStudRecentReport" parameterType="hashMap" resultType="resultMap">
 		select
-			recent_report
+			recent_report,
+			yymm_type
 		from (
 			select
 				recent_report,
-				yymm_check
+				yymm_check,
+				yymm_type
 			from (
 				select
 					yyyymm_key as recent_report,
-					concat(yyyymm_key,'9')::integer as yymm_check
+					concat(yyyymm_key,'9')::integer as yymm_check,
+					'm' as yymm_type
 				from lrn_dsb.ds_ag_stud_att_sts_mly 
 				where stud_key = #{studId} and ssvc_akey = 4
 				order by yyyymm_key desc
@@ -67,11 +54,13 @@
 			union all
 			select 
 				recent_report,
-				yymm_check
+				yymm_check,
+				yymm_type
 			from (
 				select
 					yyyymmw_key as recent_report,
-					yyyymmw_key as yymm_check
+					yyyymmw_key as yymm_check,
+					'w' as yymm_type
 				from lrn_dsb.ds_ag_stud_att_sts_wly
 				where stud_key = #{studId} and ssvc_akey = 4
 				order by yyyymmw_key desc
@@ -83,119 +72,23 @@
     </select>
 	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
-		<choose>
-			<when test='currConCheck == "m"'>
-				select
-					min(yyyymm_key) as start_yymm,
-					max(yyyymm_key) as end_yymm
-				from (
-					select 
-						yyyymm_key
-					from lrndmt.mt_dm_wk_dt a
-					where yyyymm_key<![CDATA[<=]]>#{yymm}
-						and w = '1'
-					order by yyyymm_key desc
-					limit 5
-				) a1;
-			</when>
-			<otherwise>
-				select
-					min(yyyymmw_key) as start_yymmwk,
-					max(yyyymmw_key) as end_yymmwk
-				from (
-					select 
-						yyyymmw_key
-					from lrndmt.mt_dm_wk_dt a
-					where yyyymmw_key<![CDATA[<=]]>#{yymmwk}
-					order by yyyymmw_key desc
-					limit 5
-				) a1;
-			</otherwise>
-		</choose>
+		/* StudReport.getPeriod */
+		select * from lrnapi.fn_ds_ap_period(#{reportYymm}, #{currConCheck});
     </select>
 	
 	<select id="getReportYymmList" parameterType="hashMap" resultType="resultMap">
-		select
-			distinct
-				yyyymm_key as yymm,
-				yyyy_key as yyyy,
-				substring(yyyymm_key::text,5,6)::integer as mm
-		from sc_dsb.vw_dm_wk_dt
-		where yyyymmw_key between (
-			select
-				wk.yyyymmw_key
-			from lrndmt.mt_dm_stud st
-			join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
-			where st.stud_key = #{studId}
-		) and (
-			select
-				yyyymmw_key
-			from sc_dsb.vw_dm_wk_dt
-			where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
-					between stt_wk_dt and end_wk_dt
-		);
+		/* StudReport.getReportYymmList */
+		select * from lrnapi.fn_ds_ap_report_yymm_list_stud();
     </select>
     
     <select id="getMonthReportList" parameterType="hashMap" resultType="resultMap">
-    	select
-			dm.yyyymm_key as month_report_yymm,
-			replace('mm월 월간 리포트','mm',mm::text) as report_nm,
-			case 
-				when mp.stud_key is null then 'N'
-				else 'Y'
-			end as report_yn
-		from (
-			select
-				distinct
-					yyyymm_key,
-					substring(yyyymm_key::text,5,6)::integer as mm,
-					cast(#{studId} as integer) as stud_key
-			from lrndmt.mt_dm_wk_dt
-			where yyyymm_key between (
-				select
-					wk.yyyymm_key as start_yymm
-				from lrndmt.mt_dm_stud st
-				join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
-				where st.stud_key = #{studId}
-			) and cast(to_char(cast(now() - interval '1 month' as DATE), 'YYYYmm') as integer)
-		) dm
-		left outer join lrn_dsb.ds_ag_stud_att_sts_mly mp on dm.yyyymm_key = mp.yyyymm_key and dm.stud_key = mp.stud_key and mp.ssvc_akey = 4;
+    	/* StudReport.getMonthReportList */
+    	select * from lrnapi.fn_ds_ap_month_report_list_stud(#{studId});
     </select>
     
     <select id="getWeeklyReportList" parameterType="hashMap" resultType="resultMap">
-    	select
-			wm.yyyymm_key as week_report_yymm,
-			wm.yyyymmw_key as week_report_yymmwk,
-			replace(replace('mm월 wk주 주간 리포트','mm',mm::text),'wk',wk::text) as report_nm,
-			case 
-				when wp.stud_key is null then 'N'
-				else 'Y'
-			end as report_yn
-		from (
-			select
-				distinct
-					yyyymm_key,
-					yyyymmw_key,
-					substring(yyyymm_key::text,5,6)::integer as mm,
-					w::integer as wk,
-					cast(#{studId} as integer) as stud_key
-			from lrndmt.mt_dm_wk_dt
-			where yyyymmw_key between (
-				select
-					wk.yyyymmw_key
-				from lrndmt.mt_dm_stud st
-				join sc_dsb.vw_dm_wk_dt wk on st.stt_dt between stt_wk_dt and end_wk_dt
-				where st.stud_key = #{studId}
-			) and (
-				select
-					yyyymmw_key
-				from sc_dsb.vw_dm_wk_dt
-				where ((now() + interval '5.5 HOUR') - interval '7 DAY')::DATE
-						between stt_wk_dt and end_wk_dt
-			)
-		) wm
-		left outer join lrn_dsb.ds_ag_stud_att_sts_wly wp on wm.yyyymmw_key = wp.yyyymmw_key and wm.stud_key = wp.stud_key and wp.ssvc_akey = 4
-		order by wm.yyyymmw_key desc;
+    	/* StudReport.getWeeklyReportList */
+    	select * from lrnapi.fn_ds_ap_week_report_list_stud(#{studId});
     </select>
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">

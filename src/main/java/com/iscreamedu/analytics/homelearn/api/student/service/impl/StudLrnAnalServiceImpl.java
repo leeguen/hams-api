@@ -282,6 +282,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
 				
 				int recentYymm = (studRecentData != null) ? Integer.valueOf(studRecentData.get("recentReport").toString()) : 0;
+				String recentType = (studRecentData != null) ? studRecentData.get("yymmType").toString() : "n";
+				int recentYymmwk = (recentType.equals("m")) ? Integer.valueOf(weekList.get(0).get("weekReportYymmwk").toString()) : 0;
 				//monthDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMonthReportYn");
 				//weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportYn");
 				
@@ -309,6 +311,22 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							if(recentYymm == weekReportYymmwk) {
 								Map<String, Object> weekReportCheckParamMap = new LinkedHashMap<>();
 				    			String recentReportValue = String.valueOf(recentYymm);
+				    			
+				    			int wk = Integer.parseInt(recentReportValue.substring(6));
+			    				int yymm = Integer.parseInt(recentReportValue.substring(0,6));
+			    				
+			    				weekReportCheckParamMap.put("studId", paramMap.get("studId"));
+			    				weekReportCheckParamMap.put("yymm", yymm);
+			    				weekReportCheckParamMap.put("wk", wk);
+			    				
+			    				Map<String, Object> checkWeekDataMap = (Map<String, Object>) commonMapperLrnType.get(weekReportCheckParamMap, "StudLrnType.getReportCheck");
+			    				
+								String dataCheck = checkWeekDataMap.get("dataCheck").toString();
+								
+								checkYn = dataCheck;
+							} else if(recentType.equals("m") && recentYymmwk == weekReportYymmwk) {
+								Map<String, Object> weekReportCheckParamMap = new LinkedHashMap<>();
+				    			String recentReportValue = String.valueOf(recentYymmwk);
 				    			
 				    			int wk = Integer.parseInt(recentReportValue.substring(6));
 			    				int yymm = Integer.parseInt(recentReportValue.substring(0,6));
@@ -641,6 +659,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -701,10 +720,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				
+	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
@@ -789,6 +809,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -895,10 +916,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
@@ -1188,6 +1210,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> concnDayList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -1248,11 +1271,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> concnDayList = new ArrayList<>();
 	        				
-	        				
+	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
@@ -1465,6 +1488,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -1571,10 +1595,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
@@ -1828,6 +1853,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -1936,10 +1962,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
@@ -2073,6 +2100,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
 	        				int startYymm = Integer.parseInt(yymmDataMap.get("startYymm").toString());
@@ -2172,10 +2200,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
+	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
-	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymmwk").toString());
-	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymmwk").toString());
+	        				int startYymmwk = Integer.parseInt(yymmDataMap.get("startYymm").toString());
+	        				int endYymmwk = Integer.parseInt(yymmDataMap.get("endYymm").toString());
 	        				
 	        				paramMap.put("startYymmwk", startYymmwk);
 	        				paramMap.put("endYymmwk", endYymmwk);
