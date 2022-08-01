@@ -24,7 +24,7 @@ public class CommonMapperLrnLog extends SqlSessionDaoSupport {
 	 * @param sqlId
 	 * @return
 	 */
-	public List<Object> getList(Map<String, Object> param, String sqlId) {
+	public List getList(Map<String, Object> param, String sqlId) {
         return getSqlSession().selectList(sqlId, param);
 	}
     
