@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.iscreamedu.analytics.homelearn.api.challenge.service.ChallengeService;
 import com.iscreamedu.analytics.homelearn.api.extrtlog.service.ExtRtLogService;
 
 @RestController
@@ -28,6 +30,9 @@ public class ExtRtLogController {
 	@Autowired
 	private ExtRtLogService extRtLogService;
 
+	@Autowired
+	private ChallengeService challengeService;
+	
     private HttpHeaders headers;
     private LinkedHashMap body;
 
@@ -44,7 +49,15 @@ public class ExtRtLogController {
 	@PostMapping(value="/regCompleteMission", consumes = MediaType.APPLICATION_JSON_VALUE,  produces = "application/json; charset=utf8")
 	@ResponseBody
 	public ResponseEntity setRealTimeCompleteMission(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)extRtLogService.setCompleteMission(params);
+		body = (LinkedHashMap)extRtLogService.setRealTimeCompleteMission(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value="/setChMissonStatusChange")
+    @ResponseBody
+    public ResponseEntity setRealTimeMissonStatusChange(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)extRtLogService.setRealTimeMissonStatusChange(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
 }
