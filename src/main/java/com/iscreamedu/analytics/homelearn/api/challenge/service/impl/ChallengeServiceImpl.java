@@ -114,7 +114,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	}
 	
 	@Override
-	public LinkedHashMap getChStepUpHistory(Map<String, Object> paramMap) throws Exception {
+	public LinkedHashMap getChMetaphorObjectStt(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> cluList = new ArrayList<>();
 		ArrayList<Map<String, Object>> rewardList = new ArrayList<>();
@@ -127,10 +127,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId","startYyyyMm","endYyyyMm"}, paramMap);
 		if(vu.isValid()) {			
-			cluList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeClu");
-			
-			if(cluList != null) {
-				rewardList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeCluReward");
+		
+			rewardList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeCluReward");
+			if(rewardList != null) {
 				for(Map<String,Object> rewardMap : rewardList) {	     
 					try {
 						Map<String,Object> paramMap_motionList = new HashMap<>();
@@ -147,7 +146,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 					rewardMap.put("rewardMotionList", rewardMotionList);
 					rewardList.remove("motionCdList");
 				}
-				data.put("cluList", cluList);
 				data.put("rewardList", rewardList);
 				setResult(dataKey, data);
 			} else {
@@ -165,10 +163,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getChHabitMissionInfo(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> chlList = new ArrayList<>();
-		ArrayList<Map<String, Object>> rewardMotionList = new ArrayList<>();
-		Date nowDate = new Date();
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMM");
-		int nYYYYMM = Integer.parseInt(simpleDateFormat.format(nowDate).toString());
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);		
@@ -176,17 +170,39 @@ public class ChallengeServiceImpl implements ChallengeService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) {	
-			Map<String,Object> paramMap_mtp = new HashMap<>();
-			paramMap_mtp.put("studId", paramMap.get("studId"));
-			paramMap_mtp.put("startYyyyMm", nYYYYMM);
-			paramMap_mtp.put("endYyyyMm", nYYYYMM);
-			Map<String,Object> mtpInfo = (Map<String, Object>) commonMapperLrnLog.get(paramMap_mtp, "LrnLog.spMonthyHistoryChallengeMtp");
-			chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeChl");
-			if(mtpInfo != null && chlList != null) {		
-				data.put("yyyymm", nYYYYMM);
-				data.put("watarDropCnt", mtpInfo.get("waterDropCnt"));
-				data.put("chlList", chlList);				
-				setResult(dataKey, data);					
+			Map<String,Object> paramMap_summary = new HashMap<>();
+			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spDailyHistoryChallengeChlSummary");
+			chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
+			if(chlList == null || chlList.size() == 0) {
+				chlList = new ArrayList<>();
+			}
+			data.put("chlList", chlList);				
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+
+
+	@Override
+	public LinkedHashMap getChStepUpMissionInfo(Map<String, Object> paramMap) throws Exception {
+		Map<String,Object> data = new HashMap<>();
+		ArrayList<Map<String, Object>> cluList = new ArrayList<>();
+		
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);		
+		
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		if(vu.isValid()) {			
+		
+			cluList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeClu");
+			if(cluList != null) {
+				data.put("cluList", cluList);
+				setResult(dataKey, data);
 			} else {
 				setNoDataMessage();
 			}
@@ -197,7 +213,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 		
 		return result;
 	}
-
 	
 	@Override
 	public LinkedHashMap getKoreanBookChallenge(Map<String, Object> paramMap) throws Exception {

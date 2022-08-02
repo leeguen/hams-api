@@ -7,7 +7,7 @@ public interface ChallengeService {
 
 	public LinkedHashMap getChMetaphorHistory(Map<String, Object> paramMap) throws Exception;
 	
-	public LinkedHashMap getChStepUpHistory(Map<String, Object> paramMap) throws Exception;
+	public LinkedHashMap getChMetaphorObjectStt(Map<String, Object> paramMap) throws Exception;
 	
 	public LinkedHashMap getChHabitMissionInfo(Map<String, Object> paramMap) throws Exception;
 	
@@ -16,5 +16,7 @@ public interface ChallengeService {
 	public LinkedHashMap getKoreanBookChReward(Map<String, Object> paramMap) throws Exception;
 
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception;
+
+	public LinkedHashMap getChStepUpMissionInfo(Map<String, Object> paramMap) throws Exception;
 
 }

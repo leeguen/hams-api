@@ -76,22 +76,6 @@
 		 )}
 	</select>
 	
-	<select id="spMonthyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
-		{call lrn_log.sp_monthly_history_challenge_chl (
-			  #{studId, mode=IN, jdbcType=INTEGER}
-			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
-			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
-		 )}
-	</select>
-	
-	<select id="spMonthyHistoryChallengeClu" parameterType="hashMap" resultType="resultMap">
-		{call lrn_log.sp_monthly_history_challenge_clu (
-			  #{studId, mode=IN, jdbcType=INTEGER}
-			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
-			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
-		 )}
-	</select>
-	
 	<select id="spMonthyHistoryChallengeCluReward" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_monthly_history_challenge_clu_reward (
 			  #{studId, mode=IN, jdbcType=INTEGER}
@@ -99,6 +83,25 @@
 			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
+	
+	<select id="spDailyHistoryChallengeChlSummary" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_chl_summary (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spDailyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_chl (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spDailyHistoryChallengeClu" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_clu (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
 	
 </mapper>
 	

@@ -42,7 +42,7 @@ public class ChallengeController {
 	
 	/***
 	 * STUD-CH-002
-	 * 성장메타포_메인 > 습관 챌린지 : 메타포 현황 월별 히스토리
+	 * 메타포 현황 월별 히스토리 : 습관 챌린지 
 	 * @param params
 	 * @param req
 	 * @param res
@@ -58,23 +58,23 @@ public class ChallengeController {
 	
 	/***
 	 * STUD-CH-003
-	 * 성장메타포_메인 > 한 단계 UP 챌린지 :  메타포 현황 월별 히스토리 
+	 * 메타포 오브젝트 현황  : 한 단계 UP 챌린지
 	 * @param params
 	 * @param req
 	 * @param res
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value="/getChStepUpHistory")
+	@RequestMapping(value="/getChMetaphorObjectStt")
     @ResponseBody
-    public ResponseEntity getChStepUpHistory(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)challengeService.getChStepUpHistory(params);
+    public ResponseEntity getChMetaphorObjectStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)challengeService.getChMetaphorObjectStt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	/***
 	 * STUD-CH-004
-	 * 성장메타포_메인 >  습관 챌린지 : 오늘의 미션 정보
+	 * 오늘의 미션 정보 : 매일 홈런하는 습관
 	 * @param params
 	 * @param req
 	 * @param res
@@ -85,6 +85,22 @@ public class ChallengeController {
     @ResponseBody
     public ResponseEntity getChHabitMissionInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)challengeService.getChHabitMissionInfo(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/***
+	 * STUD-CH-005
+	 * 오늘의 미션 정보 : 한 단계 UP 챌린지 
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getChStepUpMissionInfo")
+    @ResponseBody
+    public ResponseEntity getChStepUpMissionInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)challengeService.getChStepUpMissionInfo(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
