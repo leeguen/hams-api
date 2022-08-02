@@ -97,4 +97,9 @@
 		select * from lrnapi.fn_ds_ap_slv_habit_subj_list(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});
     </select>
     
+     <select id="selectLrnExLog" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectLrnExLog */
+		select * from lrnapi.fn_ds_ap_lrn_ex_log_dkt(#{studId}, #{startDt}, #{endDt}, #{subjCd});
+    </select>
+    
 </mapper>

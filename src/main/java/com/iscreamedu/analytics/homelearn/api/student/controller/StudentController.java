@@ -2,6 +2,7 @@ package com.iscreamedu.analytics.homelearn.api.student.controller;
 
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnAnalService;
+import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnLogService;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class StudentController {
 	
 	@Autowired
 	StudLrnAnalService studLrnAnalService;
+	
+	@Autowired
+	StudLrnLogService studLrnLogService;
 
     private HttpHeaders headers;
     private LinkedHashMap body;
@@ -333,6 +337,18 @@ public class StudentController {
     @GetMapping("/deleteReportCheck")
     public ResponseEntity deleteReportCheck(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studLrnAnalService.deleteReportCheck(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 	학습 수행 이력 (STUD-LT-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping({"/getStudLrnExLog/{studId}"})
+    public ResponseEntity getStudLrnExLog(@PathVariable("studId") String studId) throws Exception {
+        body = (LinkedHashMap<String, Object>) studLrnLogService.getStudLrnExLog(studId);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 }
