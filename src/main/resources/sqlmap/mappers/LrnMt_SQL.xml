@@ -72,6 +72,11 @@
 		select * from lrnapi.fn_ds_ap_exam_log(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service}, #{types}, #{search}, ${startIdx});
     </select>
     
+    <select id="selectExamCnt" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt."selectExamCnt" */
+		select * from lrnapi.fn_ds_ap_exam_total_cnt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service}, #{types}, #{search});
+    </select>
+    
     <select id="selectIncrtNtStt" parameterType="hashMap" resultType="resultMap">
 		/* LrnMt.selectIncrtNtStt */
 		select * from lrnapi.fn_ds_ap_incrt_nt_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});

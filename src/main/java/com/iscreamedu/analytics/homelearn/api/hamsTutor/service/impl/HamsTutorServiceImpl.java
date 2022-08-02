@@ -656,7 +656,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             List<Map<String,Object>> list = (List)mapper.getList(paramMap,TUTOR_NAMESPACE + ".getExamList");
             
             //2.0 데이터
-        	String[] sqlLists = {"ExamLog"};
+        	String[] sqlLists = {"ExamLog", "ExamCnt"};
             List<String> dwSqlList = Arrays.asList(sqlLists);
             
             paramMap.put("period", "d");
@@ -664,12 +664,18 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         	
         	Map<String,Object> examLogList = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
         	
+        	//출석률
+    		try {
+    			Map<String,Object> examCntMap = (Map<String, Object>) examLogList.get("ExamCnt");
+    			
+    			totalCnt.put("totalCnt", examCntMap.get("totalExplCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamCnt : Error");
+			}
+        	
         	//과목별 평가
     		try {
     			list = (ArrayList<Map<String, Object>>) examLogList.get("ExamLog");
-    			
-    			totalCnt.put("totalCnt", list.size());
-    			
     			
     		} catch (Exception e) {
     			LOGGER.debug("ExamLog : Error");
