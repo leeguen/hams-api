@@ -55,11 +55,11 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"p"}, paramMap);
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
         	if(decodeResult.isEmpty()) {
                 Calendar beforeMonth = Calendar.getInstance();
                 beforeMonth.add(Calendar.MONTH , -1);
@@ -92,11 +92,11 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"p"}, paramMap);
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
         	if(decodeResult.isEmpty()) {
         		Calendar beforeMonth = Calendar.getInstance();
                 beforeMonth.add(Calendar.MONTH , -1);
@@ -167,11 +167,11 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yymm","p"}, paramMap);
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"yymm","studId"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
         	if(decodeResult.isEmpty()) {
         		int yymm = Integer.valueOf(paramMap.get("yymm").toString());
         		
@@ -211,11 +211,11 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"p"}, paramMap);
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
         
         if(vu.isValid()) {
-        	getStudId(paramMap);
-        	
         	if(decodeResult.isEmpty()) {
         		Calendar beforeMonth = Calendar.getInstance();
                 beforeMonth.add(Calendar.MONTH , -1);
@@ -555,24 +555,26 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
      */
 	private void getStudId(Map<String, Object> params) throws Exception {
 		decodeResult = new LinkedHashMap<String, Object>();
-		//복호화
-        try {
-        	CipherUtil cp = CipherUtil.getInstance();
-    		String decodedStr = cp.AES_Decode(params.get("p").toString());
-    		
-    		int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
-    		
-    		if(decodedStr != null) {
-    			//DB params
-    			params.put("studId",studId);
-    		}
-        } catch (Exception e) {
-            LOGGER.debug("p Parameter Incorrect");
-            
-            //p값 복호화 실패
-            decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
-            decodeResult.put("result", "p : Incorrect");
-        }
+		if(!params.containsKey("studId") && params.containsKey("p")) {
+			//복호화
+			try {
+				CipherUtil cp = CipherUtil.getInstance();
+				String decodedStr = cp.AES_Decode(params.get("p").toString());
+				
+				int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
+				
+				if(decodedStr != null) {
+					//DB params
+					params.put("studId",studId);
+				}
+			} catch (Exception e) {
+				LOGGER.debug("p Parameter Incorrect");
+				
+				//p값 복호화 실패
+				decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
+				decodeResult.put("result", "p : Incorrect");
+			}
+		}
 	}
 	
 	private String encodeStudId(String studId) throws Exception {
