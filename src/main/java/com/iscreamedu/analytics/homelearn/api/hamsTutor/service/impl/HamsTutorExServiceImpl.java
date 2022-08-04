@@ -781,6 +781,22 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
         }
         
+    @Override
+    public Map getVisionReportNft (Map<String,Object> paramMap) throws Exception {
+    	LinkedHashMap<String,Object> data = new LinkedHashMap<>();
+        
+        int studId = Integer.valueOf(paramMap.get("studId").toString());
+        
+        data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
+        
+        
+        setResult(dataKey,data);
+
+        //리턴
+        return result;
+
+    }
+        
 
     //p,startDt,endDt 비교 메서드
     private void checkRequired(Map<String,Object> params) throws Exception {

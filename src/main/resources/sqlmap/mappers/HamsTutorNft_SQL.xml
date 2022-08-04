@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="HamsTutorNft">
+	
+	<select id="selectVisionNft" parameterType="hashMap" resultType="resultMap">
+		SELECT
+			CONCAT(SUBSTRING(A.YYMM, 1, 4), '년 ', A.TERM, '학기 비전리포트') AS REPORT_NM,
+		    CONCAT(DATE_FORMAT(CONCAT(A.START_YYMM, '01'), '%Y년 %m월 %d일'), ' ~ ', DATE_FORMAT(LAST_DAY(CAST(CONCAT(A.END_YYMM, '01') AS DATE)), '%Y년 %m월 %d일')) AS REPORT_PERIOD,
+		    '바다 속 활기찬 에너지형' AS LRN_TYPE_NM,
+		    '돌고래' AS LRN_TYPE_IMG,
+		    TIME_FORMAT(SEC_TO_TIME(TOTAL_LRN_SEC), '%H시 %i분') AS TOTAL_LRN_TM,
+		    B.QUES_CNT AS TOTAL_QUES_CNT,
+		    B.CRT_CNT AS TOTAL_CRT_QUES_CNT,
+		    B.INCRT_NT_REG_CNT AS TOTAL_INCRT_NT_CNT,
+		    B.INCRT_NT_FNSH_CNT AS TOTAL_INCRT_NT_FNSH_CNT
+		FROM VS_REPORT_STUD A
+		LEFT OUTER JOIN VS_REPORT_EXAM_STT B ON A.YYMM = B.YYMM AND A.TERM = B.TERM AND A.STUD_ID = B.STUD_ID
+		LEFT OUTER JOIN (
+			SELECT
+				STUD_ID,
+				SUM(LRN_SEC) AS TOTAL_LRN_SEC
+			FROM VS_REPORT_SUBJ_LRN_TM 
+			WHERE YYMM = (
+					SELECT 
+						YYMM
+					FROM VS_REPORT_STUD
+					WHERE STUD_ID = 4995
+					ORDER BY YYMM DESC
+					LIMIT 1
+				)
+				AND TERM = 1
+				AND STUD_ID = 4995
+			GROUP BY STUD_ID
+		) C ON A.STUD_ID = C.STUD_ID
+		WHERE A.YYMM = (
+				SELECT 
+					YYMM
+				FROM VS_REPORT_STUD
+		        WHERE STUD_ID = 4995
+		        ORDER BY YYMM DESC
+		        LIMIT 1
+			)
+		    AND A.TERM = 1
+			AND A.STUD_ID = 4995;
+    </select>
+</mapper>

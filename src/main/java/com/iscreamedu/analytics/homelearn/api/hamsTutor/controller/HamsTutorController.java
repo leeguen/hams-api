@@ -122,6 +122,18 @@ public class HamsTutorController {
         body = (LinkedHashMap<String, Object>) hamsTutorExService.getAiRecommendCourseApply(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * 비전리포트 NFT (HAMS-T-NF-001)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getVisionReportNft")
+    public ResponseEntity getVisionReportNft(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getVisionReportNft(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
 
     /**
      * 학습분석 기본정보 (HAMS-T-LA-001)
