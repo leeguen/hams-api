@@ -788,6 +788,30 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         int studId = Integer.valueOf(paramMap.get("studId").toString());
         
         data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
+        ArrayList<Map<String,Object>> attRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftAttRt");
+        ArrayList<Map<String,Object>> exRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftExRt");
+        ArrayList<Map<String,Object>> crtRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftCrtRt");
+        
+        ArrayList<Object> attRt = new ArrayList<>();
+        ArrayList<Object> exRt = new ArrayList<>();
+        ArrayList<Object> crtRt = new ArrayList<>();
+        
+        for(Map<String, Object> attRtItem : attRtList) {
+        	attRt.add(attRtItem.get("attRt"));
+        }
+        
+        for(Map<String, Object> exRtItem : exRtList) {
+        	exRt.add(exRtItem.get("exRt"));
+        }
+        
+        for(Map<String, Object> crtRtItem : crtRtList) {
+        	crtRt.add(crtRtItem.get("crtRt"));
+        }
+        
+        
+        data.put("attRtList", attRt);
+        data.put("exRtList", exRt);
+        data.put("crtRtList", crtRt);
         
         
         setResult(dataKey,data);
