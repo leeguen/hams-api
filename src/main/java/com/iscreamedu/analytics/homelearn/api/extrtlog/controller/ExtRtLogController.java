@@ -53,9 +53,9 @@ public class ExtRtLogController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value="/setChMissonStatusChange")
+	@PostMapping(value="/setChMissonStatusChange", produces = "application/json; charset=utf8")
     @ResponseBody
-    public ResponseEntity setRealTimeMissonStatusChange(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+    public ResponseEntity setRealTimeMissonStatusChange(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		body = (LinkedHashMap)extRtLogService.setRealTimeMissonStatusChange(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}

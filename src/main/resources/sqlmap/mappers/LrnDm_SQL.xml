@@ -34,5 +34,11 @@
 			and f1.tchr_key = #{tchrId}::INTEGER	
 	 	order by f1.scr_typ_key, f1.stud_key			
     </select>
+    
+     <select id="selectStudInfo" parameterType="hashMap" resultType="resultMap">
+		-- lrn_sts_cd : 1000	체험 대기 / 1001	체험 만료 / 1003	체험 진행 / 1002	체험 취소
+		select stud_key, lrn_sts_cd, grd as grade, case when lrn_sts_cd in (1000,1001,1002,1003) then 0 else 1 end as stud_type from lrndmt.mt_dm_stud where stud_key = #{studId};
+	</select>
+    
 
 </mapper>

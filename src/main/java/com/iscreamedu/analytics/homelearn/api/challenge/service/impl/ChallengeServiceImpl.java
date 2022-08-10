@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.challenge.service.impl;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					|| (data instanceof Map && ((Map)data).isEmpty())) {
 				//조회결과가 없는 경우 메시지만 나감.
 				message.put("resultCode", ValidationCode.NO_DATA.getCode());
+				message.put("result", ValidationCode.NO_DATA.getMessage());
 				result.put(msgKey, message);
 			} else {
 				//정상데이터, 정상메시지
@@ -100,8 +102,14 @@ public class ChallengeServiceImpl implements ChallengeService {
 		getStudId(paramMap);
 		
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId","startYyyyMm","endYyyyMm"}, paramMap);
+		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) {			
+			if(!paramMap.containsKey("startYyyyMm") || !paramMap.containsKey("endYyyyMm") || paramMap.get("startYyyyMm").toString().isEmpty() || paramMap.get("endYyyyMm").toString().isEmpty())
+			{
+		        String defaultYyyyMm = new java.text.SimpleDateFormat("yyyyMM").format(new Date());
+				paramMap.put("startYyyyMm", defaultYyyyMm); 
+				paramMap.put("endYyyyMm", defaultYyyyMm); 
+			}
 			mtpList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeMtp");
 			data.put("mtpList", mtpList);
 			
@@ -127,7 +135,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId","startYyyyMm","endYyyyMm"}, paramMap);
 		if(vu.isValid()) {			
-		
+			
 			rewardList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeCluReward");
 			if(rewardList != null) {
 				for(Map<String,Object> rewardMap : rewardList) {	     
@@ -172,12 +180,14 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if(vu.isValid()) {	
 			Map<String,Object> paramMap_summary = new HashMap<>();
 			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spDailyHistoryChallengeChlSummary");
-			chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
-			if(chlList == null || chlList.size() == 0) {
-				chlList = new ArrayList<>();
+			if(data != null) {
+				chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
+				if(chlList == null || chlList.size() == 0) {
+					chlList = new ArrayList<>();
+				}
+				data.put("chlList", chlList);	
 			}
-			data.put("chlList", chlList);				
-			
+			setResult(dataKey, data);
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
@@ -202,7 +212,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			cluList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeClu");
 			if(cluList != null) {
 				data.put("cluList", cluList);
-				setResult(dataKey, data);
+				setResult(dataKey, data);					
 			} else {
 				setNoDataMessage();
 			}
@@ -213,7 +223,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		
 		return result;
 	}
-	
+
 	@Override
 	public LinkedHashMap getKoreanBookChallenge(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
