@@ -106,9 +106,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if(vu.isValid()) {			
 			if(!paramMap.containsKey("startYyyyMm") || !paramMap.containsKey("endYyyyMm") || paramMap.get("startYyyyMm").toString().isEmpty() || paramMap.get("endYyyyMm").toString().isEmpty())
 			{
-		        String defaultYyyyMm = new java.text.SimpleDateFormat("yyyyMM").format(new Date());
-				paramMap.put("startYyyyMm", defaultYyyyMm); 
-				paramMap.put("endYyyyMm", defaultYyyyMm); 
+				paramMap.put("startYyyyMm", null); 
+				paramMap.put("endYyyyMm", null); 
 			}
 			mtpList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeMtp");
 			data.put("mtpList", mtpList);
