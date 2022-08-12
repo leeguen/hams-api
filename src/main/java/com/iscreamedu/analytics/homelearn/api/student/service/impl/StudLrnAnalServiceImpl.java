@@ -220,7 +220,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
         	data.put("sttDt", studData.get("sttDt"));
-        	data.put("recentReport", studRecentData.get("recentReport"));
+        	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
         } else {

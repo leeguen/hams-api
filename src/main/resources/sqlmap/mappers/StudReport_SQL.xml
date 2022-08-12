@@ -33,42 +33,8 @@
     </select>
     
     <select id="getStudRecentReport" parameterType="hashMap" resultType="resultMap">
-		select
-			recent_report,
-			yymm_type
-		from (
-			select
-				recent_report,
-				yymm_check,
-				yymm_type
-			from (
-				select
-					yyyymm_key as recent_report,
-					concat(yyyymm_key,'9')::integer as yymm_check,
-					'm' as yymm_type
-				from lrn_dsb.ds_ag_stud_att_sts_mly 
-				where stud_key = #{studId} and ssvc_akey = 4
-				order by yyyymm_key desc
-				limit 1
-			) mm
-			union all
-			select 
-				recent_report,
-				yymm_check,
-				yymm_type
-			from (
-				select
-					yyyymmw_key as recent_report,
-					yyyymmw_key as yymm_check,
-					'w' as yymm_type
-				from lrn_dsb.ds_ag_stud_att_sts_wly
-				where stud_key = #{studId} and ssvc_akey = 4
-				order by yyyymmw_key desc
-				limit 1
-			) wk
-		) rem
-		order by yymm_check desc
-		limit 1;
+    	/* StudReport.getStudRecentReport */
+		select * from lrnapi.fn_ds_ap_recent_report(#{studId}, 'st');
     </select>
 	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
