@@ -44,17 +44,17 @@
 	
 	<select id="getReportYymmList" parameterType="hashMap" resultType="resultMap">
 		/* StudReport.getReportYymmList */
-		select * from lrnapi.fn_ds_ap_report_yymm_list_stud();
+		select * from lrnapi.fn_ds_ap_report_yymm_list_stud(#{startDt}, #{sttDt});
     </select>
     
     <select id="getMonthReportList" parameterType="hashMap" resultType="resultMap">
     	/* StudReport.getMonthReportList */
-    	select * from lrnapi.fn_ds_ap_month_report_list_stud(#{studId});
+    	select * from lrnapi.fn_ds_ap_month_report_list_stud(#{studId}, #{startDt}, #{sttDt});
     </select>
     
     <select id="getWeeklyReportList" parameterType="hashMap" resultType="resultMap">
     	/* StudReport.getWeeklyReportList */
-    	select * from lrnapi.fn_ds_ap_week_report_list_stud(#{studId});
+    	select * from lrnapi.fn_ds_ap_week_report_list_stud(#{studId}, #{startDt}, #{sttDt});
     </select>
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">

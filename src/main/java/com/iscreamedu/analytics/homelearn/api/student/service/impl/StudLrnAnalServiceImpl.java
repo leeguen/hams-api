@@ -276,6 +276,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				ArrayList<Map<String, Object>> reportList = new ArrayList<>();
 				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
 				
+				Map<String,Object> studInfoData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+				
+				int startDt = (studInfoData != null && studInfoData.get("sttDt") != null) ? Integer.parseInt(studInfoData.get("sttDt").toString().replace("-", "")) : 0;
+				String sttDt = (studInfoData != null && studInfoData.get("sttDt") != null) ? studInfoData.get("sttDt").toString() : null;
+				
+				paramMap.put("startDt", startDt);
+				paramMap.put("sttDt", sttDt);
+				
 				ArrayList<Map<String, Object>> reportYymmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getReportYymmList");
 				ArrayList<Map<String, Object>> monthList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getMonthReportList");
 				ArrayList<Map<String, Object>> weekList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getWeeklyReportList");
