@@ -2,14 +2,33 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="LrnLog">
 
+	<select id="spStudInfo">
+		{call lrn_log.sp_stud_info ( #{studId, mode=IN, jdbcType=INTEGER}
+    	)}
+    </select>
+    
+	<insert id="ispStudInfo" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_stud_info (
+              , #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{tchrKey, mode=IN, jdbcType=VARCHAR}
+              , #{parKey, mode=IN, jdbcType=INTEGER}
+		 	  , #{ssvcAkey, mode=IN, jdbcType=INTEGER}
+		 	  , #{grade, mode=IN, jdbcType=INTEGER}
+              , #{lrnStatusCd, mode=IN, jdbcType=INTEGER}
+              , #{lrnStatusNm, mode=IN, jdbcType=VARCHAR}
+              , #{sttDt, mode=IN, jdbcType=DATE}
+              , #{endDt, mode=IN, jdbcType=DATE}
+              , #{regAdminId, mode=IN, jdbcType=VARCHAR}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
 	<insert id="ispCompleteMission" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_complete_mission (
               #{dt, mode=IN, jdbcType=DATE}
               , #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
-              , #{studType, mode=IN, jdbcType=INTEGER}
-		 	  , #{grade, mode=IN, jdbcType=INTEGER}
-		 	  , #{misNo, mode=IN, jdbcType=INTEGER}
               , #{misStatusCd, mode=IN, jdbcType=INTEGER}
               , #{misContents, mode=IN, jdbcType=LONGVARCHAR}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
@@ -22,7 +41,7 @@
 		{call lrn_log.isp_ch_mission_status_change (
               #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
-		 	  , #{misNo, mode=IN, jdbcType=INTEGER}
+		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
               , #{misStatusCd, mode=IN, jdbcType=INTEGER}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
