@@ -109,17 +109,17 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			        
 			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
 			        if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
-			        	//초등만...
+			        	
 			        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId").toString());
-			        	newStudInfoMap.put("tchrKey", (realTimeStudInfo.containsKey("tchrKey") ? Integer.parseInt(realTimeStudInfo.get("tchrKey").toString()) : null));
-			        	newStudInfoMap.put("parKey", (realTimeStudInfo.containsKey("parKey") ? Integer.parseInt(realTimeStudInfo.get("parKey").toString()) : null));
-			        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("ssvcAkey") ? Integer.parseInt(realTimeStudInfo.get("ssvcAkey").toString()) : 4));
+			        	newStudInfoMap.put("tchrKey", null);
+			        	newStudInfoMap.put("parKey", null);			        	
+			        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
 			        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
 			        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("000","00")) : null));
 			        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("lrnStatusNm") ? realTimeStudInfo.get("lrnStatusNm").toString() : null));
-			        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("sttDt") ? realTimeStudInfo.get("sttDt").toString() : null));
-			        	newStudInfoMap.put("endDt", (realTimeStudInfo.containsKey("endDt") ? realTimeStudInfo.get("endDt").toString() : null));
-			        	newStudInfoMap.put("regAdminId", (realTimeStudInfo.containsKey("regAdminId") ? realTimeStudInfo.get("regAdminId").toString() : "STUD_EXTRTLOG"));
+			        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
+			        	newStudInfoMap.put("endDt", null);
+			        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
 			        	
 						commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
 						newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());

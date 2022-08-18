@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="LrnLog">
 
-	<select id="spStudInfo">
+	<select id="spStudInfo" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_stud_info ( #{studId, mode=IN, jdbcType=INTEGER}
     	)}
     </select>
