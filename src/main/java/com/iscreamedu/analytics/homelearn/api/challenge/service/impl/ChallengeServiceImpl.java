@@ -140,18 +140,18 @@ public class ChallengeServiceImpl implements ChallengeService {
 				for(Map<String,Object> rewardMap : rewardList) {	     
 					try {
 						Map<String,Object> paramMap_motionList = new HashMap<>();
-						paramMap_motionList.put("motionCdList", rewardMap.get("motionCdList").toString());
+						paramMap_motionList.put("motionNoList", rewardMap.get("motionNoList").toString());
 						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
 					}
 					catch(Exception e) {
 					}
 					
-					if(rewardMotionList == null || rewardMotionList.size() == 0) {
-						rewardMotionList = new ArrayList<>();
-					}
+//					if(rewardMotionList == null || rewardMotionList.size() == 0) {
+//						rewardMotionList = new ArrayList<>();
+//					}
 					
 					rewardMap.put("rewardMotionList", rewardMotionList);
-					rewardList.remove("motionCdList");
+					rewardList.remove("motionNoList");
 				}
 				data.put("rewardList", rewardList);
 				setResult(dataKey, data);
@@ -181,9 +181,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spDailyHistoryChallengeChlSummary");
 			if(data != null) {
 				chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
-				if(chlList == null || chlList.size() == 0) {
-					chlList = new ArrayList<>();
-				}
+//				if(chlList == null || chlList.size() == 0) {
+//					chlList = new ArrayList<>();
+//				}
 				data.put("chlList", chlList);	
 			}
 			setResult(dataKey, data);
@@ -302,7 +302,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 				if(data != null) {
 					try {
 						Map<String,Object> paramMap_motionList = new HashMap<>();
-						paramMap_motionList.put("motionCdList", data.get("motionCdList").toString());
+						paramMap_motionList.put("motionNoList", data.get("motionNoList").toString());
 						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
 					}
 					catch(Exception e) {
@@ -313,7 +313,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					}
 					
 					data.put("rewardMotionList", rewardMotionList);
-					data.remove("motionCdList");
+					data.remove("motionNoList");
 					setResult(dataKey, data);
 				} else {
 					setNoDataMessage();
@@ -331,7 +331,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	@Override
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
-		ArrayList<Map<String, Object>> bookList = new ArrayList<>();
+		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
@@ -353,15 +353,75 @@ public class ChallengeServiceImpl implements ChallengeService {
 		vu.checkRequired(new String[] {"studId","misStep"}, paramMap);
 		if(vu.isValid()) {		
 			try {	
-				bookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spKoreanBookChMissonList");
+				missionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spKoreanBookChMissonList");
 			
-				if(bookList == null || bookList.size() == 0) {
+				if(missionList == null || missionList.size() == 0) {
 					setNoDataMessage();
 				} else { 
-					// misRcmYn : 추천여부 
-					// 국어책 API 연동 추가 예정
+					// misRcmYn : recommend 북카페 책제목 + 추천도서 리스트 
+					// 북카페 책읽기 상태 값 리스트
+					// 홈런 API 조회 :: 국어책 API 연동 추가
+					ArrayList<Map<String, Object>> bookListInfo = new ArrayList<>();
+					ArrayList<Map<String, Object>> bookStateInfo = new ArrayList<>();
+			        ArrayList<Integer> bookIds = new ArrayList<Integer>();
+			        String startDate = null;
+			        int grade = -99;
+			        for(Map<String, Object> item : missionList) {			      
+			        	bookIds.add(Integer.parseInt(item.get("misBookCd").toString()));
+				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
+			        	item.remove("misBookCd");
+			        	item.remove("grade");
+			        	if(item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();
+			        }
+			        Map<String, Object> extParamMap_1 = new HashMap<>();
+			        extParamMap_1.put("apiName", "bookList");
+			        extParamMap_1.put("bookIds", bookIds);
+			        extParamMap_1.put("grade", grade);
+			        
+			        bookListInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_1).get("data");	
+			        Map<String, Object> extParamMap_2 = new HashMap<>();
+			        extParamMap_2.put("apiName", "bookState");
+			        extParamMap_2.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+			        extParamMap_2.put("startDate", startDate);
+			       // 갱신 대상 :  misStartDt, misCompleteDt
+
+
+			        extParamMap_2.put("bookIds", bookIds);
+			        bookStateInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_2).get("data");		
+//			        "data": [
+//			                 {
+//			                   "id": 2466,
+//			                   "title": "사람들이 세상을 바꾸기 시작했어요",
+//			                   "deleted": false,
+//			                   "recommend": false
+//			                 },... ]
+			        for(Map<String, Object> item : missionList) {			      
+				        if(bookListInfo != null && bookListInfo.size() > 0) {
+				        	for(Map<String, Object> itemInfo : bookListInfo) {	
+				        		if(item.get("misBookCd") == itemInfo.get("id")) {
+						        	item.put("misRcmYn",(itemInfo.containsKey("recommend") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?'Y':'N') : 'N'));
+				        		}
+				        	}
+				        	for(Map<String, Object> itemInfo : bookStateInfo) {	
+				        		if(item.get("misBookCd") == itemInfo.get("id")) {
+						        	item.put("misStatusCd",(itemInfo.containsKey("complete") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?2:'N') : 'N'));	
+
+						        	// 완료한 미션순서 체크하여 순차 호출.. roof
+			//						commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.isp_ch_mission_status_change");
+				        	
+				        		}
+				        	}
+				        } else {
+				        	LOGGER.debug("");
+				        	item.put("misRcmYn",'N');			        		
+				        }
+				        if(bookStateInfo != null && bookStateInfo.size() > 0) {
+				        } else {
+				        	LOGGER.debug("");		        		
+				        }
+				    }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
-					data.put("bookList", bookList);
+					data.put("bookList", missionList);
 					setResult(dataKey, data);
 				}
 			} catch (Exception e) {

@@ -1,7 +1,9 @@
 package com.iscreamedu.analytics.homelearn.api.extrtlog.service.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import java.util.List;
@@ -35,6 +37,9 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 
     @Autowired
     CommonMapperLrnLog commonMapperLrnLog;
+    
+	@Autowired
+	ExternalAPIService externalAPIservice;
     
 	/**
 	 * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
@@ -88,24 +93,55 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		// MLG 출석하기: 구분없음(체험회원+정회원) studType -1, grade -99
 		// ** MKB 국어책 챌린지 : 구분없음(체험회원+정회원) studType -1, grade 있음. -- 실시간 등록 호출 대상 아님!!
 		if(vu.isValid()) {
-			
-			switch(paramMap.get("chCd").toString())
-			{
-				case "MHL" :
-				case "MWN" :
-				case "MNL" :
-					paramMap.put("studType", 1);
-					paramMap.put("grade", -99);
-					break;
-				case "MLG" : 
-					paramMap.put("studType", -1);
-					paramMap.put("grade", -99);
-					break;
+			if(paramMap.get("chCd").toString().equals("MLG")) {
+				// 출석하기(습관팝업만 call)
+				Map<String, Object> studInfo = new HashMap<>();
+				studInfo.put("stud", commonMapperLrnLog.get(paramMap, "LrnLog.spStudInfo"));
+		        Integer newStudCnt = 0;
+				if(studInfo.get("stud") == null) {
+					// 1. 신규 학생 정보 call api -> 등록
+					//홈런 API 조회
+			        Map<String,Object> realTimeStudInfo = new HashMap<>();
+		        	Map<String, Object> newStudInfoMap = new HashMap<>();
+			        
+			        // $$$$$$$$$$$$$$$$$$$ 추후 api 변경 예정. 
+			        paramMap.put("apiName", "aiReport/");
+			        
+			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+			        if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
+			        	//초등만...
+			        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId").toString());
+			        	newStudInfoMap.put("tchrKey", (realTimeStudInfo.containsKey("tchrKey") ? Integer.parseInt(realTimeStudInfo.get("tchrKey").toString()) : null));
+			        	newStudInfoMap.put("parKey", (realTimeStudInfo.containsKey("parKey") ? Integer.parseInt(realTimeStudInfo.get("parKey").toString()) : null));
+			        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("ssvcAkey") ? Integer.parseInt(realTimeStudInfo.get("ssvcAkey").toString()) : 4));
+			        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
+			        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("000","00")) : null));
+			        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("lrnStatusNm") ? realTimeStudInfo.get("lrnStatusNm").toString() : null));
+			        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("sttDt") ? realTimeStudInfo.get("sttDt").toString() : null));
+			        	newStudInfoMap.put("endDt", (realTimeStudInfo.containsKey("endDt") ? realTimeStudInfo.get("endDt").toString() : null));
+			        	newStudInfoMap.put("regAdminId", (realTimeStudInfo.containsKey("regAdminId") ? realTimeStudInfo.get("regAdminId").toString() : "STUD_EXTRTLOG"));
+			        	
+						commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
+						newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
+			        	
+				        if(newStudCnt > 0) {
+							// 2. 미션 생성
+				        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
+				        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
+				        	}
+				        }
+			        }
+				} else {
+					paramMap.put("studType", studInfo.get("studType"));
+					paramMap.put("grade", studInfo.get("grade"));
+				}
 			}
+			
 			String strResultMsg = null;
 			LinkedHashMap message = new LinkedHashMap();			
 			try {
-			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
+				
+				commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
 				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {
@@ -124,21 +160,21 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
 				message.put("resulst", strResultMsg);
 				setResult(msgKey, message);
-				try {
-					JSONObject jsonMap = new JSONObject();
-					Date nowDate = new Date();
-					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-					jsonMap.putAll(paramMap);
-					Map<String, Object> paramMap2 = new LinkedHashMap();
-					paramMap2.put("inProcName", "ispCompleteMission");
-					paramMap2.put("inProcStep", 0);
-					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
-					paramMap2.put("inParam", jsonMap.toJSONString());
-					paramMap2.put("inErrorNo", 0);
-					paramMap2.put("inErrorTitle", "insert error");
-					paramMap2.put("inErrorMsg", strResultMsg);
-					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
-				} catch(Exception e2) {}
+//				try {
+//					JSONObject jsonMap = new JSONObject();
+//					Date nowDate = new Date();
+//					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+//					jsonMap.putAll(paramMap);
+//					Map<String, Object> paramMap2 = new LinkedHashMap();
+//					paramMap2.put("inProcName", "ispCompleteMission");
+//					paramMap2.put("inProcStep", 0);
+//					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+//					paramMap2.put("inParam", jsonMap.toJSONString());
+//					paramMap2.put("inErrorNo", 0);
+//					paramMap2.put("inErrorTitle", "insert error");
+//					paramMap2.put("inErrorMsg", strResultMsg);
+//					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+//				} catch(Exception e2) {}
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
@@ -152,9 +188,9 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
-		paramMap.put("regAdminId", "STUD_extRtLog");
+		paramMap.put("regAdminId", "STUD_EXTRTLOG");
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId","chCd","misNo","misStatusCd"}, paramMap);
+		vu.checkRequired(new String[] {"studId","chCd","misStep","misStatusCd"}, paramMap);
 		
 		if(vu.isValid()) {
 			// studType, grade, misNo 조회해서 저장
