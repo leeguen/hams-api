@@ -33,42 +33,8 @@
     </select>
     
     <select id="getStudRecentReport" parameterType="hashMap" resultType="resultMap">
-		select
-			recent_report,
-			yymm_type
-		from (
-			select
-				recent_report,
-				yymm_check,
-				yymm_type
-			from (
-				select
-					yyyymm_key as recent_report,
-					concat(yyyymm_key,'9')::integer as yymm_check,
-					'm' as yymm_type
-				from lrn_dsb.ds_ag_stud_att_sts_mly 
-				where stud_key = #{studId} and ssvc_akey = 4
-				order by yyyymm_key desc
-				limit 1
-			) mm
-			union all
-			select 
-				recent_report,
-				yymm_check,
-				yymm_type
-			from (
-				select
-					yyyymmw_key as recent_report,
-					yyyymmw_key as yymm_check,
-					'w' as yymm_type
-				from lrn_dsb.ds_ag_stud_att_sts_wly
-				where stud_key = #{studId} and ssvc_akey = 4
-				order by yyyymmw_key desc
-				limit 1
-			) wk
-		) rem
-		order by yymm_check desc
-		limit 1;
+    	/* StudReport.getStudRecentReport */
+		select * from lrnapi.fn_ds_ap_recent_report(#{studId}, 'st');
     </select>
 	
 	<select id="getPeriod" parameterType="hashMap" resultType="resultMap">
@@ -78,17 +44,17 @@
 	
 	<select id="getReportYymmList" parameterType="hashMap" resultType="resultMap">
 		/* StudReport.getReportYymmList */
-		select * from lrnapi.fn_ds_ap_report_yymm_list_stud();
+		select * from lrnapi.fn_ds_ap_report_yymm_list_stud(#{startDt}, #{sttDt});
     </select>
     
     <select id="getMonthReportList" parameterType="hashMap" resultType="resultMap">
     	/* StudReport.getMonthReportList */
-    	select * from lrnapi.fn_ds_ap_month_report_list_stud(#{studId});
+    	select * from lrnapi.fn_ds_ap_month_report_list_stud(#{studId}, #{startDt}, #{sttDt});
     </select>
     
     <select id="getWeeklyReportList" parameterType="hashMap" resultType="resultMap">
     	/* StudReport.getWeeklyReportList */
-    	select * from lrnapi.fn_ds_ap_week_report_list_stud(#{studId});
+    	select * from lrnapi.fn_ds_ap_week_report_list_stud(#{studId}, #{startDt}, #{sttDt});
     </select>
 
     <select id="getLrnSummary" parameterType="hashMap" resultType="resultMap">
@@ -141,7 +107,7 @@
 				where yyyymm_key = #{yymm}
 					and stud_key = #{studId}
 					and ssvc_akey = 4
-					and grp_item_key between 4401 and 4410
+					and grp_item_key between 4001 and 4410
 				group by yyyymm_key, stud_key, ssvc_akey
 			) d on a.yyyymm_key = d.yyyymm_key and a.stud_key = d.stud_key and a.ssvc_akey = d.ssvc_akey
 			where a.yyyymm_key = #{yymm}
@@ -160,7 +126,7 @@
 				where yyyymmw_key = #{yymmwk}
 					and stud_key = #{studId}
 					and ssvc_akey = 4
-					and grp_item_key between 4401 and 4410
+					and grp_item_key between 4001 and 4410
 				group by yyyymmw_key, stud_key, ssvc_akey
 			) d on a.yyyymmw_key = d.yyyymmw_key and a.stud_key = d.stud_key and a.ssvc_akey = d.ssvc_akey
 			where a.yyyymmw_key = #{yymmwk}
@@ -637,10 +603,13 @@
 		left outer join (
 	    	select
 	    		a.stud_key,
-				b.item_nm as subj_nm
+				case
+					when b.item_cd = '#1' or b.item_cd = '#2' then '기타'
+					else b.item_nm
+				end as subj_nm
 			from lrn_dsb.ds_ag_lrn_use_sts_mly a
-			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-				and b.grp_item_key between 4401 and 4410
+			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+				and b.grp_item_key between 4001 and 4410
 			where a.yyyymm_key = #{yymm} 
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 4
@@ -655,10 +624,13 @@
 		left outer join (
 	    	select
 	    		a.stud_key,
-				b.item_nm as subj_nm
+				case
+					when b.item_cd = '#1' or b.item_cd = '#2' then '기타'
+					else b.item_nm
+				end as subj_nm
 			from lrn_dsb.ds_ag_lrn_use_sts_wly a
-			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-				and b.grp_item_key between 4401 and 4410
+			join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+				and b.grp_item_key between 4001 and 4410
 			where a.yyyymmw_key = #{yymmwk} 
 				and a.stud_key = #{studId}
 				and a.ssvc_akey = 4
@@ -676,18 +648,21 @@
     <select id="getALrnSummaryList" parameterType="hashMap" resultType="resultMap">
     	select 
 			a.fnsh_add_lrn_cnt as a_lrn_cnt,
-			b.item_nm as subj_nm
+			case
+				when b.item_cd = '#1' or b.item_cd = '#2' then '기타'
+				else b.item_nm
+			end as subj_nm
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
-		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key between 4401 and 4410
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+			and b.grp_item_key between 4001 and 4410
 		where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_lrn_use_sts_wly a
-		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key between 4401 and 4410
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+			and b.grp_item_key between 4001 and 4410
 		where a.yyyymmw_key = #{yymmwk}
 			</otherwise>
 		</choose>
@@ -701,19 +676,22 @@
     <select id="getALrnSttList" parameterType="hashMap" resultType="resultMap">
     	select 
 			a.fnsh_add_lrn_cnt as a_lrn_cnt,
-			b.item_nm as subj_nm
+			case
+				when b.item_cd = '#1' or b.item_cd = '#2' then '기타'
+				else b.item_nm
+			end as subj_nm
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_lrn_use_sts_mly a
-		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key between 4401 and 4410
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+			and b.grp_item_key between 4001 and 4410
 		where a.yyyymm_key = #{yymm}
 			and a.stud_key = #{studId}  
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_lrn_use_sts_wly a
-		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD' and position('#' in b.item_cd) = 0
-			and b.grp_item_key between 4401 and 4410
+		join lrn_dsb.ds_dm_grp_item b on a.grp_item_key = b.grp_item_key and b.grp_typ = 'SUBJ_CD'
+			and b.grp_item_key between 4001 and 4410
 		where a.yyyymmw_key = #{yymmwk}
 			and a.stud_key = #{studId}  
 			</otherwise>

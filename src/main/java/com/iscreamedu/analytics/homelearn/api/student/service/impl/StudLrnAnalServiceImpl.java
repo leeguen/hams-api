@@ -220,7 +220,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
         	data.put("sttDt", studData.get("sttDt"));
-        	data.put("recentReport", studRecentData.get("recentReport"));
+        	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
         } else {
@@ -275,6 +275,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		Map<String, Object> monthMap = new LinkedHashMap<>();
 				ArrayList<Map<String, Object>> reportList = new ArrayList<>();
 				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
+				
+				Map<String,Object> studInfoData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
+				
+				int startDt = (studInfoData != null && studInfoData.get("sttDt") != null) ? Integer.parseInt(studInfoData.get("sttDt").toString().replace("-", "")) : 0;
+				String sttDt = (studInfoData != null && studInfoData.get("sttDt") != null) ? studInfoData.get("sttDt").toString() : null;
+				
+				paramMap.put("startDt", startDt);
+				paramMap.put("sttDt", sttDt);
 				
 				ArrayList<Map<String, Object>> reportYymmList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getReportYymmList");
 				ArrayList<Map<String, Object>> monthList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getMonthReportList");
