@@ -415,7 +415,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
+//					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
 					HttpEntity<String> entity = new HttpEntity<>(headers);
 					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
@@ -450,7 +450,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
-					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
+//					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 					HttpEntity<String> entity = new HttpEntity<>(headers);
 					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
