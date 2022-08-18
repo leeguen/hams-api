@@ -88,6 +88,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	@Value("${extapi.hl.stud.auth.url}")
 	String STUD_AUTH_API; //학생 인증 API 주소
 	
+	@Value("${extapi.hl.bookcafe.url}")
+	String HLBOOKCAFE_API; //북까페 API 주소
+		
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
 
@@ -363,12 +366,14 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        } else if(apiName.equals("aiReport/")){
 	        	try {
 		        	String studId = "";
-		    		String encodedStr = paramMap.get("p").toString();
-		    		
-		    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
-		    		studId = paramList[1];
-		    		paramMap.put("studId", studId);
-		    		//paramMap.put("studId", "1006753");
+		        	if(paramMap.containsKey("p")) {
+			    		String encodedStr = paramMap.get("p").toString();
+			    		
+			    		String[] paramList = hamsSalesServiceImpl.getDecodedParam(encodedStr);
+			    		studId = paramList[1];
+			    		paramMap.put("studId", studId);
+			    		//paramMap.put("studId", "1006753");
+		        	}
 		    		
 		    		String url = TUTORSTUDINFO_API + apiName + paramMap.get("studId") + ".json";
 		        	
@@ -397,7 +402,80 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
-	        }else if(apiName.equals("recommand/")){
+	        } else if(apiName.equals("bookList")){
+	        	try {
+		    		
+		    		String url = HLBOOKCAFE_API + apiName;
+		        	
+		    		;
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	JSONParser parser = new JSONParser();
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
+					int statusCode = Integer.valueOf(response.getStatusCode().toString());
+					LinkedHashMap responseData = response.getBody();
+
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("bookState")){
+	        	try {
+		    		
+		    		String url = HLBOOKCAFE_API + apiName;
+		        	
+		        	//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	JSONParser parser = new JSONParser();
+					HttpHeaders headers = new HttpHeaders();
+					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
+					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
+					int statusCode = Integer.valueOf(response.getStatusCode().toString());
+					LinkedHashMap responseData = response.getBody();
+
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+	        	} catch(Exception e) {
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("recommand/")){
 	        	try {
 
 	        		String url = TUTORRECOMMEND_API + apiName;
@@ -445,7 +523,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
 	        		setResult(msgKey, msgMap);
 	        	}
-	        }else if(apiName.equals("/study/course-due-dates")){
+	        } else if(apiName.equals("/study/course-due-dates")){
 	        	try {
 		        	String studId = "";
 		    		String encodedStr = paramMap.get("p").toString();
