@@ -403,13 +403,15 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("bookList")){
-	        	try {		    		
+	        	try {
+		    		
 		    		String url = HLBOOKCAFE_API + apiName;
 		        	LOGGER.debug("url : " + url);
 		        	LOGGER.debug("param : " + paramMap.toString());
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
 					JSONObject attBodyJson = new JSONObject();
 					/*RequestBody로 보낼 데이터 등록*/
 					for( String key : paramMap.keySet() ){ 
@@ -417,9 +419,10 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	}
 					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
 					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
+
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
-					
+
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));
@@ -447,7 +450,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	LOGGER.debug("param : " + paramMap.toString());
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+					
 					JSONObject attBodyJson = new JSONObject();
 					/*RequestBody로 보낼 데이터 등록*/
 					for( String key : paramMap.keySet() ){ 
@@ -455,6 +459,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	}
 					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
 					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
+				
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
 
