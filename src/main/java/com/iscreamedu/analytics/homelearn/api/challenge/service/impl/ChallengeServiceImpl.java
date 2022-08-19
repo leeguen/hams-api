@@ -332,7 +332,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
@@ -420,8 +420,10 @@ public class ChallengeServiceImpl implements ChallengeService {
 						        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
 						        			realTimeMKBInfo.put("misNo", item.get("misNo"));
 						        			realTimeMKBInfo.put("misStatusCd", paramMap.get("2"));
+						        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
 						        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
-						        			item.put("misStatusCd",2);						        			
+						        			item.put("misStatusCd",2);			
+						        			item.put("misCompleteDt",itemInfo.get("compDate").toString());	
 						        		} else {
 						        			flag_mission = false;
 						        			if(itemInfo.containsKey("lastPage")) {
