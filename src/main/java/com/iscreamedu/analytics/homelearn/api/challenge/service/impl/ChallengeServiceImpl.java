@@ -332,6 +332,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
@@ -369,8 +370,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        for(Map<String, Object> item : missionList) {			      
 			        	bookIds.add(Integer.parseInt(item.get("misBookCd").toString()));
 				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
-			        	item.remove("misBookCd");
-			        	item.remove("grade");
 			        	if(item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();
 			        }
 			        Map<String, Object> extParamMap_1 = new HashMap<>();
@@ -382,10 +381,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        Map<String, Object> extParamMap_2 = new HashMap<>();
 			        extParamMap_2.put("apiName", "bookState");
 			        extParamMap_2.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
-			        extParamMap_2.put("startDate", startDate);
+			        extParamMap_2.put("startDate", startDate.toString());
 			       // 갱신 대상 :  misStartDt, misCompleteDt
-
-
 			        extParamMap_2.put("bookIds", bookIds);
 			        bookStateInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_2).get("data");		
 //			        "data": [
@@ -398,27 +395,47 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        for(Map<String, Object> item : missionList) {			      
 				        if(bookListInfo != null && bookListInfo.size() > 0) {
 				        	for(Map<String, Object> itemInfo : bookListInfo) {	
-				        		if(item.get("misBookCd") == itemInfo.get("id")) {
-						        	item.put("misRcmYn",(itemInfo.containsKey("recommend") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?'Y':'N') : 'N'));
+				        		if(item.get("misBookCd").toString().equals(itemInfo.get("id").toString())) {
+						        	item.put("misRcmYn",(itemInfo.containsKey("recommend") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?"Y":"N") : "N"));
 				        		}
 				        	}
+				        } else {
+				        	LOGGER.debug("bookListInfo is null...");
+				        	item.put("misRcmYn","N");			        		
+				        }
+				        
+			        	boolean flag_mission = true;			        	  
+				        if(bookStateInfo != null && bookStateInfo.size() > 0) {
 				        	for(Map<String, Object> itemInfo : bookStateInfo) {	
 				        		if(item.get("misBookCd") == itemInfo.get("id")) {
-						        	item.put("misStatusCd",(itemInfo.containsKey("complete") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?2:'N') : 'N'));	
-
-						        	// 완료한 미션순서 체크하여 순차 호출.. roof
-			//						commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.isp_ch_mission_status_change");
+						        	if(itemInfo.containsKey("complete")) {
+						        		if(flag_mission) {
+						        			// 완료한 미션순서 체크하여 순차 호출.. roof
+						        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+						        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+						        			realTimeMKBInfo.put("chCd", "MKB");
+						        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+						        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+						        			realTimeMKBInfo.put("misStatusCd", paramMap.get("2"));
+						        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+						        			item.put("misStatusCd",2);						        			
+						        		} else {
+						        			flag_mission = false;
+						        			if(itemInfo.containsKey("lastPage")) {
+								        		//진행중
+						        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
+								        	}
+						        		}
+						        	} else {
+						        		flag_mission = false;
+					        		}
 				        	
 				        		}
 				        	}
 				        } else {
-				        	LOGGER.debug("");
-				        	item.put("misRcmYn",'N');			        		
+				        	LOGGER.debug("bookStateInfo is null...");		        		
 				        }
-				        if(bookStateInfo != null && bookStateInfo.size() > 0) {
-				        } else {
-				        	LOGGER.debug("");		        		
-				        }
+				        
 				    }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
 					data.put("bookList", missionList);
