@@ -283,7 +283,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 //	 			"rewardCnt":1, 
 //				"rewardDt":null, 
 //				"rewardMotionList":[{
-//								"motionCd":"",
+//								"motionNo":"",
 //								"mtImg1Url":"", 
 // 								"mtImg2Url":"",  
 //		 						"mtSoundUrl":"",   
@@ -336,20 +336,23 @@ public class ChallengeServiceImpl implements ChallengeService {
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
-		//"bookList":[
-//  	{
-//			  "misNo":1,
-//			  "misOrderNo":1,
-//			  "misCd":"CLUMKB2098",
-//			  "misNm":"숲속 사진관",
-//			  "misStatusCd":0,
-//			  "misImgUrl":"https://xcdn.home-learn.com/bookcafe/9788992505529/assets/thumbs/1.jpg",
-//			  "misSkimUrl":"OOOOO",
-//			  "misRcmYn":"N",
-//			  "misStartDt":null,
-//			  "misCompleteDt":null                    
-	//  }
-	//]
+		//"bookList": [
+//        {
+//            "misNo": 203,
+//            "misOrderNo": 1,
+//            "misCd": "CLUMKB2610",
+//            "misNm": "할머니의 가을 운동회",
+//            "misStatusCd": 1,
+//            "rewardNo": 9,
+//            "misImgUrl": "https://xcdn.home-learn.com/data/origin_img/2022/04/27/220427021144954.jpg",
+//            "grade": 3,
+//            "misBookCd": "2610",
+//            "misSkimUrl": "bookcafe://book?bookId=2610",
+//            "misRcmYn": "N",
+//            "misStartDt": "2022-08-18 11:22:42",
+//            "misCompleteDt": null
+//        }
+//    ]
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId","misStep"}, paramMap);
 		if(vu.isValid()) {		
@@ -409,7 +412,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        	for(Map<String, Object> itemInfo : bookStateInfo) {	
 				        		if(item.get("misBookCd") == itemInfo.get("id")) {
 						        	if(itemInfo.containsKey("complete")) {
-						        		if(flag_mission) {
+						        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
 						        			// 완료한 미션순서 체크하여 순차 호출.. roof
 						        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 						        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
