@@ -218,7 +218,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			String strResultMsg = null;
 			LinkedHashMap message = new LinkedHashMap();			
 			try {
-			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMissionStatusChange");
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
 				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					

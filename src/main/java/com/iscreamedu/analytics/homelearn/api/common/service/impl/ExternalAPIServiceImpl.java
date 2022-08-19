@@ -403,24 +403,23 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("bookList")){
-	        	try {
-		    		
+	        	try {		    		
 		    		String url = HLBOOKCAFE_API + apiName;
-		        	
-		    		;
-		        	//파라미터 세팅
-		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-		        	URI apiUri = builder.build().encode().toUri();  
-		        	
+		        	LOGGER.debug("url : " + url);
+		        	LOGGER.debug("param : " + paramMap.toString());
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-//					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
-					HttpEntity<String> entity = new HttpEntity<>(headers);
-					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
+					JSONObject attBodyJson = new JSONObject();
+					/*RequestBody로 보낼 데이터 등록*/
+					for( String key : paramMap.keySet() ){ 
+						attBodyJson.put(key, paramMap.get(key));
+		        	}
+					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
+					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
-
+					
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));
@@ -434,6 +433,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        		setResult(msgKey, msgMap);
 		        	}
 	        	} catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
@@ -443,17 +443,18 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        	try {
 		    		
 		    		String url = HLBOOKCAFE_API + apiName;
-		        	
-		        	//파라미터 세팅
-		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-		        	URI apiUri = builder.build().encode().toUri();  
-		        	
+		    		LOGGER.debug("url : " + url);
+		        	LOGGER.debug("param : " + paramMap.toString());
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
-//					headers.add("token", "V0202fbeyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJobWtpbTEzIiwidiI6MiwidXNlcklkIjoyMDY4NTQ3LCJzdHVkZW50Tm8iOjk3MTIyOCwibG9naW5BcyI6ZmFsc2UsImlhdCI6MTY2MDczMDI3NywiZXhwIjoxNjYxMzM1MDc3fQ.NZZTKp09qHRSUAwiRlNBftA02FS8vXPdISb6woO2KdKsmQgHbpCFSFLCDCB3QI_hOZd4Fkhoo1WcmvkcSWFs7w");
 					headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					HttpEntity<String> entity = new HttpEntity<>(headers);
-					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, entity, LinkedHashMap.class, paramMap);
+					JSONObject attBodyJson = new JSONObject();
+					/*RequestBody로 보낼 데이터 등록*/
+					for( String key : paramMap.keySet() ){ 
+						attBodyJson.put(key, paramMap.get(key));
+		        	}
+					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
+					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
 
@@ -470,6 +471,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        		setResult(msgKey, msgMap);
 		        	}
 	        	} catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
 	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
