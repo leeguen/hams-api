@@ -105,6 +105,23 @@ public class ChallengeController {
 	}
 	
 	/***
+	 * STUD-CH-006
+	 * 메타포 현황 월별 히스토리 : 습관 챌린지 
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getChlSummaryCnt")
+    @ResponseBody
+    public ResponseEntity getChallengeSummaryCnt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)challengeService.getChallengeSummaryCnt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	
+	/***
 	 * STUD-CH-009
 	 * 국어책읽기 > 국어책_챌린지_정보
 	 * @param params

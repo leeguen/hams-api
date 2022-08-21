@@ -67,6 +67,7 @@
 		 	  , #{misNo, mode=IN, jdbcType=INTEGER}
               , #{misStatusCd, mode=IN, jdbcType=INTEGER}
               , #{misCompleteDt, mode=IN, jdbcType=DATE}
+              , #{misContents, mode=IN, jdbcType=VARCHAR}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
@@ -108,6 +109,12 @@
 		{call lrn_log.sp_korean_book_ch_mission_list (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 			  , #{misStep, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spChallengeSummaryCnt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_ch_mis_daily_rt_summary_cnt (
+			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	

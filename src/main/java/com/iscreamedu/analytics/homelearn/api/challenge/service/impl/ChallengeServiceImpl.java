@@ -1,9 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.challenge.service.impl;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.iscreamedu.analytics.homelearn.api.challenge.service.ChallengeService;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnLog;
-import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.CommonUtil;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
@@ -92,6 +89,25 @@ public class ChallengeServiceImpl implements ChallengeService {
 			paramMap.put("studId", studId);
 		}
 	}
+
+	@Override
+	public LinkedHashMap getChallengeSummaryCnt(Map<String, Object> paramMap) throws Exception {
+		Map<String,Object> data = new HashMap<>();
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		if(vu.isValid()) {			
+			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spChallengeSummaryCnt");
+			setResult(dataKey, data);			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
 	
 	@Override
 	public LinkedHashMap getChMetaphorHistory(Map<String, Object> paramMap) throws Exception {
@@ -136,7 +152,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if(vu.isValid()) {			
 			
 			rewardList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeCluReward");
-			if(rewardList != null) {
+			if(rewardList != null && rewardList.size() > 0) {
 				for(Map<String,Object> rewardMap : rewardList) {	     
 					try {
 						Map<String,Object> paramMap_motionList = new HashMap<>();
@@ -209,7 +225,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if(vu.isValid()) {			
 		
 			cluList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeClu");
-			if(cluList != null) {
+			if(cluList != null && cluList.size() > 0) {
 				data.put("cluList", cluList);
 				setResult(dataKey, data);					
 			} else {
@@ -332,7 +348,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
@@ -414,21 +429,40 @@ public class ChallengeServiceImpl implements ChallengeService {
 						        	if(itemInfo.containsKey("complete")) {
 						        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
 						        			// 완료한 미션순서 체크하여 순차 호출.. roof
+						        			item.put("misStatusCd",2);			
+						        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
+						        			
+						        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("id")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+item.get("misCompleteDt");
 						        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 						        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 						        			realTimeMKBInfo.put("chCd", "MKB");
 						        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
 						        			realTimeMKBInfo.put("misNo", item.get("misNo"));
-						        			realTimeMKBInfo.put("misStatusCd", paramMap.get("2"));
-						        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
+						        			realTimeMKBInfo.put("misStatusCd", 2);
+						        			realTimeMKBInfo.put("misCompleteDt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(itemInfo.get("compDate").toString()));
+						        			realTimeMKBInfo.put("misContents", strContent);
 						        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
-						        			item.put("misStatusCd",2);			
-						        			item.put("misCompleteDt",itemInfo.get("compDate").toString());	
+						        			
 						        		} else {
 						        			flag_mission = false;
 						        			if(itemInfo.containsKey("lastPage")) {
 								        		//진행중
+//						        				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
+//						        				ZonedDateTime zonedDateTime = ZonedDateTime.parse(new Date().toString(), formatter);
 						        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
+							        			item.put("misStatusCd",1);	
+
+							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("id")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|";
+							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+							        			realTimeMKBInfo.put("chCd", "MKB");
+							        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+							        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+							        			realTimeMKBInfo.put("misStatusCd", 1);
+							        			realTimeMKBInfo.put("misCompleteDt", null);
+							        			realTimeMKBInfo.put("misContents", strContent);
+							        			// db 등록된게 없으면 이전 미션의 완료일시로 등록 // orderNo 1이면 미션 시작일 기준... 
+							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");	
 								        	}
 						        		}
 						        	} else {
