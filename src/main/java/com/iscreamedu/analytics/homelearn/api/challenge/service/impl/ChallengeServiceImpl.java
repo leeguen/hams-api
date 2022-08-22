@@ -91,7 +91,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	}
 
 	@Override
-	public LinkedHashMap getChallengeSummaryCnt(Map<String, Object> paramMap) throws Exception {
+	public LinkedHashMap getChallengeHabitCnt(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
@@ -100,7 +100,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) {			
-			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spChallengeSummaryCnt");
+			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spChallengeHabitCnt");
 			setResult(dataKey, data);			
 		} else {
 			setResult(msgKey, vu.getResult());

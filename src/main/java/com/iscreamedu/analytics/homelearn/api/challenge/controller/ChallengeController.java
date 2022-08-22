@@ -106,17 +106,17 @@ public class ChallengeController {
 	
 	/***
 	 * STUD-CH-006
-	 * 메타포 현황 월별 히스토리 : 습관 챌린지 
+	 * 오늘의 미션 정보 :  매일 홈런하는 습관 카운트
 	 * @param params
 	 * @param req
 	 * @param res
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value="/getChlSummaryCnt")
+	@RequestMapping(value="/getChHabitCnt")
     @ResponseBody
     public ResponseEntity getChallengeSummaryCnt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		body = (LinkedHashMap)challengeService.getChallengeSummaryCnt(params);
+		body = (LinkedHashMap)challengeService.getChallengeHabitCnt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	

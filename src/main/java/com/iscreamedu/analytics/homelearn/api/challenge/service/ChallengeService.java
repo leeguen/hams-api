@@ -19,6 +19,6 @@ public interface ChallengeService {
 
 	public LinkedHashMap getChStepUpMissionInfo(Map<String, Object> paramMap) throws Exception;
 
-	public LinkedHashMap getChallengeSummaryCnt(Map<String, Object> paramMap) throws Exception;
+	public LinkedHashMap getChallengeHabitCnt(Map<String, Object> paramMap) throws Exception;
 
 }
