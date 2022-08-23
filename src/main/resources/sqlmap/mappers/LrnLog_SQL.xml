@@ -52,7 +52,6 @@
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
 		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
               , #{misStatusCd, mode=IN, jdbcType=INTEGER}
-              , #{misStatusCd, mode=IN, jdbcType=VARCHAR}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
