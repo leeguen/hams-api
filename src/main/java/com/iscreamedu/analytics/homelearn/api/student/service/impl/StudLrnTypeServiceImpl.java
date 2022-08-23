@@ -139,7 +139,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     			Map<String, Object> lrnTypePopupMap = new LinkedHashMap<String, Object>();
     			
     			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetail");
-    			try {
+    			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
+    			/*try {
     				lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
     			} catch (Exception e) {
     				System.out.println( LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " getLrnTypeDetailMsg Error");
@@ -148,7 +149,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeMsgMap.put("lrnTypeActMsg", null);
     				lrnTypeMsgMap.put("lrnTypeStrMsg", null);
     				lrnTypeMsgMap.put("lrnTypePopupMsg", null);
-				}
+				}*/
     			lrnTypeInfoMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeInfoMsg");
     			
     			if(lrnTypeMap != null) {
@@ -316,7 +317,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
     			
     			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetail");
-    			try {
+    			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
+    			/*try {
     				lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
     			} catch (Exception e) {
     				System.out.println( LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " getLrnTypeDetailMsg Error");
@@ -326,9 +328,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeMsgMap.put("lrnTypeStrMsg", null);
     				lrnTypeMsgMap.put("actPath", "-");
     				lrnTypeMsgMap.put("strPath", "-");
-				}
-    			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
-    			
+				}*/
     			if(lrnTypeMap != null) {
     				
     				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
@@ -343,9 +343,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     				lrnTypeInfoMap.put("lrnTypeStrMsg", lrnTypeMsgMap.get("lrnTypeStrMsg"));
     				lrnTypeInfoMap.put("lrnTypeActMsg", lrnTypeMsgMap.get("lrnTypeActMsg"));
     				
-    				List<String> actList = Arrays.asList(lrnTypeMsgMap.get("actPath").toString().split(","));
-    				List<String> strList = Arrays.asList(lrnTypeMsgMap.get("strPath").toString().split(","));
-    				
+    				// 유형 경로 변환
+    				List<String> actList = (lrnTypeMsgMap.get("actPath") != null) ? Arrays.asList(lrnTypeMsgMap.get("actPath").toString().split(",")) : null;
+    				List<String> strList = (lrnTypeMsgMap.get("strPath") != null) ? Arrays.asList(lrnTypeMsgMap.get("strPath").toString().split(",")) : null;
     				
     				lrnTypeInfoMap.put("strPath", getConvertLrnTypePath(strList));
     				lrnTypeInfoMap.put("actPath", getConvertLrnTypePath(actList));
@@ -373,44 +373,50 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        vu.checkRequired(new String[] {"yymm","p"}, paramMap);
+        vu.checkRequired(new String[] {"yyyy","p"}, paramMap);
         
         if(vu.isValid()) {
         	getStudId(paramMap);
         	
         	if(decodeResult.isEmpty()) {
-        		int yymm = Integer.valueOf(paramMap.get("yymm").toString());
+        		Calendar beforeMonth = Calendar.getInstance();
+                beforeMonth.add(Calendar.MONTH , 0);
+                String stringYyyy = new java.text.SimpleDateFormat("yyyy").format(beforeMonth.getTime());
+                
+        		int curYyyy = Integer.parseInt(stringYyyy);
+        		int yyyy = Integer.valueOf(paramMap.get("yyyy").toString());
         		
-        		paramMap.put("yymm", yymm);
+        		paramMap.put("yyyy", yyyy);
+        		paramMap.put("yymm", getHistoryYymm(yyyy, curYyyy));
         		
-        		paramMap.put("studId", 3095);
-        		
-        		vu1.isYearMonth("yymm", paramMap.get("yymm").toString());
+        		vu1.isYear("yyyy", paramMap.get("yyyy").toString());
         		
         		if(vu1.isValid()) {
         			
         			ArrayList<Map<String, Object>> lrnTypeHistoryList = new ArrayList<>();
         			
-        			ArrayList<Map<String, Object>> historyDataList = (ArrayList<Map<String, Object>>) studLrnTypeMapper.getList(paramMap, "StudLrnTypeMt.getLrnTypeHistoryForAdmin");
+        			ArrayList<Map<String, Object>> historyDataList = (ArrayList<Map<String, Object>>) studLrnTypeMapper.getList(paramMap, "StudLrnTypeMt.getLrnTypeHistoryDetail");
         			
         			if(historyDataList != null && historyDataList.size() > 0) {
         				for(Map<String, Object> historyItem : historyDataList) {
         					Map<String,Object> historyMap = new LinkedHashMap<>();
         					
-        					historyMap.put("dt", historyItem.get("dt"));
-        					historyMap.put("lrnTypeLevel", historyItem.get("lrnTypeLevel"));
+        					historyMap.put("yymm", historyItem.get("yymm"));
         					historyMap.put("lrnTypeCd", historyItem.get("lrnTypeCd"));
-        					historyMap.put("lrnTypeImg", historyItem.get("lrnTypeImg"));
         					historyMap.put("lrnTypeNm", historyItem.get("lrnTypeNm"));
-        					historyMap.put("lrnTypeInfoMsg", historyItem.get("lrnTypeDef"));
-        					historyMap.put("strScore", historyItem.get("strScore"));
-        					historyMap.put("actScore", historyItem.get("actScore"));
-        					historyMap.put("lrnTypeMsg", historyItem.get("msg"));
-        					historyMap.put("lrnTypeStrMsg", historyItem.get("strMsg"));
-        					historyMap.put("lrnTypeActMsg", historyItem.get("actMsg"));
-        					historyMap.put("strPath", historyItem.get("strPath"));
-        					historyMap.put("actPath", historyItem.get("actPath"));
+        					historyMap.put("lrnTypeInfoMsg", historyItem.get("lrnTypeInfoMsg"));
+        					historyMap.put("strLevel", historyItem.get("strLevel"));
+        					historyMap.put("actLevel", historyItem.get("actLevel"));
+        					historyMap.put("lrnTypeMsg", historyItem.get("lrnTypeMsg"));
+        					historyMap.put("lrnTypeStrMsg", historyItem.get("lrnTypeStrMsg"));
+        					historyMap.put("lrnTypeActMsg", historyItem.get("lrnTypeActMsg"));
         					
+        					List<String> actList = (historyItem.get("actPath") != null) ? Arrays.asList(historyItem.get("actPath").toString().split(",")) : null;
+            				List<String> strList = (historyItem.get("strPath") != null) ? Arrays.asList(historyItem.get("strPath").toString().split(",")) : null;
+            				
+            				historyMap.put("strPath", getConvertLrnTypePath(strList));
+            				historyMap.put("actPath", getConvertLrnTypePath(actList));
+            				
         					lrnTypeHistoryList.add(historyMap);
         				}
         			}
@@ -574,12 +580,13 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 		return diffValue;
 	}
 	
+	/*유형 경로 전환*/
 	private String getConvertLrnTypePath(List<String> pathList) {
-		String convertPath = "-";
+		String convertPath = null;
 		
 		List<String> convertList = new ArrayList<String>();
 		
-		if(pathList.size() > 0) {
+		if(pathList != null && pathList.size() > 0) {
 			for(String item : pathList) {
 				if(!item.equals("-")) {
 					item = "유형 " + item;
@@ -593,5 +600,30 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 		}
 		
 		return convertPath;
+	}
+	
+	/*유형 히스코리(관리자) 목록 조회 시 필요한 yymm 추출*/
+	private int getHistoryYymm(int yyyy, int curYyyy) {
+		int yymm = 0;
+		
+		Calendar MonthCheck = Calendar.getInstance();
+		MonthCheck.add(Calendar.MONTH , -2);
+		String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(MonthCheck.getTime());
+		String stringYyyy = new java.text.SimpleDateFormat("yyyy").format(MonthCheck.getTime());
+		String stringMm = new java.text.SimpleDateFormat("MM").format(MonthCheck.getTime());
+		int mm = Integer.parseInt(stringMm);
+		
+		if(curYyyy == yyyy) {
+			yymm = Integer.parseInt(stringYymm);
+		} else if(yyyy > curYyyy) {
+			if(mm > 1) {
+				yymm =  Integer.parseInt(stringYyyy+"12");
+			} else {
+				yymm =  Integer.parseInt(stringYymm);
+			}
+		} else {
+			yymm =  Integer.parseInt(stringYyyy+"12");
+		}
+		return yymm;
 	}
 }
