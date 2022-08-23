@@ -112,8 +112,8 @@
 		 )}
 	</select>
 	
-	<select id="spChallengeSummaryCnt" parameterType="hashMap" resultType="resultMap">
-		{call lrn_log.sp_ch_mis_daily_rt_summary_cnt (
+	<select id="spChallengeHabitCnt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_ch_mis_daily_rt_chl_cnt (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
