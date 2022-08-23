@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StudLrnTypeMt">
+    <select id="getLrnTypeCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeCheck */
+    	select * from lrnapi.fn_ds_ap_lrn_type_check(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetail */
+		select
+			a.stud_key,
+			b.*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		where a.stud_key = #{studId}
+    </select>
+    
+    <select id="getLrnTypeDetailMsg" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetailMsg */
+		select
+			a.stud_key,
+			b.*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		where a.stud_key = #{studId}
+    </select>
+    
+    <select id="getLrnTypeInfoMsg" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeInfoMsg */
+    	select 
+    		* 
+   		from lrnapi.fn_ds_ap_lrn_type_info_msg(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeHistory */
+    	select * from lrnapi.fn_ds_ap_lrn_type_history(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypePath" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypePath */
+    	select * from lrnapi.fn_ds_ap_lrn_type_by_one(#{studId}, #{yymm}, 'st', #{lrnTypeCd});
+    </select>
+    
+    <select id="getLrnTypeInfoForAdmin" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeInfoForAdmin */
+		SELECT
+			ST.STUD_ID,
+			ST.LRN_TYPE_CD,
+			LI.LRN_TYPE_NM,
+		    LI.LRN_TYPE_DEF,
+		    ROUND(LS.ACT_SCORE * 10, 1) AS ACT_SCORE,
+			ROUND(LS.STR_SCORE * 10, 1) AS STR_SCORE,
+		    LT2.MSG,
+		    LT2.STR_MSG,
+		    LT2.ACT_MSG,
+		    LT.ACT_PATH,
+		    LT.STR_PATH
+		FROM MONTH_LRN_TYPE ST
+		LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON ST.LRN_TYPE_CD = LI.LRN_TYPE_CD
+		LEFT OUTER JOIN LRN_TYPE_TEST_MSG LT ON ST.LRN_TYPE_CD = LT.LRN_TYPE_CD
+		LEFT OUTER JOIN LRN_TYPE_TEST_MSG2 LT2 ON ST.LRN_TYPE_CD = LT2.LRN_TYPE_CD
+		WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm};
+    </select>
+    
+    <select id="getLrnTypeHistoryForAdmin" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeHistoryForAdmin */
+    	SELECT
+			CONCAT((SELECT MIN(MO) FROM S_COMM_WK_DT WHERE YYMM = ST.YYMM AND DATE_FORMAT(MO,'%Y%m%d') LIKE CONCAT(ST.YYMM, '%'))
+    		,'(월요일)')AS DT,
+			CONCAT('유형',LI.LRN_TYPE_LEVEL) AS LRN_TYPE_LEVEL,
+			LI.LRN_TYPE_LEVEL AS LRN_TYPE_CD,
+		    LI.LRN_TYPE_IMG,
+		    LI.LRN_TYPE_NM,
+		    LI.LRN_TYPE_DEF,
+		    CAST(ROUND(LS.ACT_SCORE * 10, 0) AS UNSIGNED) AS ACT_SCORE,
+			CAST(ROUND(LS.STR_SCORE * 10, 0) AS UNSIGNED) AS STR_SCORE,
+		    LI.LRN_TYPE_SPEC,
+		    LT2.MSG,
+		    LT2.STR_MSG,
+		    LT2.ACT_MSG,
+		    LT.ACT_PATH,
+		    LT.STR_PATH
+		FROM (
+			SELECT
+				STUD_ID,
+				YYMM
+			FROM STUD
+			CROSS JOIN (
+				SELECT
+					YYMM
+				FROM S_COMM_WK_DT
+				WHERE YYMM<![CDATA[<=]]>#{yymm}
+					AND WK = 1
+				ORDER BY YYMM DESC
+				LIMIT 12
+			) YM
+			WHERE STUD_ID = #{studId}
+		) ST
+		LEFT OUTER JOIN MONTH_LRN_TYPE MD ON ST.STUD_ID = MD.STUD_ID AND ST.YYMM = MD.YYMM
+		LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.YYMM = LS.YYMM AND ST.STUD_ID = LS.STUD_ID
+		LEFT OUTER JOIN LRN_TYPE_INFO LI ON IFNULL(MD.LRN_TYPE_CD,'LT099') = LI.LRN_TYPE_CD
+		LEFT OUTER JOIN LRN_TYPE_TEST_MSG LT ON MD.LRN_TYPE_CD = LT.LRN_TYPE_CD
+		LEFT OUTER JOIN LRN_TYPE_TEST_MSG2 LT2 ON MD.LRN_TYPE_CD = LT2.LRN_TYPE_CD
+		ORDER BY ST.YYMM;
+    </select>
+</mapper>
