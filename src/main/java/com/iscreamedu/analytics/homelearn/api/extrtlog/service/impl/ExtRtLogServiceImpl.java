@@ -223,7 +223,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst", nResultCnt+"건 등록 : "+strResultMsg);
+					message.put("resulst","등록 완료 : "+strResultMsg);
 					setResult(msgKey, message);			
 //					갱신된 미션 정보 리로드					
 				} else {
