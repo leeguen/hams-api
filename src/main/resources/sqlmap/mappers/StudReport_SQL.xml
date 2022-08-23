@@ -204,14 +204,14 @@
 			<when test='currConCheck == "m"'>
 			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_mly where yyyymm_key between #{startYymm} and #{endYymm} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
 		from lrn_dsb.fn_get_msg_rul_LRNMATTADRM(#{yymm}, #{studId}, 4) a
-		cross join lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMATTADRH() c;
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMATTADRI(#{yymm}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMATTADRH() c on 1=1;
 			</when>
 			<otherwise>
 			(select count(*) from lrn_dsb.ds_ag_stud_att_sts_wly where yyyymmw_key between #{startYymmwk} and #{endYymmwk} and stud_key = #{studId} and ssvc_akey = 4) as data_cnt
 		from lrn_dsb.fn_get_msg_rul_LRNWATTADRM(#{yymmwk}, #{studId}, 4) a
-		cross join lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNWATTADRH() c
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWATTADRI(#{yymmwk}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWATTADRH() c on 1=1;
 			</otherwise>
 		</choose>
     </select>
@@ -336,9 +336,9 @@
 				) lrn
 				group by item_cd, item_nm
 			) a
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4, a.subj_cd) c
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRH() d;
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRM(#{yymm}, #{studId}, 4, a.subj_cd) b on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRI(#{yymm}, #{studId}, 4, a.subj_cd) c on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXEEXRH() d on 1=1;
 			</when>
 			<otherwise>
 			select
@@ -382,9 +382,9 @@
 				) lrn
 				group by item_cd, item_nm
 			)a
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRH() d;
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXEEXRH() d on 1=1;
 			</otherwise>
 		</choose>
     </select>
@@ -433,14 +433,14 @@
 		) lrn_msg on st.stud_key = lrn_msg.stud_key
 		<choose>
 			<when test='currConCheck == "m"'>
-		cross join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRM(#{yymm}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRI(#{yymm}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRM(#{yymm}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRI(#{yymm}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMEHBEXRH() d on 1=1
 			</when>
 			<otherwise>
-		cross join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRM(#{yymmwk}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRI(#{yymmwk}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRM(#{yymmwk}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRI(#{yymmwk}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWEHBEXRH() d on 1=1
 			</otherwise>
 		</choose>
 		where st.stud_key = #{studId};
@@ -616,9 +616,9 @@
 			order by a.fnsh_add_lrn_cnt desc
 			limit 1
 		) alrn on st.stud_key = alrn.stud_key
-		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECM(#{yymm}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECI(#{yymm}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNMADDAECH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMADDAECM(#{yymm}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMADDAECI(#{yymm}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMADDAECH() d on 1=1
 			</when>
 			<otherwise>
 		left outer join (
@@ -637,9 +637,9 @@
 			order by a.fnsh_add_lrn_cnt desc
 			limit 1
 		) alrn on st.stud_key = alrn.stud_key
-		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECM(#{yymmwk}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECI(#{yymmwk}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNWADDAECH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWADDAECM(#{yymmwk}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWADDAECI(#{yymmwk}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWADDAECH() d on 1=1
 			</otherwise>
 		</choose>
 		where st.stud_key = #{studId};
@@ -767,9 +767,9 @@
 				) exam
 				group by item_cd, item_nm
 			) a
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRM(#{yymm}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRI(#{yymm}, #{studId}, 4, a.subj_cd) c
-			cross join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRH() d;
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRM(#{yymm}, #{studId}, 4, a.subj_cd) b on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRI(#{yymm}, #{studId}, 4, a.subj_cd) c on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNMEXMAWRH() d on 1=1;
 			</when>
 			<otherwise>
 			select
@@ -809,9 +809,9 @@
 				) exam
 				group by item_cd, item_nm
 			) a
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c
-			cross join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRH() d;
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRM(#{yymmwk}, #{studId}, 4, a.subj_cd) b on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRI(#{yymmwk}, #{studId}, 4, a.subj_cd) c on 1=1
+			left outer join lrn_dsb.fn_get_msg_rul_LRNWEXMAWRH() d on 1=1;
 			</otherwise>
 		</choose>
     </select>
@@ -830,16 +830,16 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.ds_ag_exam_wnote_sts_mly a
-		cross join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRM(#{yymm}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRI(#{yymm}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRM(#{yymm}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRI(#{yymm}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMWNTAWRH() d on 1=1
 		where a.yyyymm_key = #{yymm}
 			</when>
 			<otherwise>
 		from lrn_dsb.ds_ag_exam_wnote_sts_wly a
-		cross join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRM(#{yymmwk}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRI(#{yymmwk}, #{studId}, 4) c
-		cross join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRH() d
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRM(#{yymmwk}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRI(#{yymmwk}, #{studId}, 4) c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWWNTAWRH() d on 1=1
 		where a.yyyymmw_key = #{yymmwk} 
 			</otherwise>
 		</choose>
@@ -870,29 +870,29 @@
 		<choose>
 			<when test='currConCheck == "m"'>
 		from lrn_dsb.fn_get_msg_rul_LRNMSHBAWRM(#{yymm}, #{studId}, 4) a
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBAWRI(#{yymm}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCM(#{yymm}, #{studId}, 4) d
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCI(#{yymm}, #{studId}, 4) d1
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCM(#{yymm}, #{studId}, 4) e
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCI(#{yymm}, #{studId}, 4) e1
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCM(#{yymm}, #{studId}, 4) f
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCI(#{yymm}, #{studId}, 4) f1
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCM(#{yymm}, #{studId}, 4) g
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCI(#{yymm}, #{studId}, 4) g1;
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBAWRI(#{yymm}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCM(#{yymm}, #{studId}, 4) d on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQGCI(#{yymm}, #{studId}, 4) d1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCM(#{yymm}, #{studId}, 4) e on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQHCI(#{yymm}, #{studId}, 4) e1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCM(#{yymm}, #{studId}, 4) f on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQMCI(#{yymm}, #{studId}, 4) f1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCM(#{yymm}, #{studId}, 4) g on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQSCI(#{yymm}, #{studId}, 4) g1 on 1=1;
 			</when>
 			<otherwise>
 		from lrn_dsb.fn_get_msg_rul_LRNWSHBAWRM(#{yymmwk}, #{studId}, 4) a
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBAWRI(#{yymmwk}, #{studId}, 4) b
-		cross join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCM(#{yymmwk}, #{studId}, 4) d
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCI(#{yymmwk}, #{studId}, 4) d1
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCM(#{yymmwk}, #{studId}, 4) e
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCI(#{yymmwk}, #{studId}, 4) e1
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCM(#{yymmwk}, #{studId}, 4) f
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCI(#{yymmwk}, #{studId}, 4) f1
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCM(#{yymmwk}, #{studId}, 4) g
-		cross join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCI(#{yymmwk}, #{studId}, 4) g1;
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBAWRI(#{yymmwk}, #{studId}, 4) b on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNMSHBQFCH() c on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCM(#{yymmwk}, #{studId}, 4) d on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQGCI(#{yymmwk}, #{studId}, 4) d1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCM(#{yymmwk}, #{studId}, 4) e on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQHCI(#{yymmwk}, #{studId}, 4) e1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCM(#{yymmwk}, #{studId}, 4) f on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQMCI(#{yymmwk}, #{studId}, 4) f1 on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCM(#{yymmwk}, #{studId}, 4) g on 1=1
+		left outer join lrn_dsb.fn_get_msg_rul_LRNWSHBQSCI(#{yymmwk}, #{studId}, 4) g1 on 1=1;
 			</otherwise>
 		</choose>
     </select>
