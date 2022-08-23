@@ -8,6 +8,7 @@ import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnType;
 
 import org.json.simple.JSONArray;
@@ -46,6 +47,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     CommonMapperLrnType commonMapperLrnType;
     
     @Autowired
+    CommonMapperLrnDm studLrnTypeMapper;
+    
+    @Autowired
 	ExternalAPIService externalAPIservice;
 
     @Override
@@ -66,12 +70,32 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
     			
-    			//paramMap.put("yymm", yymm);
-        		paramMap.put("yymm", 202205);
-        		paramMap.put("studId", 3095);
+        		String expStatus = "N";
+        		
+    			paramMap.put("yymm", yymm);
+        		/*paramMap.put("yymm", 202205);
+        		paramMap.put("studId", 3095);*/
     			
-    			data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getLrnTypeCheck");
+    			data = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnType.getLrnTypeCheck");
 				
+    			Map<String,Object> studInfoParamMap = new HashMap<>();
+				String p = encodeStudId("0&"+paramMap.get("studId"));
+		    	
+		    	studInfoParamMap.put("p", p);
+		    	studInfoParamMap.put("apiName", "aiReport.");
+		        
+		        LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+		        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+		        
+		        if(studInfoMap != null) {
+		        	int lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
+		        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+		        	expStatus = (lrnTypeCdApi == 10004) ? "Y" : "N";
+		        }
+    			
+		        data.put("expYn", expStatus);
+		    
+		        
 				setResult(dataKey,data);
         			
         	} else {
@@ -102,50 +126,61 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 beforeMonth.add(Calendar.MONTH , -1);
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
-                
-        		//paramMap.put("yymm", yymm);
-        		paramMap.put("yymm", 202205);
-        		paramMap.put("studId", 3095);
+        		
+        		paramMap.put("yymm", yymm);
+        		/*paramMap.put("yymm", 202205);
+        		paramMap.put("studId", 3095);*/
+        		
+        		Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
+        		Map<String, Object> lrnTypeMsgMap = new LinkedHashMap<String, Object>();
         		
     			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
-    			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeDiffMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeHelpMap = new LinkedHashMap<String, Object>();
+    			Map<String, Object> lrnTypePopupMap = new LinkedHashMap<String, Object>();
     			
-    			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfo");
-    			//lrnTypeInfoMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypeInfoYn");
+    			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnType.getLrnTypeDetail");
+    			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnType.getLrnTypeDetailMsg");
     			
     			if(lrnTypeMap != null) {
     				
-    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeLevel"));
+    				
+    				// 현재 월 및 이전 월 유형 정보
+    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
     				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
-    				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeLevel"));
+    				lrnTypeInfoMap.put("lrnTypeImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
+    				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeCd"));
     				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
-    				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMap.get("lrnTypeDef"));
+    				lrnTypeInfoMap.put("prevLrnTypeImgUrl", lrnTypeMap.get("prevLrnTypeImgUrl"));
+    				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMap.get("lrnTypeInfoMsg"));
     				
-    				lrnTypeDiffMap.put("lrnTypeLevelDiff", lrnTypeMap.get("lrnTypeLevelDiff"));
-    				lrnTypeDiffMap.put("actLevelDiff", lrnTypeMap.get("actLevelDiff"));
-    				lrnTypeDiffMap.put("actScoreDiff", lrnTypeMap.get("actScoreDiff"));
-    				lrnTypeDiffMap.put("strLevelDiff", lrnTypeMap.get("strLevelDiff"));
-    				lrnTypeDiffMap.put("strScoreDiff", lrnTypeMap.get("strScoreDiff"));
-    				
+    				// 학습 성향 진단
     				lrnTypeDetailMap.put("actLevel", lrnTypeMap.get("actLevel"));
-    				lrnTypeDetailMap.put("actScore", lrnTypeMap.get("actScore"));
     				lrnTypeDetailMap.put("strLevel", lrnTypeMap.get("strLevel"));
-    				lrnTypeDetailMap.put("strScore", lrnTypeMap.get("strScore"));
-    				lrnTypeDetailMap.put("lrnTypeMsg", lrnTypeMap.get("msg"));
-    				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMap.get("actMsg"));
-    				lrnTypeDetailMap.put("lrnTypeStrMsg", lrnTypeMap.get("strMsg"));
+    				lrnTypeDetailMap.put("lrnTypeMsg", lrnTypeMap.get("lrnTypeMsg"));
+    				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMap.get("lrnTypeActMsg"));
+    				lrnTypeDetailMap.put("lrnTypeStrMsg", lrnTypeMap.get("lrnTypeStrMsg"));
     				
-    				lrnTypeHelpMap.put("lrnTypeHelpImg", "학습유형 도움말 이미지 주소");
-    				lrnTypeHelpMap.put("lrnTendHelpMsg", "학습성향 도움말 메세지");
+    				// 유형 도움말
+    				lrnTypeHelpMap.put("lrnTypeHelpImg", "");
+    				lrnTypeHelpMap.put("lrnTendHelpMsg", "");
+    				
+    				lrnTypePopupMap.put("popupLrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
+    				lrnTypePopupMap.put("popupImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
+    				lrnTypePopupMap.put("popupMsg", "");
+    				
+    				lrnTypeDiffMap.put("lrnTypeLevelDiff", getDiffValue(lrnTypeMap.get("lrnTypeCd"), lrnTypeMap.get("prevLrnTypeCd")));
+    				lrnTypeDiffMap.put("actLevelDiff", getDiffValue(lrnTypeMap.get("actLevel"), lrnTypeMap.get("prevActLevel")));
+    				lrnTypeDiffMap.put("strLevelDiff", getDiffValue(lrnTypeMap.get("strLevel"), lrnTypeMap.get("prevStrLevel")));
+    				
+    				data.put("lrnType", lrnTypeInfoMap);
+    				data.put("lrnTypeDiff", lrnTypeDiffMap);
+    				data.put("lrnTypeInfo", lrnTypeDetailMap);
+    				data.put("lrnTypeHelp", lrnTypeHelpMap);
+    				data.put("lrnTypePopup", lrnTypePopupMap);
     			}
     			
-    			data.put("lrnType", lrnTypeInfoMap);
-    			data.put("lrnTypeDiff", lrnTypeDiffMap);
-    			data.put("lrnTypeInfo", lrnTypeDetailMap);
-    			data.put("lrnTypeHelp", lrnTypeHelpMap);
     			
     			setResult(dataKey,data);
         	} else {
@@ -169,30 +204,36 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         
         getStudId(paramMap);
         
-        vu.checkRequired(new String[] {"yymm","studId"}, paramMap);
+        vu.checkRequired(new String[] {"studId"}, paramMap);
+        //vu.checkRequired(new String[] {"yymm","studId"}, paramMap);
         
         if(vu.isValid()) {
         	if(decodeResult.isEmpty()) {
-        		int yymm = Integer.valueOf(paramMap.get("yymm").toString());
+        		Calendar beforeMonth = Calendar.getInstance();
+                beforeMonth.add(Calendar.MONTH , -1);
+                String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
+        		int yymm = Integer.parseInt(stringYymm);
         		
         		paramMap.put("yymm", yymm);
         		
-        		paramMap.put("studId", 3095);
+        		//int yymm = Integer.valueOf(paramMap.get("yymm").toString());
+        		//paramMap.put("studId", 3095);
         		
-        		vu1.isYearMonth("yymm", paramMap.get("yymm").toString());
+        		ArrayList<Map<String, Object>> lrnTypeHistoryList = new ArrayList<>();
+        		
+        		lrnTypeHistoryList = (ArrayList<Map<String, Object>>) studLrnTypeMapper.getList(paramMap, "StudLrnType.getLrnTypeHistory");
+        		
+        		data.put("lrnTypeList", lrnTypeHistoryList);
+        		
+        		setResult(dataKey,data);
+        		
+        		/*vu1.isYearMonth("yymm", paramMap.get("yymm").toString());
         		
         		if(vu1.isValid()) {
         			
-        			ArrayList<Map<String, Object>> lrnTypeHistoryList = new ArrayList<>();
-        			
-        			lrnTypeHistoryList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "getLrnTypeHistory");
-        			
-        			data.put("lrnTypeList", lrnTypeHistoryList);
-        			
-        			setResult(dataKey,data);
         		} else {
         			setResult(msgKey, vu1.getResult());
-        		}
+        		}*/
         	} else {
         		setResult(msgKey, decodeResult);
         	}
@@ -222,21 +263,22 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
                 String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(beforeMonth.getTime());
         		int yymm = Integer.parseInt(stringYymm);
                 
-        		//paramMap.put("yymm", yymm);
-        		paramMap.put("yymm", 202205);
-        		paramMap.put("studId", 3095);
+        		paramMap.put("yymm", yymm);
+        		paramMap.put("lrnTypeCd", null);
+        		/*paramMap.put("yymm", 202205);
+        		paramMap.put("studId", 3095);*/
         		
     			Map<String, Object> lrnTypePathMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
     			
-    			lrnTypeMap = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getLrnTypePath");
+    			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnType.getLrnTypePath");
     			
     			if(lrnTypeMap != null) {
     				
     				List<String> actList = Arrays.asList(lrnTypeMap.get("actPath").toString().split(","));
     				List<String> strList = Arrays.asList(lrnTypeMap.get("strPath").toString().split(","));
     				
-    				data.put("lrnTypeLevel", lrnTypeMap.get("lrnTypeLevel"));
+    				data.put("lrnTypeLevel", lrnTypeMap.get("lrnTypeCd"));
     				data.put("actPathList", actList);
     				data.put("strPathList", strList);
     			}
@@ -584,5 +626,14 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 		encodeStudId = cps.AES_Encode(studId);
 		
 		return encodeStudId;
+	}
+	
+	private int getDiffValue(Object firstValue, Object secondValue) throws Exception {
+		int diffFirstValue = (firstValue != null) ? Integer.parseInt(firstValue.toString()) : 0;
+		int diffSecondValue = (secondValue != null) ? Integer.parseInt(secondValue.toString()) : 0;
+		
+		int diffValue = diffFirstValue - diffSecondValue;
+		
+		return diffValue;
 	}
 }

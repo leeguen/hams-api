@@ -3,80 +3,27 @@
 <mapper namespace="StudLrnType">
     <select id="getLrnTypeCheck" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getLrnTypeCheck */
-    	SELECT
-			IF(COUNT(ML.STUD_ID) = 0, 'N', 'Y') AS LRN_TYPE_YN,
-		    -- DATEDIFF(DATE_ADD(LAST_DAY(NOW()), INTERVAL 1 DAY), NOW()) AS REMAINING_DAY,
-		    DATE_FORMAT(CONCAT('202205','01'),'%Y') AS YYYY,
-    		CAST(DATE_FORMAT(CONCAT('202205','01'),'%m') AS UNSIGNED) AS MM
-		FROM STUD ST
-		LEFT OUTER JOIN MONTH_LRN_TYPE ML ON ST.STUD_ID = ML.STUD_ID AND ML.YYMM = #{yymm}
-		WHERE ST.STUD_ID = #{studId};
+    	select * from lrnapi.fn_ds_ap_lrn_type_check(#{studId}, #{yymm}, 'st');
     </select>
     
-    <select id="getLrnTypeInfo" parameterType="hashMap" resultType="resultMap">
-    	/* StudLrnType.getLrnTypeInfo */
-		SELECT
-			LT.LRN_TYPE_NM,
-		    LT.LRN_TYPE_CD,
-		    LT.LRN_TYPE_LEVEL,
-			IFNULL(PREV_LRN_TYPE_NM, '') AS PREV_LRN_TYPE_NM,
-		    IFNULL(PREV_LRN_TYPE_CD, '') AS PREV_LRN_TYPE_CD,
-		    PREV_LRN_TYPE_LEVEL,
-		    LI.LRN_TYPE_DEF,
-			LT.ACT_LEVEL,
-		    LT.ACT_SCORE,
-			LT.STR_LEVEL,
-		    LT.STR_SCORE,
-		    LT3.MSG,
-		    LT3.STR_MSG,
-		    LT3.ACT_MSG,
-		    (PREV_LRN_TYPE_LEVEL - LT.LRN_TYPE_LEVEL) AS LRN_TYPE_LEVEL_DIFF,
-			(PREV_ACT_LEVEL - LT.ACT_LEVEL) AS ACT_LEVEL_DIFF,
-		    (PREV_ACT_SCORE - LT.ACT_SCORE) AS ACT_SCORE_DIFF,
-			(PREV_STR_LEVEL - LT.STR_LEVEL) AS STR_LEVEL_DIFF,
-		    (PREV_STR_SCORE - LT.STR_SCORE) AS STR_SCORE_DIFF
-		FROM (
-			SELECT
-				ST.STUD_ID,
-				CASE 
-					WHEN LRN_TYPE_CD IS NULL THEN (SELECT LRN_TYPE_LEVEL FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = 'LT099')
-		            ELSE (SELECT LRN_TYPE_LEVEL FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD)
-		        END AS LRN_TYPE_LEVEL,
-		        LRN_TYPE_CD,
-				CASE 
-					WHEN LRN_TYPE_CD IS NULL THEN (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = 'LT099')
-		            ELSE (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD)
-		        END AS LRN_TYPE_NM,
-				ACT_LEVEL,
-		        ROUND(ACT_SCORE * 10, 1) AS ACT_SCORE,
-				STR_LEVEL,
-		        ROUND(STR_SCORE * 10, 1) AS STR_SCORE
-			FROM MONTH_LRN_TYPE ST
-			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
-			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = #{yymm}
-		) LT
-		LEFT OUTER JOIN (
-			SELECT
-				ST.STUD_ID,
-				CASE 
-					WHEN LRN_TYPE_CD IS NULL THEN (SELECT LRN_TYPE_LEVEL FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = 'LT099')
-		            ELSE (SELECT LRN_TYPE_LEVEL FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD)
-		        END AS PREV_LRN_TYPE_LEVEL,
-		        LRN_TYPE_CD AS PREV_LRN_TYPE_CD,
-		        CASE 
-					WHEN LRN_TYPE_CD IS NULL THEN (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = 'LT099')
-		            ELSE (SELECT LRN_TYPE_NM FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ST.LRN_TYPE_CD)
-		        END AS PREV_LRN_TYPE_NM,
-				ACT_LEVEL AS PREV_ACT_LEVEL,
-		        ROUND(ACT_SCORE * 10, 1) AS PREV_ACT_SCORE,
-				STR_LEVEL AS PREV_STR_LEVEL,
-		        ROUND(STR_SCORE * 10, 1) AS PREV_STR_SCORE
-			FROM MONTH_LRN_TYPE ST
-			LEFT OUTER JOIN LRN_TYPE_STT LS ON ST.STUD_ID = LS.STUD_ID AND ST.YYMM = LS.YYMM
-			WHERE ST.STUD_ID = #{studId} AND ST.YYMM = DATE_FORMAT(DATE_SUB(CONCAT(#{yymm},'01'), INTERVAL 1 MONTH), '%Y%m')
-		) LT1 ON LT.STUD_ID = LT1.STUD_ID
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LT.LRN_TYPE_CD = LI.LRN_TYPE_CD
-		LEFT OUTER JOIN LRN_TYPE_TEST_MSG2 LT3 ON LT.LRN_TYPE_CD = LT3.LRN_TYPE_CD;
+    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeDetail */
+		select
+			*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st') c on a.stud_key = c.stud_id
+		where a.stud_key = #{studId}
+    </select>
+    
+    <select id="getLrnTypeDetailMsg" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getLrnTypeDetailMsg */
+		select
+			*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st') c on a.stud_key = c.stud_id
+		where a.stud_key = #{studId}
     </select>
     
     <select id="getLrnTypeInfoYn" parameterType="hashMap" resultType="resultMap">
@@ -94,73 +41,14 @@
 		) LTCNT;
     </select>
     
-    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
-    	/* StudLrnType.getLrnTypeDetail */
-    	SELECT
-			LI.LRN_TYPE_NM,
-			LD.LRN_TYPE_CD,
-		    IFNULL(LI.LRN_TYPE_IMG, NULL) AS LRN_TYPE_IMG,
-		    IFNULL(LI.LRN_TYPE_DEF, NULL) AS LRN_TYPE_DEF,
-		    IFNULL(LD.LRN_TEND, NULL) AS LRN_TEND,
-		    IFNULL(LD.LRN_STR, NULL) AS LRN_STR,
-		    LD.LRN_TYPE_ACT_SCORE AS ACT_SCORE, 
-		    LD.LRN_TYPE_STR_SCORE AS STR_SCORE,
-		    GL.LRN_TYPE_STUD_RT
-		FROM LRN_TYPE_DETAIL LD
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON LD.LRN_TYPE_CD = LI.LRN_TYPE_CD
-		LEFT OUTER JOIN GRP_LRN_TYPE_STT GL ON LD.LRN_TYPE_CD = GL.LRN_TYPE_CD AND LD.YYMM = GL.YYMM
-		WHERE STUD_ID = #{studId} AND LD.YYMM = #{yymm};
-    </select>
-    
-    <select id="getLrnTypeGrp" parameterType="hashMap" resultType="resultMap">
-    	/* StudLrnType.getLrnTypeGrp */
-    	SELECT
-			LI.LRN_TYPE_NM AS MAX_LRN_TYPE_NM
-		FROM GRP_LRN_TYPE_STT GL
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON GL.LRN_TYPE_CD = LI.LRN_TYPE_CD
-		WHERE YYMM = #{yymm}
-		ORDER BY LRN_TYPE_STUD_CNT DESC
-		LIMIT 1;
-    </select>
-    
     <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getLrnTypeHistory */
-    	SELECT
-			DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%Y') AS YYYY,
-		    CAST(DATE_FORMAT(CONCAT(ST.YYMM, '01'), '%m') AS UNSIGNED) AS MM,
-			LI.LRN_TYPE_NM,
-			IFNULL(LI.LRN_TYPE_LEVEL, 99) AS LRN_TYPE_CD
-		FROM (
-			SELECT
-				STUD_ID,
-				YYMM
-			FROM STUD
-			CROSS JOIN (
-				SELECT
-					YYMM
-				FROM S_COMM_WK_DT
-				WHERE YYMM<![CDATA[<=]]>#{yymm}
-					AND WK = 1
-				ORDER BY YYMM DESC
-				LIMIT 12
-			) YM
-			WHERE STUD_ID = #{studId}
-		) ST
-		LEFT OUTER JOIN MONTH_LRN_TYPE MD ON ST.STUD_ID = MD.STUD_ID AND ST.YYMM = MD.YYMM
-		LEFT OUTER JOIN LRN_TYPE_INFO LI ON IFNULL(MD.LRN_TYPE_CD,'LT099') = LI.LRN_TYPE_CD
-		ORDER BY ST.YYMM;
+    	select * from lrnapi.fn_ds_ap_lrn_type_history(#{studId}, #{yymm}, 'st');
     </select>
     
     <select id="getLrnTypePath" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnType.getLrnTypePath */
-    	SELECT
-    		(SELECT LRN_TYPE_LEVEL FROM LRN_TYPE_INFO WHERE LRN_TYPE_CD = ML.LRN_TYPE_CD) AS LRN_TYPE_LEVEL,
-			REPLACE(REPLACE(REPLACE(ACT_PATH,' ',''),'->',','),'유형','') AS ACT_PATH,
-		    REPLACE(REPLACE(REPLACE(STR_PATH,' ',''),'->',','),'유형','') AS STR_PATH
-		FROM es_s_dashboard.MONTH_LRN_TYPE ML
-		LEFT OUTER JOIN LRN_TYPE_TEST_MSG MS ON ML.LRN_TYPE_CD = MS.LRN_TYPE_CD
-		WHERE YYMM = #{yymm}
-			AND STUD_ID = #{studId};
+    	select * from lrnapi.fn_ds_ap_lrn_type_by_one(#{studId}, #{yymm}, 'st', #{lrnTypeCd});
     </select>
     
     <select id="getLrnTypeInfoForAdmin" parameterType="hashMap" resultType="resultMap">
