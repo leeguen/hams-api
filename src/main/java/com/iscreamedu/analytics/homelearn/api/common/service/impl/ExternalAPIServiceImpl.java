@@ -451,16 +451,20 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	JSONParser parser = new JSONParser();
 					HttpHeaders headers = new HttpHeaders();
     				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-					
-					JSONObject attBodyJson = new JSONObject();
-					/*RequestBody로 보낼 데이터 등록*/
-					for( String key : paramMap.keySet() ){ 
-						attBodyJson.put(key, paramMap.get(key));
+    				paramMap.remove("apiName");
+
+					//HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
+    				//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	for( String key : paramMap.keySet() ){ 
+		        		builder.queryParam(key, paramMap.get(key));
 		        	}
-					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
-					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
-				
-					int statusCode = Integer.valueOf(response.getStatusCode().toString());
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	LOGGER.debug("apiUri : " + apiUri.toString());
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+		            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(apiUri, entity, LinkedHashMap.class);
+		            int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
 
 		        	LOGGER.debug("code : " + responseData.get("code"));
@@ -475,7 +479,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
 		        		setResult(msgKey, msgMap);
 		        	}
-	        	} catch(Exception e) {
+		        	
+		         } catch(Exception e) {
 	        		LOGGER.debug("error:" + e.getMessage());
 	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
 	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());

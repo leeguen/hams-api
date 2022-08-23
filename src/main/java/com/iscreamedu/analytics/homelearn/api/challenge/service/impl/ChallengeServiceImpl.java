@@ -414,7 +414,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        extParamMap_2.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
 				        extParamMap_2.put("startDate", startDate.toString());
 				       // 갱신 대상 :  misStartDt, misCompleteDt
-				        extParamMap_2.put("bookIds", bookIds);
+				        String bookIdsTxt = "";
+				        for (int bookId : bookIds) {
+				        	if(bookIdsTxt != "") bookIdsTxt += ",";
+				        	bookIdsTxt += bookId;
+						}
+				        extParamMap_2.put("bookIds", bookIdsTxt);
 				        bookStateInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_2).get("data");		
 	//			        "data": [
 	//			                 {
@@ -427,7 +432,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        boolean flag_mission = true;			        	  
 					        if(bookStateInfo != null && bookStateInfo.size() > 0) {
 					        	for(Map<String, Object> itemInfo : bookStateInfo) {	
-					        		if(item.get("misBookCd") == itemInfo.get("id")) {
+					        		if(item.get("misBookCd").toString().equals(itemInfo.get("bookId").toString())) {
 							        	if(itemInfo.containsKey("complete")) {
 							        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
 							        			// 완료한 미션순서 체크하여 순차 호출.. roof
@@ -441,10 +446,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
 							        			realTimeMKBInfo.put("misNo", item.get("misNo"));
 							        			realTimeMKBInfo.put("misStatusCd", 2);
-							        			realTimeMKBInfo.put("misCompleteDt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(itemInfo.get("compDate").toString()));
+							        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
 							        			realTimeMKBInfo.put("misContents", strContent);
 							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
-							        			
+							        			LOGGER.debug("outResultCnt:"+paramMap.get("outResultCnt").toString());
+							        			LOGGER.debug("outResultMsg:"+paramMap.get("outResultMsg").toString());
 							        		} else {
 							        			flag_mission = false;
 							        			if(itemInfo.containsKey("lastPage")) {
@@ -464,7 +470,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 								        			realTimeMKBInfo.put("misCompleteDt", null);
 								        			realTimeMKBInfo.put("misContents", strContent);
 								        			// db 등록된게 없으면 이전 미션의 완료일시로 등록 // orderNo 1이면 미션 시작일 기준... 
-								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");	
+								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+								        			LOGGER.debug("outResultCnt:"+paramMap.get("outResultCnt").toString());
+								        			LOGGER.debug("outResultMsg:"+paramMap.get("outResultMsg").toString());
 									        	}
 							        		}
 							        	} else {
