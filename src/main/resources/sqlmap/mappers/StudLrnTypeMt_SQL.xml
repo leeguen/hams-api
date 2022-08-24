@@ -35,7 +35,12 @@
     
     <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnTypeMt.getLrnTypeHistory */
-    	select * from lrnapi.fn_ds_ap_lrn_type_history(#{studId}, #{yymm}, 'st');
+    	select
+    		yyyy,
+    		mm,
+    		lrn_type_cd,
+    		lrn_type_nm 
+    	from lrnapi.fn_ds_ap_lrn_type_history(#{studId}, #{yymm}, 'st');
     </select>
     
     <select id="getLrnTypePath" parameterType="hashMap" resultType="resultMap">

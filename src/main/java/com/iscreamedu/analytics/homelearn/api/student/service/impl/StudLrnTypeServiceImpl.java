@@ -133,61 +133,51 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         		Map<String, Object> lrnTypeInfoMsgMap = new LinkedHashMap<String, Object>();
         		
     			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
-    			Map<String, Object> lrnTypeDiffMap = new LinkedHashMap<String, Object>();
+    			//Map<String, Object> lrnTypeDiffMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypeDetailMap = new LinkedHashMap<String, Object>();
-    			Map<String, Object> lrnTypeHelpMap = new LinkedHashMap<String, Object>();
+    			//Map<String, Object> lrnTypeHelpMap = new LinkedHashMap<String, Object>();
     			Map<String, Object> lrnTypePopupMap = new LinkedHashMap<String, Object>();
     			
     			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetail");
     			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
-    			/*try {
-    				lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
-    			} catch (Exception e) {
-    				System.out.println( LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " getLrnTypeDetailMsg Error");
-    				lrnTypeMsgMap.put("lrnTypeInfoMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeActMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeStrMsg", null);
-    				lrnTypeMsgMap.put("lrnTypePopupMsg", null);
-				}*/
-    			lrnTypeInfoMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeInfoMsg");
+    			//lrnTypeInfoMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeInfoMsg");
     			
     			if(lrnTypeMap != null) {
     				
     				// 현재 월 및 이전 월 유형 정보
     				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
     				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
-    				lrnTypeInfoMap.put("lrnTypeImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
+    				//lrnTypeInfoMap.put("lrnTypeImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
     				lrnTypeInfoMap.put("prevLrnTypeCd", lrnTypeMap.get("prevLrnTypeCd"));
     				lrnTypeInfoMap.put("prevLrnTypeNm", lrnTypeMap.get("prevLrnTypeNm"));
-    				lrnTypeInfoMap.put("prevLrnTypeImgUrl", lrnTypeMap.get("prevLrnTypeImgUrl"));
+    				//lrnTypeInfoMap.put("prevLrnTypeImgUrl", lrnTypeMap.get("prevLrnTypeImgUrl"));
     				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMsgMap.get("lrnTypeInfoMsg"));
     				
     				// 학습 성향 진단
-    				lrnTypeDetailMap.put("actLevel", lrnTypeMap.get("actLevel"));
-    				lrnTypeDetailMap.put("strLevel", lrnTypeMap.get("strLevel"));
+    				lrnTypeDetailMap.put("strScore", lrnTypeMap.get("strLevel"));
+    				lrnTypeDetailMap.put("actScore", lrnTypeMap.get("actLevel"));
     				lrnTypeDetailMap.put("lrnTypeMsg", lrnTypeMsgMap.get("lrnTypeMsg"));
-    				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMsgMap.get("lrnTypeActMsg"));
     				lrnTypeDetailMap.put("lrnTypeStrMsg", lrnTypeMsgMap.get("lrnTypeStrMsg"));
+    				lrnTypeDetailMap.put("lrnTypeActMsg", lrnTypeMsgMap.get("lrnTypeActMsg"));
     				
     				// 유형 도움말
-    				lrnTypeHelpMap.put("lrnTypeHelpImg", lrnTypeInfoMsgMap.get("lrnTypeHelpImg"));
-    				lrnTypeHelpMap.put("lrnTendHelpMsg", lrnTypeInfoMsgMap.get("lrnTendHelpMsg"));
+    				/*lrnTypeHelpMap.put("lrnTypeHelpImg", lrnTypeInfoMsgMap.get("lrnTypeHelpImg"));
+    				lrnTypeHelpMap.put("lrnTendHelpMsg", lrnTypeInfoMsgMap.get("lrnTendHelpMsg"));*/
     				
     				// 팝업 데이터
     				lrnTypePopupMap.put("popupLrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
-    				lrnTypePopupMap.put("popupImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
+    				//lrnTypePopupMap.put("popupImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
     				lrnTypePopupMap.put("popupMsg", lrnTypeMsgMap.get("lrnTypePopupMsg"));
     				
     				//전달 비교
-    				lrnTypeDiffMap.put("lrnTypeLevelDiff", getDiffValue(lrnTypeMap.get("lrnTypeCd"), lrnTypeMap.get("prevLrnTypeCd")));
+    				/*lrnTypeDiffMap.put("lrnTypeLevelDiff", getDiffValue(lrnTypeMap.get("lrnTypeCd"), lrnTypeMap.get("prevLrnTypeCd")));
     				lrnTypeDiffMap.put("actLevelDiff", getDiffValue(lrnTypeMap.get("actLevel"), lrnTypeMap.get("prevActLevel")));
-    				lrnTypeDiffMap.put("strLevelDiff", getDiffValue(lrnTypeMap.get("strLevel"), lrnTypeMap.get("prevStrLevel")));
+    				lrnTypeDiffMap.put("strLevelDiff", getDiffValue(lrnTypeMap.get("strLevel"), lrnTypeMap.get("prevStrLevel")));*/
     				
     				data.put("lrnType", lrnTypeInfoMap);
-    				data.put("lrnTypeDiff", lrnTypeDiffMap);
+    				//data.put("lrnTypeDiff", lrnTypeDiffMap);
     				data.put("lrnTypeInfo", lrnTypeDetailMap);
-    				data.put("lrnTypeHelp", lrnTypeHelpMap);
+    				//data.put("lrnTypeHelp", lrnTypeHelpMap);
     				data.put("lrnTypePopup", lrnTypePopupMap);
     			}
     			
@@ -314,43 +304,32 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         		Map<String, Object> lrnTypeMap = new LinkedHashMap<String, Object>();
         		Map<String, Object> lrnTypeMsgMap = new LinkedHashMap<String, Object>();
         		
-    			Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
+    			//Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
     			
     			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetail");
     			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
-    			/*try {
-    				lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
-    			} catch (Exception e) {
-    				System.out.println( LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")) + " getLrnTypeDetailMsg Error");
-    				lrnTypeMsgMap.put("lrnTypeInfoMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeActMsg", null);
-    				lrnTypeMsgMap.put("lrnTypeStrMsg", null);
-    				lrnTypeMsgMap.put("actPath", "-");
-    				lrnTypeMsgMap.put("strPath", "-");
-				}*/
     			if(lrnTypeMap != null) {
     				
-    				lrnTypeInfoMap.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
-    				lrnTypeInfoMap.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
-    				lrnTypeInfoMap.put("lrnTypeImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
-    				lrnTypeInfoMap.put("lrnTypeInfoMsg", lrnTypeMsgMap.get("lrnTypeInfoMsg"));
+    				data.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
+    				data.put("lrnTypeCd", lrnTypeMap.get("lrnTypeCd"));
+    				//lrnTypeInfoMap.put("lrnTypeImgUrl", lrnTypeMap.get("lrnTypeImgUrl"));
+    				data.put("lrnTypeInfoMsg", lrnTypeMsgMap.get("lrnTypeInfoMsg"));
     				
-    				lrnTypeInfoMap.put("strLevel", lrnTypeMap.get("strLevel"));
-    				lrnTypeInfoMap.put("actLevel", lrnTypeMap.get("actLevel"));
+    				data.put("strScore", lrnTypeMap.get("strLevel"));
+    				data.put("actScore", lrnTypeMap.get("actLevel"));
     				
-    				lrnTypeInfoMap.put("lrnTypeMsg", lrnTypeMsgMap.get("lrnTypeMsg"));
-    				lrnTypeInfoMap.put("lrnTypeStrMsg", lrnTypeMsgMap.get("lrnTypeStrMsg"));
-    				lrnTypeInfoMap.put("lrnTypeActMsg", lrnTypeMsgMap.get("lrnTypeActMsg"));
+    				data.put("lrnTypeMsg", lrnTypeMsgMap.get("lrnTypeMsg"));
+    				data.put("lrnTypeStrMsg", lrnTypeMsgMap.get("lrnTypeStrMsg"));
+    				data.put("lrnTypeActMsg", lrnTypeMsgMap.get("lrnTypeActMsg"));
     				
     				// 유형 경로 변환
     				List<String> actList = (lrnTypeMsgMap.get("actPath") != null) ? Arrays.asList(lrnTypeMsgMap.get("actPath").toString().split(",")) : null;
     				List<String> strList = (lrnTypeMsgMap.get("strPath") != null) ? Arrays.asList(lrnTypeMsgMap.get("strPath").toString().split(",")) : null;
     				
-    				lrnTypeInfoMap.put("strPath", getConvertLrnTypePath(strList));
-    				lrnTypeInfoMap.put("actPath", getConvertLrnTypePath(actList));
+    				data.put("strPath", getConvertLrnTypePath(strList));
+    				data.put("actPath", getConvertLrnTypePath(actList));
     				
-    				data.put("lrnTypeInfo", lrnTypeInfoMap);
+    				//data.put("lrnTypeInfo", lrnTypeInfoMap);
     			}
     			
     			setResult(dataKey,data);
@@ -405,8 +384,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         					historyMap.put("lrnTypeCd", historyItem.get("lrnTypeCd"));
         					historyMap.put("lrnTypeNm", historyItem.get("lrnTypeNm"));
         					historyMap.put("lrnTypeInfoMsg", historyItem.get("lrnTypeInfoMsg"));
-        					historyMap.put("strLevel", historyItem.get("strLevel"));
-        					historyMap.put("actLevel", historyItem.get("actLevel"));
+        					historyMap.put("strScore", historyItem.get("strLevel"));
+        					historyMap.put("actScore", historyItem.get("actLevel"));
         					historyMap.put("lrnTypeMsg", historyItem.get("lrnTypeMsg"));
         					historyMap.put("lrnTypeStrMsg", historyItem.get("lrnTypeStrMsg"));
         					historyMap.put("lrnTypeActMsg", historyItem.get("lrnTypeActMsg"));
