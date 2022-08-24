@@ -439,7 +439,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			item.put("misStatusCd",2);			
 							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
 							        			
-							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("id")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+item.get("misCompleteDt");
+							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+item.get("misCompleteDt");
 							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 							        			realTimeMKBInfo.put("chCd", "MKB");
@@ -448,6 +448,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			realTimeMKBInfo.put("misStatusCd", 2);
 							        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
 							        			realTimeMKBInfo.put("misContents", strContent);
+							        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
 							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
 							        		} else {
 							        			flag_mission = false;
@@ -458,7 +459,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
 								        			item.put("misStatusCd",1);	
 	
-								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("id")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|";
+								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|";
 								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 								        			realTimeMKBInfo.put("chCd", "MKB");
@@ -467,6 +468,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 								        			realTimeMKBInfo.put("misStatusCd", 1);
 								        			realTimeMKBInfo.put("misCompleteDt", null);
 								        			realTimeMKBInfo.put("misContents", strContent);
+								        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
 								        			// db 등록된게 없으면 이전 미션의 완료일시로 등록 // orderNo 1이면 미션 시작일 기준... 
 								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
 								        		}
