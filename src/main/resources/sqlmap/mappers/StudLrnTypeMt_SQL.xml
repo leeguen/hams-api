@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="StudLrnTypeMt">
+    <select id="getLrnTypeCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeCheck */
+    	select * from lrnapi.fn_ds_ap_lrn_type_check(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetail */
+		select
+			a.stud_key,
+			b.*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		where a.stud_key = #{studId}
+    </select>
+    
+    <select id="getLrnTypeDetailMsg" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetailMsg */
+		select
+			a.stud_key,
+			b.*
+		from lrndmt.mt_dm_stud a
+		left outer join lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
+		where a.stud_key = #{studId}
+    </select>
+    
+    <select id="getLrnTypeInfoMsg" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeInfoMsg */
+    	select 
+    		* 
+   		from lrnapi.fn_ds_ap_lrn_type_info_msg(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypeHistory" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeHistory */
+    	select
+    		yyyy,
+    		mm,
+    		lrn_type_cd,
+    		lrn_type_nm 
+    	from lrnapi.fn_ds_ap_lrn_type_history(#{studId}, #{yymm}, 'st');
+    </select>
+    
+    <select id="getLrnTypePath" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypePath */
+    	select * from lrnapi.fn_ds_ap_lrn_type_by_one(#{studId}, #{yymm}, 'st', #{lrnTypeCd});
+    </select>
+    
+    <select id="getLrnTypeHistoryDetail" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeHistoryDetail */
+    	select * from lrnapi.fn_ds_ap_lrn_type_history_detail(#{studId}, #{yyyy}, #{yymm}, 'st');
+    </select>
+</mapper>
