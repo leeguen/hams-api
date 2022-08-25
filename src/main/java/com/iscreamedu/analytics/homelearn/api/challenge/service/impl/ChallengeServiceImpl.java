@@ -376,6 +376,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			
 				if(missionList == null || missionList.size() == 0) {
 					setNoDataMessage();
+					LOGGER.debug("missionList is null...");
 				} else { 
 					// misRcmYn : recommend 북카페 책제목 + 추천도서 리스트 
 					// 북카페 책읽기 상태 값 리스트
@@ -393,10 +394,10 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        	}
 				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
 			        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
-			        	if(startDate == null) startDate = item.get("misStartDt").toString();	
+			        	if(startDate == null && item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	
 			        }
-
-			        if(bookIds_recommend.size() > 0) {
+			        
+			        if(bookIds_recommend != null && bookIds_recommend.size() > 0) {
 				        Map<String, Object> extParamMap_1 = new HashMap<>();
 				        extParamMap_1.put("apiName", "bookList");
 				        extParamMap_1.put("bookIds", bookIds_recommend);
@@ -415,10 +416,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        	item.put("misRcmYn","N");			        		
 					        }
 					    }
+			        } else {
+			        	LOGGER.debug("bookIds_recommend is null...");
 			        }
 			        
-//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준..  
-			        if(startDate != null && bookIds_state.size() > 0) {
+//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준.. 
+			        if(startDate != null && bookIds_state != null && bookIds_state.size() > 0) {
+			        	LOGGER.debug("startDate : "+startDate);
 				        Map<String, Object> extParamMap_2 = new HashMap<>();
 				        extParamMap_2.put("apiName", "bookState");
 				        extParamMap_2.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
@@ -494,6 +498,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        }
 					        
 					    }
+			        } else {
+			        	LOGGER.debug("startDate != null && bookIds_state != null && bookIds_state.size() else .....................");
 			        }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
 					data.put("bookList", missionList);
