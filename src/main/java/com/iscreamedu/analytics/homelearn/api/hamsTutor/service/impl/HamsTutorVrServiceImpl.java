@@ -7,6 +7,7 @@ import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
+import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.CommonLrnMtService;
 import com.iscreamedu.analytics.homelearn.api.hamsTutor.service.HamsTutorVrService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,9 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
 	
 	@Autowired
 	ExternalAPIService externalAPIservice;
+	
+	@Autowired
+    CommonLrnMtService commonLrnMtService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HamsTutorVrServiceImpl.class);
 
@@ -945,14 +949,48 @@ public class HamsTutorVrServiceImpl implements HamsTutorVrService {
         
         LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
         //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
-        Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(paramMap).get("data");
-        
-        if(studInfoMap != null) {
-        	studInfo.put("studType", studInfoMap.get("divCdNm").toString());
-        	studInfo.put("lrnStatusType", studInfoMap.get("statusCdNm").toString());
+        try {
+        	Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(paramMap).get("data");
+            
+            if(studInfoMap != null) {
+            	studInfo.put("studType", studInfoMap.get("divCdNm").toString());
+            	studInfo.put("lrnStatusType", studInfoMap.get("statusCdNm").toString());
+            	
+            	data.put("studInfo", studInfo);
+            }
+        } catch (Exception e) {
+        	//복호화
+            String[] encodedArr = getDecodedParam(paramMap.get("p").toString());
+            String encodedStudId = encodedArr[1];
+            //DB params
+            paramMap.put("studId",encodedStudId);
+        	
+        	//2.0 데이터
+        	String[] sqlLists = {"StudInfo"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", "w");
+        	paramMap.put("sqlList", dwSqlList);
+        	paramMap.put("yymm", "0");
+        	paramMap.put("wk", "0");
+        	
+        	Map<String,Object> studInfoMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//수행률
+    		try {
+    			Map<String,Object> studInfoData = (Map<String, Object>) studInfoMap.get("StudInfo");
+    			
+    			studInfo.put("studType", (String) studInfoData.get("studTypeNm"));
+    			studInfo.put("lrnStatusType", (String) studInfoData.get("lrnSttNm"));
+    		} catch (Exception e1) {
+    			LOGGER.debug("StudInfo : Error");
+    			studInfo.put("studType", null);
+    			studInfo.put("lrnStatusType", null);
+			}
         	
         	data.put("studInfo", studInfo);
-        }
+		}
+        
         
         setResult(dataKey,data);
 

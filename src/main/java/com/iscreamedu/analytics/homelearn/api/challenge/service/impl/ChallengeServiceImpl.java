@@ -396,7 +396,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
 			        	if(startDate == null && item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	
 			        }
-
+			        
 			        if(bookIds_recommend != null && bookIds_recommend.size() > 0) {
 				        Map<String, Object> extParamMap_1 = new HashMap<>();
 				        extParamMap_1.put("apiName", "bookList");
@@ -420,7 +420,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        	LOGGER.debug("bookIds_recommend is null...");
 			        }
 			        
-//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준..  
+//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준.. 
 			        if(startDate != null && bookIds_state != null && bookIds_state.size() > 0) {
 			        	LOGGER.debug("startDate : "+startDate);
 				        Map<String, Object> extParamMap_2 = new HashMap<>();
