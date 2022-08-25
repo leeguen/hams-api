@@ -382,45 +382,50 @@ public class ChallengeServiceImpl implements ChallengeService {
 					// 홈런 API 조회 :: 국어책 API 연동 추가
 					ArrayList<Map<String, Object>> bookListInfo = new ArrayList<>();
 					ArrayList<Map<String, Object>> bookStateInfo = new ArrayList<>();
-			        ArrayList<Integer> bookIds = new ArrayList<Integer>();
+			        ArrayList<Integer> bookIds_recommend = new ArrayList<Integer>();
+			        ArrayList<Integer> bookIds_state = new ArrayList<Integer>();
 			        String startDate = null;
 			        int grade = -99;
 			        for(Map<String, Object> item : missionList) {		
+			        	bookIds_recommend.add(Integer.parseInt(item.get("misBookCd").toString()));
 			        	if(!item.get("misStatusCd").toString().equals("2")) {
-			        		bookIds.add(Integer.parseInt(item.get("misBookCd").toString()));
+			        		bookIds_state.add(Integer.parseInt(item.get("misBookCd").toString()));
 			        	}
 				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
 			        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
 			        	if(startDate == null) startDate = item.get("misStartDt").toString();	
 			        }
-			        Map<String, Object> extParamMap_1 = new HashMap<>();
-			        extParamMap_1.put("apiName", "bookList");
-			        extParamMap_1.put("bookIds", bookIds);
-			        extParamMap_1.put("grade", grade);
+
+			        if(bookIds_recommend.size() > 0) {
+				        Map<String, Object> extParamMap_1 = new HashMap<>();
+				        extParamMap_1.put("apiName", "bookList");
+				        extParamMap_1.put("bookIds", bookIds_recommend);
+				        extParamMap_1.put("grade", grade);
+				        
+				        bookListInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_1).get("data");	
+				        for(Map<String, Object> item : missionList) {			      
+					        if(bookListInfo != null && bookListInfo.size() > 0) {
+					        	for(Map<String, Object> itemInfo : bookListInfo) {	
+					        		if(item.get("misBookCd").toString().equals(itemInfo.get("id").toString())) {
+							        	item.put("misRcmYn",(itemInfo.containsKey("recommend") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?"Y":"N") : "N"));
+					        		}
+					        	}
+					        } else {
+					        	LOGGER.debug("bookListInfo is null...");
+					        	item.put("misRcmYn","N");			        		
+					        }
+					    }
+			        }
 			        
-			        bookListInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_1).get("data");	
-			        for(Map<String, Object> item : missionList) {			      
-				        if(bookListInfo != null && bookListInfo.size() > 0) {
-				        	for(Map<String, Object> itemInfo : bookListInfo) {	
-				        		if(item.get("misBookCd").toString().equals(itemInfo.get("id").toString())) {
-						        	item.put("misRcmYn",(itemInfo.containsKey("recommend") ? (Boolean.parseBoolean(itemInfo.get("recommend").toString())?"Y":"N") : "N"));
-				        		}
-				        	}
-				        } else {
-				        	LOGGER.debug("bookListInfo is null...");
-				        	item.put("misRcmYn","N");			        		
-				        }
-				    }
-			        
-//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준.. 
-			        if(startDate != null) {
+//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준..  
+			        if(startDate != null && bookIds_state.size() > 0) {
 				        Map<String, Object> extParamMap_2 = new HashMap<>();
 				        extParamMap_2.put("apiName", "bookState");
 				        extParamMap_2.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
 				        extParamMap_2.put("startDate", startDate.toString());
 				       // 갱신 대상 :  misStartDt, misCompleteDt
 				        String bookIdsTxt = "";
-				        for (int bookId : bookIds) {
+				        for (int bookId : bookIds_state) {
 				        	if(bookIdsTxt != "") bookIdsTxt += ",";
 				        	bookIdsTxt += bookId;
 						}
