@@ -148,7 +148,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		getStudId(paramMap);		
 		
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId","startYyyyMm","endYyyyMm"}, paramMap);
+		vu.checkRequired(new String[] {"studId"}, paramMap);
 		if(vu.isValid()) {			
 			
 			rewardList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spMonthyHistoryChallengeCluReward");
@@ -385,10 +385,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        ArrayList<Integer> bookIds = new ArrayList<Integer>();
 			        String startDate = null;
 			        int grade = -99;
-			        for(Map<String, Object> item : missionList) {			      
-			        	bookIds.add(Integer.parseInt(item.get("misBookCd").toString()));
+			        for(Map<String, Object> item : missionList) {		
+			        	if(!item.get("misStatusCd").toString().equals("2")) {
+			        		bookIds.add(Integer.parseInt(item.get("misBookCd").toString()));
+			        	}
 				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
-			        	if(item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();
+			        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
+			        	if(startDate == null) startDate = item.get("misStartDt").toString();	
 			        }
 			        Map<String, Object> extParamMap_1 = new HashMap<>();
 			        extParamMap_1.put("apiName", "bookList");
@@ -408,6 +411,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        	item.put("misRcmYn","N");			        		
 				        }
 				    }
+			        
+//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준.. 
 			        if(startDate != null) {
 				        Map<String, Object> extParamMap_2 = new HashMap<>();
 				        extParamMap_2.put("apiName", "bookState");
@@ -439,7 +444,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			item.put("misStatusCd",2);			
 							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
 							        			
-							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+item.get("misCompleteDt");
+							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+item.get("misCompleteDt");
 							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 							        			realTimeMKBInfo.put("chCd", "MKB");
@@ -459,7 +464,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
 								        			item.put("misStatusCd",1);	
 	
-								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|";
+								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate;
 								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 								        			realTimeMKBInfo.put("chCd", "MKB");

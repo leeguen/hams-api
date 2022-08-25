@@ -127,8 +127,6 @@
 	<select id="spMonthyHistoryChallengeCluReward" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_monthly_history_challenge_clu_reward (
 			  #{studId, mode=IN, jdbcType=INTEGER}
-			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
-			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	
