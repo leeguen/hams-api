@@ -503,7 +503,8 @@ public class HamsTutorServiceImpl implements HamsTutorService {
             checkRequiredWithDt(paramMap);
 
             //DB 조회
-            LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
+            //LinkedHashMap<String,Object> examStt = (LinkedHashMap)mapper.get(paramMap ,TUTOR_NAMESPACE + ".getExamStt");
+            LinkedHashMap<String,Object> examStt = new LinkedHashMap<String, Object>();
             
             //2.0 데이터
         	String[] sqlLists = {"ExamStt","IncrtNtStt","SlvHabitStt"};
@@ -560,6 +561,7 @@ public class HamsTutorServiceImpl implements HamsTutorService {
 
             //DB 조회
             List<Map<String,Object>> examChart = (List)mapper.getList(paramMap ,TUTOR_NAMESPACE + ".getExamChart");
+            //List<Map<String,Object>> examChart = new ArrayList<Map<String,Object>>();
             
             //2.0 데이터
         	String[] sqlLists = {"ExamSubjList","IncrtNtSubjList","SlvHabitSubjList"};
@@ -574,20 +576,38 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     		try {
     			ArrayList<Map<String,Object>> examSubjList = (ArrayList<Map<String, Object>>) examChartMap.get("ExamSubjList");
     			
-    			for(Map<String, Object> examChartItem : examChart) {
-    				String subjCd = examChartItem.get("subjCd").toString();
-    				
-    				for(Map<String, Object> examItem : examSubjList) {
-    					if(subjCd.equals(examItem.get("subjCd"))) {
-    						examChartItem.put("crtRt", examItem.get("crtRt"));
-    						examChartItem.put("explCnt", examItem.get("explCnt"));
-    						examChartItem.put("ansQuesCnt", examItem.get("quesCnt"));
-    						examChartItem.put("crtQuesCnt", examItem.get("crtCnt"));
-    						
-    						continue;
-    					}
+    			if(examChart.size() > 0) {
+    				for(Map<String, Object> examChartItem : examChart) {
+    					String subjCd = examChartItem.get("subjCd").toString();
     					
+    					for(Map<String, Object> examItem : examSubjList) {
+    						if(subjCd.equals(examItem.get("subjCd"))) {
+    							examChartItem.put("crtRt", examItem.get("crtRt"));
+    							examChartItem.put("explCnt", examItem.get("explCnt"));
+    							examChartItem.put("ansQuesCnt", examItem.get("quesCnt"));
+    							examChartItem.put("crtQuesCnt", examItem.get("crtCnt"));
+    							
+    							continue;
+    						}
+    						
+    					}
     				}
+    			} else {
+    				examChart = new ArrayList<Map<String,Object>>();
+    				
+					for(Map<String, Object> examItem : examSubjList) {
+						Map<String, Object> examDataItem = new LinkedHashMap<String, Object>();
+						if(examItem.get("explCnt") != null) {
+							examDataItem.put("subjCd", examItem.get("subjCd"));
+							examDataItem.put("crtRt", examItem.get("crtRt"));
+							examDataItem.put("explCnt", examItem.get("explCnt"));
+							examDataItem.put("ansQuesCnt", examItem.get("quesCnt"));
+							examDataItem.put("crtQuesCnt", examItem.get("crtCnt"));
+							
+							examChart.add(examDataItem);
+						}
+					}
+					
     			}
     			
     		} catch (Exception e) {

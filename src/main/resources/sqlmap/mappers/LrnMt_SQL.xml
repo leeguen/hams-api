@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="LrnMt">
-
+	
+	<select id="selectStudInfo" parameterType="hashMap" resultType="resultMap">
+		/* LrnMt.selectStudInfo */
+		select * from lrnapi.fn_ds_ap_stud_info(#{studId}, #{service});
+    </select>
+	
 	<select id="selectLrnExStt" parameterType="hashMap" resultType="resultMap">
 		/* LrnMt.selectLrnExStt */
 		select * from lrnapi.fn_ds_ap_lrn_ex_stt(#{studId}, #{startDt}, #{endDt}, #{period}, #{yymm}, #{service});

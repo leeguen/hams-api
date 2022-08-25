@@ -52,4 +52,9 @@
     	/* StudLrnTypeMt.getLrnTypeHistoryDetail */
     	select * from lrnapi.fn_ds_ap_lrn_type_history_detail(#{studId}, #{yyyy}, #{yymm}, 'st');
     </select>
+    
+    <select id="getStudGender" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getStudGender */
+		select * from lrnapi.fn_ds_ap_stud_info(#{studIds}, 'st');
+    </select>
 </mapper>

@@ -424,7 +424,17 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         Map<String,Object> paramMap = new HashMap<>();
         
         paramMap.put("studId", studId);
-        data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "getStudLrnTypeInfo");
+        data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getStudLrnTypeInfo");
+        
+        int studIds = Integer.parseInt(paramMap.get("studId").toString());
+        paramMap.put("studIds", studIds);
+        Map<String,Object> studGenderMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getStudGender");
+        String gender = (studGenderMap != null && studGenderMap.get("gender") != null) ? studGenderMap.get("gender").toString() : null;
+        
+        if(data != null) {
+        	data.put("gender", gender);
+        }
+        
         
         //학생 구분 값 관련 ID
         int studTypeId = (data != null && data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
