@@ -499,7 +499,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        
 					    }
 			        } else {
-			        	LOGGER.debug("startDate != null && bookIds_state != null && bookIds_state.size() else .....................");
+//			        	LOGGER.debug("startDate != null && bookIds_state != null && bookIds_state.size() else .....................");
 			        }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
 					data.put("bookList", missionList);

@@ -51,7 +51,7 @@
               #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
 		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
-              , #{misStatusCd, mode=IN, jdbcType=INTEGER}
+              , #{stepStatusCd, mode=IN, jdbcType=INTEGER}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
