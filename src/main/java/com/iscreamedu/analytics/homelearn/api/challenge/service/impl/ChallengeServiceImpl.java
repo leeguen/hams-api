@@ -444,7 +444,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			item.put("misStatusCd",2);			
 							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
 							        			
-							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+item.get("misCompleteDt");
+							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+itemInfo.get("compDate").toString();
 							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 							        			realTimeMKBInfo.put("chCd", "MKB");
