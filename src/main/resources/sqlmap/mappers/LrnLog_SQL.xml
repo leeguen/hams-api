@@ -65,7 +65,7 @@
 		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
 		 	  , #{misNo, mode=IN, jdbcType=INTEGER}
               , #{misStatusCd, mode=IN, jdbcType=INTEGER}
-              , #{misCompleteDt, mode=IN, jdbcType=DATE}
+              , #{misCompleteDt, mode=IN, jdbcType=VARCHAR}
               , #{misContents, mode=IN, jdbcType=VARCHAR}
               , #{regAdminId, mode=IN, jdbcType=VARCHAR}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
