@@ -243,6 +243,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getKoreanBookChallenge(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+		ArrayList<Map<String, Object>> bookStateInfo = new ArrayList<>();
+        ArrayList<Integer> bookIds_state = new ArrayList<Integer>();
 		int total_task_cnt = 0; 
         int total_comp_cnt = 0; 
         
@@ -282,8 +284,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        
 							// 북카페 책읽기 상태 값 리스트
 							// 홈런 API 조회 :: 국어책 API 연동 추가
-							ArrayList<Map<String, Object>> bookStateInfo = new ArrayList<>();
-					        ArrayList<Integer> bookIds_state = new ArrayList<Integer>();
 					        String startDate = null;
 					        int grade = -99;
 					        for(Map<String, Object> item : missionList) {		
@@ -387,6 +387,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 						}
 					} catch (Exception e) {
 						LOGGER.debug("bookStateInfo 연동 오류!");
+					}
+						
+					if(bookStateInfo!= null && bookStateInfo.size() > 0) {
+						// 오늘 추가된 실시간 정보에서 조회
+						data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spKoreanBookChallenge");
 					}
 					setResult(dataKey, data);
 				} else {
@@ -593,8 +598,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			flag_mission = false;
 							        			if(itemInfo.containsKey("lastPage")) {
 									        		//진행중
-	//						        				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-	//						        				ZonedDateTime zonedDateTime = ZonedDateTime.parse(new Date().toString(), formatter);
 							        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
 								        			item.put("misStatusCd",1);	
 	
