@@ -348,6 +348,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public LinkedHashMap getKoreanBookChMissonList(Map<String, Object> paramMap) throws Exception {
 		Map<String,Object> data = new HashMap<>();
 		ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+		int total_task_cnt = 0; 
+        int total_comp_cnt = 0; 
         //Validation
 		ValidationUtil vu = new ValidationUtil();
 		getStudId(paramMap);
@@ -372,12 +374,14 @@ public class ChallengeServiceImpl implements ChallengeService {
 		vu.checkRequired(new String[] {"studId","misStep"}, paramMap);
 		if(vu.isValid()) {		
 			try {	
-				missionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spKoreanBookChMissonList");
-			
+				missionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spKoreanBookChMissonList");			
+		        
 				if(missionList == null || missionList.size() == 0) {
 					setNoDataMessage();
 					LOGGER.debug("missionList is null...");
 				} else { 
+					total_task_cnt = missionList.size(); 
+			        
 					// misRcmYn : recommend 북카페 책제목 + 추천도서 리스트 
 					// 북카페 책읽기 상태 값 리스트
 					// 홈런 API 조회 :: 국어책 API 연동 추가
@@ -442,6 +446,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	//			                   "deleted": false,
 	//			                   "recommend": false
 	//			                 },... ]
+				        String last_comp_misBookCd = "";
 				        for(Map<String, Object> item : missionList) {			      
 					        boolean flag_mission = true;			        	  
 					        if(bookStateInfo != null && bookStateInfo.size() > 0) {
@@ -452,18 +457,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        			// 완료한 미션순서 체크하여 순차 호출.. roof
 							        			item.put("misStatusCd",2);			
 							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
+							        			last_comp_misBookCd = item.get("misBookCd").toString();		// 마지막 도서만 db 업데이트...
 							        			
-							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+itemInfo.get("compDate").toString();
-							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
-							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
-							        			realTimeMKBInfo.put("chCd", "MKB");
-							        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
-							        			realTimeMKBInfo.put("misNo", item.get("misNo"));
-							        			realTimeMKBInfo.put("misStatusCd", 2);
-							        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
-							        			realTimeMKBInfo.put("misContents", strContent);
-							        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
-							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+//							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+itemInfo.get("compDate").toString();
+//							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+//							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+//							        			realTimeMKBInfo.put("chCd", "MKB");
+//							        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+//							        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+//							        			realTimeMKBInfo.put("misStatusCd", 2);
+//							        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
+//							        			realTimeMKBInfo.put("misContents", strContent);
+//							        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
+//							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
 							        		} else {
 							        			flag_mission = false;
 							        			if(itemInfo.containsKey("lastPage")) {
@@ -473,18 +479,18 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
 								        			item.put("misStatusCd",1);	
 	
-								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate;
-								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
-								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
-								        			realTimeMKBInfo.put("chCd", "MKB");
-								        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
-								        			realTimeMKBInfo.put("misNo", item.get("misNo"));
-								        			realTimeMKBInfo.put("misStatusCd", 1);
-								        			realTimeMKBInfo.put("misCompleteDt", null);
-								        			realTimeMKBInfo.put("misContents", strContent);
-								        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
-								        			// db 등록된게 없으면 이전 미션의 완료일시로 등록 // orderNo 1이면 미션 시작일 기준... 
-								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+//								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate;
+//								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+//								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+//								        			realTimeMKBInfo.put("chCd", "MKB");
+//								        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+//								        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+//								        			realTimeMKBInfo.put("misStatusCd", 1);
+//								        			realTimeMKBInfo.put("misCompleteDt", null);
+//								        			realTimeMKBInfo.put("misContents", strContent);
+//								        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
+//								        			// db 등록된게 없으면 이전 미션의 완료일시로 등록 // orderNo 1이면 미션 시작일 기준... 
+//								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
 								        		}
 							        		}
 							        	} else {
@@ -498,11 +504,49 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        }
 					        
 					    }
-			        } else {
+				        
+				        // 마지막 도서만 db 업데이트...
+				        for(Map<String, Object> item : missionList) {			      
+					        if(bookStateInfo != null && bookStateInfo.size() > 0) {
+					        	for(Map<String, Object> itemInfo : bookStateInfo) {	
+					        		if(last_comp_misBookCd.equals(itemInfo.get("bookId").toString())) {	// 마지막 도서만 db 업데이트...
+//							        	if(itemInfo.containsKey("complete")) {
+//							        		if((Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
+							        			// 완료한 미션순서 체크하여 순차 호출.. roof
+//							        			item.put("misStatusCd",2);			
+//							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
+//							        			
+					        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+itemInfo.get("compDate").toString();
+					        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+					        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+					        			realTimeMKBInfo.put("chCd", "MKB");
+					        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+					        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+					        			realTimeMKBInfo.put("misStatusCd", 2);
+					        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
+					        			realTimeMKBInfo.put("misContents", strContent);
+					        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
+					        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+//							        		} 
+//							        	}
+					        		}
+					        	}
+					        } else {
+					        	LOGGER.debug("bookStateInfo is null...");		        		
+					        }
+					        
+					    }
 //			        	LOGGER.debug("startDate != null && bookIds_state != null && bookIds_state.size() else .....................");
+			        }
+			        for(Map<String, Object> item : missionList) {	
+			        	if(item.get("misStatusCd").toString().equals("2")) {
+			        		total_comp_cnt += 1;
+			        	}
 			        }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
 					data.put("bookList", missionList);
+					data.put("total_task_cnt", total_task_cnt);
+					data.put("total_comp_cnt", total_comp_cnt);
 					setResult(dataKey, data);
 				}
 			} catch (Exception e) {
