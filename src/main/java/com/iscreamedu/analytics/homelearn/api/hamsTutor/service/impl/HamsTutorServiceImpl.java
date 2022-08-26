@@ -60,12 +60,13 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
         Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
         
+        //DB 조회
+        LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
+        
         if(studInfoMap != null) {
-        	//DB 조회
-        	LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
         	
         	//학생 정보
-        	lrnBasicInfo.put("studId", studInfoMap.get("stuId"));
+        	lrnBasicInfo.put("studId", (studInfoMap.get("stuId") != null) ? studInfoMap.get("stuId") : lrnBasicInfo.get("studId"));
         	lrnBasicInfo.put("gender", studInfoMap.get("gender"));
         	lrnBasicInfo.put("studNm", studInfoMap.get("name"));
         	lrnBasicInfo.put("loginId", studInfoMap.get("loginId"));
@@ -157,8 +158,17 @@ public class HamsTutorServiceImpl implements HamsTutorService {
         	
         	
         	data.put("lrnBasicInfo",lrnBasicInfo);
+        } else {
+        	if(lrnBasicInfo != null) {
+        		lrnBasicInfo.put("gender", null);
+            	lrnBasicInfo.put("studNm", null);
+            	lrnBasicInfo.put("loginId", null);
+            	lrnBasicInfo.put("schlNm", null);
+            	lrnBasicInfo.put("grade", null);
+            	
+            	data.put("lrnBasicInfo",lrnBasicInfo);
+        	}
         }
-        
 
         setResult(dataKey,data);
 
@@ -332,6 +342,9 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     			exStt.put("aLrnNm", aLrnExStt.get("maxSubSubjNm"));
     		} catch (Exception e) {
     			LOGGER.debug("ALrnExStt : Error");
+    			exStt.put("aLrnExCnt", 0);
+    			exStt.put("aLrnUpperNm", null);
+    			exStt.put("aLrnNm", null);
 			}
     		
     		//학습시간
@@ -531,7 +544,10 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     		try {
     			Map<String,Object> incrtNtStt = (Map<String, Object>) examSttMap.get("IncrtNtStt");
     			
-    			examStt.put("incrtNoteNcCnt", incrtNtStt.get("incrtNtNcCnt"));
+    			if(examStt.get("explCnt") != null) {
+    				examStt.put("incrtNoteNcCnt", incrtNtStt.get("incrtNtNcCnt"));
+    			}
+    			
     		} catch (Exception e) {
     			LOGGER.debug("IncrtNtStt : Error");
 			}
