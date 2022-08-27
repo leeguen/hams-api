@@ -167,7 +167,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 //					}
 					
 					rewardMap.put("rewardMotionList", rewardMotionList);
-					rewardList.remove("motionNoList");
 				}
 				data.put("rewardList", rewardList);
 				setResult(dataKey, data);
