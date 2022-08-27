@@ -173,7 +173,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("gender", studInfoMap.get("gender"));
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", studData.get("sttDt"));
+        	data.put("sttDt", studInfoMap.get("startDe"));
         	data.put("recentReport", studRecentData.get("recentReport"));
         	
         	setResult(dataKey,data);
@@ -197,12 +197,17 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         if(vu.isValid()) {
         	getStudId(paramMap);
         	
-        	studInfoParamMap.put("p", paramMap.get("p"));
+        	studInfoParamMap.put("studId", paramMap.get("studId"));
         	studInfoParamMap.put("apiName", "aiReport.");
             
             LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
-            //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
-            Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+            Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+            
+            if(studInfoMap == null) {
+            	studInfoParamMap.put("p", paramMap.get("p"));
+            	studInfoParamMap.put("apiName", "aiReport.");
+            	studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+            }
             
             String studId = (paramMap.get("studId") != null) ? paramMap.get("studId").toString() : null;
             
@@ -219,7 +224,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("gender", studInfoMap.get("gender"));
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", studData.get("sttDt"));
+        	data.put("sttDt", studInfoMap.get("startDe"));
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);

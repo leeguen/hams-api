@@ -548,6 +548,9 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 				decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
 				decodeResult.put("result", "p : Incorrect");
 			}
+		} else {
+			int studId = Integer.parseInt(params.get("studId").toString());
+			params.put("studId",studId);
 		}
 	}
 	
