@@ -60,4 +60,11 @@ public class ExtRtLogController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	@PostMapping(value="/regFnWaterJug", produces = "application/json; charset=utf8")
+    @ResponseBody
+    public ResponseEntity setFnWaterJug(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)extRtLogService.setFnWaterJug(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
 }

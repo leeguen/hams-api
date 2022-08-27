@@ -83,6 +83,16 @@
     		  , #{inErrorMsg, mode=IN, jdbcType=VARCHAR}
 		)}
 	</insert>
+	
+	<insert id="ispChCHLWaterZugAction" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_ch_chl_waterzug_action (
+              #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
 		
 	<select id="spKoreanBookChallenge" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_korean_book_challenge (
