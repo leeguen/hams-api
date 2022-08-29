@@ -10,6 +10,8 @@ public interface ExtRtLogService {
 	public LinkedHashMap setRealTimeMissonStatusChange(Map<String, Object> params) throws Exception;
 
 	public LinkedHashMap setFnWaterJug(Map<String, Object> params) throws Exception;
+
+	public LinkedHashMap setFnObjectReward(Map<String, Object> params) throws Exception;
 	
 
 }

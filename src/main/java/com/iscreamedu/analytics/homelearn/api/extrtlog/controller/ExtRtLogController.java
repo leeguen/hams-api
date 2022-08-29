@@ -67,4 +67,11 @@ public class ExtRtLogController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	@PostMapping(value="/regFnObjectReward", produces = "application/json; charset=utf8")
+    @ResponseBody
+    public ResponseEntity setFnObjectReward(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)extRtLogService.setFnObjectReward(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
 }
