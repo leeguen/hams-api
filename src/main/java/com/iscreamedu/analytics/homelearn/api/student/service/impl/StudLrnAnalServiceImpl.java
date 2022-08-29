@@ -173,8 +173,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("gender", studInfoMap.get("gender"));
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", studInfoMap.get("startDe"));
-        	data.put("recentReport", studRecentData.get("recentReport"));
+        	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
+        	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
         } else {
@@ -224,7 +224,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         	data.put("gender", studInfoMap.get("gender"));
         	data.put("grade", studInfoMap.get("grade"));
         	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", studInfoMap.get("startDe"));
+        	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
