@@ -9,21 +9,15 @@
     <select id="getLrnTypeDetail" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnTypeMt.getLrnTypeDetail */
 		select
-			a.stud_key,
-			b.*
-		from lrndmt.mt_dm_stud a
-		left outer join lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
-		where a.stud_key = #{studId}
+			*
+		from lrnapi.fn_ds_ap_lrn_type_detail(#{studId}, #{yymm}, 'st')
     </select>
     
     <select id="getLrnTypeDetailMsg" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnTypeMt.getLrnTypeDetailMsg */
 		select
-			a.stud_key,
-			b.*
-		from lrndmt.mt_dm_stud a
-		left outer join lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st') b on a.stud_key = b.stud_id
-		where a.stud_key = #{studId}
+			*
+		from lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st')
     </select>
     
     <select id="getLrnTypeInfoMsg" parameterType="hashMap" resultType="resultMap">
