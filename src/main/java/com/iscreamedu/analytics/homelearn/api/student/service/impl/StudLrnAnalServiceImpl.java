@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -169,19 +170,25 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             
         	data.put("p", decodeStudId);
         	try {
+        		String pkgType = studInfoMap.get("planDiv").toString() + "S";
+        		
         		data.put("studId", studInfoMap.get("stuId"));
         		data.put("studNm", studInfoMap.get("name"));
         		data.put("gender", studInfoMap.get("gender"));
         		data.put("grade", studInfoMap.get("grade"));
         		data.put("studType", studInfoMap.get("divCdNm"));
+        		data.put("pkgType", pkgType);
         		data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
+        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		
         		data.put("studId", studId);
         		data.put("studNm", null);
         		data.put("gender", null);
         		data.put("grade", null);
         		data.put("studType", null);
+        		data.put("pkgType", pkgType);
         		data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
@@ -217,6 +224,14 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             	studInfoParamMap.put("p", paramMap.get("p"));
             	studInfoParamMap.put("apiName", "aiReport.");
             	studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+            } else {
+            	int lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
+            	
+            	if(lrnTypeCdApi == 10002) {
+            		studInfoParamMap.put("p", paramMap.get("p"));
+                	studInfoParamMap.put("apiName", "aiReport.");
+                	studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+            	}
             }
             
             String studId = (paramMap.get("studId") != null) ? paramMap.get("studId").toString() : null;
@@ -231,19 +246,25 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             
         	data.put("p", decodeStudId);
         	try {
+        		String pkgType = studInfoMap.get("planDiv").toString() + "S";
+        		
         		data.put("studId", studInfoMap.get("stuId"));
             	data.put("studNm", studInfoMap.get("name"));
             	data.put("gender", studInfoMap.get("gender"));
             	data.put("grade", studInfoMap.get("grade"));
             	data.put("studType", studInfoMap.get("divCdNm"));
+            	data.put("pkgType", pkgType);
             	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
+        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		
         		data.put("studId", studIds);
             	data.put("studNm", null);
             	data.put("gender", null);
             	data.put("grade", null);
             	data.put("studType", null);
+            	data.put("pkgType", pkgType);
             	data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
