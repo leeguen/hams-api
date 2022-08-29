@@ -124,7 +124,19 @@ public class HamsTutorController {
     }
     
     /**
-     * 비전리포트 NFT (HAMS-T-NF-001)
+     * 비전리포트 NFT 발행 목록 (HAMS-T-NF-001)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getVisionReportNftList")
+    public ResponseEntity getVisionReportNftList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) hamsTutorExService.getVisionReportNftList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 비전리포트 NFT 상세 (HAMS-T-NF-002)
      * @param params
      * @return
      * @throws Exception

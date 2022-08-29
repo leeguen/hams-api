@@ -5,6 +5,7 @@ import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperTutor;
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationCode;
+import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtil;
 import com.iscreamedu.analytics.homelearn.api.common.util.ValidationUtilTutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
@@ -131,302 +132,302 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
         @Override
         public Map getAiDiagnosisRst(Map<String,Object> paramMap) throws Exception{
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
-                
-                //DB 조회
-                LinkedHashMap<String,Object> aiDiagnosisRst = new LinkedHashMap<>();
-                //ArrayList<Map<String,Object>> msgCntList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRst");
-                ArrayList<Map<String,Object>> msgList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRstList");
-                LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiDiagnosisRstMsg");
-                ArrayList<String> positiveMsgCdList = new ArrayList<>();
-                ArrayList<String> positiveMsgList = new ArrayList<>();
-                ArrayList<String> negativeMsgCdList = new ArrayList<>();
-                ArrayList<String> negativeMsgList = new ArrayList<>();
-                
-                Map<String,Object> intentMap = getIntentCheckCnt(paramMap); 
-                
-                String attentionGCheck = (intentMap.get("EndingAttentionG") != null) ? intentMap.get("EndingAttentionG").toString() : "N";
-                String attentionCCheck = (intentMap.get("EndingAttentionC") != null) ? intentMap.get("EndingAttentionC").toString() : "N";
-                
-                String attetionGMsg = (intentMap.get("EndingAttentionGValue") != null) ? intentMap.get("EndingAttentionGValue").toString() : null;
-                String attetionCMsg = (intentMap.get("EndingAttentionCValue") != null) ? intentMap.get("EndingAttentionCValue").toString() : null;
-                
-                int positivePointCnt = 0;
-                int negativePointCnt = 0;
-                
-                //2.0 데이터
-            	String[] sqlLists = {"LrnExStt","ALrnExStt","AttStt","ExamStt","IncrtNtStt","SlvHabitStt"};
-                List<String> dwSqlList = Arrays.asList(sqlLists);
-                
-            	paramMap.put("period", "d");
-            	paramMap.put("sqlList", dwSqlList);
+            Map<String,Object> data = new HashMap<>();
+            checkRequiredWithDt(paramMap);
+            
+            //DB 조회
+            LinkedHashMap<String,Object> aiDiagnosisRst = new LinkedHashMap<>();
+            //ArrayList<Map<String,Object>> msgCntList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRst");
+            ArrayList<Map<String,Object>> msgList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiDiagnosisRstList");
+            LinkedHashMap<String,Object> msgInfo = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorEx.selectAiDiagnosisRstMsg");
+            ArrayList<String> positiveMsgCdList = new ArrayList<>();
+            ArrayList<String> positiveMsgList = new ArrayList<>();
+            ArrayList<String> negativeMsgCdList = new ArrayList<>();
+            ArrayList<String> negativeMsgList = new ArrayList<>();
+            
+            Map<String,Object> intentMap = getIntentCheckCnt(paramMap); 
+            
+            String attentionGCheck = (intentMap.get("EndingAttentionG") != null) ? intentMap.get("EndingAttentionG").toString() : "N";
+            String attentionCCheck = (intentMap.get("EndingAttentionC") != null) ? intentMap.get("EndingAttentionC").toString() : "N";
+            
+            String attetionGMsg = (intentMap.get("EndingAttentionGValue") != null) ? intentMap.get("EndingAttentionGValue").toString() : null;
+            String attetionCMsg = (intentMap.get("EndingAttentionCValue") != null) ? intentMap.get("EndingAttentionCValue").toString() : null;
+            
+            int positivePointCnt = 0;
+            int negativePointCnt = 0;
+            
+            //2.0 데이터
+        	String[] sqlLists = {"LrnExStt","ALrnExStt","AttStt","ExamStt","IncrtNtStt","SlvHabitStt"};
+            List<String> dwSqlList = Arrays.asList(sqlLists);
+            
+        	paramMap.put("period", "d");
+        	paramMap.put("sqlList", dwSqlList);
+        	
+        	Map<String,Object> diagnosisMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+        	
+        	//수행률
+    		try {
+    			Map<String,Object> lrnExSttMap = (Map<String, Object>) diagnosisMap.get("LrnExStt");
+    			
+    			msgInfo.put("exRt", lrnExSttMap.get("exRt"));
+    			msgInfo.put("dLrnCnt", lrnExSttMap.get("dLrnCnt"));
+    			msgInfo.put("nLrnCnt", lrnExSttMap.get("nLrnCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("LrnExStt : Error");
+			}
+    		
+    		//출석률
+    		try {
+    			Map<String,Object> attStt = (Map<String, Object>) diagnosisMap.get("AttStt");
+    			
+    			msgInfo.put("loginCnt", attStt.get("attDtCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("AttStt : Error");
+			}
+    		
+    		//스스로학습
+    		try {
+    			Map<String,Object> aLrnExStt = (Map<String, Object>) diagnosisMap.get("ALrnExStt");
+    			
+    			msgInfo.put("aLrnCnt", aLrnExStt.get("aLrnCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ALrnExStt : Error");
+			}
+    		
+    		//평가
+    		try {
+    			Map<String,Object> examStt = (Map<String, Object>) diagnosisMap.get("ExamStt");
+    			
+    			msgInfo.put("explCnt", examStt.get("explCnt"));
+    			msgInfo.put("crtRt", examStt.get("crtRt"));
+    			msgInfo.put("psExplCnt", examStt.get("psExplCnt"));
+    			msgInfo.put("npsExplCnt", examStt.get("npsExplCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("ExamStt : Error");
+			}
+    		
+    		//오답노트
+    		try {
+    			Map<String,Object> incrtNtStt = (Map<String, Object>) diagnosisMap.get("IncrtNtStt");
+    			
+    			msgInfo.put("incrtNtCnt", incrtNtStt.get("incrtNtNcCnt"));
+    		} catch (Exception e) {
+    			LOGGER.debug("IncrtNtStt : Error");
+			}
+    		
+    		//문제풀이 습관
+    		try {
+    			Map<String,Object> slvHabitStt = (Map<String, Object>) diagnosisMap.get("SlvHabitStt");
+    			
+    			int hrryCnt = (slvHabitStt.get("hrryCnt") != null) ? Integer.parseInt(slvHabitStt.get("hrryCnt").toString()) : 0;
+    			int mistakeCnt = (slvHabitStt.get("mistakeCnt") != null) ? Integer.parseInt(slvHabitStt.get("mistakeCnt").toString()) : 0; 
+    			
+    			msgInfo.put("slvCnt", slvHabitStt.get("slvCnt"));
+    			msgInfo.put("gucQuesCnt", slvHabitStt.get("guessCnt"));
+    			msgInfo.put("skpQuesCnt", slvHabitStt.get("skipCnt"));
+    			msgInfo.put("curQuesCnt", slvHabitStt.get("hrryCnt"));
+    			msgInfo.put("mistakeQuesCnt", slvHabitStt.get("mistakeCnt"));
+    			msgInfo.put("curMistakeQuesCnt", (hrryCnt + mistakeCnt));
+    		} catch (Exception e) {
+    			LOGGER.debug("SlvHabitStt : Error");
+			}
+            
+            positiveMsgCdList = getPositiveMsgList(msgInfo, attentionGCheck);
+            negativeMsgCdList = getNegativeMsgList(msgInfo, attentionCCheck);
+            
+            
+            positivePointCnt = positiveMsgCdList.size();
+            negativePointCnt = negativeMsgCdList.size();
+            
+            int bookCnt = 0;
+            
+            if(positivePointCnt < 5) {
             	
-            	Map<String,Object> diagnosisMap = (Map<String, Object>) commonLrnMtService.getLrnMtData(paramMap);
+            	LinkedHashMap<String,Object> apiMap = new LinkedHashMap<>();
+            	LinkedHashMap<String,Object> paramData = new LinkedHashMap<>();
             	
-            	//수행률
-        		try {
-        			Map<String,Object> lrnExSttMap = (Map<String, Object>) diagnosisMap.get("LrnExStt");
-        			
-        			msgInfo.put("exRt", lrnExSttMap.get("exRt"));
-        			msgInfo.put("dLrnCnt", lrnExSttMap.get("dLrnCnt"));
-        			msgInfo.put("nLrnCnt", lrnExSttMap.get("nLrnCnt"));
-        		} catch (Exception e) {
-        			LOGGER.debug("LrnExStt : Error");
+    			paramData.put("p", paramMap.get("p").toString());
+    			paramData.put("fromDate", paramMap.get("startDt"));
+    			paramData.put("toDate", paramMap.get("endDt"));
+    			paramData.put("apiName", "read.complete");
+    			paramData.put("page", "1");
+    			paramData.put("size", "3");
+    			
+    			apiMap =  (LinkedHashMap<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+    			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
+    			
+    			if(bookCnt == 0) {
+    				if(positivePointCnt == 0) {
+    					positiveMsgCdList.add("CPG0013");
+    					positivePointCnt = 1;
+    				}
+    			}else {
+    				positiveMsgCdList.add("CPG0012");
+    				positivePointCnt += 1;
     			}
-        		
-        		//출석률
-        		try {
-        			Map<String,Object> attStt = (Map<String, Object>) diagnosisMap.get("AttStt");
-        			
-        			msgInfo.put("loginCnt", attStt.get("attDtCnt"));
-        		} catch (Exception e) {
-        			LOGGER.debug("AttStt : Error");
+    			
+    			if(positivePointCnt == 1 && positiveMsgCdList.contains("CPG0013")) {
+    				positivePointCnt = 0;
     			}
-        		
-        		//스스로학습
-        		try {
-        			Map<String,Object> aLrnExStt = (Map<String, Object>) diagnosisMap.get("ALrnExStt");
-        			
-        			msgInfo.put("aLrnCnt", aLrnExStt.get("aLrnCnt"));
-        		} catch (Exception e) {
-        			LOGGER.debug("ALrnExStt : Error");
-    			}
-        		
-        		//평가
-        		try {
-        			Map<String,Object> examStt = (Map<String, Object>) diagnosisMap.get("ExamStt");
-        			
-        			msgInfo.put("explCnt", examStt.get("explCnt"));
-        			msgInfo.put("crtRt", examStt.get("crtRt"));
-        			msgInfo.put("psExplCnt", examStt.get("psExplCnt"));
-        			msgInfo.put("npsExplCnt", examStt.get("npsExplCnt"));
-        		} catch (Exception e) {
-        			LOGGER.debug("ExamStt : Error");
-    			}
-        		
-        		//오답노트
-        		try {
-        			Map<String,Object> incrtNtStt = (Map<String, Object>) diagnosisMap.get("IncrtNtStt");
-        			
-        			msgInfo.put("incrtNtCnt", incrtNtStt.get("incrtNtNcCnt"));
-        		} catch (Exception e) {
-        			LOGGER.debug("IncrtNtStt : Error");
-    			}
-        		
-        		//문제풀이 습관
-        		try {
-        			Map<String,Object> slvHabitStt = (Map<String, Object>) diagnosisMap.get("SlvHabitStt");
-        			
-        			int hrryCnt = (slvHabitStt.get("hrryCnt") != null) ? Integer.parseInt(slvHabitStt.get("hrryCnt").toString()) : 0;
-        			int mistakeCnt = (slvHabitStt.get("mistakeCnt") != null) ? Integer.parseInt(slvHabitStt.get("mistakeCnt").toString()) : 0; 
-        			
-        			msgInfo.put("slvCnt", slvHabitStt.get("slvCnt"));
-        			msgInfo.put("gucQuesCnt", slvHabitStt.get("guessCnt"));
-        			msgInfo.put("skpQuesCnt", slvHabitStt.get("skipCnt"));
-        			msgInfo.put("curQuesCnt", slvHabitStt.get("hrryCnt"));
-        			msgInfo.put("mistakeQuesCnt", slvHabitStt.get("mistakeCnt"));
-        			msgInfo.put("curMistakeQuesCnt", (hrryCnt + mistakeCnt));
-        		} catch (Exception e) {
-        			LOGGER.debug("SlvHabitStt : Error");
-    			}
-                
-                positiveMsgCdList = getPositiveMsgList(msgInfo, attentionGCheck);
-                negativeMsgCdList = getNegativeMsgList(msgInfo, attentionCCheck);
-                
-                
-                positivePointCnt = positiveMsgCdList.size();
-                negativePointCnt = negativeMsgCdList.size();
-                
-                int bookCnt = 0;
-                
-                if(positivePointCnt < 5) {
-                	
-                	LinkedHashMap<String,Object> apiMap = new LinkedHashMap<>();
-                	LinkedHashMap<String,Object> paramData = new LinkedHashMap<>();
-                	
-        			paramData.put("p", paramMap.get("p").toString());
-        			paramData.put("fromDate", paramMap.get("startDt"));
-        			paramData.put("toDate", paramMap.get("endDt"));
-        			paramData.put("apiName", "read.complete");
-        			paramData.put("page", "1");
-        			paramData.put("size", "3");
-        			
-        			apiMap =  (LinkedHashMap<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
-        			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
-        			
-        			if(bookCnt == 0) {
-        				if(positivePointCnt == 0) {
-        					positiveMsgCdList.add("CPG0013");
-        					positivePointCnt = 1;
-        				}
-        			}else {
-        				positiveMsgCdList.add("CPG0012");
-        				positivePointCnt += 1;
-        			}
-        			
-        			if(positivePointCnt == 1 && positiveMsgCdList.contains("CPG0013")) {
-        				positivePointCnt = 0;
-        			}
-                }
-                
-                if(negativePointCnt == 0) {
-                	negativeMsgCdList.add("CPB0017");
-                }
-                
-                for(Map<String, Object> item : msgList) {
-                	
-                	String msgCd = item.get("msgCd").toString();
-                	String msg = item.get("msg").toString();
-                	
-                	if("G".equals(item.get("msgType"))) {
-                		if(positiveMsgCdList.contains(msgCd)) {
-                			if("CPG0003".equals(msgCd) || "CPG0004".equals(msgCd) || "CPG0005".equals(msgCd) || "CPG0006".equals(msgCd)) {
-                				msg = msg.replace("{a}", msgInfo.get("explCnt").toString())
-                    					.replace("{b}", msgInfo.get("psExplCnt").toString())
-                    					.replace("{c}", msgInfo.get("crtRt").toString());
-                    		}else if("CPG0010".equals(msgCd)) {
-                    			msg = msg.replace("{a}", msgInfo.get("aLrnCnt").toString())
-                    					.replace("{b}", msgInfo.get("subSubjCd").toString())
-                    					.replace("{c}", msgInfo.get("subjCd").toString());
-                    		}else if("CPG0012".equals(msgCd)) {
-                    			msg = msg.replace("{a}", String.valueOf(bookCnt));
-                    		} else if ("CPG0014".equals(msgCd)) {
-                    			msg = msg.replace("{a}", attetionGMsg.replace("|", ", "));
-                    		}
-                			positiveMsgList.add(msg);
+            }
+            
+            if(negativePointCnt == 0) {
+            	negativeMsgCdList.add("CPB0017");
+            }
+            
+            for(Map<String, Object> item : msgList) {
+            	
+            	String msgCd = item.get("msgCd").toString();
+            	String msg = item.get("msg").toString();
+            	
+            	if("G".equals(item.get("msgType"))) {
+            		if(positiveMsgCdList.contains(msgCd)) {
+            			if("CPG0003".equals(msgCd) || "CPG0004".equals(msgCd) || "CPG0005".equals(msgCd) || "CPG0006".equals(msgCd)) {
+            				msg = msg.replace("{a}", msgInfo.get("explCnt").toString())
+                					.replace("{b}", msgInfo.get("psExplCnt").toString())
+                					.replace("{c}", msgInfo.get("crtRt").toString());
+                		}else if("CPG0010".equals(msgCd)) {
+                			msg = msg.replace("{a}", msgInfo.get("aLrnCnt").toString())
+                					.replace("{b}", msgInfo.get("subSubjCd").toString())
+                					.replace("{c}", msgInfo.get("subjCd").toString());
+                		}else if("CPG0012".equals(msgCd)) {
+                			msg = msg.replace("{a}", String.valueOf(bookCnt));
+                		} else if ("CPG0014".equals(msgCd)) {
+                			msg = msg.replace("{a}", attetionGMsg.replace("|", ", "));
                 		}
-                	}else {
-                		if(negativeMsgCdList.contains(msgCd)) {
-                			if("CPB0004".equals(msgCd) ) {
-                				msg = msg.replace("{b}", msgInfo.get("exRt").toString());
-                			}else if("CPB0006".equals(msgCd)) {
-                				msg = msg.replace("{b}", msgInfo.get("nLrnCnt").toString());
-                			}else if("CPB0007".equals(msgCd)) {
-                				msg = msg.replace("{b}", msgInfo.get("crtRt").toString());
-                			}else if("CPB0008".equals(msgCd)) {
-                				int explCnt = Integer.valueOf(msgInfo.get("explCnt").toString());
-                				int psExplCnt = Integer.valueOf(msgInfo.get("psExplCnt").toString());
-                				int diff = explCnt - psExplCnt;
-                				msg = msg.replace("{b}", String.valueOf(diff));
-                			}else if("CPB0009".equals(msgCd)) {
-                				msg = msg.replace("{c}", msgInfo.get("incrtNtCnt").toString());
-                			}else if("CPB0010".equals(msgCd)) {
-                				msg = msg.replace("{c}", msgInfo.get("skpQuesCnt").toString());
-                			}else if("CPB0011".equals(msgCd)) {
-                				msg = msg.replace("{c+d}", msgInfo.get("curMistakeQuesCnt").toString());
-                			}else if("CPB0012".equals(msgCd)) {
-                				msg = msg.replace("{c}", msgInfo.get("gucQuesCnt").toString());
-                			}else if("CPB0013".equals(msgCd)) {
-                				msg = msg.replace("{b}", msgInfo.get("oLrnCnt").toString());
-                			}else if("CPB0014".equals(msgCd)) {
-                				msg = msg.replace("{b}", msgInfo.get("bLrnCnt").toString());
-                			}else if("CPB0018".equals(msgCd)) {
-                				msg = msg.replace("{a}", attetionCMsg.replace("|", ", "));
-                			}
-                			
-                			negativeMsgList.add(msg);
-                		}
-                	}
-                }
+            			positiveMsgList.add(msg);
+            		}
+            	}else {
+            		if(negativeMsgCdList.contains(msgCd)) {
+            			if("CPB0004".equals(msgCd) ) {
+            				msg = msg.replace("{b}", msgInfo.get("exRt").toString());
+            			}else if("CPB0006".equals(msgCd)) {
+            				msg = msg.replace("{b}", msgInfo.get("nLrnCnt").toString());
+            			}else if("CPB0007".equals(msgCd)) {
+            				msg = msg.replace("{b}", msgInfo.get("crtRt").toString());
+            			}else if("CPB0008".equals(msgCd)) {
+            				int explCnt = Integer.valueOf(msgInfo.get("explCnt").toString());
+            				int psExplCnt = Integer.valueOf(msgInfo.get("psExplCnt").toString());
+            				int diff = explCnt - psExplCnt;
+            				msg = msg.replace("{b}", String.valueOf(diff));
+            			}else if("CPB0009".equals(msgCd)) {
+            				msg = msg.replace("{c}", msgInfo.get("incrtNtCnt").toString());
+            			}else if("CPB0010".equals(msgCd)) {
+            				msg = msg.replace("{c}", msgInfo.get("skpQuesCnt").toString());
+            			}else if("CPB0011".equals(msgCd)) {
+            				msg = msg.replace("{c+d}", msgInfo.get("curMistakeQuesCnt").toString());
+            			}else if("CPB0012".equals(msgCd)) {
+            				msg = msg.replace("{c}", msgInfo.get("gucQuesCnt").toString());
+            			}else if("CPB0013".equals(msgCd)) {
+            				msg = msg.replace("{b}", msgInfo.get("oLrnCnt").toString());
+            			}else if("CPB0014".equals(msgCd)) {
+            				msg = msg.replace("{b}", msgInfo.get("bLrnCnt").toString());
+            			}else if("CPB0018".equals(msgCd)) {
+            				msg = msg.replace("{a}", attetionCMsg.replace("|", ", "));
+            			}
+            			
+            			negativeMsgList.add(msg);
+            		}
+            	}
+            }
 
-                aiDiagnosisRst.put("positivePointCnt",positivePointCnt);
-                aiDiagnosisRst.put("negativePointCnt",negativePointCnt);
-                aiDiagnosisRst.put("positiveMsgList",positiveMsgList);
-                aiDiagnosisRst.put("negativeMsgList",negativeMsgList);
+            aiDiagnosisRst.put("positivePointCnt",positivePointCnt);
+            aiDiagnosisRst.put("negativePointCnt",negativePointCnt);
+            aiDiagnosisRst.put("positiveMsgList",positiveMsgList);
+            aiDiagnosisRst.put("negativeMsgList",negativeMsgList);
 
-                data.put("aiDiagnosisRst",aiDiagnosisRst);
-                setResult(dataKey,data);
+            data.put("aiDiagnosisRst",aiDiagnosisRst);
+            setResult(dataKey,data);
 
             return result;
         }
 
         @Override
         public Map getAiWeakChapterGuide(Map<String, Object> paramMap) throws Exception {
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
+            Map<String,Object> data = new HashMap<>();
+            checkRequiredWithDt(paramMap);
 
-                //DB 조회
-                ArrayList<Map<String,Object>> aiWeakChapterGuide = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiWeakChapterGuide");
+            //DB 조회
+            ArrayList<Map<String,Object>> aiWeakChapterGuide = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiWeakChapterGuide");
 
-                if(aiWeakChapterGuide != null || aiWeakChapterGuide.size() > 0) {
-                	for(Map<String, Object> item : aiWeakChapterGuide) {
-                		if("".equals(item.get("title"))) {
-                			item.put("title", null);
-                		}
-                		if("".equals(item.get("guideMsgList"))) {
-                			item.put("guideMsgList", null);
-                		}else {
-                			
-                			if(item.get("guideMsgList").toString().contains("\n")) {
-                				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\n"));
-                    			item.put("guideMsgList", msgList);
-                			}else if(item.get("guideMsgList").toString().contains("\r")) {
-                				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\r"));
-                    			item.put("guideMsgList", msgList);
-                			}else {
-                				List<String> msgList = new ArrayList<String>();
-                				msgList.add(item.get("guideMsgList").toString());
-                				item.put("guideMsgList", msgList);
-                			}
-                		}
-                	}
-                }
+            if(aiWeakChapterGuide != null || aiWeakChapterGuide.size() > 0) {
+            	for(Map<String, Object> item : aiWeakChapterGuide) {
+            		if("".equals(item.get("title"))) {
+            			item.put("title", null);
+            		}
+            		if("".equals(item.get("guideMsgList"))) {
+            			item.put("guideMsgList", null);
+            		}else {
+            			
+            			if(item.get("guideMsgList").toString().contains("\n")) {
+            				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\n"));
+                			item.put("guideMsgList", msgList);
+            			}else if(item.get("guideMsgList").toString().contains("\r")) {
+            				List<String> msgList = Arrays.asList(item.get("guideMsgList").toString().replace("<br>", "").split("\r"));
+                			item.put("guideMsgList", msgList);
+            			}else {
+            				List<String> msgList = new ArrayList<String>();
+            				msgList.add(item.get("guideMsgList").toString());
+            				item.put("guideMsgList", msgList);
+            			}
+            		}
+            	}
+            }
 
-                data.put("aiWeakChapterGuide",aiWeakChapterGuide);
-                setResult(dataKey,data);
+            data.put("aiWeakChapterGuide",aiWeakChapterGuide);
+            setResult(dataKey,data);
 
             return result;
         }
 
         @Override
         public Map getAiRecommendQuestion(Map<String, Object> paramMap) throws Exception {
-                Map<String,Object> data = new HashMap<>();
-                checkRequiredWithDt(paramMap);
+            Map<String,Object> data = new HashMap<>();
+            checkRequiredWithDt(paramMap);
 
-                //DB 조회
-                ArrayList<Map<String,String>> subjList = (ArrayList<Map<String, String>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestionSubjList");
-                ArrayList<Map<String,Object>> aiRecommendQuestion = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestion");
-                ArrayList<Map<String,Object>> aiRecommendQuestionData = new ArrayList<>();
-                
-                for(Map<String, String> subjItem : subjList) {
-                	String subjNm = subjItem.get("subjCd");
-                	String msg = subjItem.get("msg");
-                	String subMsg = subjItem.get("subMsg");
-                	
-                	LinkedHashMap<String, Object> subjMap = new LinkedHashMap<>();
-                	ArrayList<Map<String,Object>> subjDetailList = new ArrayList<>();
-                	
-                	for(Map<String, Object> item : aiRecommendQuestion) {
-                		if(item.get("examId") == null) {
-                			item.put("examId", null);
-                			item.put("quesCd", null);
-                			item.put("smtId", null);
-                			item.put("stuNo", null);
-                			item.put("examNm", null);
-                			item.put("smtDttm", null);
-                			item.put("recommendType", null);
-                		}
-                		
-                		if(subjNm.equals(item.get("subjCd").toString())) {
-                			Map<String, Object> itemTemp = new HashMap<String, Object>();
-                			itemTemp.putAll(item);
-                			itemTemp.remove("subjCd");
-                			
-                			subjDetailList.add(itemTemp);
-                		}
-                	}
+            //DB 조회
+            ArrayList<Map<String,String>> subjList = (ArrayList<Map<String, String>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestionSubjList");
+            ArrayList<Map<String,Object>> aiRecommendQuestion = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorEx.selectAiRecommendQuestion");
+            ArrayList<Map<String,Object>> aiRecommendQuestionData = new ArrayList<>();
+            
+            for(Map<String, String> subjItem : subjList) {
+            	String subjNm = subjItem.get("subjCd");
+            	String msg = subjItem.get("msg");
+            	String subMsg = subjItem.get("subMsg");
+            	
+            	LinkedHashMap<String, Object> subjMap = new LinkedHashMap<>();
+            	ArrayList<Map<String,Object>> subjDetailList = new ArrayList<>();
+            	
+            	for(Map<String, Object> item : aiRecommendQuestion) {
+            		if(item.get("examId") == null) {
+            			item.put("examId", null);
+            			item.put("quesCd", null);
+            			item.put("smtId", null);
+            			item.put("stuNo", null);
+            			item.put("examNm", null);
+            			item.put("smtDttm", null);
+            			item.put("recommendType", null);
+            		}
+            		
+            		if(subjNm.equals(item.get("subjCd").toString())) {
+            			Map<String, Object> itemTemp = new HashMap<String, Object>();
+            			itemTemp.putAll(item);
+            			itemTemp.remove("subjCd");
+            			
+            			subjDetailList.add(itemTemp);
+            		}
+            	}
 
-                	subjMap.put("subjCd", subjNm);
-                	subjMap.put("msg", msg);
-                	subjMap.put("subMsg", subMsg);
-                	subjMap.put("subjDetail", subjDetailList);
-                	
-                	aiRecommendQuestionData.add(subjMap);
-                }
-                
-                data.put("aiRecommendQuestion",aiRecommendQuestionData);
-                setResult(dataKey,data);
+            	subjMap.put("subjCd", subjNm);
+            	subjMap.put("msg", msg);
+            	subjMap.put("subMsg", subMsg);
+            	subjMap.put("subjDetail", subjDetailList);
+            	
+            	aiRecommendQuestionData.add(subjMap);
+            }
+            
+            data.put("aiRecommendQuestion",aiRecommendQuestionData);
+            setResult(dataKey,data);
 
             return result;
         }
@@ -782,10 +783,57 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         }
         
     @Override
+    public Map getVisionReportNftList(Map<String,Object> paramMap) throws Exception {
+    	LinkedHashMap<String,Object> data = new LinkedHashMap<>();
+    	
+    	ValidationUtil vu = new ValidationUtil();
+        
+        /*vu.checkRequired(new String[] {"studId", "yymm", "term"}, paramMap);
+        
+        if(vu.isValid()) {
+        	vu1.checkRequired(new String[] {"yymm", "term"}, paramMap);
+        	
+        		int studId = Integer.valueOf(paramMap.get("studId").toString());
+        } else {
+        	
+        }*/
+        
+        paramMap.put("studId", 4995);
+        
+        ArrayList<Map<String,Object>> visionReportList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftList");
+        
+        data.put("reportCnt", visionReportList.size());
+        data.put("reportList", visionReportList);
+        
+        setResult(dataKey,data);
+
+        //리턴
+        return result;
+
+    }
+        
+    @Override
     public Map getVisionReportNft (Map<String,Object> paramMap) throws Exception {
     	LinkedHashMap<String,Object> data = new LinkedHashMap<>();
         
-        int studId = Integer.valueOf(paramMap.get("studId").toString());
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        /*vu.checkRequired(new String[] {"studId", "yymm", "term"}, paramMap);
+        
+        if(vu.isValid()) {
+        	vu1.checkRequired(new String[] {"yymm", "term"}, paramMap);
+        	
+        	if(vu.isValid()) {
+        		int studId = Integer.valueOf(paramMap.get("studId").toString());
+        	}
+        } else {
+        	
+        }*/
+        
+        paramMap.put("studId", 4995);
+        paramMap.put("yymm", 202207);
+        paramMap.put("term", 1);
         
         data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
         ArrayList<Map<String,Object>> attRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftAttRt");

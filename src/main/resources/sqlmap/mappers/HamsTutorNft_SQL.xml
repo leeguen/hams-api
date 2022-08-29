@@ -2,7 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="HamsTutorNft">
 	
+	<select id="selectVisionNftList" parameterType="hashMap" resultType="resultMap">
+		/* HamsTutorNft.selectVisionNftList */
+		SELECT
+			DATE_FORMAT(REG_DTTM, '%Y-%m-%d') AS PUB_DT,
+			CONCAT(SUBSTRING(A.YYMM, 1, 4), '년 ', A.TERM, '학기 비전리포트') AS REPORT_NM,
+		    YYMM,
+		    TERM
+		FROM VS_REPORT_STUD A
+		WHERE STUD_ID = #{studId}
+			AND YYMM<![CDATA[<]]>DATE_FORMAT(DATE_ADD(NOW(), INTERVAL 9 HOUR), '%Y%m');
+    </select>
+	
 	<select id="selectVisionNft" parameterType="hashMap" resultType="resultMap">
+		/* HamsTutorNft.selectVisionNft */
 		SELECT
 			CONCAT(SUBSTRING(A.YYMM, 1, 4), '년 ', A.TERM, '학기 비전리포트') AS REPORT_NM,
 		    DATE_FORMAT(CONCAT(A.START_YYMM, '01'), '%Y년 %m월 %d일') AS START_DT,
@@ -21,48 +34,52 @@
 				STUD_ID,
 				SUM(LRN_SEC) AS TOTAL_LRN_SEC
 			FROM VS_REPORT_SUBJ_LRN_TM 
-			WHERE YYMM = (
-					SELECT 
-						YYMM
-					FROM VS_REPORT_STUD
-					WHERE STUD_ID = 4995
-					ORDER BY YYMM DESC
-					LIMIT 1
-				)
-				AND TERM = 1
-				AND STUD_ID = 4995
+			WHERE YYMM = #{yymm}
+				AND TERM = #{term}
+				AND STUD_ID = #{studId}
 			GROUP BY STUD_ID
 		) C ON A.STUD_ID = C.STUD_ID
-		WHERE A.YYMM = (
-				SELECT 
-					YYMM
-				FROM VS_REPORT_STUD
-		        WHERE STUD_ID = 4995
-		        ORDER BY YYMM DESC
-		        LIMIT 1
-			)
-		    AND A.TERM = 1
-			AND A.STUD_ID = 4995;
+		WHERE A.YYMM = #{yymm}
+		    AND A.TERM = #{term}
+			AND A.STUD_ID = #{studId};
     </select>
     
     <select id="selectVisionNftAttRt" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			ATT_RT
 		FROM MONTH_ATT_STT
-		WHERE YYMM IN (202201, 202202, 202203, 202204, 202205, 202206, 202207) AND STUD_ID = 4995;
+		WHERE YYMM IN (
+			SELECT
+				DISTINCT A.YYMM
+			FROM COMM_WK_DT A
+			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+		)
+		AND STUD_ID = #{studId};
     </select>
     
     <select id="selectVisionNftExRt" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			CAST(ROUND(PLAN_LRN_EX_CNT / PLAN_CNT * 100) AS UNSIGNED) AS EX_RT
 		FROM MONTH_LRN_EX_STT
-		WHERE YYMM IN (202201, 202202, 202203, 202204, 202205, 202206, 202207) AND STUD_ID = 4995;
+		WHERE YYMM IN (
+			SELECT
+				DISTINCT A.YYMM
+			FROM COMM_WK_DT A
+			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+		)
+		AND STUD_ID = #{studId};
     </select>
     
     <select id="selectVisionNftCrtRt" parameterType="hashMap" resultType="resultMap">
 		SELECT
 			CAST(ROUND(CRT_CNT / QUES_CNT * 100) AS UNSIGNED) AS CRT_RT
 		FROM EXAM_MONTH_STT
-		WHERE YYMM IN (202201, 202202, 202203, 202204, 202205, 202206, 202207) AND STUD_ID = 4995;
+		WHERE YYMM IN (
+			SELECT
+				DISTINCT A.YYMM
+			FROM COMM_WK_DT A
+			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+		)
+		AND STUD_ID = #{studId};
     </select>
 </mapper>
