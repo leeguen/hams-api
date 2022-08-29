@@ -168,12 +168,22 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
             
         	data.put("p", decodeStudId);
-        	data.put("studId", studInfoMap.get("stuId"));
-        	data.put("studNm", studInfoMap.get("name"));
-        	data.put("gender", studInfoMap.get("gender"));
-        	data.put("grade", studInfoMap.get("grade"));
-        	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
+        	try {
+        		data.put("studId", studInfoMap.get("stuId"));
+        		data.put("studNm", studInfoMap.get("name"));
+        		data.put("gender", studInfoMap.get("gender"));
+        		data.put("grade", studInfoMap.get("grade"));
+        		data.put("studType", studInfoMap.get("divCdNm"));
+        		data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
+        	} catch (Exception e) {
+        		System.out.println("Stud Info API Error : " + e);
+        		data.put("studId", studId);
+        		data.put("studNm", null);
+        		data.put("gender", null);
+        		data.put("grade", null);
+        		data.put("studType", null);
+        		data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
@@ -210,6 +220,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             }
             
             String studId = (paramMap.get("studId") != null) ? paramMap.get("studId").toString() : null;
+            int studIds = (paramMap != null && paramMap.get("studId") != null) ? Integer.parseInt(paramMap.get("studId").toString()) : 0;
             
             String decodeStudId = encodeStudId(studId);
             
@@ -219,12 +230,22 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
             
         	data.put("p", decodeStudId);
-        	data.put("studId", studInfoMap.get("stuId"));
-        	data.put("studNm", studInfoMap.get("name"));
-        	data.put("gender", studInfoMap.get("gender"));
-        	data.put("grade", studInfoMap.get("grade"));
-        	data.put("studType", studInfoMap.get("divCdNm"));
-        	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
+        	try {
+        		data.put("studId", studInfoMap.get("stuId"));
+            	data.put("studNm", studInfoMap.get("name"));
+            	data.put("gender", studInfoMap.get("gender"));
+            	data.put("grade", studInfoMap.get("grade"));
+            	data.put("studType", studInfoMap.get("divCdNm"));
+            	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
+        	} catch (Exception e) {
+        		System.out.println("Stud Info API Error : " + e);
+        		data.put("studId", studIds);
+            	data.put("studNm", null);
+            	data.put("gender", null);
+            	data.put("grade", null);
+            	data.put("studType", null);
+            	data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
         	setResult(dataKey,data);
