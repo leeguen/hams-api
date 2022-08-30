@@ -101,6 +101,22 @@
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
 		)}
 	</insert>
+	
+	<insert id="dspChCHLWaterZugActionDel" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.dsp_ch_chl_waterzug_action (
+              #{studId, mode=IN, jdbcType=INTEGER}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
+	<insert id="dspDailyHistoryChallengeCluDel" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.dsp_ch_clu_reward_action (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		 )}
+	</insert>
 		
 	<select id="spKoreanBookChallenge" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_korean_book_challenge (
@@ -165,7 +181,6 @@
 			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
-	
 	
 </mapper>
 	

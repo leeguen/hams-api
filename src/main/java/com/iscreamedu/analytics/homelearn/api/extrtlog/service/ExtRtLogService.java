@@ -12,6 +12,10 @@ public interface ExtRtLogService {
 	public LinkedHashMap setFnWaterJug(Map<String, Object> params) throws Exception;
 
 	public LinkedHashMap setFnObjectReward(Map<String, Object> params) throws Exception;
+
+	public LinkedHashMap resetWaterJug(Map<String, Object> params) throws Exception;
+
+	public LinkedHashMap resetObjectReward(Map<String, Object> params) throws Exception;
 	
 
 }

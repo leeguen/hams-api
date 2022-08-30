@@ -244,7 +244,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					
 					jsonMap.putAll(paramMap);
 					Map<String, Object> paramMap2 = new LinkedHashMap();
-					paramMap2.put("inProcName", "ispChMissionStatusChange");
+					paramMap2.put("inProcName", "isp_ch_mis_step_status_change");
 					paramMap2.put("inProcStep", 0);
 					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
 					paramMap2.put("inParam", jsonMap.toJSONString());
@@ -300,7 +300,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					
 					jsonMap.putAll(paramMap);
 					Map<String, Object> paramMap2 = new LinkedHashMap();
-					paramMap2.put("inProcName", "ispChMissionStatusChange");
+					paramMap2.put("inProcName", "isp_ch_chl_waterzug_action");
 					paramMap2.put("inProcStep", 0);
 					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
 					paramMap2.put("inParam", jsonMap.toJSONString());
@@ -356,7 +356,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					
 					jsonMap.putAll(paramMap);
 					Map<String, Object> paramMap2 = new LinkedHashMap();
-					paramMap2.put("inProcName", "ispChMissionStatusChange");
+					paramMap2.put("inProcName", "isp_ch_clu_reward_action");
 					paramMap2.put("inProcStep", 0);
 					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
 					paramMap2.put("inParam", jsonMap.toJSONString());
@@ -372,4 +372,115 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		
 		return result;
 	}
+
+	@Override
+	public LinkedHashMap resetWaterJug(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		paramMap.put("regAdminId", "STUD_EXTRTLOG");
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			String strResultMsg = null;
+			LinkedHashMap message = new LinkedHashMap();			
+			try {
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.dspChCHLWaterZugActionDel");
+				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+				strResultMsg = paramMap.get("outResultMsg").toString();
+				if(nResultCnt > 0) {					
+					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+					message.put("resulst","삭제 완료 : "+strResultMsg);
+					setResult(msgKey, message);							
+				} else {
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("resulst", strResultMsg);
+					setResult(msgKey, message);
+				}
+			} catch(Exception e) {
+				String[] errorMsgList = e.getMessage().split(": ");
+				strResultMsg = "Delete failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+				message.put("resulst", strResultMsg);
+				setResult(msgKey, message);
+				try {
+					JSONObject jsonMap = new JSONObject();
+					Date nowDate = new Date();
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+					
+					jsonMap.putAll(paramMap);
+					Map<String, Object> paramMap2 = new LinkedHashMap();
+					paramMap2.put("inProcName", "dsp_ch_clu_reward_action");
+					paramMap2.put("inProcStep", 0);
+					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+					paramMap2.put("inParam", jsonMap.toJSONString());
+					paramMap2.put("inErrorNo", 0);
+					paramMap2.put("inErrorTitle", "insert error");
+					paramMap2.put("inErrorMsg", strResultMsg);
+					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+				} catch(Exception e2) {}
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+
+	@Override
+	public LinkedHashMap resetObjectReward(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		paramMap.put("regAdminId", "STUD_EXTRTLOG");
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			String strResultMsg = null;
+			LinkedHashMap message = new LinkedHashMap();			
+			try {
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.dspDailyHistoryChallengeCluDel");
+				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+				strResultMsg = paramMap.get("outResultMsg").toString();
+				if(nResultCnt > 0) {					
+					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+					message.put("resulst","삭제 완료 : "+strResultMsg);
+					setResult(msgKey, message);					
+				} else {
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("resulst", strResultMsg);
+					setResult(msgKey, message);
+				}
+			} catch(Exception e) {
+				String[] errorMsgList = e.getMessage().split(": ");
+				strResultMsg = "Delete failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+				message.put("resulst", strResultMsg);
+				setResult(msgKey, message);
+				try {
+					JSONObject jsonMap = new JSONObject();
+					Date nowDate = new Date();
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+					
+					jsonMap.putAll(paramMap);
+					Map<String, Object> paramMap2 = new LinkedHashMap();
+					paramMap2.put("inProcName", "dsp_ch_clu_reward_action");
+					paramMap2.put("inProcStep", 0);
+					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+					paramMap2.put("inParam", jsonMap.toJSONString());
+					paramMap2.put("inErrorNo", 0);
+					paramMap2.put("inErrorTitle", "insert error");
+					paramMap2.put("inErrorMsg", strResultMsg);
+					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+				} catch(Exception e2) {}
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+
 }
