@@ -324,7 +324,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		getStudId(paramMap);
 		paramMap.put("regAdminId", "STUD_EXTRTLOG");
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId","misStep"}, paramMap);
+		vu.checkRequired(new String[] {"studId","rewardStep"}, paramMap);
 		
 		if(vu.isValid()) {
 			String strResultMsg = null;

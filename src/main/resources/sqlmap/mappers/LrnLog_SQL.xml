@@ -96,7 +96,7 @@
 	<insert id="ispChCLURewardAction" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_clu_reward_action (
               #{studId, mode=IN, jdbcType=INTEGER}
-		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
+		 	  , #{rewardStep, mode=IN, jdbcType=INTEGER}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
 		)}
