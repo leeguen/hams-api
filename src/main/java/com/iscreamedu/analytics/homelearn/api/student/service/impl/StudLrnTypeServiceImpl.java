@@ -100,8 +100,12 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 	            	studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
 	            	
 	            	if(studInfoMap != null) {
-	            		int lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
-			        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+	            		int lrnTypeCdApi = 10003;
+	            		try {
+	            			lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
+	            		} catch (Exception e) {
+	            			System.out.println("Stud Info API Error - OPS");
+						}
 			        	expStatus = (lrnTypeCdApi == 10004) ? "Y" : "N";
 	            	}
 		        }
