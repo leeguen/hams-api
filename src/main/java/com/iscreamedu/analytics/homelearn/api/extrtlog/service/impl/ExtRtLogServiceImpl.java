@@ -89,6 +89,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
 				
+		System.out.println("setRealTimeCompleteMission - Param : " + paramMap);
+				
 		// studType, grade, misNo 조회해서 저장
 		// MHL 오늘의 학습, MWN 오답노트, MNL미완료학습 : 정회원 studType 1, grade -99 
 		// MLG 출석하기: 구분없음(체험회원+정회원) studType -1, grade -99
@@ -147,10 +149,10 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
 				        	newStudInfoMap.put("endDt", null);
 				        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-				        	
+			        	
 							commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
 							newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
-				        	
+			        	
 					        if(newStudCnt > 0) {
 								// 2. 미션 생성
 					        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
@@ -215,6 +217,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
+		
+		System.out.println("setRealTimeCompleteMission - result : " + result);
 		
 		return result;
 	}

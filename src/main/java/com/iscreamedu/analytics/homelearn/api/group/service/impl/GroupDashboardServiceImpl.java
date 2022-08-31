@@ -242,9 +242,23 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 				}
 			} else {
 				if(paramMap.get("monthWord").equals("w")) {
-					setResult(dataKey, es_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStatusMain") );
+					Map<String, Object> mainData = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStatusMain");
+					if(mainData != null) {
+						setResult(dataKey, mainData );
+					} else {
+						paramMap.put("localCd", null);
+						mainData = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectWeeklyGroupStatusMain");
+						setResult(dataKey, mainData );
+					}
 				} else if(paramMap.get("monthWord").equals("m")){
-					setResult(dataKey, es_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStatusMain") );	
+					Map<String, Object> mainData = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStatusMain");
+					if(mainData != null) {
+						setResult(dataKey,  mainData);	
+					} else {
+						paramMap.put("localCd", null);
+						mainData = (Map<String, Object>) es_mapper.get(paramMap, mapperName + ".selectMonthlyGroupStatusMain");
+						setResult(dataKey, mainData );
+					}
 				}
 			}
 		} else {
