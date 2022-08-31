@@ -88,6 +88,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		//1.필수값 체크
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
+		
+		System.out.println("setRealTimeCompleteMission - Param : " + paramMap);
 				
 		// studType, grade, misNo 조회해서 저장
 		// MHL 오늘의 학습, MWN 오답노트, MNL미완료학습 : 정회원 studType 1, grade -99 
@@ -165,6 +167,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						setResult(msgKey, message);
 					}
 				} catch(Exception e) {
+					System.out.println("setRealTimeCompleteMission - Exception : " + e);
+					
 					String[] errorMsgList = e.getMessage().split(": ");
 					strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
@@ -190,6 +194,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
+		
+		System.out.println("setRealTimeCompleteMission - result : " + result);
 		
 		return result;
 	}

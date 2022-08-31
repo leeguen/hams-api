@@ -26,7 +26,7 @@ import com.iscreamedu.analytics.homelearn.api.extrtlog.service.ExtRtLogService;
 
 @RestController
 @RequestMapping("/extRtLog")	
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+//@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ExtRtLogController {
 
 	@Autowired
@@ -51,6 +51,7 @@ public class ExtRtLogController {
 	@PostMapping(value="/regCompleteMission", consumes = MediaType.APPLICATION_JSON_VALUE,  produces = "application/json; charset=utf8")
 	@ResponseBody
 	public ResponseEntity setRealTimeCompleteMission(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		System.out.println("setRealTimeCompleteMission - Param : " + params);
 		body = (LinkedHashMap)extRtLogService.setRealTimeCompleteMission(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
