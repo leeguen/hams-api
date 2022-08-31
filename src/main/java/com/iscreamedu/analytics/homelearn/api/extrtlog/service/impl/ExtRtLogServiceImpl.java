@@ -88,7 +88,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		//1.필수값 체크
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
-		
+				
 		System.out.println("setRealTimeCompleteMission - Param : " + paramMap);
 				
 		// studType, grade, misNo 조회해서 저장
@@ -124,10 +124,10 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
 				        	newStudInfoMap.put("endDt", null);
 				        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-				        	
+			        	
 							commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
 							newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
-				        	
+			        	
 					        if(newStudCnt > 0) {
 								// 2. 미션 생성
 					        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
@@ -167,8 +167,6 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						setResult(msgKey, message);
 					}
 				} catch(Exception e) {
-					System.out.println("setRealTimeCompleteMission - Exception : " + e);
-					
 					String[] errorMsgList = e.getMessage().split(": ");
 					strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
