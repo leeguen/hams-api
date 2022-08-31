@@ -84,6 +84,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
+		String stud_planDiv = null;
 		//1.필수값 체크
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
@@ -109,27 +110,29 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			        
 			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
 			        if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
-			        	
-			        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId").toString());
-			        	newStudInfoMap.put("tchrKey", null);
-			        	newStudInfoMap.put("parKey", null);			        	
-			        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
-			        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
-			        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("000","00")) : null));
-			        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("lrnStatusNm") ? realTimeStudInfo.get("lrnStatusNm").toString() : null));
-			        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
-			        	newStudInfoMap.put("endDt", null);
-			        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-			        	
-						commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
-						newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
-			        	
-				        if(newStudCnt > 0) {
-							// 2. 미션 생성
-				        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
-				        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
-				        	}
-				        }
+			        	stud_planDiv = realTimeStudInfo.get("planDiv").toString();
+			        	if(stud_planDiv.equals("E")) {
+				        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId"));
+				        	newStudInfoMap.put("tchrKey", null);
+				        	newStudInfoMap.put("parKey", null);			        	
+				        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
+				        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
+				        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("000","00")) : null));
+				        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("lrnStatusNm") ? realTimeStudInfo.get("lrnStatusNm").toString() : null));
+				        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
+				        	newStudInfoMap.put("endDt", null);
+				        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
+				        	
+							commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
+							newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
+				        	
+					        if(newStudCnt > 0) {
+								// 2. 미션 생성
+					        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
+					        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
+					        	}
+					        }
+			        	}
 			        }
 				} else {
 					paramMap.put("studType", studInfo.get("studType"));
@@ -137,44 +140,52 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				}
 			}
 			
-			String strResultMsg = null;
-			LinkedHashMap message = new LinkedHashMap();			
-			try {
-				
-				commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
-				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
-				strResultMsg = paramMap.get("outResultMsg").toString();
-				if(nResultCnt > 0) {
-					
-					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst", nResultCnt+"건 등록 : "+strResultMsg);
-					setResult(msgKey, message);
-				} else {
-					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
-					setResult(msgKey, message);
-				}
-			} catch(Exception e) {
-				String[] errorMsgList = e.getMessage().split(": ");
-				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+			if(paramMap.get("chCd").toString().equals("MLG") && stud_planDiv != null && stud_planDiv.equals("M")) {
+				// 로그인이자 중등인 상품은 미션 해당 없음!!
+				LinkedHashMap message = new LinkedHashMap();			
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", "중등상품 회원 미션대상아님");
 				setResult(msgKey, message);
-//				try {
-//					JSONObject jsonMap = new JSONObject();
-//					Date nowDate = new Date();
-//					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-//					jsonMap.putAll(paramMap);
-//					Map<String, Object> paramMap2 = new LinkedHashMap();
-//					paramMap2.put("inProcName", "ispCompleteMission");
-//					paramMap2.put("inProcStep", 0);
-//					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
-//					paramMap2.put("inParam", jsonMap.toJSONString());
-//					paramMap2.put("inErrorNo", 0);
-//					paramMap2.put("inErrorTitle", "insert error");
-//					paramMap2.put("inErrorMsg", strResultMsg);
-//					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
-//				} catch(Exception e2) {}
+			} else {
+				String strResultMsg = null;
+				LinkedHashMap message = new LinkedHashMap();			
+				try {
+					
+					commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
+					Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+					strResultMsg = paramMap.get("outResultMsg").toString();
+					if(nResultCnt > 0) {
+						
+						message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+						message.put("result", nResultCnt+"건 등록 : "+strResultMsg);
+						setResult(msgKey, message);
+					} else {
+						message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+						message.put("result", strResultMsg);
+						setResult(msgKey, message);
+					}
+				} catch(Exception e) {
+					String[] errorMsgList = e.getMessage().split(": ");
+					strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("result", strResultMsg);
+					setResult(msgKey, message);
+	//				try {
+	//					JSONObject jsonMap = new JSONObject();
+	//					Date nowDate = new Date();
+	//					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+	//					jsonMap.putAll(paramMap);
+	//					Map<String, Object> paramMap2 = new LinkedHashMap();
+	//					paramMap2.put("inProcName", "ispCompleteMission");
+	//					paramMap2.put("inProcStep", 0);
+	//					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+	//					paramMap2.put("inParam", jsonMap.toJSONString());
+	//					paramMap2.put("inErrorNo", 0);
+	//					paramMap2.put("inErrorTitle", "insert error");
+	//					paramMap2.put("inErrorMsg", strResultMsg);
+	//					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+	//				} catch(Exception e2) {}
+				}
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
@@ -223,19 +234,19 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst","등록 완료 : "+strResultMsg);
+					message.put("result","등록 완료 : "+strResultMsg);
 					setResult(msgKey, message);			
 //					갱신된 미션 정보 리로드					
 				} else {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
+					message.put("result", strResultMsg);
 					setResult(msgKey, message);
 				}
 			} catch(Exception e) {
 				String[] errorMsgList = e.getMessage().split(": ");
 				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", strResultMsg);
 				setResult(msgKey, message);
 				try {
 					JSONObject jsonMap = new JSONObject();
@@ -279,19 +290,19 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst","등록 완료 : "+strResultMsg);
+					message.put("result","등록 완료 : "+strResultMsg);
 					setResult(msgKey, message);			
 //							갱신된 미션 정보 리로드					
 				} else {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
+					message.put("result", strResultMsg);
 					setResult(msgKey, message);
 				}
 			} catch(Exception e) {
 				String[] errorMsgList = e.getMessage().split(": ");
 				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", strResultMsg);
 				setResult(msgKey, message);
 				try {
 					JSONObject jsonMap = new JSONObject();
@@ -335,19 +346,19 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst","등록 완료 : "+strResultMsg);
+					message.put("result","등록 완료 : "+strResultMsg);
 					setResult(msgKey, message);			
 //							갱신된 미션 정보 리로드					
 				} else {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
+					message.put("result", strResultMsg);
 					setResult(msgKey, message);
 				}
 			} catch(Exception e) {
 				String[] errorMsgList = e.getMessage().split(": ");
 				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", strResultMsg);
 				setResult(msgKey, message);
 				try {
 					JSONObject jsonMap = new JSONObject();
@@ -391,18 +402,18 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst","삭제 완료 : "+strResultMsg);
+					message.put("result","삭제 완료 : "+strResultMsg);
 					setResult(msgKey, message);							
 				} else {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
+					message.put("result", strResultMsg);
 					setResult(msgKey, message);
 				}
 			} catch(Exception e) {
 				String[] errorMsgList = e.getMessage().split(": ");
 				strResultMsg = "Delete failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", strResultMsg);
 				setResult(msgKey, message);
 				try {
 					JSONObject jsonMap = new JSONObject();
@@ -446,18 +457,18 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
 					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-					message.put("resulst","삭제 완료 : "+strResultMsg);
+					message.put("result","삭제 완료 : "+strResultMsg);
 					setResult(msgKey, message);					
 				} else {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-					message.put("resulst", strResultMsg);
+					message.put("result", strResultMsg);
 					setResult(msgKey, message);
 				}
 			} catch(Exception e) {
 				String[] errorMsgList = e.getMessage().split(": ");
 				strResultMsg = "Delete failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
-				message.put("resulst", strResultMsg);
+				message.put("result", strResultMsg);
 				setResult(msgKey, message);
 				try {
 					JSONObject jsonMap = new JSONObject();
