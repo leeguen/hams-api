@@ -107,7 +107,6 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			        Map<String,Object> realTimeStudInfo = new HashMap<>();
 		        	Map<String, Object> newStudInfoMap = new HashMap<>();
 			        
-			        // $$$$$$$$$$$$$$$$$$$ 추후 api 변경 예정. 
 			        paramMap.put("apiName", "aiReport/");
 			        
 			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
@@ -119,8 +118,34 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				        	newStudInfoMap.put("parKey", null);			        	
 				        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
 				        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
-				        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("000","00")) : null));
-				        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("lrnStatusNm") ? realTimeStudInfo.get("lrnStatusNm").toString() : null));
+//				        	divCd 회원상태 : 10002 : 체험진행 -> 체험회원  
+//				        			10007(학습진행), 10008(학습중지) -> 정회원
+//				        	statusCd	statusCdNm
+//				        	10001	체험 대기
+//				        	10002	체험 진행		> 1003
+//				        	10003	체험 취소
+//				        	10004	체험 완료
+//				        	10005	학습 대기
+//				        	10006	학습 만료
+//				        	10007	학습 진행
+//				        	10008	학습 중지
+//				        	10009	학습 취소
+//				        	10010	체험 미신청
+//				        	>>>  LRN_STT_CD 로 변환 등록 
+//				        	1000	LRN_STT_CD	체험 대기
+//				        	1001	LRN_STT_CD	체험 만료
+//				        	1002	LRN_STT_CD	체험 취소
+//				        	1003	LRN_STT_CD	체험 진행
+//				        	1004	LRN_STT_CD	학습 대기
+//				        	1005	LRN_STT_CD	학습 만료
+//				        	1006	LRN_STT_CD	학습 취소
+//				        	1007	LRN_STT_CD	학습 진행
+//				        	1008	LRN_STT_CD	학습 중지-휴지
+//				        	1009	LRN_STT_CD	학습 중지-환불
+//				        	1010	LRN_STT_CD	학습 중지-미납
+				        	// 추후 매칭 테이블로 관리 예정.
+				        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("10001","1000").replace("10002","1003").replace("10003","1002").replace("10004","1001").replace("10005","1004").replace("10006","1005").replace("10007","1007").replace("10008","1008").replace("10009","1006").replace("10010","1000")) : null));
+				        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
 				        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
 				        	newStudInfoMap.put("endDt", null);
 				        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
