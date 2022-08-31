@@ -41,8 +41,8 @@ public class ExtRtLogController {
 	public ExtRtLogController() {
 		headers = new HttpHeaders();
         headers.setContentType(new MediaType("application","json"));
-        //headers.setAccessControlAllowOrigin("*");
-        //headers.setAccessControlAllowCredentials(true);
+        headers.setAccessControlAllowOrigin("*");
+        headers.setAccessControlAllowCredentials(true);
         headers.setCacheControl(CacheControl.noCache());
         headers.setCacheControl(CacheControl.noStore().mustRevalidate());
         headers.setExpires(0);
