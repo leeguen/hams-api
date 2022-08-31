@@ -632,8 +632,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        }
 					// 조회 & 도서 비교해서 추천여부 return값 교체
 					data.put("bookList", missionList);
-					data.put("total_task_cnt", total_task_cnt);
-					data.put("total_comp_cnt", total_comp_cnt);
+					data.put("totalTaskCnt", total_task_cnt);
+					data.put("totalCompCnt", total_comp_cnt);
 					setResult(dataKey, data);
 				}
 			} catch (Exception e) {
