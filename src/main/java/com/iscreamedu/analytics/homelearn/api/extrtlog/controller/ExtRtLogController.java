@@ -26,7 +26,7 @@ import com.iscreamedu.analytics.homelearn.api.extrtlog.service.ExtRtLogService;
 
 @RestController
 @RequestMapping("/extRtLog")	
-//@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ExtRtLogController {
 
 	@Autowired
