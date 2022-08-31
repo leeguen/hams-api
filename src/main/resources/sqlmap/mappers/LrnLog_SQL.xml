@@ -9,7 +9,7 @@
     
 	<insert id="ispStudInfo" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_stud_info (
-              , #{studId, mode=IN, jdbcType=INTEGER}
+              #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{tchrKey, mode=IN, jdbcType=VARCHAR}
               , #{parKey, mode=IN, jdbcType=INTEGER}
 		 	  , #{ssvcAkey, mode=IN, jdbcType=INTEGER}
@@ -25,11 +25,7 @@
 	
 	<insert id="ispChMisDailyAddMission" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_daily_add_mission (
-              , #{studId, mode=IN, jdbcType=INTEGER}
-		 	  , #{grade, mode=IN, jdbcType=INTEGER}
-              , #{lrnStatusCd, mode=IN, jdbcType=INTEGER}
-              , #{sttDt, mode=IN, jdbcType=DATE}
-              , #{regAdminId, mode=IN, jdbcType=VARCHAR}
+              #{studId, mode=IN, jdbcType=INTEGER}
 		)}
 	</insert>
 	
