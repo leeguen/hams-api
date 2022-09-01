@@ -198,10 +198,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 				
 				//홈런 API 조회
 		        Map<String,Object> realTimeStudInfo = new HashMap<>();
+		        Map<String,Object> apiParamMap = new HashMap<>();
+		        apiParamMap.put("studId", paramMap.get("studId"));
+		        apiParamMap.put("apiName", "aiReport/");
 		        
-		        paramMap.put("apiName", "aiReport/");
-		        
-		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(apiParamMap).get("data");
 		        
 		        int expCd = 1;
 		        
