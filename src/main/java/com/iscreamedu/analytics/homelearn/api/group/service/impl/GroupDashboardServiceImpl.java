@@ -507,6 +507,11 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						
 					} else {
 						data.put("list", es_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
+						
+						if(data.get("list") instanceof List && ((List)data.get("list")).size() == 0) {
+							paramMap.put("localCd", null);
+							data.put("list", es_mapper.getList(paramMap, mapperName + ".selectWeeklyGroupStudList"));
+						}
 					}
 					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
 						try {
@@ -545,6 +550,11 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 						data.put("list", ms_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
 					} else {
 						data.put("list", es_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
+						
+						if(data.get("list") instanceof List && ((List)data.get("list")).size() == 0) {
+							paramMap.put("localCd", null);
+							data.put("list", es_mapper.getList(paramMap, mapperName + ".selectMonthlyGroupStudList"));
+						}
 					}
 					if(data.get("list") instanceof List && ((List)data.get("list")).size() != 0) {
 						try {
