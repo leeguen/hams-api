@@ -172,6 +172,13 @@
 		 )}
 	</select>
 	
+	<select id="spDailyHistoryChallengeChlExp" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_chl_exp (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{expCd, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
 	<select id="spDailyHistoryChallengeClu" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_daily_history_challenge_clu (
 			  #{studId, mode=IN, jdbcType=INTEGER}

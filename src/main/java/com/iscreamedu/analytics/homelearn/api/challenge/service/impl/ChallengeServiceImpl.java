@@ -195,7 +195,26 @@ public class ChallengeServiceImpl implements ChallengeService {
 			Map<String,Object> paramMap_summary = new HashMap<>();
 			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spDailyHistoryChallengeChlSummary");
 			if(data != null) {
-				chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
+				
+				//홈런 API 조회
+		        Map<String,Object> realTimeStudInfo = new HashMap<>();
+		        
+		        paramMap.put("apiName", "aiReport/");
+		        
+		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+		        
+		        int expCd = 1;
+		        
+		        if(realTimeStudInfo != null) {
+		        	int divCd = (realTimeStudInfo.get("divCd") != null) ? Integer.parseInt((realTimeStudInfo.get("divCd")).toString()) : 10003;
+		        	expCd = (divCd == 10004) ? 0 : 1;
+		        }
+		        
+		        paramMap.put("expCd", expCd);
+		        
+		        chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChlExp");
+				//chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
+				
 //				if(chlList == null || chlList.size() == 0) {
 //					chlList = new ArrayList<>();
 //				}
