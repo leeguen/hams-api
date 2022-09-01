@@ -177,6 +177,13 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				String strResultMsg = null;
 				LinkedHashMap message = new LinkedHashMap();			
 				try {
+					//dt형 변환
+					String paramDate = paramMap.get("dt").toString();
+					SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					Date date = format.parse(paramDate);
+					SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					
+					paramMap.put("dt", format2.format(date));
 					
 					commonMapperLrnLog.insert(paramMap, "LrnLog.ispCompleteMission");
 					Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
