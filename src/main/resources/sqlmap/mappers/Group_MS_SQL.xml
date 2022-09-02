@@ -1761,7 +1761,7 @@
 	 	/* Group_MS.selectWeekLrnPlanStudLrnStt : 학습계획 학생 학습 현황 주간 */
  		select 
  			stud_key as stud_id,
- 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
+ 		    case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
@@ -1781,7 +1781,7 @@
 	/* Group_MS.selectMonthLrnPlanStudLrnStt : 학습계획 학생 학습 현황 월간 */
 		select 
  			stud_key as stud_id,
- 		    case when grd::INTEGER <![CDATA[<]]> 0 then null else grd end as stud_grade,
+ 		    case when a.grd::INTEGER <![CDATA[<]]> 0 then null else a.grd end as stud_grade,
  		    scr_typ_key as lrn_signal,
  		    round(att_rt * 100) as att_rt,
  		    round(exec_rt * 100) as ex_rt,
