@@ -52,42 +52,42 @@ public class ExtRtLogController {
 	@ResponseBody
 	public ResponseEntity setRealTimeCompleteMission(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
 		System.out.println("setRealTimeCompleteMission - Param : " + params);
-		//body = (LinkedHashMap)extRtLogService.setRealTimeCompleteMission(params);
+		body = (LinkedHashMap)extRtLogService.setRealTimeCompleteMission(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	@PostMapping(value="/setChMissonStatusChange", produces = "application/json; charset=utf8")
     @ResponseBody
     public ResponseEntity setRealTimeMissonStatusChange(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)extRtLogService.setRealTimeMissonStatusChange(params);
+		body = (LinkedHashMap)extRtLogService.setRealTimeMissonStatusChange(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	@PostMapping(value="/regFnWaterJug", produces = "application/json; charset=utf8")
     @ResponseBody
     public ResponseEntity setFnWaterJug(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)extRtLogService.setFnWaterJug(params);
+		body = (LinkedHashMap)extRtLogService.setFnWaterJug(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	@PostMapping(value="/regFnObjectReward", produces = "application/json; charset=utf8")
     @ResponseBody
     public ResponseEntity setFnObjectReward(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)extRtLogService.setFnObjectReward(params);
+		body = (LinkedHashMap)extRtLogService.setFnObjectReward(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/resetWaterJug")
 	@ResponseBody
     public ResponseEntity resetWaterJug(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)extRtLogService.resetWaterJug(params);
+		body = (LinkedHashMap)extRtLogService.resetWaterJug(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value="/resetObjectReward")
 	@ResponseBody
     public ResponseEntity resetObjectReward(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)extRtLogService.resetObjectReward(params);
+		body = (LinkedHashMap)extRtLogService.resetObjectReward(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	

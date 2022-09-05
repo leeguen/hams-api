@@ -52,7 +52,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getChMetaphorHistory")
     @ResponseBody
     public ResponseEntity getChMetaphorHistory(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getChMetaphorHistory(params);
+		body = (LinkedHashMap)challengeService.getChMetaphorHistory(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -68,7 +68,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getChMetaphorObjectStt")
     @ResponseBody
     public ResponseEntity getChMetaphorObjectStt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getChMetaphorObjectStt(params);
+		body = (LinkedHashMap)challengeService.getChMetaphorObjectStt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -84,7 +84,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getChHabitMissionInfo")
     @ResponseBody
     public ResponseEntity getChHabitMissionInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getChHabitMissionInfo(params);
+		body = (LinkedHashMap)challengeService.getChHabitMissionInfo(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -100,7 +100,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getChStepUpMissionInfo")
     @ResponseBody
     public ResponseEntity getChStepUpMissionInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getChStepUpMissionInfo(params);
+		body = (LinkedHashMap)challengeService.getChStepUpMissionInfo(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -116,7 +116,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getChHabitCnt")
     @ResponseBody
     public ResponseEntity getChallengeSummaryCnt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getChallengeHabitCnt(params);
+		body = (LinkedHashMap)challengeService.getChallengeHabitCnt(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -133,7 +133,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getKoreanBookChallenge")
     @ResponseBody
     public ResponseEntity getKoreanBookChallenge(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getKoreanBookChallenge(params);
+		body = (LinkedHashMap)challengeService.getKoreanBookChallenge(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
@@ -149,7 +149,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getKoreanBookChReward")
     @ResponseBody
     public ResponseEntity getChMissinRewardInfo(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getKoreanBookChReward(params);
+		body = (LinkedHashMap)challengeService.getKoreanBookChReward(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 		
@@ -165,7 +165,7 @@ public class ChallengeController {
 	@RequestMapping(value="/getKoreanBookChMissonList")
     @ResponseBody
     public ResponseEntity getKoreanBookChMissonList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-		//body = (LinkedHashMap)challengeService.getKoreanBookChMissonList(params);
+		body = (LinkedHashMap)challengeService.getKoreanBookChMissonList(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 }
