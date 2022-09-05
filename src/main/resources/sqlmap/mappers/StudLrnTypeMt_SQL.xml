@@ -51,4 +51,9 @@
     	/* StudLrnTypeMt.getStudGender */
 		select * from lrnapi.fn_ds_ap_stud_info(#{studIds}, 'st');
     </select>
+    
+    <select id="getStudLrnTypeStudInfo" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getStudLrnTypeStudInfo */
+		select * from lrnapi.fn_ds_ap_lrn_type_stud_info(#{studIds}, #{yymm}, 'st');
+    </select>
 </mapper>

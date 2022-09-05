@@ -442,6 +442,82 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         Map<String,Object> paramMap = new HashMap<>();
         
         paramMap.put("studId", studId);
+        int studIds = Integer.parseInt(paramMap.get("studId").toString());
+        paramMap.put("studIds", studIds);
+        
+        Calendar month = Calendar.getInstance();
+    	month.add(Calendar.MONTH , 0);
+        String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
+		int yymm = Integer.parseInt(stringYymm);
+		
+		paramMap.put("yymm", yymm);
+        
+        data = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getStudLrnTypeStudInfo");
+        
+        //학생 구분 값 관련 ID
+        int studTypeId = (data != null && data.get("studTypeId") != null) ? Integer.parseInt(data.get("studTypeId").toString()) : 0;
+        
+        Map<String,Object> studInfoParamMap = new HashMap<>();
+		String p = encodeStudId("0&"+studId);
+    	
+    	studInfoParamMap.put("p", p);
+    	studInfoParamMap.put("apiName", "aiReport.");
+    	studInfoParamMap.put("studId", studId);
+        
+        LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+        //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+        
+        if(studInfoMap != null) {
+        	int lrnSttCdApi = Integer.parseInt(studInfoMap.get("statusCd").toString().replace("000", "00"));
+        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+        	String studStatus = (lrnSttCdApi == 1002 || lrnSttCdApi == 1007) ? "진행중" : "진행중단";
+    		String studStatusDetail = (lrnSttCdApi == 1002 || lrnSttCdApi == 1007) ? "L" : (lrnSttCdApi == 1008 || lrnSttCdApi == 1009 || lrnSttCdApi == 1010) ? "P" : "E";
+    		int studTypeIds = (lrnSttCdApi == 1007) ? 1 : (lrnSttCdApi == 1002) ? 2 : 0;
+    		
+    		if(data == null) {
+    			data = new LinkedHashMap<>();
+    			
+    			data.put("studId", studId);
+    			
+            	data.put("lrnTypeCd", null);
+        		data.put("lrnTypeGroupCd", null);
+        		data.put("lrnSttCd", lrnSttCdApi);
+        		
+        		if(studTypeId < 3) {
+        			data.put("studType", studInfoMap.get("divCdNm"));
+        		}
+        		
+        		data.put("studTypeId", studTypeIds);
+        		data.put("studStatus", studStatus);
+        		data.put("studStatusDetail", studStatusDetail);
+        		data.put("pkgNm", null);
+            } else {
+            	
+            	data.put("studId", studId);
+            	
+            	if(studTypeId < 3) {
+            		data.put("studType", studInfoMap.get("divCdNm"));
+            	}
+            	data.put("lrnSttCd", lrnSttCdApi);
+            	data.put("studStatus", studStatus);
+            	data.put("studStatusDetail", studStatusDetail);
+            }
+    		
+        }
+        
+        setResult(dataKey,data);
+
+	    return result;
+    }
+    
+    /*@Override
+    public Map getStudLrnTypeInfo(String studId) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        Map<String,Object> studData = new HashMap<>();
+        Map<String,Object> paramMap = new HashMap<>();
+        
+        paramMap.put("studId", studId);
         data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getStudLrnTypeInfo");
         
         int studIds = Integer.parseInt(paramMap.get("studId").toString());
@@ -507,7 +583,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         setResult(dataKey,data);
 
 	    return result;
-    }
+    }*/
 
 
     /**
