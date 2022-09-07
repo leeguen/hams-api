@@ -465,8 +465,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     	studInfoParamMap.put("studId", studId);
         
         LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
-        //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
-        Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        //Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
         
         if(studInfoMap != null) {
         	int lrnSttCdApi = Integer.parseInt(studInfoMap.get("statusCd").toString().replace("000", "00"));
