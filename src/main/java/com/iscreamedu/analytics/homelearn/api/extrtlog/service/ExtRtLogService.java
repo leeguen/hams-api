@@ -5,17 +5,21 @@ import java.util.Map;
 
 public interface ExtRtLogService {
 
-	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> paramMap) throws Exception;
+	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> params) throws Exception;
 
 	public LinkedHashMap setRealTimeMissonStatusChange(Map<String, Object> params) throws Exception;
-
+	
 	public LinkedHashMap setFnWaterJug(Map<String, Object> params) throws Exception;
 
 	public LinkedHashMap setFnObjectReward(Map<String, Object> params) throws Exception;
-
+	
 	public LinkedHashMap resetWaterJug(Map<String, Object> params) throws Exception;
 
 	public LinkedHashMap resetObjectReward(Map<String, Object> params) throws Exception;
+
+	public LinkedHashMap setFnParticle(Map<String, Object> params) throws Exception;
+
+	public LinkedHashMap resetParticle(Map<String, Object> params) throws Exception;
 	
 
 }
