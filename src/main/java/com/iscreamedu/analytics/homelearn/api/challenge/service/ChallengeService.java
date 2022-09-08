@@ -21,4 +21,6 @@ public interface ChallengeService {
 
 	public LinkedHashMap getChallengeHabitCnt(Map<String, Object> paramMap) throws Exception;
 
+	public LinkedHashMap getChallengeHabitReward(Map<String, Object> paramMap) throws Exception;
+
 }

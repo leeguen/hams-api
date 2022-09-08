@@ -665,5 +665,32 @@ public class ChallengeServiceImpl implements ChallengeService {
 		}
 		return result;
 	}
+	
+	@Override
+	public LinkedHashMap getChallengeHabitReward(Map<String, Object> paramMap) throws Exception {
+		Map<String,Object> data = new HashMap<>();
+		ArrayList<Map<String, Object>> rewardList = new ArrayList<>();
+        //Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId","startYyyyMmDd","endYyyyMmDd"}, paramMap);
+		if(vu.isValid()) {		
+			try {	
+				data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spChallengeHabitRewardCnt");
+				rewardList = (ArrayList<Map<String, Object>> ) commonMapperLrnLog.getList(paramMap, "LrnLog.spChallengeHabitRewardList");
+				
+				data.put("rewardList", rewardList);
+				setResult(dataKey, data);
+			} catch (Exception e) {
+				setNoDataMessage();
+			}
+			
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		return result;
+	}
+	
 
 }
