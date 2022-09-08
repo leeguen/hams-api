@@ -446,7 +446,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         paramMap.put("studIds", studIds);
         
         Calendar month = Calendar.getInstance();
-    	month.add(Calendar.MONTH , 0);
+    	month.add(Calendar.MONTH , -1);
         String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
 		int yymm = Integer.parseInt(stringYymm);
 		
@@ -480,8 +480,8 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
     			
     			data.put("studId", studId);
     			
-            	data.put("lrnTypeCd", null);
-        		data.put("lrnTypeGroupCd", null);
+            	data.put("lrnTypeCd", "나를 알아 맞춰봐형 물음표");
+        		data.put("lrnTypeGroupCd", 0);
         		data.put("lrnSttCd", lrnSttCdApi);
         		
         		if(studTypeId < 3) {
