@@ -2,6 +2,7 @@ package com.iscreamedu.analytics.homelearn.api.challenge.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -325,7 +326,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							        		if(item.get("misBookCd").toString().equals(itemInfo.get("bookId").toString())) {
 									        	if(itemInfo.containsKey("complete")) {
 									        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
-									        			// 완료한 미션순서 체크하여 순차 호출.. roof
+									        			// 완료한 미션순서 체크하여 순차 호출.. loop
 									        			item.put("misStatusCd",2);			
 									        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
 									        			
@@ -517,15 +518,16 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        String startDate = null;
 			        int grade = -99;
 			        for(Map<String, Object> item : missionList) {		
-			        	bookIds_recommend.add(Integer.parseInt(item.get("misBookCd").toString()));
+			        	bookIds_recommend.add(Integer.parseInt(item.get("misBookCd").toString()));	//도서리스트 - 도서코드 (추천도서 대상 조회시 사용)
 			        	if(!item.get("misStatusCd").toString().equals("2")) {
-			        		bookIds_state.add(Integer.parseInt(item.get("misBookCd").toString()));
+			        		bookIds_state.add(Integer.parseInt(item.get("misBookCd").toString()));	//도서리스트 - 도서코드 (북카페 책읽기 상태 대상 조회시 사용) : 미션완료(2)가 아닌 도서만 대상
 			        	}
 				        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
 			        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
-			        	if(startDate == null && item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	
+			        	if(startDate == null && item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	// 미션 시작전일땐 리스트 중 미션완료일자가 없으므로 step 시작 등록일자 가 기준!!
 			        }
 			        
+			        // 추천도서 조회(apiName : bookList) : 도서리스트 - 도서코드 기준(bookIds_recommend) - 추천여부 연동하여 체크 추가(misRcmYn)
 			        if(bookIds_recommend != null && bookIds_recommend.size() > 0) {
 				        Map<String, Object> extParamMap_1 = new HashMap<>();
 				        extParamMap_1.put("apiName", "bookList");
@@ -533,6 +535,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        extParamMap_1.put("grade", grade);
 				        
 				        bookListInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_1).get("data");	
+//			        "data": [
+//			                 {
+//			                   "id": 2466,
+//			                   "title": "사람들이 세상을 바꾸기 시작했어요",
+//			                   "deleted": false,
+//			                   "recommend": false
+//			                 },... ]
 				        for(Map<String, Object> item : missionList) {			      
 					        if(bookListInfo != null && bookListInfo.size() > 0) {
 					        	for(Map<String, Object> itemInfo : bookListInfo) {	
@@ -541,15 +550,16 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        		}
 					        	}
 					        } else {
-					        	LOGGER.debug("bookListInfo is null...");
+					        	LOGGER.debug("bookListInfo is null...추천도서 조회(apiName : bookList) : 결과없음");
 					        	item.put("misRcmYn","N");			        		
 					        }
 					    }
 			        } else {
-			        	LOGGER.debug("bookIds_recommend is null...");
+			        	LOGGER.debug("bookIds_recommend is null...추천도서 조회(apiName : bookList) : 대상리스트 없음 // 도서리스트 - 도서코드 기준(bookIds_recommend)");
 			        }
 			        
-//			        startDate 기준일이 없으면 step 시작 등록일자 .. 기준.. 
+			        // 북카페 책읽기 상태 조회(apiName : bookState) : 도서리스트 - 도서코드 기준(bookIds_state) - 책읽기 상태 연동하여 미션완료여부 갱신
+			        // startDate : 마지막 미션 완료 일자 or 미션 시작전일땐 리스트 중 미션완료일자가 없으므로 step 시작 등록일자 가 기준!!
 			        if(startDate != null && bookIds_state != null && bookIds_state.size() > 0) {
 			        	LOGGER.debug("startDate : "+startDate);
 				        Map<String, Object> extParamMap_2 = new HashMap<>();
@@ -564,43 +574,60 @@ public class ChallengeServiceImpl implements ChallengeService {
 						}
 				        extParamMap_2.put("bookIds", bookIdsTxt);
 				        bookStateInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_2).get("data");		
-	//			        "data": [
-	//			                 {
-	//			                   "id": 2466,
-	//			                   "title": "사람들이 세상을 바꾸기 시작했어요",
-	//			                   "deleted": false,
-	//			                   "recommend": false
-	//			                 },... ]
+//				        [{
+//				            "memId": "2068547",
+//				            "bookId": 2501,
+//				            "complete": false,
+//				            "compDate": null
+//				        },
+//				        {
+//				            "memId": "2068547",
+//				            "bookId": 2547,
+//				            "complete": true,
+//				            "compDate": "2022-07-05T14:01:19"
+//				        },... ]
+				        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+						Date before_misCompleteDt = null;	// 다음 미션의 날짜비교 대상 : 이전 미션 완료시간 저장
 				        for(Map<String, Object> item : missionList) {			      
-					        boolean flag_mission = true;			        	  
+					        boolean flag_mission = true;			 
+					        boolean flag_misCompleteDt_after = true;	// 완료시간 체크
 					        if(bookStateInfo != null && bookStateInfo.size() > 0) {
 					        	for(Map<String, Object> itemInfo : bookStateInfo) {	
 					        		if(item.get("misBookCd").toString().equals(itemInfo.get("bookId").toString())) {
 							        	if(itemInfo.containsKey("complete")) {
-							        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()))) {
-							        			// 완료한 미션순서 체크하여 순차 호출.. roof
-							        			item.put("misStatusCd",2);			
-							        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
+							        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()) && itemInfo.get("compDate").toString() != "null")) {
+							        			// 완료한 미션순서 체크하여 순차 호출.. loop
+							        			Date misStartDt = sdf1.parse(startDate.toString());
+							        			Date misCompleteDt = sdf2.parse(itemInfo.get("compDate").toString());
+							        			if(before_misCompleteDt == null) flag_misCompleteDt_after = misCompleteDt.after(misStartDt);
+							        			else flag_misCompleteDt_after = misCompleteDt.after(before_misCompleteDt);
 							        			
-							        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+itemInfo.get("compDate").toString();
-							        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
-							        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
-							        			realTimeMKBInfo.put("chCd", "MKB");
-							        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
-							        			realTimeMKBInfo.put("misNo", item.get("misNo"));
-							        			realTimeMKBInfo.put("misStatusCd", 2);
-							        			realTimeMKBInfo.put("misCompleteDt", itemInfo.get("compDate").toString());
-							        			realTimeMKBInfo.put("misContents", strContent);
-							        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
-							        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+							        			if(flag_misCompleteDt_after) {
+							        				item.put("misStatusCd",2);			
+								        			item.put("misCompleteDt",itemInfo.get("compDate").toString());
+								        			before_misCompleteDt = sdf2.parse(item.get("misCompleteDt").toString());	// 다음 미션의 날짜비교 대상 : 이전 미션 완료시간 저장
+										        			
+								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+item.get("misBookCd").toString()+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate+"|"+item.get("misCompleteDt").toString();
+								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
+								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
+								        			realTimeMKBInfo.put("chCd", "MKB");
+								        			realTimeMKBInfo.put("misStep", paramMap.get("misStep"));
+								        			realTimeMKBInfo.put("misNo", item.get("misNo"));
+								        			realTimeMKBInfo.put("misStatusCd", 2);
+								        			realTimeMKBInfo.put("misCompleteDt", item.get("misCompleteDt").toString());
+								        			realTimeMKBInfo.put("misContents", strContent);
+								        			realTimeMKBInfo.put("regAdminId", "KBChMissonList");
+								        			commonMapperLrnLog.insert(realTimeMKBInfo, "LrnLog.ispChMisNoStatusChange");
+							        			}
 							        		} else {
-							        			flag_mission = false;
+							        			flag_mission = false;	// 완료를 벗어나면 1회만 진행중여부 체크
 							        			if(itemInfo.containsKey("lastPage")) {
 									        		//진행중
 							        				item.put("misSkimUrl", (item.get("misSkimUrl").toString()+"&p="+itemInfo.get("lastPage")));
 								        			item.put("misStatusCd",1);	
 	
-								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+itemInfo.get("bookId")+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate;
+								        			String strContent = paramMap.get("misStep")+"|"+item.get("misNo")+"|"+item.get("misStatusCd")+"|"+item.get("misBookCd").toString()+"|"+itemInfo.get("lastPage")+"|"+item.get("misSkimUrl")+"|"+startDate;
 								        			Map<String, Object> realTimeMKBInfo = new HashMap<>();
 								        			realTimeMKBInfo.put("studId", paramMap.get("studId"));
 								        			realTimeMKBInfo.put("chCd", "MKB");
@@ -621,7 +648,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        		}
 					        	}
 					        } else {
-					        	LOGGER.debug("bookStateInfo is null...");		        		
+					        	LOGGER.debug("bookStateInfo is null...북카페 책읽기 상태 조회(apiName : bookState) : 결과 없음");		        		
 					        }
 					    }
 			        }
