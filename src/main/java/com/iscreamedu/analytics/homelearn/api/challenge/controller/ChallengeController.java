@@ -168,4 +168,21 @@ public class ChallengeController {
 		body = (LinkedHashMap)challengeService.getKoreanBookChMissonList(params);
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
+	
+	/***
+	 * STUD-CH-017 (오늘의 미션 : 보상 ) 
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/getChallengeHabitReward")
+    @ResponseBody
+    public ResponseEntity getChallengeHabitReward(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)challengeService.getChallengeHabitReward(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	
 }
