@@ -179,7 +179,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						// 홈런 API 조회
 						paramMap.put("token", req.getHeader("token").toString());
 						paramMap.put("apiName","studyStatus");
-						missionCondition =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");	
+						missionCondition = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");	
 						if(missionCondition != null) {
 						
 //							"data": {
@@ -192,11 +192,14 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 //							missionCondition.put("todayStudy", true);
 //							missionCondition.put("incompleteStudy", true);
 //							missionCondition.put("errnote", true);
-						
-							missionCondition.put("studId", paramMap.get("studId"));
+							if(missionCondition.containsKey("todayStudy") && missionCondition.containsKey("incompleteStudy") && missionCondition.containsKey("errnote")) 
+							{
+								//키값 모두 존재시 호출
+								missionCondition.put("studId", paramMap.get("studId"));
 		        			
-							// 4. 오늘 미션 갱신
-							commonMapperLrnLog.insert(missionCondition, "LrnLog.ispRealTimeAddMission");
+								// 4. 오늘 미션 갱신
+								commonMapperLrnLog.insert(missionCondition, "LrnLog.ispRealTimeAddMission");
+							}
 						}
 					}
 				}
