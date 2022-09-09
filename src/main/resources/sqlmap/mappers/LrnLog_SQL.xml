@@ -22,6 +22,15 @@
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
 		)}
 	</insert>
+    
+	<insert id="ispRealTimeAddMission" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_ch_mis_daily_add_mission_realtime (
+              #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{todayStudy, mode=IN, jdbcType=BIT}
+              , #{incompleteStudy, mode=IN, jdbcType=BIT}
+              , #{errnote, mode=IN, jdbcType=BIT}
+        )}
+    </insert>
 	
 	<insert id="ispChMisDailyAddMission" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_daily_add_mission (

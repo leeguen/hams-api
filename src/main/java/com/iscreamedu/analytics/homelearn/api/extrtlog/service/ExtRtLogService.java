@@ -3,9 +3,11 @@ package com.iscreamedu.analytics.homelearn.api.extrtlog.service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 public interface ExtRtLogService {
 
-	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> params) throws Exception;
+	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> params, HttpServletRequest req) throws Exception;
 
 	public LinkedHashMap setRealTimeMissonStatusChange(Map<String, Object> params) throws Exception;
 	

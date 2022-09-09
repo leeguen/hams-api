@@ -90,6 +90,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	
 	@Value("${extapi.hl.bookcafe.url}")
 	String HLBOOKCAFE_API; //북까페 API 주소
+	
+//	@Value("${extapi.hl.api.url}")
+//	String HL_AI_API; //홈런 API 주소
 		
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -465,6 +468,52 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 					HttpEntity<String> entity = new HttpEntity<>(headers);
 		            ResponseEntity<LinkedHashMap> response = restTemplate.postForEntity(apiUri, entity, LinkedHashMap.class);
 		            int statusCode = Integer.valueOf(response.getStatusCode().toString());
+					LinkedHashMap responseData = response.getBody();
+
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+		        	
+		         } catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("studyStatus")){
+	        	try {
+		    		
+		    		String url = "https://dev-api.home-learn.com/cldsvc/api/v1/ai/" + apiName; //HL_AI_API + apiName;
+		    		LOGGER.debug("url : " + url);
+		        	LOGGER.debug("token : " + paramMap.get("token").toString());
+		        	JSONParser parser = new JSONParser();
+					HttpHeaders headers = new HttpHeaders();
+    				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    				headers.set("token", paramMap.get("token").toString());
+		            
+    				paramMap.remove("apiName");
+    				paramMap.remove("token");
+
+					//HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
+    				//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	LOGGER.debug("apiUri : " + apiUri.toString());
+					HttpEntity<String> entity = new HttpEntity<>(headers);
+		            ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.GET, entity, LinkedHashMap.class, headers);
+		        
+					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
 
 		        	LOGGER.debug("code : " + responseData.get("code"));

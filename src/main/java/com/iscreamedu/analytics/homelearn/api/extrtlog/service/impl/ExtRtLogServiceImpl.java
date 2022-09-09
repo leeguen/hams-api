@@ -9,6 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +83,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	}
 	
 	@Override
-	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> paramMap) throws Exception {
+	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> paramMap, HttpServletRequest req) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
 		String stud_planDiv = null;
@@ -164,6 +166,39 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				} else {
 					paramMap.put("studType", studInfo.get("studType"));
 					paramMap.put("grade", studInfo.get("grade"));
+
+	        		LOGGER.debug("token 체크");
+					//미션 실시간 갱신
+					if(req.getHeader("token") != null && !req.getHeader("token").toString().isEmpty()) {
+						
+		        		LOGGER.debug("token : "+req.getHeader("token").toString());
+						Map<String,Object> missionCondition = new HashMap<>();
+						ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+						
+						// 3. 미션 실시간 정보 call api -> 등록
+						// 홈런 API 조회
+						paramMap.put("token", req.getHeader("token").toString());
+						paramMap.put("apiName","studyStatus");
+						missionCondition =  (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");	
+						if(missionCondition != null) {
+						
+//							"data": {
+//						        "todayStudy": true,
+//						        "incompleteStudy": true,
+//						        "errnote": true
+//						    }
+							// 미션 갱신
+							// 테스트용 >> 정상결과  output 데이터  가정하에 작업진행중...
+//							missionCondition.put("todayStudy", true);
+//							missionCondition.put("incompleteStudy", true);
+//							missionCondition.put("errnote", true);
+						
+							missionCondition.put("studId", paramMap.get("studId"));
+		        			
+							// 4. 오늘 미션 갱신
+							commonMapperLrnLog.insert(missionCondition, "LrnLog.ispRealTimeAddMission");
+						}
+					}
 				}
 			}
 			
@@ -204,21 +239,22 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
 					message.put("result", strResultMsg);
 					setResult(msgKey, message);
-	//				try {
-	//					JSONObject jsonMap = new JSONObject();
-	//					Date nowDate = new Date();
-	//					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
-	//					jsonMap.putAll(paramMap);
-	//					Map<String, Object> paramMap2 = new LinkedHashMap();
-	//					paramMap2.put("inProcName", "ispCompleteMission");
-	//					paramMap2.put("inProcStep", 0);
-	//					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
-	//					paramMap2.put("inParam", jsonMap.toJSONString());
-	//					paramMap2.put("inErrorNo", 0);
-	//					paramMap2.put("inErrorTitle", "insert error");
-	//					paramMap2.put("inErrorMsg", strResultMsg);
-	//					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
-	//				} catch(Exception e2) {}
+					try {
+						JSONObject jsonMap = new JSONObject();
+						Date nowDate = new Date();
+						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+						
+						jsonMap.putAll(paramMap);
+						Map<String, Object> paramMap2 = new LinkedHashMap();
+						paramMap2.put("inProcName", "setRealTimeComplete");
+						paramMap2.put("inProcStep", 0);
+						paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+						paramMap2.put("inParam", jsonMap.toJSONString());
+						paramMap2.put("inErrorNo", 0);
+						paramMap2.put("inErrorTitle", "error");
+						paramMap2.put("inErrorMsg", strResultMsg);
+						commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+					} catch(Exception e2) {}
 				}
 			}
 		} else {
