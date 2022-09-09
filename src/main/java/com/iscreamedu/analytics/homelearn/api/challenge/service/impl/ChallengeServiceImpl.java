@@ -312,7 +312,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 					        	}
 						        if(grade == - 99) grade = Integer.parseInt(item.get("grade").toString());
 					        	if(item.get("misCompleteDt") != null) startDate = item.get("misCompleteDt").toString();	// 마지막 미션 완료 일자가 시작일 기준!!	
-					        	if(item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	
+                                if(startDate == null && item.get("misStartDt") != null) startDate = item.get("misStartDt").toString();	//완료한 책이 없으면 미션 시작일자가 기준!!
 					        }
 					        
 					        
