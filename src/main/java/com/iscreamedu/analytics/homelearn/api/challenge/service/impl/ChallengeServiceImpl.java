@@ -306,7 +306,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 							// 북카페 책읽기 상태 값 리스트
 							// 홈런 API 조회 :: 국어책 API 연동 추가
 					        String startDate = null;
-					        int grade = -99;
+					        int grade = -99;		      			  
 					        for(Map<String, Object> item : missionList) {		
 					        	if(!item.get("misStatusCd").toString().equals("2")) {
 					        		bookIds_state.add(Integer.parseInt(item.get("misBookCd").toString()));
@@ -340,7 +340,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			//			                   "deleted": false,
 			//			                   "recommend": false
 			//			                 },... ]
-						        getBookStateList(paramMap, missionList, bookStateInfo, startDate);
+						        getBookStateList(paramMap, missionList, bookIds_state, bookStateInfo, startDate);
 						        
 						    }
 					        for(Map<String, Object> item : missionList) {	
@@ -376,16 +376,25 @@ public class ChallengeServiceImpl implements ChallengeService {
 	}
 
 	private void getBookStateList(Map<String, Object> paramMap, ArrayList<Map<String, Object>> missionList,
-		ArrayList<Map<String, Object>> bookStateInfo, String startDate) throws ParseException {
+			ArrayList<Integer> bookIds_state,
+			ArrayList<Map<String, Object>> bookStateInfo, String startDate) throws ParseException {
 		SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		Date before_misCompleteDt = null;	// 다음 미션의 날짜비교 대상 : 이전 미션 완료시간 저장
-		for(Map<String, Object> item : missionList) {			      
-		    boolean flag_mission = true;			        	  
-		    boolean flag_misCompleteDt_after = true;	// 완료시간 체크
+		
+		boolean flag_mission_order_no = true;	// 미션 순서 체크
+	    boolean flag_mission = true;			        	  
+	    boolean flag_misCompleteDt_after = true;	// 완료시간 체크
+	    
+		// 순서 누락 체크 : 앞 도서는 진행중이 아니면 bookStateInfo에 미포함이어서, 요청한 데이터 기준 비교.
+	    // 첫 도서 비교 체크해도 누락여부 체크 가능
+	    if(bookIds_state.get(0).toString() == bookStateInfo.get(0).get("bookId").toString()) flag_mission_order_no = false;
+    	
+		for(Map<String, Object> item : missionList) {		
+				
 		    if(bookStateInfo != null && bookStateInfo.size() > 0) {
 		    	for(Map<String, Object> itemInfo : bookStateInfo) {	
-		    		if(item.get("misBookCd").toString().equals(itemInfo.get("bookId").toString())) {
+		    		if(flag_mission_order_no && item.get("misBookCd").toString().equals(itemInfo.get("bookId").toString())) {
 			        	if(itemInfo.containsKey("complete")) {
 			        		if(flag_mission && (Boolean.parseBoolean(itemInfo.get("complete").toString()) && itemInfo.get("compDate").toString() != "null")) {
 			        			// 완료한 미션순서 체크하여 순차 호출.. loop
@@ -436,6 +445,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        		flag_mission = false;
 		        		}
 		    	
+		    		} else {
+		    			flag_mission_order_no = false;
 		    		}
 		    	}
 		    } else {
@@ -611,7 +622,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 						}
 				        extParamMap_2.put("bookIds", bookIdsTxt);
 				        bookStateInfo =  (ArrayList<Map<String, Object>>) externalAPIservice.callExternalAPI(extParamMap_2).get("data");		
-				        getBookStateList(paramMap, missionList, bookStateInfo, startDate);
+				        getBookStateList(paramMap, missionList, bookIds_state, bookStateInfo, startDate);
 			        }
 			        for(Map<String, Object> item : missionList) {	
 			        	if(item.get("misStatusCd").toString().equals("2")) {
