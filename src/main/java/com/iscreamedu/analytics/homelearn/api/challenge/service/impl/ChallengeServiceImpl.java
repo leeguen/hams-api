@@ -388,7 +388,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 	    
 		// 순서 누락 체크 : 앞 도서는 진행중이 아니면 bookStateInfo에 미포함이어서, 요청한 데이터 기준 비교.
 	    // 첫 도서 비교 체크해도 누락여부 체크 가능
-	    if(bookIds_state!= null && bookIds_state.size() > 0 && bookStateInfo != null && bookStateInfo.size() > 0 && bookIds_state.get(0).toString().equals(bookStateInfo.get(0).get("bookId").toString())) flag_mission_order_no = true;
+	    if(bookIds_state!= null && bookIds_state.size() > 0 && bookStateInfo != null && bookStateInfo.size() > 0 
+	    		&& bookIds_state.get(0).toString().equals(bookStateInfo.get(0).get("bookId").toString())) flag_mission_order_no = true;
 	    else flag_mission_order_no = false;
     	
 		for(Map<String, Object> item : missionList) {		
@@ -446,8 +447,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        		flag_mission = false;
 		        		}
 		    	
-		    		} else {
-		    			flag_mission_order_no = false;
+		    		}
+		    		else {
+//		    			flag_mission_order_no = false;
 		    		}
 		    	}
 		    } else {
