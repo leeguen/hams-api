@@ -708,7 +708,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 				yymm =  Integer.parseInt(stringYymm);
 			}
 		} else {
-			yymm =  Integer.parseInt(stringYyyy+"12");
+			yymm =  Integer.parseInt(yyyy+"12");
 		}
 		return yymm;
 	}
