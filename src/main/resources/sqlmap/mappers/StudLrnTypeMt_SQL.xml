@@ -20,6 +20,20 @@
 		from lrnapi.fn_ds_ap_lrn_type_detail_msg(#{studId}, #{yymm}, 'st')
     </select>
     
+    <select id="getLrnTypeDetailAdmin" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetailAdmin */
+		select
+			*
+		from lrnapi.fn_ds_ap_lrn_type_detail_admin(#{studId}, #{yymm}, #{expYn}, 'st')
+    </select>
+    
+    <select id="getLrnTypeDetailMsgAdmin" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnTypeMt.getLrnTypeDetailMsgAdmin */
+		select
+			*
+		from lrnapi.fn_ds_ap_lrn_type_detail_msg_admin(#{studId}, #{yymm}, #{expYn}, 'st')
+    </select>
+    
     <select id="getLrnTypeInfoMsg" parameterType="hashMap" resultType="resultMap">
     	/* StudLrnTypeMt.getLrnTypeInfoMsg */
     	select 

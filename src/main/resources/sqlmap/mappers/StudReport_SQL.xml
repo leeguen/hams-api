@@ -25,11 +25,10 @@
     
     <select id="getStudInfo" parameterType="hashMap" resultType="resultMap">
 		select 
-			pkg_typ,
-			stt_dt,
-			end_dt
-		from lrndmt.mt_dm_stud 
-		where stud_key = #{studId};
+			pkg_type as pkg_typ,
+			stt_day as stt_dt,
+			end_day as end_dt
+		from lrnapi.fn_ds_ap_stud_info_report(#{studId}, 'st');
     </select>
     
     <select id="getStudRecentReport" parameterType="hashMap" resultType="resultMap">

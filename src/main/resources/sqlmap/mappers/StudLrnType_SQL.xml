@@ -137,5 +137,13 @@
 		 UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
 		WHERE STUD_ID = #{studId}
 	</update>
+	
+	<select id="getStudTestCheck" parameterType="hashMap" resultType="resultMap">
+    	/* StudLrnType.getStudTestCheck */
+    	SELECT
+			IF(COUNT(*) = 0, 'N', 'Y') AS CHECK_YN
+		FROM STUD_TEST_MGMT
+		WHERE STUD_ID = #{studId};
+    </select>
     
 </mapper>
