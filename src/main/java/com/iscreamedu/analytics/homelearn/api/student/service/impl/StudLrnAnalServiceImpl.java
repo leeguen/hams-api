@@ -183,7 +183,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
-        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		String pkgType = (studData != null && studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
         		
         		data.put("studId", studId);
         		data.put("studNm", null);
@@ -192,7 +192,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		data.put("studType", null);
         		data.put("pkgType", pkgType);
         		data.put("redirectYn", studCheckData.get("checkYn"));
-        		data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+        		data.put("sttDt", (studData != null && studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
@@ -262,7 +262,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
-        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		String pkgType = (studData != null && studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
         		
         		data.put("studId", studIds);
             	data.put("studNm", null);
@@ -271,7 +271,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             	data.put("studType", null);
             	data.put("pkgType", pkgType);
             	data.put("redirectYn", studCheckData.get("checkYn"));
-            	data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+            	data.put("sttDt", (studData != null && studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
