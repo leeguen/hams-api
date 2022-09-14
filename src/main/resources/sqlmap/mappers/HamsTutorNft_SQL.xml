@@ -20,8 +20,8 @@
 			CONCAT(SUBSTRING(A.YYMM, 1, 4), '년 ', A.TERM, '학기 비전리포트') AS REPORT_NM,
 		    DATE_FORMAT(CONCAT(A.START_YYMM, '01'), '%Y년 %m월 %d일') AS START_DT,
     		DATE_FORMAT(LAST_DAY(CAST(CONCAT(A.END_YYMM, '01') AS DATE)), '%Y년 %m월 %d일') AS END_DT,
-		    '바다 속 활기찬 에너지형' AS LRN_TYPE_NM,
-		    '돌고래' AS LRN_TYPE_IMG,
+		    NULL AS LRN_TYPE_NM,
+		    NULL AS LRN_TYPE_IMG,
 		    TIME_FORMAT(SEC_TO_TIME(TOTAL_LRN_SEC), '%H시간 %i분') AS TOTAL_LRN_TM,
 		    B.QUES_CNT AS TOTAL_QUES_CNT,
 		    B.CRT_CNT AS TOTAL_CRT_QUES_CNT,
@@ -81,5 +81,10 @@
 			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
 		)
 		AND STUD_ID = #{studId};
+    </select>
+    
+    <select id="selectLrnTypeInfoForNft" parameterType="hashMap" resultType="resultMap">
+		/* LrnMtHamsTutorNft.selectLrnTypeInfoForNft */
+		select * from lrnapi.fn_ds_ap_lrn_type_stud_info_nft(#{studId}, #{startYymm}, #{endYymm}, 'st');
     </select>
 </mapper>
