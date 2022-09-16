@@ -215,8 +215,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 		        
 		        paramMap.put("expCd", expCd);
 		        
-		        chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChlExp");
-				//chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
+		        chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
 				
 //				if(chlList == null || chlList.size() == 0) {
 //					chlList = new ArrayList<>();
