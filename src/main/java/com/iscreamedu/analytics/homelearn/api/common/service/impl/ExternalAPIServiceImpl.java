@@ -91,8 +91,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	@Value("${extapi.hl.bookcafe.url}")
 	String HLBOOKCAFE_API; //북까페 API 주소
 	
-//	@Value("${extapi.hl.api.url}")
-//	String HL_AI_API; //홈런 API 주소
+	@Value("${extapi.hl.api.url}")
+	String HL_AI_API; //홈런 API 주소
 		
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -493,7 +493,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        } else if(apiName.equals("studyStatus")){
 	        	try {
 		    		
-		    		String url = "https://dev-api.home-learn.com/cldsvc/api/v1/ai/" + apiName; //HL_AI_API + apiName;
+		    		String url = HL_AI_API + apiName; 
 		    		LOGGER.debug("url : " + url);
 		        	LOGGER.debug("token : " + paramMap.get("token").toString());
 		        	JSONParser parser = new JSONParser();

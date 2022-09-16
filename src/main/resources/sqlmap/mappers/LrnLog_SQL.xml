@@ -195,6 +195,7 @@
 	<select id="spDailyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_daily_history_challenge_chl (
 			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{expCd, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	
