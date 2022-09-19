@@ -146,7 +146,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 //				        	1009	LRN_STT_CD	학습 중지-환불
 //				        	1010	LRN_STT_CD	학습 중지-미납
 				        	// 추후 매칭 테이블로 관리 예정.
-				        	newStudInfoMap.put("lrnStatusCd", (realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("10001","1000").replace("10002","1003").replace("10003","1002").replace("10004","1001").replace("10005","1004").replace("10006","1005").replace("10007","1007").replace("10008","1008").replace("10009","1006").replace("10010","1000")) : null));
+				        	newStudInfoMap.put("lrnStatusCd", getDivCdToLrnStatusCd(realTimeStudInfo));
 				        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
 				        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
 				        	newStudInfoMap.put("endDt", null);
@@ -188,10 +188,6 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 //						        "errnote": true
 //						    }
 							// 미션 갱신
-							// 테스트용 >> 정상결과  output 데이터  가정하에 작업진행중...
-//							missionCondition.put("todayStudy", true);
-//							missionCondition.put("incompleteStudy", true);
-//							missionCondition.put("errnote", true);
 							if(missionCondition.containsKey("todayStudy") && missionCondition.containsKey("incompleteStudy") && missionCondition.containsKey("errnote")) 
 							{
 								//키값 모두 존재시 호출
@@ -268,6 +264,10 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		
 		return result;
 	}
+
+	private Integer getDivCdToLrnStatusCd(Map<String, Object> realTimeStudInfo) {
+		return realTimeStudInfo.containsKey("statusCd") ? Integer.parseInt(realTimeStudInfo.get("statusCd").toString().replace("10001","1000").replace("10002","1003").replace("10003","1002").replace("10004","1001").replace("10005","1004").replace("10006","1005").replace("10007","1007").replace("10008","1008").replace("10009","1006").replace("10010","1000")) : null;
+	}
 	
 	@Override
 	public LinkedHashMap setRealTimeMissonStatusChange(Map<String, Object> paramMap) throws Exception {
@@ -304,7 +304,36 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			String strResultMsg = null;
 			LinkedHashMap message = new LinkedHashMap();			
 			try {
-			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+				
+				if(Integer.parseInt(paramMap.get("stepStatusCd").toString()) < 2) {
+					// 1. 실시간 학생 정보 call api -> 학년정보로 미션 시작전/시작하기 등록~!
+					//홈런 API 조회
+			        Map<String,Object> realTimeStudInfo = new HashMap<>();
+		        	Map<String, Object> newStudInfoMap = new HashMap<>();
+		    		String stud_planDiv = null;
+			        paramMap.put("apiName", "aiReport/");
+			        
+			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+			        
+					if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
+			        	stud_planDiv = realTimeStudInfo.get("planDiv").toString();
+			        	if(stud_planDiv.equals("E") && realTimeStudInfo.containsKey("grade") ) {
+			        		if(realTimeStudInfo.get("grade").getClass().getName().equals("java.lang.Integer")) {
+			        			// 실시간 학년 정보 정상으로 들어왔을 시만 해당 값으로 호출 / 그외에는 기존 db 기준으로 호출
+			        			paramMap.put("grade", Integer.parseInt(realTimeStudInfo.get("grade").toString()));
+			        			commonMapperLrnLog.insert(paramMap, "LrnLog.ispChGradeMisStepStatusChange");
+			        		} else {
+			        			commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+			        		}
+			        	} else {
+			        		commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+			        	}
+					} else {
+						commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+					}
+				} else {
+					commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+				}
 				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
 				strResultMsg = paramMap.get("outResultMsg").toString();
 				if(nResultCnt > 0) {					
