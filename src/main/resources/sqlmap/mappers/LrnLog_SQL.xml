@@ -63,6 +63,19 @@
 		)}
 	</insert>
 	
+	<insert id="ispChGradeMisStepStatusChange" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_ch_mis_step_status_change_realtime_grade (
+              #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
+		 	  , #{grade, mode=IN, jdbcType=INTEGER}
+		 	  , #{misStep, mode=IN, jdbcType=INTEGER}
+              , #{stepStatusCd, mode=IN, jdbcType=INTEGER}
+              , #{regAdminId, mode=IN, jdbcType=VARCHAR}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
 	<insert id="ispChMisNoStatusChange" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_no_status_change (
               #{studId, mode=IN, jdbcType=INTEGER}
