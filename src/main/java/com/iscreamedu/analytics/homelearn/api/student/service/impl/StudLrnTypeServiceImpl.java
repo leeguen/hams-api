@@ -537,7 +537,14 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
             	data.put("studStatusDetail", studStatusDetail);
             }
     		
+    		data.put("studNm", studInfoMap.get("name"));
+    		
+        } else {
+        	if(data != null) {
+        		data.put("studNm", null);
+        	}
         }
+        
         
         setResult(dataKey,data);
 
