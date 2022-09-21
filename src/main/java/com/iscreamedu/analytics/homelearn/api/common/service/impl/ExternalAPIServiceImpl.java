@@ -508,11 +508,60 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
     				//파라미터 세팅
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 		        	
-		        	URI apiUri = builder.build().encode().toUri();  
-		        	LOGGER.debug("apiUri : " + apiUri.toString());
+		        	LOGGER.debug("url : " + url.toString());
 					HttpEntity<String> entity = new HttpEntity<>(headers);
 		            ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.GET, entity, LinkedHashMap.class, headers);
 		        
+					int statusCode = Integer.valueOf(response.getStatusCode().toString());
+					LinkedHashMap responseData = response.getBody();
+
+		        	LOGGER.debug("code : " + responseData.get("code"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+		        	
+		         } catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("sendMessage")){
+	        	try {
+		    		
+		    		String url = HL_AI_API + apiName; 
+		    		LOGGER.debug("url : " + url);
+		        	LOGGER.debug("token : " + paramMap.get("token").toString());
+		        	JSONParser parser = new JSONParser();
+					HttpHeaders headers = new HttpHeaders();
+    				headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+    				headers.set("token", paramMap.get("token").toString());
+		            
+    				paramMap.remove("apiName");
+    				paramMap.remove("token");
+
+					//HttpEntity<Map<String, Object>> entity = new HttpEntity<>(paramMap, headers);
+    				//파라미터 세팅
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	
+		        	LOGGER.debug("url : " + url.toString());
+		        	JSONObject attBodyJson = new JSONObject();
+					/*RequestBody로 보낼 데이터 등록*/
+					for( String key : paramMap.keySet() ){ 
+						attBodyJson.put(key, paramMap.get(key));
+		        	}
+					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
+					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
+					
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
 					LinkedHashMap responseData = response.getBody();
 

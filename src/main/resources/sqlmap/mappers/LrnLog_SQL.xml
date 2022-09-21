@@ -7,6 +7,19 @@
     	)}
     </select>
     
+	<insert id="uspStudInfo" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.usp_stud_info ( 
+			#{studId, mode=IN, jdbcType=INTEGER}
+			, #{ssvcAkey, mode=IN, jdbcType=INTEGER}
+	 	 	, #{grade, mode=IN, jdbcType=INTEGER}
+            , #{lrnStatusCd, mode=IN, jdbcType=INTEGER}
+            , #{lrnStatusNm, mode=IN, jdbcType=VARCHAR}
+            , #{sttDt, mode=IN, jdbcType=DATE}
+            , #{regAdminId, mode=IN, jdbcType=VARCHAR}
+            , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+    	)}
+    </insert>
+    
 	<insert id="ispStudInfo" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_stud_info (
               #{studId, mode=IN, jdbcType=INTEGER}
@@ -63,7 +76,7 @@
 		)}
 	</insert>
 	
-	<insert id="ispChGradeMisStepStatusChange" parameterType="hashMap" statementType="CALLABLE">
+    <insert id="ispChMisStepStatusChangeGrade" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_step_status_change_realtime_grade (
               #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}
@@ -238,6 +251,12 @@
 			  #{studId, mode=IN, jdbcType=INTEGER}
 			  , #{startYyyyMmDd, mode=IN, jdbcType=INTEGER}
 			  , #{endYyyyMmDd, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spExperienceWaterdropcnt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_ch_mis_daily_mission_men_waterdropcnt (
+			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	
