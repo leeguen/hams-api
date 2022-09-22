@@ -102,9 +102,9 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		// ** MKB 국어책 챌린지 : 구분없음(체험회원+정회원) studType -1, grade 있음. -- 실시간 등록 호출 대상 아님!!
 		if(vu.isValid()) {
 
-			if(paramMap.get("chCd").toString().equals("MLG")) {	//  || paramMap.get("chCd").toString().equals("MEN")
+			if(paramMap.get("chCd").toString().equals("MLG") ) { // || paramMap.get("chCd").toString().equals("MEN")
 				// 출석하기 || 체험회원미션 완료 호출시 (습관팝업만 call)
-				studInfo.put("stud", commonMapperLrnLog.get(paramMap, "LrnLog.spStudInfo"));
+				studInfo = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spStudInfo");
 
 				//홈런 API 조회
 		        // 1. 신규 학생 정보 call api -> 등록
@@ -114,7 +114,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
         		realTimeStud_studType = (realTimeStud_LrnStatusCd == 1007 ? 1 : (realTimeStud_LrnStatusCd == 1003 ? 0 : -1));
 
         		if(paramMap.get("chCd").toString().equals("MLG")) {
-					if(studInfo.get("stud") == null) {
+					if(studInfo == null) {
 						
 			        	Map<String, Object> newStudInfoMap = new HashMap<>();			        
 				        
@@ -145,8 +145,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 				        }
 					} else {
 						
-						paramMap.put("studType", paramMap.get("studType"));
-						paramMap.put("grade", paramMap.get("grade"));
+						paramMap.put("studType", studInfo.get("studType"));
+						paramMap.put("grade", studInfo.get("grade"));
 						// 실시간(realTimeStudInfo) 초등 상품 등록한 학생 정보 조회하여 db(studInfo)와 차이 있으면 갱신!!
 						if(realTimeStudInfo != null && realTimeStudInfo.size() > 0 && realTimeStudInfo.get("planDiv").toString().equals("E")) {
 	//						"grade": 2,
@@ -157,14 +157,14 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	//				        "planDiv": "E",
 	//				        "startDe": "2022-09-16"
 							//학년, 학습상태코드, 학습시작일 비교하여 학생정보 갱신
-							if((realTimeStudInfo.containsKey("grade") && ((Map<String, Object>)studInfo.get("stud")).get("grade").toString() != realTimeStudInfo.get("grade").toString())
-								|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(((Map<String, Object>)studInfo.get("stud")).get("studType").toString()) != realTimeStud_studType)
-								|| (realTimeStudInfo.containsKey("startDe") && ((Map<String, Object>)studInfo.get("stud")).get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
+							if((realTimeStudInfo.containsKey("grade") && studInfo.get("grade").toString() != realTimeStudInfo.get("grade").toString())
+								|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(studInfo.get("studType").toString()) != realTimeStud_studType)
+								|| (realTimeStudInfo.containsKey("startDe") && studInfo.get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
 							) {
 
-				        		LOGGER.debug("studType : "+ ((Map<String, Object>)studInfo.get("stud")).get("studType"));
-				        		LOGGER.debug("grade : "+ ((Map<String, Object>)studInfo.get("stud")).get("grade"));
-				        		LOGGER.debug("sttDt : "+ ((Map<String, Object>)studInfo.get("stud")).get("sttDt").toString() );
+				        		LOGGER.debug("studType : "+ studInfo.get("studType"));
+				        		LOGGER.debug("grade : "+ studInfo.get("grade"));
+				        		LOGGER.debug("sttDt : "+ studInfo.get("sttDt").toString() );
 				        		LOGGER.debug("db 학생 정보와 다를 시 갱신 호출");
 
 				        		LOGGER.debug("studType : "+  realTimeStud_studType);
@@ -256,14 +256,11 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					strResultMsg = paramMap.get("outResultMsg").toString();
 					if(nResultCnt > 0) {
 						
-						message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
-						message.put("result", nResultCnt+"건 등록 : "+strResultMsg);
-						setResult(msgKey, message);
 						
 						if(paramMap.get("chCd").toString().equals("MEN")) {
 							// 체험회원
-							paramMap.put("studType", ((Map<String, Object>)studInfo.get("stud")).get("studType"));
-							paramMap.put("grade", ((Map<String, Object>)studInfo.get("stud")).get("grade"));
+//							paramMap.put("studType", studInfo.get("studType"));
+//							paramMap.put("grade", studInfo.get("grade"));
 			        	
 //							// 실시간(realTimeStudInfo) 초등 상품 등록한 학생 정보 조회하여 db(studInfo)와 차이 있으면 갱신!!
 //							if(realTimeStudInfo != null && realTimeStudInfo.size() > 0 && realTimeStudInfo.get("planDiv").toString().equals("E")) {
@@ -275,9 +272,9 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 ////						        "planDiv": "E",
 ////						        "startDe": "2022-09-16"
 //								//학년, 학습상태코드, 학습시작일 비교하여 학생정보 갱신
-//								if((realTimeStudInfo.containsKey("grade") && ((Map<String, Object>)studInfo.get("stud")).get("grade").toString() != realTimeStudInfo.get("grade").toString())
-//									|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(((Map<String, Object>)studInfo.get("stud")).get("studType").toString()) != realTimeStud_LrnStatusCd)
-//									|| (realTimeStudInfo.containsKey("startDe") && ((Map<String, Object>)studInfo.get("stud")).get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
+//								if((realTimeStudInfo.containsKey("grade") && studInfo.get("grade").toString() != realTimeStudInfo.get("grade").toString())
+//									|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(studInfo.get("studType").toString()) != realTimeStud_LrnStatusCd)
+//									|| (realTimeStudInfo.containsKey("startDe") && studInfo.get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
 //								) {
 //									// db 학생 정보와 다를 시 갱신 호출
 //									Map<String, Object> resetStudInfoMap = new HashMap<>();			        
@@ -301,32 +298,40 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 							//미션 실시간 갱신
 							if(req.getHeader("token") != null && !req.getHeader("token").toString().isEmpty()) {
 								
+								Map<String, Object> experienceTutorWithTalk = new HashMap<>();
 				        		LOGGER.debug("token : "+req.getHeader("token").toString());
-				        		
-				        		int waterDropCnt = Integer.parseInt(((Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spExperienceWaterdropcnt")).get("monthlyWaterDropCnt").toString());
-				        		
-								Map<String,Object> sendMessageResult = new HashMap<>();
-								ArrayList<Map<String, Object>> missionList = new ArrayList<>();
-								
-								StringBuffer sb= new StringBuffer("[$name] 친구 ~<br/>");
-								sb.append("매일 홈런하는 습관을 기르도록 도와주는 홈런 선생님입니다^^<br/><br/>");
-								sb.append("[$name] 친구가 오늘의 미션을 완료해 내 나무를 키울 수 있는 물방울1개를 받았어요.<br/>");
-								sb.append("우리 친구 참 잘했어요!! 앞으로도 매일 차근차근 오늘의 미션으로 물방울을 모아, 멋진 내 나무도 만들고 더 나은 학습 습관도 만드는  [$name] 친구가 될 수 있어요<br/><br/>");
-								sb.append("■ 오늘의 완료 미션: [$missionName]<br/>-------------------------------------------------<br/>");
-								sb.append("■ 누적 개수: 물방울 "+waterDropCnt+"개<br/>");
-								sb.append("※ 물방울 5개가 모이면 물을 줘서 쑥쑥 자라는 내 나무를 볼 수 있어요.");
-
-				        		LOGGER.debug("stuMsg : " + sb.toString());
-								// 3. 미션 실시간 정보 call api -> 홈런톡 발송 호출 
-								// 홈런 API 호출
-//								Map<String, Object> sendMessageMap = new HashMap<>();			   
-//								sendMessageMap.put("token", req.getHeader("token").toString());
-//								sendMessageMap.put("apiName","sendMessage");
-//								sendMessageMap.put("stuId", paramMap.get("studId"));
-//								sendMessageMap.put("stuMsg", sb.toString());
-//								sendMessageResult = (Map<String, Object>) externalAPIservice.callExternalAPI(sendMessageMap).get("data");							
+								paramMap.put("token", req.getHeader("token").toString());
+				        		experienceTutorWithTalk = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spExperienceTutorWithTalk");
+				        		if (experienceTutorWithTalk != null ) {
+					        		String missionName = experienceTutorWithTalk.get("misNm").toString();
+					        		int waterDropCnt = Integer.parseInt(experienceTutorWithTalk.get("monthlyWaterDropCnt").toString());
+					        		
+									
+									ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+									
+									StringBuffer sb= new StringBuffer("[$name] 친구 ~<br/>");
+									sb.append("매일 홈런하는 습관을 기르도록 도와주는 홈런 선생님입니다^^<br/><br/>");
+									sb.append("[$name] 친구가 오늘의 미션을 완료해 내 나무를 키울 수 있는 물방울1개를 받았어요.<br/>");
+									sb.append("우리 친구 참 잘했어요!! 앞으로도 매일 차근차근 오늘의 미션으로 물방울을 모아, 멋진 내 나무도 만들고 더 나은 학습 습관도 만드는  [$name] 친구가 될 수 있어요<br/><br/>");
+									sb.append("■ 오늘의 완료 미션: " + missionName + "<br/>-------------------------------------------------<br/>");
+									sb.append("■ 누적 개수: 물방울 " + waterDropCnt + "개<br/>");
+									sb.append("※ 물방울 5개가 모이면 물을 줘서 쑥쑥 자라는 내 나무를 볼 수 있어요.");
+	
+					        		LOGGER.debug("stuMsg : " + sb.toString());
+									// 3. 미션 실시간 정보 call api -> 홈런톡 발송 호출 
+									// 홈런 API 호출
+									Map<String, Object> sendMessageMap = new HashMap<>();			   
+									sendMessageMap.put("token", req.getHeader("token").toString());
+									sendMessageMap.put("apiName","sendMessage");
+									sendMessageMap.put("stuMsg", sb.toString());
+									externalAPIservice.callExternalAPI(sendMessageMap).get("data");
+				        		}
 							}
 						}
+
+						message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+						message.put("result", nResultCnt+"건 등록 : "+strResultMsg);
+						setResult(msgKey, message);
 					} else {
 						message.put("resultCode", ValidationCode.REG_FAILED.getCode());
 						message.put("result", strResultMsg);
@@ -334,7 +339,9 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					}
 				} catch(Exception e) {
 					String[] errorMsgList = e.getMessage().split(": ");
-					strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+					
+//						strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+					strResultMsg = "Registration failed [ " + e.getMessage()+ " ]";
 					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
 					message.put("result", strResultMsg);
 					setResult(msgKey, message);

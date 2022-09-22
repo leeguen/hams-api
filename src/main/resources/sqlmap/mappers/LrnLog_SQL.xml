@@ -254,8 +254,8 @@
 		 )}
 	</select>
 	
-	<select id="spExperienceWaterdropcnt" parameterType="hashMap" resultType="resultMap">
-		{call lrn_log.sp_ch_mis_daily_mission_men_waterdropcnt (
+	<select id="spExperienceTutorWithTalk" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_experience_tutor_with_talk (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>

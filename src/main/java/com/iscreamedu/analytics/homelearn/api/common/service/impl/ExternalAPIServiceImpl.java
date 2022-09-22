@@ -554,12 +554,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 		        	
 		        	LOGGER.debug("url : " + url.toString());
-		        	JSONObject attBodyJson = new JSONObject();
-					/*RequestBody로 보낼 데이터 등록*/
-					for( String key : paramMap.keySet() ){ 
-						attBodyJson.put(key, paramMap.get(key));
-		        	}
-					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBodyJson, headers);
+		        	String attBody = paramMap.get("stuMsg").toString();
+		        	LOGGER.debug("attBody : " + attBody);
+					HttpEntity<?> regAttMissionEntity = new HttpEntity<>(attBody, headers);
 					ResponseEntity<LinkedHashMap> response = restTemplate.exchange(url, HttpMethod.POST, regAttMissionEntity, LinkedHashMap.class, paramMap);
 					
 					int statusCode = Integer.valueOf(response.getStatusCode().toString());
