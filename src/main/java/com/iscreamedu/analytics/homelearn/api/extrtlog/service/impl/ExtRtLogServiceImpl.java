@@ -15,10 +15,8 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
-import com.iscreamedu.analytics.homelearn.api.challenge.service.ChallengeService;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnLog;
 import com.iscreamedu.analytics.homelearn.api.common.service.ExternalAPIService;
 import com.iscreamedu.analytics.homelearn.api.common.util.CommonUtil;
@@ -33,7 +31,6 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudLrnTypeServiceImpl.class);
 
     private LinkedHashMap<String, Object> result;
-    private LinkedHashMap<String, Object> decodeResult;
     private String msgKey = "msg";
     private String dataKey = "data";
 
