@@ -461,8 +461,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
 			        
 					if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
-			        	stud_planDiv = realTimeStudInfo.get("planDiv").toString();
-			        	if(stud_planDiv.equals("E") && realTimeStudInfo.containsKey("grade") ) {
+			        	if(realTimeStudInfo.containsKey("grade")) {
 		        			// 실시간 학년 정보 정상으로 들어왔을 시만 해당 값으로 호출 / 그외에는 기존 db 기준으로 호출
 		        			paramMap.put("grade", Integer.parseInt(realTimeStudInfo.get("grade").toString()));
 		        			commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChangeGrade");
