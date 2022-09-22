@@ -451,26 +451,23 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			LinkedHashMap message = new LinkedHashMap();			
 			try {
 				
-				if(Integer.parseInt(paramMap.get("stepStatusCd").toString()) < 2) {
+				if(paramMap.get("stepStatusCd").toString().equals("-1") || paramMap.get("stepStatusCd").toString().equals("1")) {
 					// 1. 실시간 학생 정보 call api -> 학년정보로 미션 시작전/시작하기 등록~!
 					//홈런 API 조회
 			        Map<String,Object> realTimeStudInfo = new HashMap<>();
-		    		String stud_planDiv = null;
-			        paramMap.put("apiName", "aiReport/");
+			        Map<String,Object> apiParamMap = new HashMap<>();
+			        apiParamMap.put("studId", paramMap.get("studId"));
+			        apiParamMap.put("apiName", "aiReport/");
 			        
-			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+			        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(apiParamMap).get("data");
 			        
-					if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
-			        	if(realTimeStudInfo.containsKey("grade")) {
+					if(realTimeStudInfo != null && realTimeStudInfo.containsKey("grade")) {
 		        			// 실시간 학년 정보 정상으로 들어왔을 시만 해당 값으로 호출 / 그외에는 기존 db 기준으로 호출
 		        			paramMap.put("grade", Integer.parseInt(realTimeStudInfo.get("grade").toString()));
 		        			commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChangeGrade");
-			        	} else {
-			        		commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
-			        	}
-					} else {
-						commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
-					}
+		        	} else {
+		        		commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
+		        	}
 				} else {
 					commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisStepStatusChange");
 				}

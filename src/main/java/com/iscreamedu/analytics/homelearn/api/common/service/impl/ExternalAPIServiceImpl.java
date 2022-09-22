@@ -386,7 +386,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
 		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
-		        	
+
+		        	LOGGER.debug("apiUri : " + apiUri);
 		        	LOGGER.debug("code : " + responseData.get("code"));
 		        	LOGGER.debug("message : " + responseData.get("message"));
 		        	LOGGER.debug("data : " + responseData.get("data"));
