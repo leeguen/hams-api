@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LrnLogAdm">
+
+	<select id="spAdminMonthlyWaterDropStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_water_drop_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yyyymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyChRewardStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_ch_reward_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminChallengeStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_challenge_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminChallengeBookList" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_challenge_book_list (
+			  #{chCd, mode=IN, jdbcType=VARCHAR},
+			  #{grade, mode=IN, jdbcType=INTEGER},
+			  #{misStep, mode=IN, jdbcType=INTEGER},
+			  #{misNo, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminHabitStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_habit_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminDailyWaterDropStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_daily_water_drop_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyMetaphorHistory" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_metaphor_history (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyHabitStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_habit_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yyyymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyHabitHistory" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_habit_history (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yyyymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyChallengeStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_challenge_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyChallengeHistory" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_challenge_history (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER},
+			  #{chCd, mode=IN, jdbcType=VARCHAR}
+		 )}
+	</select>
+</mapper>
+	

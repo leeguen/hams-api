@@ -10,6 +10,7 @@ import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iscreamedu.analytics.homelearn.api.common.exception.NoDataException;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDm;
+import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnDmDev;
 import com.iscreamedu.analytics.homelearn.api.common.mapper.CommonMapperLrnType;
 
 import org.json.simple.JSONArray;
@@ -47,7 +48,8 @@ public class StudLrnLogServiceImpl implements StudLrnLogService {
     private static final String LRN_MT_NAMESPACE = "LrnMt";
 
     @Autowired
-    CommonMapperLrnDm studLrnAnalMapper;
+    //CommonMapperLrnDm studLrnAnalMapper;
+    CommonMapperLrnDmDev studLrnAnalMapper;
     
     @Override
     public Map getStudLrnExLog(String studId) throws Exception {

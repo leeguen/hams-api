@@ -167,6 +167,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             
             Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
             Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+            Map<String,Object> studCheckData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getStudTestCheck");
             
         	data.put("p", decodeStudId);
         	try {
@@ -178,10 +179,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		data.put("grade", studInfoMap.get("grade"));
         		data.put("studType", studInfoMap.get("divCdNm"));
         		data.put("pkgType", pkgType);
+        		data.put("redirectYn", studCheckData.get("checkYn"));
         		data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
-        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		String pkgType = (studData != null && studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
         		
         		data.put("studId", studId);
         		data.put("studNm", null);
@@ -189,7 +191,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
         		data.put("grade", null);
         		data.put("studType", null);
         		data.put("pkgType", pkgType);
-        		data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+        		data.put("redirectYn", studCheckData.get("checkYn"));
+        		data.put("sttDt", (studData != null && studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	
@@ -243,6 +246,7 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             
             Map<String,Object> studData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
             Map<String,Object> studRecentData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudRecentReport");
+            Map<String,Object> studCheckData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "StudLrnType.getStudTestCheck");
             
         	data.put("p", decodeStudId);
         	try {
@@ -254,10 +258,11 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             	data.put("grade", studInfoMap.get("grade"));
             	data.put("studType", studInfoMap.get("divCdNm"));
             	data.put("pkgType", pkgType);
+            	data.put("redirectYn", studCheckData.get("checkYn"));
             	data.put("sttDt", (studInfoMap.get("startDe") != null) ? studInfoMap.get("startDe") : studData.get("sttDt"));
         	} catch (Exception e) {
         		System.out.println("Stud Info API Error : " + e);
-        		String pkgType = (studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
+        		String pkgType = (studData != null && studData.get("pkgType") != null) ? studData.get("pkgType").toString() + "S" : "ES";
         		
         		data.put("studId", studIds);
             	data.put("studNm", null);
@@ -265,7 +270,8 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
             	data.put("grade", null);
             	data.put("studType", null);
             	data.put("pkgType", pkgType);
-            	data.put("sttDt", (studData.get("sttDt") != null) ? studData.get("sttDt") : null);
+            	data.put("redirectYn", studCheckData.get("checkYn"));
+            	data.put("sttDt", (studData != null && studData.get("sttDt") != null) ? studData.get("sttDt") : null);
 			}
         	data.put("recentReport", (studRecentData != null && studRecentData.get("recentReport") != null) ? studRecentData.get("recentReport") : null);
         	

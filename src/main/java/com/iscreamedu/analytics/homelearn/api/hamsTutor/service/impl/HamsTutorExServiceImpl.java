@@ -46,9 +46,13 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
 
     @Autowired
     CommonMapperTutor commonMapperTutor;
+    
     @Autowired
     CommonMapperLrnDm commonMapperLrnDm;
     
+    @Autowired
+    CommonMapperLrnDm studLrnAnalMapper;
+
     @Autowired
     CommonLrnMtService commonLrnMtService;
     
@@ -836,6 +840,20 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         paramMap.put("term", 1);
         
         data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
+        
+        String term = paramMap.get("term").toString();
+        String yymm = paramMap.get("yymm").toString().substring(0,4);
+        
+        if(term.equals("1")) {
+        	
+        	paramMap.put("startYymm", Integer.parseInt(yymm+"01"));
+        	paramMap.put("endYymm", Integer.parseInt(yymm+"07"));
+        } else {
+        	paramMap.put("startYymm", Integer.parseInt(yymm+"08"));
+        	paramMap.put("endYymm", Integer.parseInt(yymm+"12"));
+        }
+        
+        Map<String, Object> lrnTypeData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "HamsTutorNft.selectLrnTypeInfoForNft");
         ArrayList<Map<String,Object>> attRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftAttRt");
         ArrayList<Map<String,Object>> exRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftExRt");
         ArrayList<Map<String,Object>> crtRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftCrtRt");
@@ -854,6 +872,14 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         
         for(Map<String, Object> crtRtItem : crtRtList) {
         	crtRt.add(crtRtItem.get("crtRt"));
+        }
+        
+        if(lrnTypeData != null) {
+        	data.put("lrnTypeNm", lrnTypeData.get("lrnTypeCd"));
+        	data.put("lrnTypeImg", lrnTypeData.get("lrnTypeImg"));
+        } else {
+        	data.put("lrnTypeNm", null);
+        	data.put("lrnTypeImg", null);
         }
         
         

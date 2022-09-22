@@ -35,7 +35,7 @@
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
 		)}
 	</insert>
-	    
+    
 	<insert id="ispRealTimeAddMission" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_daily_add_mission_realtime (
               #{studId, mode=IN, jdbcType=INTEGER}
@@ -76,7 +76,7 @@
 		)}
 	</insert>
 	
-	<insert id="ispChMisStepStatusChangeGrade" parameterType="hashMap" statementType="CALLABLE">
+    <insert id="ispChMisStepStatusChangeGrade" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_step_status_change_realtime_grade (
               #{studId, mode=IN, jdbcType=INTEGER}
 		 	  , #{chCd, mode=IN, jdbcType=VARCHAR}

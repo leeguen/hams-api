@@ -323,9 +323,42 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
         		Map<String, Object> lrnTypeMsgMap = new LinkedHashMap<String, Object>();
         		
     			//Map<String, Object> lrnTypeInfoMap = new LinkedHashMap<String, Object>();
+        		
+        		Map<String,Object> studInfoParamMap = new HashMap<>();
+				String p = encodeStudId("0&"+paramMap.get("studId"));
+		    	
+		    	studInfoParamMap.put("p", p);
+		    	studInfoParamMap.put("apiName", "aiReport.");
+		        
+		        LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+		        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+		        
+		        String expYn = "N";
+		        
+		        if(studInfoMap != null) {
+		        	int lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
+		        	//int studStatus = (lrnSttCdApi == 1003 || lrnSttCdApi == 1007) ? 1 : 0;
+		        	expYn = (lrnTypeCdApi == 10004) ? "Y" : "N";
+		        } else { // For QA
+	            	studInfoParamMap.put("apiName", "aiReport.");
+	            	studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+	            	
+	            	if(studInfoMap != null) {
+	            		int lrnTypeCdApi = 10003;
+	            		try {
+	            			lrnTypeCdApi = Integer.parseInt(studInfoMap.get("divCd").toString());
+	            		} catch (Exception e) {
+	            			System.out.println("Stud Info API Error - OPS");
+						}
+	            		expYn = (lrnTypeCdApi == 10004) ? "Y" : "N";
+	            	}
+		        }
+		        
+		        paramMap.put("expYn", expYn);
+        		
     			
-    			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetail");
-    			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsg");
+    			lrnTypeMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailAdmin");
+    			lrnTypeMsgMap = (Map<String, Object>) studLrnTypeMapper.get(paramMap, "StudLrnTypeMt.getLrnTypeDetailMsgAdmin");
     			if(lrnTypeMap != null) {
     				
     				data.put("lrnTypeNm", lrnTypeMap.get("lrnTypeNm"));
@@ -504,7 +537,14 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
             	data.put("studStatusDetail", studStatusDetail);
             }
     		
+    		data.put("studNm", studInfoMap.get("name"));
+    		
+        } else {
+        	if(data != null) {
+        		data.put("studNm", null);
+        	}
         }
+        
         
         setResult(dataKey,data);
 
@@ -708,7 +748,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
 				yymm =  Integer.parseInt(stringYymm);
 			}
 		} else {
-			yymm =  Integer.parseInt(stringYyyy+"12");
+			yymm =  Integer.parseInt(yyyy+"12");
 		}
 		return yymm;
 	}

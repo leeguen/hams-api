@@ -105,19 +105,25 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			if(paramMap.get("chCd").toString().equals("MLG")) {	//  || paramMap.get("chCd").toString().equals("MEN")
 				// 출석하기 || 체험회원미션 완료 호출시 (습관팝업만 call)
 				studInfo.put("stud", commonMapperLrnLog.get(paramMap, "LrnLog.spStudInfo"));
-
+		        Integer newStudCnt = 0;
+				if(studInfo.get("stud") == null) {
+					// 1. 신규 학생 정보 call api -> 등록
+					//홈런 API 조회
+			        Map<String,Object> realTimeStudInfo = new HashMap<>();
+		        	Map<String, Object> newStudInfoMap = new HashMap<>();
+			        
 				//홈런 API 조회
 		        // 1. 신규 학생 정보 call api -> 등록
 		        paramMap.put("apiName", "aiReport/");
 		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
         		realTimeStud_LrnStatusCd = getDivCdToLrnStatusCd(realTimeStudInfo);
         		realTimeStud_studType = (realTimeStud_LrnStatusCd == 1007 ? 1 : (realTimeStud_LrnStatusCd == 1003 ? 0 : -1));
-
-        		if(paramMap.get("chCd").toString().equals("MLG")) {
+	            
+	            if(paramMap.get("chCd").toString().equals("MLG")) {
 					if(studInfo.get("stud") == null) {
-						
+			        	
 			        	Map<String, Object> newStudInfoMap = new HashMap<>();			        
-				        
+			        	
 				        if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
 				        	stud_planDiv = realTimeStudInfo.get("planDiv").toString();
 				        	if(stud_planDiv.equals("E")) {
@@ -131,10 +137,10 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
 					        	newStudInfoMap.put("endDt", null);
 					        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-				        	
+
 								commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
 								newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
-				        	
+						
 						        if(newStudCnt > 0) {
 									// 2. 미션 생성
 						        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
@@ -230,7 +236,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 							}
 						}
 					}
-				} 
+				}
 			}
 			
 			if(paramMap.get("chCd").toString().equals("MLG") && stud_planDiv != null && stud_planDiv.equals("M")) {
@@ -366,7 +372,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		
 		return result;
 	}
-
+	
 	private Integer getDivCdToLrnStatusCd(Map<String, Object> realTimeStudInfo) {
 		//    	divCd 회원상태 : 10002 : 체험진행 -> 체험회원  
 		//		10007(학습진행), 10008(학습중지) -> 정회원
