@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="LrnLogAdm">
-
+	
+	<select id="spMonthyHistoryChallengeMtp" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_monthly_history_challenge_mtp (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
+			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
 	<select id="spAdminMonthlyWaterDropStt" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_admin_monthly_water_drop_stt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
@@ -13,7 +21,7 @@
 	<select id="spAdminMonthlyChRewardStt" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_admin_monthly_ch_reward_stt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
-			  #{yymm, mode=IN, jdbcType=INTEGER}
+			  #{yyyymm, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	

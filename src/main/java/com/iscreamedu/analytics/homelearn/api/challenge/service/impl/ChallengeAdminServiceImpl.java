@@ -133,18 +133,21 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 			
 			paramMap.put("today", Integer.parseInt(today));
 			paramMap.put("yyyymm", Integer.parseInt(curYymm));
+			paramMap.put("startYyyyMm", Integer.parseInt(curYymm));
+			paramMap.put("endYyyyMm", Integer.parseInt(curYymm));
 			
 			/*물방울 개수 및 나무 이미지 URL 조회*/
-			Map<String, Object> waterDropData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyWaterDropStt");
+			//Map<String, Object> waterDropData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyWaterDropStt");
+			Map<String, Object> waterDropData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spMonthyHistoryChallengeMtp");
 			
 			if(waterDropData != null) {
-				String imgUrl = waterDropData.get("imgUrl").toString();
+				/*String imgUrl = waterDropData.get("imgUrl").toString();
 				String waterJugYn = waterDropData.get("waterJugYn").toString();
 				String waterJugActionYn = waterDropData.get("waterJugActionYn").toString();
 				String rewardStep = (waterDropData.get("curRewardStep") != null) ? waterDropData.get("curRewardStep").toString() : "0";
 				int rewardStepInteger = Integer.parseInt(rewardStep);
 				
-				/*나무 이미지 URL - 해당 단계에 맞춰 URL 주소 변경*/
+				나무 이미지 URL - 해당 단계에 맞춰 URL 주소 변경
 				imgUrl = imgUrl.replace("{mm}", curMm);
 				if(rewardStep.equals("6")) {
 					imgUrl = imgUrl.replace("{step}", "6");
@@ -158,10 +161,9 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 							imgUrl = imgUrl.replace("{step}", rewardStep);
 						}
 					}
-				}
-				
-				data.put("mtpImgUrl", imgUrl);
-				data.put("waterDropCnt", waterDropData.get("totalWaterDropCnt"));
+				}*/
+				data.put("mtpImgUrl", waterDropData.get("mtpImgUrl").toString());
+				data.put("waterDropCnt", waterDropData.get("monthlyWaterDropCnt"));
 				
 				/*챌린지 보상 개수 조회*/
 				Map<String, Object> rewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyChRewardStt");
