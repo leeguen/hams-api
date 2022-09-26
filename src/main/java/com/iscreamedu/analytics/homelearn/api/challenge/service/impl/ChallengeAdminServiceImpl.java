@@ -380,11 +380,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				
 				String sttYymm = paramMap.get("yyyy").toString() + "01";
 				int startYymm = Integer.parseInt(sttYymm);
-				
-				Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
-		    	month.add(Calendar.MONTH , -1);
-		        String edYymm = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
-		        int endYymm = Integer.parseInt(edYymm);
+				int endYymm = getEndYymm(paramMap.get("yyyy").toString()); 
 				
 				paramMap.put("startYymm", startYymm);
 				paramMap.put("endYymm", endYymm);
@@ -395,13 +391,16 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					for(Map<String, Object> metapItem : metaphorList) {
 						Map<String, Object> metaItemMap = new LinkedHashMap<>();
 						
-						String imgUrl = metapItem.get("imgUrl").toString();
-						String curMm = metapItem.get("mm").toString();
-						String rewardStep = metapItem.get("rewardStep").toString();
-						
-						/*나무 이미지 URL - 해당 단계에 맞춰 URL 주소 변경*/
-						imgUrl = imgUrl.replace("{mm}", curMm);
-						imgUrl = imgUrl.replace("{step}", rewardStep);
+						String imgUrl = null;
+						if(metapItem.get("imgUrl") != null) {
+							imgUrl = metapItem.get("imgUrl").toString();
+							String curMm = metapItem.get("mm").toString();
+							String rewardStep = metapItem.get("rewardStep").toString();
+							
+							/*나무 이미지 URL - 해당 단계에 맞춰 URL 주소 변경*/
+							imgUrl = imgUrl.replace("{mm}", curMm);
+							imgUrl = imgUrl.replace("{step}", rewardStep);
+						}
 						
 						metaItemMap.put("yyyymm", metapItem.get("yyyymm"));
 						metaItemMap.put("mtpImgUrl", imgUrl);
@@ -512,11 +511,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 			if(vu1.isValid()) {
 				String sttYymm = paramMap.get("yyyy").toString() + "01";
 				int startYymm = Integer.parseInt(sttYymm);
-				
-				Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
-		    	month.add(Calendar.MONTH , 0);
-		        String edYymm = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
-		        int endYymm = Integer.parseInt(edYymm);
+		        int endYymm = getEndYymm(paramMap.get("yyyy").toString());
 				
 				paramMap.put("startYymm", startYymm);
 				paramMap.put("endYymm", endYymm);
@@ -730,7 +725,31 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 			setResult(msgKey, vu.getResult());
 		}
 		
-		
 		return result;
+	}
+	
+	private int getEndYymm(String yyyy) {
+		int yymm = 0;
+		
+		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
+    	month.add(Calendar.MONTH , -1);
+        String edYyyy = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+        String edYymms = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
+        String edYymm = yyyy+"12";
+        
+        int endYymms = Integer.parseInt(edYymms);
+        int endYymm = Integer.parseInt(edYymm);
+        
+        if(yyyy.equals(edYyyy)) {
+        	if(endYymms < endYymm) {
+        		yymm = endYymms;
+        	} else {
+        		yymm = endYymm;
+        	}
+        } else {
+        	yymm = endYymm;
+        }
+		
+		return yymm;
 	}
 }
