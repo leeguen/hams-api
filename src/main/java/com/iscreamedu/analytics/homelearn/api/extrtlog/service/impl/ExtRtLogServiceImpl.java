@@ -88,6 +88,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
         String realTimeStud_LrnStatusCd = null;
         int realTimeStud_studType = -1;
         Integer newStudCnt = 0;
+        Integer resetStudCnt = 0;
 		//1.필수값 체크
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
@@ -140,10 +141,8 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						
 				        if(newStudCnt > 0) {
 							// 3-1. 신규 등록 학생의 오늘의 미션 생성
-				        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
-				        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
-								LOGGER.debug("신규 등록 학생의 오늘의 미션 생성 : ispChMisDailyAddMission 호출 : " + newStudInfoMap);
-				        	}
+				        	commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisDailyAddMission");
+							LOGGER.debug("신규 등록 학생의 오늘의 미션 생성 : ispChMisDailyAddMission 호출 : " + paramMap.get("studId"));
 				        }
 					} else {
 						// 실시간(realTimeStudInfo) 초등 상품 등록한 학생 정보 조회하여 db(studInfo)와 차이 있으면 갱신!!
@@ -183,12 +182,18 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 								resetStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
 
 				        		commonMapperLrnLog.insert(resetStudInfoMap, "LrnLog.uspStudInfo");
-								newStudCnt = Integer.valueOf(resetStudInfoMap.get("outResultCnt").toString());
+								resetStudCnt = Integer.valueOf(resetStudInfoMap.get("outResultCnt").toString());
 								LOGGER.debug("db 학생 정보와 실시간 정보 불일치 - 갱신 : uspStudInfo 호출 : " + resetStudInfoMap);
 				        		LOGGER.debug("studType : "+ paramMap.get("studType") + " -> " + realTimeStud_studType);
 				        		LOGGER.debug("grade : "+ paramMap.get("grade") + " -> " + resetStudInfoMap.get("grade"));
 								paramMap.put("studType", realTimeStud_studType);
 								paramMap.put("grade", resetStudInfoMap.get("grade"));
+								
+								// 미션 삭제('MLG','MEN','MKB','MCC') 후 재생성 (because... 재체험-체험 미션 재등록 or 중등상품 변경으로 미션 대상 아님)
+								if(resetStudCnt > 0) {
+						        	commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisDailyAddMission");
+									LOGGER.debug("갱신된 학생 정보로 오늘의 미션 생성 : ispChMisDailyAddMission 호출 : " + paramMap.get("studId"));
+					        	} 
 					        	
 							} else {
 				        		LOGGER.debug("db 학생 정보와 실시간 정보 동일");
@@ -288,41 +293,6 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						
 						if(paramMap.get("chCd").toString().equals("MEN")) {
 							// 체험회원
-//							paramMap.put("studType", studInfo.get("studType"));
-//							paramMap.put("grade", studInfo.get("grade"));
-			        	
-//							// 실시간(realTimeStudInfo) 초등 상품 등록한 학생 정보 조회하여 db(studInfo)와 차이 있으면 갱신!!
-//							if(realTimeStudInfo != null && realTimeStudInfo.size() > 0 && realTimeStudInfo.get("planDiv").toString().equals("E")) {
-////								"grade": 2,
-////						        "divCd": 10003,
-////						        "divCdNm": "정회원",
-////						        "statusCd": 10007,
-////						        "statusCdNm": "학습 진행",
-////						        "planDiv": "E",
-////						        "startDe": "2022-09-16"
-//								//학년, 학습상태코드, 학습시작일 비교하여 학생정보 갱신
-//								if((realTimeStudInfo.containsKey("grade") && studInfo.get("grade").toString() != realTimeStudInfo.get("grade").toString())
-//									|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(studInfo.get("studType").toString()) != realTimeStud_LrnStatusCd)
-//									|| (realTimeStudInfo.containsKey("startDe") && studInfo.get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
-//								) {
-//									// db 학생 정보와 다를 시 갱신 호출
-//									Map<String, Object> resetStudInfoMap = new HashMap<>();			        
-//									resetStudInfoMap.put("studId", realTimeStudInfo.get("stuId"));					        	       	
-//									resetStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
-//									resetStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
-//									resetStudInfoMap.put("lrnStatusCd", realTimeStud_LrnStatusCd);
-//									resetStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
-//									resetStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
-//									resetStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-//						        	
-//						        	commonMapperLrnLog.insert(resetStudInfoMap, "LrnLog.uspStudInfo");
-//									newStudCnt = Integer.valueOf(resetStudInfoMap.get("outResultCnt").toString());
-//					        	
-//									paramMap.put("studType", (realTimeStud_LrnStatusCd == 1007 ? 1 : (realTimeStud_LrnStatusCd == 1003 ? 0 : -1)) );
-//									paramMap.put("grade", Integer.parseInt(realTimeStudInfo.get("grade").toString()));
-//								} 
-//							} 
-
 			        		LOGGER.debug("token 체크 : 체험회원 쌤과톡 발송용");
 							//미션 실시간 갱신
 							if(req.getHeader("token") != null && !req.getHeader("token").toString().isEmpty()) {
