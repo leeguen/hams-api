@@ -83,17 +83,16 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	public LinkedHashMap setRealTimeCompleteMission(Map<String, Object> paramMap, HttpServletRequest req) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
-		String stud_planDiv = null;
 		Map<String, Object> studInfo = new HashMap<>();
         Map<String,Object> realTimeStudInfo = new HashMap<>();
-        int realTimeStud_LrnStatusCd = -1;
+        String realTimeStud_LrnStatusCd = null;
         int realTimeStud_studType = -1;
         Integer newStudCnt = 0;
 		//1.필수값 체크
 		getStudId(paramMap);
 		vu.checkRequired(new String[] {"studId","dt","chCd","misStatusCd","regAdminId"}, paramMap);
 				
-		System.out.println("setRealTimeCompleteMission - Param : " + paramMap);
+		LOGGER.debug("setRealTimeCompleteMission - Param : " + paramMap);
 				
 		// studType, grade, misNo 조회해서 저장
 		// MHL 오늘의 학습, MWN 오답노트, MNL미완료학습 : 정회원 studType 1, grade -99 
@@ -103,52 +102,53 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		if(vu.isValid()) {
 
 			if(paramMap.get("chCd").toString().equals("MLG") ) { // || paramMap.get("chCd").toString().equals("MEN")
-				// 출석하기 || 체험회원미션 완료 호출시 (습관팝업만 call)
+				// 출석하기 완료 호출시 (습관팝업만 call)
+				
+				// 1. db : 학생 정보 조회 
 				studInfo = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spStudInfo");
 
-				//홈런 API 조회
-		        // 1. 신규 학생 정보 call api -> 등록
-		        paramMap.put("apiName", "aiReport/");
-		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(paramMap).get("data");
+		        // 2. 홈런 API 조회 : 학생 정보 조회 call  
+				Map<String,Object> apiParamMap = new HashMap<>();
+		        apiParamMap.put("studId", paramMap.get("studId"));
+		        apiParamMap.put("apiName", "aiReport/");
+		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(apiParamMap).get("data");
         		realTimeStud_LrnStatusCd = getDivCdToLrnStatusCd(realTimeStudInfo);
-        		realTimeStud_studType = (realTimeStud_LrnStatusCd == 1007 ? 1 : (realTimeStud_LrnStatusCd == 1003 ? 0 : -1));
-
-        		if(paramMap.get("chCd").toString().equals("MLG")) {
-					if(studInfo == null) {
-						
+        		realTimeStud_studType = (realTimeStud_LrnStatusCd == "1007" ? 1 : (realTimeStud_LrnStatusCd == "1003" ? 0 : -1));
+        		
+    			try {
+					if(studInfo == null && realTimeStudInfo != null && realTimeStudInfo.size() > 0 && realTimeStud_LrnStatusCd != null) {
+						// 3. db 없는 학생 정보 신규 등록
 			        	Map<String, Object> newStudInfoMap = new HashMap<>();			        
 				        
-				        if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
-				        	stud_planDiv = realTimeStudInfo.get("planDiv").toString();
-				        	if(stud_planDiv.equals("E")) {
-					        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId"));
-					        	newStudInfoMap.put("tchrKey", null);
-					        	newStudInfoMap.put("parKey", null);			        	
-					        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
-					        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
-					        	newStudInfoMap.put("lrnStatusCd", realTimeStud_LrnStatusCd);
-					        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
-					        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
-					        	newStudInfoMap.put("endDt", null);
-					        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
-				        	
-								commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
-								newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
-				        	
-						        if(newStudCnt > 0) {
-									// 2. 미션 생성
-						        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
-						        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
-						        	}
-						        }
+			        	newStudInfoMap.put("studId", realTimeStudInfo.get("stuId"));
+			        	newStudInfoMap.put("tchrKey", null);
+			        	newStudInfoMap.put("parKey", null);			        	
+			        	newStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):-1));
+			        	newStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
+			        	newStudInfoMap.put("lrnStatusCd", Integer.parseInt(realTimeStud_LrnStatusCd));
+			        	newStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
+			        	newStudInfoMap.put("sttDt", (realTimeStudInfo.containsKey("startDe") ? realTimeStudInfo.get("startDe").toString() : null));
+			        	newStudInfoMap.put("endDt", null);
+			        	newStudInfoMap.put("regAdminId", "STUD_EXTRTLOG");
+		        	
+						commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispStudInfo");
+						newStudCnt = Integer.valueOf(newStudInfoMap.get("outResultCnt").toString());
+						LOGGER.debug("신규 등록 학생의 오늘의 미션 생성 : ispStudInfo 호출 : " + newStudInfoMap);
+						
+						paramMap.put("studType", realTimeStud_studType);
+						paramMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : studInfo.get("grade")));
+						
+				        if(newStudCnt > 0) {
+							// 3-1. 신규 등록 학생의 오늘의 미션 생성
+				        	if(newStudInfoMap.containsKey("lrnStatusCd")) {
+				        		commonMapperLrnLog.insert(newStudInfoMap, "LrnLog.ispChMisDailyAddMission");
+								LOGGER.debug("신규 등록 학생의 오늘의 미션 생성 : ispChMisDailyAddMission 호출 : " + newStudInfoMap);
 				        	}
 				        }
 					} else {
-						
-						paramMap.put("studType", studInfo.get("studType"));
-						paramMap.put("grade", studInfo.get("grade"));
 						// 실시간(realTimeStudInfo) 초등 상품 등록한 학생 정보 조회하여 db(studInfo)와 차이 있으면 갱신!!
-						if(realTimeStudInfo != null && realTimeStudInfo.size() > 0 && realTimeStudInfo.get("planDiv").toString().equals("E")) {
+						if(realTimeStudInfo != null && realTimeStudInfo.size() > 0) {
+
 	//						"grade": 2,
 	//				        "divCd": 10003,
 	//				        "divCdNm": "정회원",
@@ -156,25 +156,26 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 	//				        "statusCdNm": "학습 진행",
 	//				        "planDiv": "E",
 	//				        "startDe": "2022-09-16"
-							//학년, 학습상태코드, 학습시작일 비교하여 학생정보 갱신
-							if((realTimeStudInfo.containsKey("grade") && studInfo.get("grade").toString() != realTimeStudInfo.get("grade").toString())
-								|| (realTimeStudInfo.containsKey("statusCd") && Integer.parseInt(studInfo.get("studType").toString()) != realTimeStud_studType)
-								|| (realTimeStudInfo.containsKey("startDe") && studInfo.get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
+							//초-중등 구분(서비스대체키), 학년, 학습상태코드, 학습시작일 비교하여 학생정보 갱신
+							if((realTimeStudInfo.containsKey("planDiv") && !realTimeStudInfo.get("planDiv").toString().equals("E"))
+								|| (realTimeStudInfo.containsKey("grade") && studInfo.containsKey("grade") && studInfo.get("grade").toString() != realTimeStudInfo.get("grade").toString())
+								|| (realTimeStudInfo.containsKey("statusCd") && studInfo.containsKey("lrnStsCd") && studInfo.get("lrnStsCd").toString() != realTimeStud_LrnStatusCd)
+								|| (realTimeStudInfo.containsKey("startDe") && studInfo.containsKey("sttDt") && studInfo.get("sttDt").toString() != realTimeStudInfo.get("startDe").toString())
 							) {
 
-				        		LOGGER.debug("studType : "+ studInfo.get("studType"));
+				        		LOGGER.debug("lrnStsCd : "+ studInfo.get("lrnStsCd"));
 				        		LOGGER.debug("grade : "+ studInfo.get("grade"));
 				        		LOGGER.debug("sttDt : "+ studInfo.get("sttDt").toString() );
 				        		LOGGER.debug("db 학생 정보와 다를 시 갱신 호출");
 
-				        		LOGGER.debug("studType : "+  realTimeStud_studType);
+				        		LOGGER.debug("statusCd : "+  realTimeStud_LrnStatusCd);
 				        		LOGGER.debug("grade : "+ realTimeStudInfo.get("grade").toString());
 				        		LOGGER.debug("startDe : "+realTimeStudInfo.get("startDe").toString());
 
 								// db 학생 정보와 다를 시 갱신 호출
 								Map<String, Object> resetStudInfoMap = new HashMap<>();			        
 								resetStudInfoMap.put("studId", realTimeStudInfo.get("stuId"));					        	       	
-								resetStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):4));
+								resetStudInfoMap.put("ssvcAkey", (realTimeStudInfo.containsKey("planDiv")?(realTimeStudInfo.get("planDiv").toString().equals("E")?4:3):-1));
 								resetStudInfoMap.put("grade", (realTimeStudInfo.containsKey("grade") ? Integer.parseInt(realTimeStudInfo.get("grade").toString()) : null));
 								resetStudInfoMap.put("lrnStatusCd", realTimeStud_LrnStatusCd);
 								resetStudInfoMap.put("lrnStatusNm", (realTimeStudInfo.containsKey("statusCdNm") ? realTimeStudInfo.get("statusCdNm").toString() : null));
@@ -183,19 +184,21 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 
 				        		commonMapperLrnLog.insert(resetStudInfoMap, "LrnLog.uspStudInfo");
 								newStudCnt = Integer.valueOf(resetStudInfoMap.get("outResultCnt").toString());
-				        	
-								paramMap.put("studType", (realTimeStud_LrnStatusCd == 1007 ? 1 : (realTimeStud_LrnStatusCd == 1003 ? 0 : -1)) );
-								paramMap.put("grade", Integer.parseInt(realTimeStudInfo.get("grade").toString()));
-							
-
-				        		LOGGER.debug("studType : "+ paramMap.get("studType"));
-				        		LOGGER.debug("grade : "+ paramMap.get("grade"));
+								LOGGER.debug("db 학생 정보와 실시간 정보 불일치 - 갱신 : uspStudInfo 호출 : " + resetStudInfoMap);
+				        		LOGGER.debug("studType : "+ paramMap.get("studType") + " -> " + realTimeStud_studType);
+				        		LOGGER.debug("grade : "+ paramMap.get("grade") + " -> " + resetStudInfoMap.get("grade"));
+								paramMap.put("studType", realTimeStud_studType);
+								paramMap.put("grade", resetStudInfoMap.get("grade"));
 					        	
 							} else {
 				        		LOGGER.debug("db 학생 정보와 실시간 정보 동일");
+								paramMap.put("studType", studInfo.get("studType"));
+								paramMap.put("grade", studInfo.get("grade"));
 							}
 						} else {
-							LOGGER.debug("db 학생 정보와 실시간 정보 체크 외 기타.");	
+							paramMap.put("studType", studInfo.get("studType"));
+							paramMap.put("grade", studInfo.get("grade"));
+							LOGGER.debug("학생정보 실시간 조회 실패");	
 						}
 	
 		        		LOGGER.debug("token 체크 : 실시간 미션 갱신용");
@@ -208,9 +211,10 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 							
 							// 3. 미션 실시간 정보 call api -> 등록
 							// 홈런 API 조회
-							paramMap.put("token", req.getHeader("token").toString());
-							paramMap.put("apiName","studyStatus");
-							missionCondition = (Map<String, Object>) externalAPIservice.callExternalAPI(paramMap).get("data");	
+							Map<String, Object> missionConditionMap = new HashMap<>();			
+							missionConditionMap.put("token", req.getHeader("token").toString());
+							missionConditionMap.put("apiName","studyStatus");
+							missionCondition = (Map<String, Object>) externalAPIservice.callExternalAPI(missionConditionMap).get("data");	
 							if(missionCondition != null) {
 							
 	//							"data": {
@@ -230,10 +234,35 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 							}
 						}
 					}
-				} 
+    			} catch(Exception e) {
+    				String strResultMsg = null;
+    				LinkedHashMap message = new LinkedHashMap();			
+    				String[] errorMsgList = e.getMessage().split(": ");
+					
+					strResultMsg = "실시간 갱신 failed [ " + e.getMessage()+ " ]";
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("result", strResultMsg);
+					setResult(msgKey, message);
+					try {
+						JSONObject jsonMap = new JSONObject();
+						Date nowDate = new Date();
+						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+						
+						jsonMap.putAll(paramMap);
+						Map<String, Object> paramMap2 = new LinkedHashMap();
+						paramMap2.put("inProcName", "setRealTimeComplete");
+						paramMap2.put("inProcStep", 0);
+						paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+						paramMap2.put("inParam", jsonMap.toJSONString());
+						paramMap2.put("inErrorNo", 0);
+						paramMap2.put("inErrorTitle", "error");
+						paramMap2.put("inErrorMsg", strResultMsg);
+						commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+					} catch(Exception e2) {}
+    			}
 			}
 			
-			if(paramMap.get("chCd").toString().equals("MLG") && stud_planDiv != null && stud_planDiv.equals("M")) {
+			if(paramMap.get("chCd").toString().equals("MLG") && (realTimeStudInfo.containsKey("planDiv") && realTimeStudInfo.get("planDiv").toString().equals("M"))) {
 				// 로그인이자 중등인 상품은 미션 해당 없음!!
 				LinkedHashMap message = new LinkedHashMap();			
 				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
@@ -369,12 +398,12 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 			setResult(msgKey, vu.getResult());
 		}
 		
-		System.out.println("setRealTimeCompleteMission - result : " + result);
+		LOGGER.debug("setRealTimeCompleteMission - result : " + result);
 		
 		return result;
 	}
 
-	private Integer getDivCdToLrnStatusCd(Map<String, Object> realTimeStudInfo) {
+	private String getDivCdToLrnStatusCd(Map<String, Object> realTimeStudInfo) {
 		//    	divCd 회원상태 : 10002 : 체험진행 -> 체험회원  
 		//		10007(학습진행), 10008(학습중지) -> 정회원
 		//statusCd	statusCdNm
@@ -400,9 +429,12 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		//1008	LRN_STT_CD	학습 중지-휴지
 		//1009	LRN_STT_CD	학습 중지-환불
 		//1010	LRN_STT_CD	학습 중지-미납
+		//3000	LRN_STT_CD	중등상품 변경에 따른 만료	2022-09-27 추가~
 		// 추후 매칭 테이블로 관리 예정.
+		if(realTimeStudInfo.containsKey("planDiv") && !realTimeStudInfo.get("planDiv").toString().equals("E"))
+			return "3000";
 		return realTimeStudInfo.containsKey("statusCd") ? 
-				Integer.parseInt(realTimeStudInfo.get("statusCd").toString()
+				realTimeStudInfo.get("statusCd").toString()
 						.replace("10001","1000")
 						.replace("10002","1003")
 						.replace("10003","1002")
@@ -412,7 +444,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 						.replace("10007","1007")
 						.replace("10008","1008")
 						.replace("10009","1006")
-						.replace("10010","1000")) : null;
+						.replace("10010","1000") : null;
 	}
 	
 	@Override
