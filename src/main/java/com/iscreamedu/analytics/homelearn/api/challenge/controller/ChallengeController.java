@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,6 +23,7 @@ import com.iscreamedu.analytics.homelearn.api.challenge.service.ChallengeService
 
 @RestController
 @RequestMapping("/stud-chl")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ChallengeController {
 	
 	@Autowired
@@ -33,8 +35,8 @@ public class ChallengeController {
 	public ChallengeController() {
 		headers = new HttpHeaders();
         headers.setContentType(new MediaType("application","json"));
-        headers.setAccessControlAllowOrigin("*");
-        headers.setAccessControlAllowCredentials(true);
+//        headers.setAccessControlAllowOrigin("*");
+//        headers.setAccessControlAllowCredentials(true);
         headers.setCacheControl(CacheControl.noCache());
         headers.setCacheControl(CacheControl.noStore().mustRevalidate());
         headers.setExpires(0);
