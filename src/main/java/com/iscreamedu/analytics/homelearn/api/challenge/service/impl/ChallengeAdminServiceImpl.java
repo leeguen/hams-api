@@ -352,7 +352,27 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					setExceptionErrorMessage();
 				}
 			} else {
-				setNoDataMessage();
+				//setNoDataMessage();
+				try {
+					String rewardNm = "-";
+					
+					/*Map<String,Object> defaultMap = new LinkedHashMap<>();
+					
+					defaultMap.put("chCd", null);
+					defaultMap.put("misNm", null);
+					defaultMap.put("misStatusCd", null);
+					defaultMap.put("misCompDttm", null);
+					
+					habitList.add(defaultMap);*/
+					habitList = null;
+					
+					//data.put("rewardNm", rewardNm);
+					data.put("habitList", habitList);
+					setResult(dataKey, data);
+				} catch (Exception e) {
+					System.out.println("getChHabitMisStt Error : " + e);
+					setExceptionErrorMessage();
+				}
 			}
 		} else {
 			setResult(msgKey, vu.getResult());
