@@ -341,7 +341,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					
 					String rewardNm = "-";
 					if(waterDropData != null) {
-						rewardNm = (waterDropData.get("waterDropData") != null ) ? waterDropData.get("waterDropData").toString() : "-";
+						rewardNm = (waterDropData.get("rewardNm") != null ) ? waterDropData.get("rewardNm").toString() : "-";
 					}
 					
 					data.put("rewardNm", rewardNm);
