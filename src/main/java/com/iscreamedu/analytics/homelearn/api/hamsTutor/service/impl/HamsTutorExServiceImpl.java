@@ -253,8 +253,8 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     			paramData.put("page", "1");
     			paramData.put("size", "3");
     			
-    			apiMap =  (LinkedHashMap<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
-    			bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
+    			//apiMap =  (LinkedHashMap<String, Object>) externalAPIservice.callExternalAPI(paramData).get("data");
+    			//bookCnt = Integer.valueOf(apiMap.get("numberOfElements").toString()); // !!
     			
     			if(bookCnt == 0) {
     				if(positivePointCnt == 0) {
