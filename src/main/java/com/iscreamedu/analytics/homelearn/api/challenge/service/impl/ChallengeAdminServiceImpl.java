@@ -611,7 +611,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				
 				String sttYymm = paramMap.get("yyyy").toString() + "01";
 				int startYymm = Integer.parseInt(sttYymm);
-				int endYymm = getEndYymm(paramMap.get("yyyy").toString()); 
+				int endYymm = getEndYymmForMeta(paramMap.get("yyyy").toString()); 
 				
 				paramMap.put("startYymm", startYymm);
 				paramMap.put("endYymm", endYymm);
@@ -966,6 +966,31 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 		
 		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
     	month.add(Calendar.MONTH , 0);
+        String edYyyy = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+        String edYymms = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
+        String edYymm = yyyy+"12";
+        
+        int endYymms = Integer.parseInt(edYymms);
+        int endYymm = Integer.parseInt(edYymm);
+        
+        if(yyyy.equals(edYyyy)) {
+        	if(endYymms < endYymm) {
+        		yymm = endYymms;
+        	} else {
+        		yymm = endYymm;
+        	}
+        } else {
+        	yymm = endYymm;
+        }
+		
+		return yymm;
+	}
+	
+	private int getEndYymmForMeta(String yyyy) {
+		int yymm = 0;
+		
+		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
+    	month.add(Calendar.MONTH , -1);
         String edYyyy = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
         String edYymms = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
         String edYymm = yyyy+"12";
