@@ -246,7 +246,72 @@ public class ChallengeServiceImpl implements ChallengeService {
 		
 			cluList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeClu");
 			if(cluList != null && cluList.size() > 0) {
-				data.put("cluList", cluList);
+				for(Map<String, Object> item : cluList) {		
+		        	if(item.get("chCd").toString().equals("MMC")) {
+		        		// �닔�븰�쓽 �꽭�룷�뱾 �떎�떆媛� 議고쉶
+		        		Map<String, Object> extParamMap = new HashMap<>();
+		        		extParamMap.put("apiName", "chlg/");
+		        		extParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+		        		Date nowDate = new Date();
+		        		SimpleDateFormat sdf = new SimpleDateFormat("yyMM");
+		        		String strYymm = sdf.format(nowDate);
+		        		extParamMap.put("yymm", strYymm);
+		        		Map<String, Object> cluList_mmc = new HashMap<>();
+		        		cluList_mmc =  (Map<String, Object>) externalAPIservice.callExternalAPI(extParamMap).get("data");	
+		        		try {
+			        		if(cluList_mmc != null) {
+								/*
+								 * "data": { "mcStudStatus": "결과확인", "mcStudType": 1, "periodData": 2,
+								 * "progressData": { "totalMissionNmb": 80, "solvedQuestionNmb": 20,
+								 * "trueQuestionNmb": 9, "falseQuestionNmb": 11, "progressRate": 0.25 } }
+								 */
+			        			// cluList_mmc.get("mcStudType") // 수학세포 등록 타입 (1- 혼자하기, 2-함께하기)
+								/*
+								0	MIS_STATUS	미션 시작전/기간종료
+								1	MIS_STATUS	미션 진행중
+								2	MIS_STATUS	미션 완료/성공
+								3	MIS_STATUS	미완료/실패종료
+								4	MIS_STATUS	미션 종료
+								5	MIS_STATUS	미션대기/신청완료
+								6	MIS_STATUS	미션종료/결과확인
+								-1	MIS_STATUS	미션 시작전
+								*/
+			        			if(cluList_mmc.get("mcStudType").toString().equals("2")) {		// 수학세포 등록 타입 (1- 혼자하기, 2-함께하기)
+			        				if(cluList_mmc.get("periodData").toString().equals("2")) {	// 수학세포 기간 정보 (0: 신청기간, 1: 학습기간, 2: 결과기간)
+					        			item.put("stepStatusCd", 6);
+					        			item.put("stepStatusCdNm", "결과확인");		
+				        			} else if(cluList_mmc.get("periodData").toString().equals("1")) {
+					        			item.put("stepStatusCd", 1);	
+					        			item.put("stepStatusCdNm", "진행중");	
+				        			} else if(cluList_mmc.get("periodData").toString().equals("0")) {
+				        				if(cluList_mmc.get("mcStudStatus").toString().equals("신청")) {
+						        			item.put("stepStatusCd", 5);	
+						        			item.put("stepStatusCdNm", "신청완료");		
+				        				} else {
+				        					item.put("stepStatusCd", -1);	
+						        			item.put("stepStatusCdNm", "신청하기");		
+				        				}
+				        			}
+			        			} else { 
+			        				if(cluList_mmc.get("mcStudStatus").toString().equals("")) {
+					        			item.put("stepStatusCd", 1);	
+					        			item.put("stepStatusCdNm", "시작하기");		
+			        				} else {
+			        					item.put("stepStatusCd", -1);	
+					        			item.put("stepStatusCdNm", "시작하기");		
+			        				}
+			        			}
+			        			Map<String, Object> cluList_mmc_progressData= (Map<String, Object>)cluList_mmc.get("progressData");
+			        			item.put("misTotalCnt", cluList_mmc_progressData.get("totalMissionNmb"));	
+			        			item.put("compTotalCnt", cluList_mmc_progressData.get("solvedQuestionNmb"));	
+			        			item.put("progressRate", cluList_mmc_progressData.get("progressRate"));	
+			        		}
+		        		} catch(Exception e) {
+		        			LOGGER.debug("getChStepUpMissionInfo .. error : " + e.getMessage());
+		        		}
+		        	}
+		        }
+		        data.put("cluList", cluList);
 				setResult(dataKey, data);					
 			} else {
 				setNoDataMessage();
@@ -276,8 +341,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 //       		"misStep":1,
 //				"misStatusCd":-1,
 //				"misStartDt":null
-//    }
-		
+//      }
 		
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId"}, paramMap);
