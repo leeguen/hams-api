@@ -209,9 +209,219 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				Map<String, Object> korMap = new LinkedHashMap<>();
 				Map<String, Object> engMap = new LinkedHashMap<>();
 				Map<String, Object> mathMap = new LinkedHashMap<>();
+				ArrayList<Map<String, Object>> korBookMisList = new ArrayList<>();
+				ArrayList<Map<String, Object>> mathCellMisList = new ArrayList<>();
+				ArrayList<Map<String, Object>> engBookMisList = new ArrayList<>();
+
+				String currYy =  LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyy"));
+				String currYyyymm =  LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyyMM"));
+				String sttYymm = currYy + "01";
+				int startYymm = Integer.parseInt(sttYymm);
+		        int endYymm = Integer.parseInt(currYyyymm);
+		        String today = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+				
+		        /*한글 독서습관*/
+				try {
+					korMap.put("chCd", chlData.get("korChCd"));
+					korMap.put("chNm", chlData.get("korChNm"));
+					
+					Map<String, Object> korParamMap = new HashMap<>();
+			        
+			        korParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+			        korParamMap.put("today", Integer.parseInt(today));
+			        korParamMap.put("startYymm", startYymm);
+					korParamMap.put("endYymm", endYymm);
+					korParamMap.put("cd", chlData.get("korChCd"));
+					
+					ArrayList<Map<String, Object>> korMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(korParamMap, "LrnLogAdm.spAdminChallengeMisList");
+					if(korMisList.size() > 0) {
+						for(Map<String, Object> bookMisItem : korMisList) {
+							Map<String, Object> korMisMap = new LinkedHashMap<>();
+							
+							korMisMap.put("misStep", bookMisItem.get("misStep") + "단계");
+							korMisMap.put("misStepStatusCd", bookMisItem.get("sttCd"));
+							korMisMap.put("misTotalCnt", bookMisItem.get("totalCnt"));
+							korMisMap.put("misCompCnt", bookMisItem.get("fnshCnt"));
+							korMisMap.put("rewardNm", bookMisItem.get("rewardNo"));
+							
+							Map<String, Object> korBookParam = new HashMap<>();
+							korBookParam.put("chCd", chlData.get("korChCd"));
+							korBookParam.put("grade", bookMisItem.get("grade"));
+							korBookParam.put("misStep", bookMisItem.get("misStep"));
+							korBookParam.put("misNo", bookMisItem.get("step"));
+							
+							ArrayList<Map<String, Object>> korBookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(korBookParam, "LrnLogAdm.spAdminChallengeBookList");
+							ArrayList<String> korBookNmList = new ArrayList<>();
+							
+							/*한글 독서습관 완료한 책 제목 데이터*/
+							for(Map<String, Object> bookItem : korBookList) {
+								String bookNm = (bookItem.get("bookNm") != null) ? bookItem.get("bookNm").toString() : null;
+								
+								if(bookNm != null) {
+									korBookNmList.add(bookNm);
+								}
+							}
+							
+							korMisMap.put("compList", korBookNmList);
+							korBookMisList.add(korMisMap);
+						}
+						
+						korMap.put("misList", korBookMisList);
+						
+					} else {
+						korMap.put("chCd", chlData.get("korChCd"));
+						korMap.put("chNm", chlData.get("korChNm"));
+						
+						Map<String, Object> korDefaulMap = new LinkedHashMap<>();
+						
+						korDefaulMap.put("misStep", null);
+						korDefaulMap.put("misStepStatusCd", -1);
+						korDefaulMap.put("misTotalCnt", null);
+						korDefaulMap.put("misCompCnt", null);
+						korDefaulMap.put("rewardNm", chlData.get("korRewardNo"));
+						korDefaulMap.put("compList", new ArrayList<>());
+						
+						korBookMisList.add(korDefaulMap);
+						
+						korMap.put("misList", korBookMisList);
+					}
+					
+				} catch (Exception e) {
+					System.out.println("getChStepUpMisStt > korBook Error : " + e);
+					/*korMap.put("chCd", chlData.get("korChCd"));
+					korMap.put("chNm", chlData.get("korChNm"));
+					
+					Map<String, Object> korDefaulMap = new LinkedHashMap<>();
+					
+					korDefaulMap.put("misStep", null);
+					korDefaulMap.put("misStepStatusCd", chlData.get("korSttCd"));
+					korDefaulMap.put("misTotalCnt", null);
+					korDefaulMap.put("misCompCnt", null);
+					korDefaulMap.put("rewardNm", chlData.get("korRewardNo"));
+					korDefaulMap.put("compList", new ArrayList<>());
+					
+					korBookMisList.add(korDefaulMap);
+					
+					korMap.put("misList", korBookMisList);*/
+				}
+				
+				/*수학의 세포들*/
+				try {
+					mathMap.put("chCd", chlData.get("mathChCd"));
+					mathMap.put("chNm", chlData.get("mathChNm"));
+					
+					Map<String, Object> mathParamMap = new HashMap<>();
+			        
+					mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+					mathParamMap.put("today", Integer.parseInt(today));
+					mathParamMap.put("startYymm", startYymm);
+			        mathParamMap.put("endYymm", endYymm);
+			        mathParamMap.put("cd", chlData.get("mathChCd"));
+					
+					Map<String, Object> mathMisList = (Map<String, Object>) commonMapperLrnLog.get(mathParamMap, "LrnLogAdm.spAdminChallengeMisList");
+					if(mathMisList != null) {
+						mathMap.put("chCd", chlData.get("mathChCd"));
+						mathMap.put("chNm", chlData.get("mathChNm"));
+						mathMap.put("misStep", chlData.get("misStep") + "월");
+						mathMap.put("misStepStatusCd", chlData.get("sttCd"));
+						mathMap.put("misTotalCnt", chlData.get("totalCnt"));
+						mathMap.put("misCompCnt", chlData.get("fnshCnt"));
+						mathMap.put("rewardNm", chlData.get("rewardNo"));
+						mathMap.put("compList", new ArrayList<>());
+						
+					} else {
+						mathMap.put("chCd", chlData.get("mathChCd"));
+						mathMap.put("chNm", chlData.get("mathChNm"));
+						mathMap.put("misStep", null);
+						mathMap.put("misStepStatusCd", -1);
+						mathMap.put("misTotalCnt", null);
+						mathMap.put("misCompCnt", null);
+						mathMap.put("rewardNm", "-");
+						mathMap.put("compList", new ArrayList<>());
+					}
+					
+				} catch (Exception e) {
+					System.out.println("getChStepUpMisStt > mathCell Error : " + e);
+				}
 				
 				try {
-					/*한글 독서습관 챌린지 데이터*/
+					engMap.put("chCd", chlData.get("engChCd"));
+					engMap.put("chNm", chlData.get("engChNm"));
+					
+					Map<String, Object> engParamMap = new HashMap<>();
+			        
+					engParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+					engParamMap.put("today", Integer.parseInt(today));
+			        engParamMap.put("startYymm", startYymm);
+			        engParamMap.put("endYymm", endYymm);
+			        engParamMap.put("cd", chlData.get("engChCd"));
+					
+					ArrayList<Map<String, Object>> engMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(engParamMap, "LrnLogAdm.spAdminChallengeMisList");
+					if(engMisList.size() > 0) {
+						for(Map<String, Object> bookMisItem : engMisList) {
+							Map<String, Object> engMisMap = new LinkedHashMap<>();
+							
+							engMisMap.put("misStep", bookMisItem.get("misStep") + "단계");
+							engMisMap.put("misStepStatusCd", bookMisItem.get("sttCd"));
+							engMisMap.put("misTotalCnt", bookMisItem.get("totalCnt"));
+							engMisMap.put("misCompCnt", bookMisItem.get("fnshCnt"));
+							engMisMap.put("rewardNm", bookMisItem.get("rewardNo"));
+							
+							Map<String, Object> engBookParam = new HashMap<>();
+							engBookParam.put("chCd", chlData.get("engChCd"));
+							engBookParam.put("grade", bookMisItem.get("grade"));
+							engBookParam.put("misStep", bookMisItem.get("misStep"));
+							engBookParam.put("misNo", bookMisItem.get("step"));
+							
+							ArrayList<Map<String, Object>> engBookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(engBookParam, "LrnLogAdm.spAdminChallengeBookList");
+							ArrayList<String> engBookNmList = new ArrayList<>();
+							
+							/*한글 독서습관 완료한 책 제목 데이터*/
+							for(Map<String, Object> bookItem : engBookList) {
+								String bookNm = (bookItem.get("bookNm") != null) ? bookItem.get("bookNm").toString() : null;
+								
+								if(bookNm != null) {
+									engBookNmList.add(bookNm);
+								}
+							}
+							
+							engMisMap.put("compList", engBookNmList);
+							engBookMisList.add(engMisMap);
+						}
+						
+						engMap.put("misList", engBookMisList);
+						
+					} else {
+						engMap.put("chCd", chlData.get("engChCd"));
+						engMap.put("chNm", chlData.get("engChNm"));
+						
+						Map<String, Object> engDefaulMap = new LinkedHashMap<>();
+						
+						engDefaulMap.put("misStep", null);
+						engDefaulMap.put("misStepStatusCd", -1);
+						engDefaulMap.put("misTotalCnt", null);
+						engDefaulMap.put("misCompCnt", null);
+						engDefaulMap.put("rewardNm", "-");
+						engDefaulMap.put("compList", new ArrayList<>());
+						
+						engBookMisList.add(engDefaulMap);
+						
+						engMap.put("misList", engBookMisList);
+					}
+					
+				} catch (Exception e) {
+					System.out.println("getChStepUpMisStt > engBook Error : " + e);
+				}
+				
+				misList.add(mathMap);
+				misList.add(korMap);
+				misList.add(engMap);
+				
+				data.put("misList", misList);
+				setResult(dataKey, data);
+				
+				/*try {
+					한글 독서습관 챌린지 데이터
 					if(chlData.get("korStep") != null) {
 						korMap.put("chCd", chlData.get("korChCd"));
 						korMap.put("chNm", chlData.get("korChNm"));
@@ -230,7 +440,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						ArrayList<Map<String, Object>> korBookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLogAdm.spAdminChallengeBookList");
 						ArrayList<String> korBookNmList = new ArrayList<>();
 						
-						/*한글 독서습관 완료한 책 제목 데이터*/
+						한글 독서습관 완료한 책 제목 데이터
 						for(Map<String, Object> bookItem : korBookList) {
 							String bookNm = (bookItem.get("bookNm") != null) ? bookItem.get("bookNm").toString() : null;
 							
@@ -251,7 +461,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						korMap.put("compList", new ArrayList<>());
 					}
 					
-					/*수학의 세포들 챌린지 데이터*/
+					수학의 세포들 챌린지 데이터
 					if(chlData.get("mathStep") != null) {
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
@@ -273,7 +483,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						mathMap.put("compList", new ArrayList<>());
 					}
 					
-					/*영어 독서습관 챌린지 데이터*/
+					영어 독서습관 챌린지 데이터
 					if(chlData.get("engStep") != null) {
 						engMap.put("chCd", chlData.get("engChCd"));
 						engMap.put("chNm", chlData.get("engChNm"));
@@ -304,7 +514,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				} catch (Exception e) {
 					System.out.println("getChStepUpMisStt Error : " + e);
 					setExceptionErrorMessage();
-				}
+				}*/
 				
 			} else {
 				setNoDataMessage();
@@ -533,7 +743,9 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				String sttYymm = paramMap.get("yyyy").toString() + "01";
 				int startYymm = Integer.parseInt(sttYymm);
 		        int endYymm = getEndYymm(paramMap.get("yyyy").toString());
-				
+		        String today = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+		        
+		        paramMap.put("today", Integer.parseInt(today));
 				paramMap.put("startYymm", startYymm);
 				paramMap.put("endYymm", endYymm);
 				
@@ -753,7 +965,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 		int yymm = 0;
 		
 		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"));
-    	month.add(Calendar.MONTH , -1);
+    	month.add(Calendar.MONTH , 0);
         String edYyyy = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
         String edYymms = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
         String edYymm = yyyy+"12";

@@ -31,6 +31,16 @@
 		 )}
 	</select>
 	
+	<select id="spAdminChallengeMisList" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_challenge_list (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER},
+			  #{cd, mode=IN, jdbcType=VARCHAR}
+		 )}
+	</select>
+	
 	<select id="spAdminChallengeBookList" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_admin_challenge_book_list (
 			  #{chCd, mode=IN, jdbcType=VARCHAR},
@@ -91,6 +101,7 @@
 			  #{studId, mode=IN, jdbcType=INTEGER},
 			  #{startYymm, mode=IN, jdbcType=INTEGER},
 			  #{endYymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER},
 			  #{chCd, mode=IN, jdbcType=VARCHAR}
 		 )}
 	</select>
