@@ -792,24 +792,22 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
     	
     	ValidationUtil vu = new ValidationUtil();
         
-        /*vu.checkRequired(new String[] {"studId", "yymm", "term"}, paramMap);
+        vu.checkRequired(new String[] {"studId"}, paramMap);
         
         if(vu.isValid()) {
-        	vu1.checkRequired(new String[] {"yymm", "term"}, paramMap);
-        	
-        		int studId = Integer.valueOf(paramMap.get("studId").toString());
+        	ArrayList<Map<String,Object>> visionReportList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftList");
+            
+            data.put("reportCnt", visionReportList.size());
+            data.put("reportList", visionReportList);
+            
+            setResult(dataKey,data);
         } else {
-        	
-        }*/
+        	setResult(msgKey, vu.getResult());
+        }
         
-        paramMap.put("studId", 4995);
+        //paramMap.put("studId", 4995);
         
-        ArrayList<Map<String,Object>> visionReportList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftList");
         
-        data.put("reportCnt", visionReportList.size());
-        data.put("reportList", visionReportList);
-        
-        setResult(dataKey,data);
 
         //리턴
         return result;
@@ -823,72 +821,75 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        /*vu.checkRequired(new String[] {"studId", "yymm", "term"}, paramMap);
+        vu.checkRequired(new String[] {"studId", "yymm", "term"}, paramMap);
         
         if(vu.isValid()) {
         	vu1.checkRequired(new String[] {"yymm", "term"}, paramMap);
         	
-        	if(vu.isValid()) {
+        	if(vu1.isValid()) {
         		int studId = Integer.valueOf(paramMap.get("studId").toString());
+        		paramMap.put("studId", studId);
+        		
+        		data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
+                
+                String term = paramMap.get("term").toString();
+                String yymm = paramMap.get("yymm").toString().substring(0,4);
+                
+                if(term.equals("1")) {
+                	
+                	paramMap.put("startYymm", Integer.parseInt(yymm+"01"));
+                	paramMap.put("endYymm", Integer.parseInt(yymm+"07"));
+                } else {
+                	paramMap.put("startYymm", Integer.parseInt(yymm+"08"));
+                	paramMap.put("endYymm", Integer.parseInt(yymm+"12"));
+                }
+                
+                Map<String, Object> lrnTypeData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "HamsTutorNft.selectLrnTypeInfoForNft");
+                ArrayList<Map<String,Object>> attRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftAttRt");
+                ArrayList<Map<String,Object>> exRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftExRt");
+                ArrayList<Map<String,Object>> crtRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftCrtRt");
+                
+                ArrayList<Object> attRt = new ArrayList<>();
+                ArrayList<Object> exRt = new ArrayList<>();
+                ArrayList<Object> crtRt = new ArrayList<>();
+                
+                for(Map<String, Object> attRtItem : attRtList) {
+                	attRt.add(attRtItem.get("attRt"));
+                }
+                
+                for(Map<String, Object> exRtItem : exRtList) {
+                	exRt.add(exRtItem.get("exRt"));
+                }
+                
+                for(Map<String, Object> crtRtItem : crtRtList) {
+                	crtRt.add(crtRtItem.get("crtRt"));
+                }
+                
+                if(lrnTypeData != null) {
+                	data.put("lrnTypeNm", lrnTypeData.get("lrnTypeCd"));
+                	data.put("lrnTypeImg", lrnTypeData.get("lrnTypeImg"));
+                } else {
+                	data.put("lrnTypeNm", null);
+                	data.put("lrnTypeImg", null);
+                }
+                
+                
+                data.put("attRtList", attRt);
+                data.put("exRtList", exRt);
+                data.put("crtRtList", crtRt);
+                
+                
+                setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, vu1.getResult());
         	}
         } else {
-        	
-        }*/
+        	setResult(msgKey, vu.getResult());
+        }
         
-        paramMap.put("studId", 4995);
+        /*paramMap.put("studId", 4995);
         paramMap.put("yymm", 202207);
-        paramMap.put("term", 1);
-        
-        data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
-        
-        String term = paramMap.get("term").toString();
-        String yymm = paramMap.get("yymm").toString().substring(0,4);
-        
-        if(term.equals("1")) {
-        	
-        	paramMap.put("startYymm", Integer.parseInt(yymm+"01"));
-        	paramMap.put("endYymm", Integer.parseInt(yymm+"07"));
-        } else {
-        	paramMap.put("startYymm", Integer.parseInt(yymm+"08"));
-        	paramMap.put("endYymm", Integer.parseInt(yymm+"12"));
-        }
-        
-        Map<String, Object> lrnTypeData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "HamsTutorNft.selectLrnTypeInfoForNft");
-        ArrayList<Map<String,Object>> attRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftAttRt");
-        ArrayList<Map<String,Object>> exRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftExRt");
-        ArrayList<Map<String,Object>> crtRtList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftCrtRt");
-        
-        ArrayList<Object> attRt = new ArrayList<>();
-        ArrayList<Object> exRt = new ArrayList<>();
-        ArrayList<Object> crtRt = new ArrayList<>();
-        
-        for(Map<String, Object> attRtItem : attRtList) {
-        	attRt.add(attRtItem.get("attRt"));
-        }
-        
-        for(Map<String, Object> exRtItem : exRtList) {
-        	exRt.add(exRtItem.get("exRt"));
-        }
-        
-        for(Map<String, Object> crtRtItem : crtRtList) {
-        	crtRt.add(crtRtItem.get("crtRt"));
-        }
-        
-        if(lrnTypeData != null) {
-        	data.put("lrnTypeNm", lrnTypeData.get("lrnTypeCd"));
-        	data.put("lrnTypeImg", lrnTypeData.get("lrnTypeImg"));
-        } else {
-        	data.put("lrnTypeNm", null);
-        	data.put("lrnTypeImg", null);
-        }
-        
-        
-        data.put("attRtList", attRt);
-        data.put("exRtList", exRt);
-        data.put("crtRtList", crtRt);
-        
-        
-        setResult(dataKey,data);
+        paramMap.put("term", 1);*/
 
         //리턴
         return result;

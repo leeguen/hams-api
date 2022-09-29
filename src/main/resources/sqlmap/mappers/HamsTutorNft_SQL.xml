@@ -45,42 +45,99 @@
     </select>
     
     <select id="selectVisionNftAttRt" parameterType="hashMap" resultType="resultMap">
-		SELECT
-			ATT_RT
-		FROM MONTH_ATT_STT
-		WHERE YYMM IN (
+    	SELECT
+			A.YYMM,
+		    IFNULL(B.ATT_RT,0) AS ATT_RT
+		FROM (
 			SELECT
-				DISTINCT A.YYMM
-			FROM COMM_WK_DT A
-			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
-		)
-		AND STUD_ID = #{studId};
+				DISTINCT 
+					YYMM
+			FROM COMM_WK_DT
+		    WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+		) A
+		LEFT OUTER JOIN (
+			SELECT
+				YYMM,
+				ATT_RT
+			FROM MONTH_ATT_STT
+			WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+			AND STUD_ID = #{studId}
+		) B ON A.YYMM = B.YYMM
+		ORDER BY A.YYMM;
     </select>
     
     <select id="selectVisionNftExRt" parameterType="hashMap" resultType="resultMap">
-		SELECT
-			CAST(ROUND(PLAN_LRN_EX_CNT / PLAN_CNT * 100) AS UNSIGNED) AS EX_RT
-		FROM MONTH_LRN_EX_STT
-		WHERE YYMM IN (
+    	SELECT
+			A.YYMM,
+		    IFNULL(B.EX_RT,0) AS EX_RT
+		FROM (
 			SELECT
-				DISTINCT A.YYMM
-			FROM COMM_WK_DT A
-			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
-		)
-		AND STUD_ID = #{studId};
+				DISTINCT 
+					YYMM
+			FROM COMM_WK_DT
+		    WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+		) A
+		LEFT OUTER JOIN (
+			SELECT
+				YYMM,
+				CAST(ROUND(PLAN_LRN_EX_CNT / PLAN_CNT * 100) AS UNSIGNED) AS EX_RT
+			FROM MONTH_LRN_EX_STT
+			WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+			AND STUD_ID = #{studId}
+		) B ON A.YYMM = B.YYMM
+		ORDER BY A.YYMM;
     </select>
     
     <select id="selectVisionNftCrtRt" parameterType="hashMap" resultType="resultMap">
-		SELECT
-			CAST(ROUND(CRT_CNT / QUES_CNT * 100) AS UNSIGNED) AS CRT_RT
-		FROM EXAM_MONTH_STT
-		WHERE YYMM IN (
+    	SELECT
+			A.YYMM,
+		    IFNULL(B.CRT_RT,0) AS CRT_RT
+		FROM (
 			SELECT
-				DISTINCT A.YYMM
-			FROM COMM_WK_DT A
-			JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
-		)
-		AND STUD_ID = #{studId};
+				DISTINCT 
+					YYMM
+			FROM COMM_WK_DT
+		    WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+		) A
+		LEFT OUTER JOIN (
+			SELECT
+				YYMM,
+				CAST(ROUND(CRT_CNT / QUES_CNT * 100) AS UNSIGNED) AS CRT_RT
+			FROM EXAM_MONTH_STT
+			WHERE YYMM IN (
+				SELECT
+					DISTINCT A.YYMM
+				FROM COMM_WK_DT A
+				JOIN VS_REPORT_STUD B ON B.YYMM = #{yymm} AND B.TERM = #{term} AND B.STUD_ID = #{studId} AND A.YYMM BETWEEN B.START_YYMM AND B.END_YYMM
+			)
+			AND STUD_ID = #{studId}
+		) B ON A.YYMM = B.YYMM
+		ORDER BY A.YYMM;
     </select>
     
     <select id="selectLrnTypeInfoForNft" parameterType="hashMap" resultType="resultMap">
