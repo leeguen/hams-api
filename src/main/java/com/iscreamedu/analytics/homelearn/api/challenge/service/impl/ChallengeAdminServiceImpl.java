@@ -234,7 +234,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					korParamMap.put("cd", chlData.get("korChCd"));
 					
 					ArrayList<Map<String, Object>> korMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(korParamMap, "LrnLogAdm.spAdminChallengeMisList");
-					if(korMisList.size() > 0) {
+					if(korMisList.size() > 1) {
 						for(Map<String, Object> bookMisItem : korMisList) {
 							Map<String, Object> korMisMap = new LinkedHashMap<>();
 							
@@ -268,11 +268,51 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						
 						korMap.put("misList", korBookMisList);
 						
+					} else if (korMisList.size() == 1) {
+						Map<String, Object> korListIndexOne = korMisList.get(0);
+						
+						if(korListIndexOne.get("misStep") != null) {
+							Map<String, Object> korMisMap = new LinkedHashMap<>();
+							
+							korMisMap.put("misStep", korListIndexOne.get("misStep") + "단계");
+							korMisMap.put("misStepStatusCd", korListIndexOne.get("sttCd"));
+							korMisMap.put("misTotalCnt", korListIndexOne.get("totalCnt"));
+							korMisMap.put("misCompCnt", korListIndexOne.get("fnshCnt"));
+							korMisMap.put("rewardNm", korListIndexOne.get("rewardNo"));
+							
+							Map<String, Object> korBookParam = new HashMap<>();
+							korBookParam.put("chCd", chlData.get("korChCd"));
+							korBookParam.put("grade", korListIndexOne.get("grade"));
+							korBookParam.put("misStep", korListIndexOne.get("misStep"));
+							korBookParam.put("misNo", korListIndexOne.get("step"));
+							
+							ArrayList<Map<String, Object>> korBookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(korBookParam, "LrnLogAdm.spAdminChallengeBookList");
+							ArrayList<String> korBookNmList = new ArrayList<>();
+							
+							/*한글 독서습관 완료한 책 제목 데이터*/
+							for(Map<String, Object> bookItem : korBookList) {
+								String bookNm = (bookItem.get("bookNm") != null) ? bookItem.get("bookNm").toString() : null;
+								
+								if(bookNm != null) {
+									korBookNmList.add(bookNm);
+								}
+							}
+							
+							korMisMap.put("compList", korBookNmList);
+							korBookMisList.add(korMisMap);
+							
+							korMap.put("misList", korBookMisList);
+						} else {
+							korMap.put("chCd", chlData.get("korChCd"));
+							korMap.put("chNm", chlData.get("korChNm"));
+							korMap.put("misList", null);
+						}
+						
 					} else {
 						korMap.put("chCd", chlData.get("korChCd"));
 						korMap.put("chNm", chlData.get("korChNm"));
 						
-						Map<String, Object> korDefaulMap = new LinkedHashMap<>();
+						/*Map<String, Object> korDefaulMap = new LinkedHashMap<>();
 						
 						korDefaulMap.put("misStep", null);
 						korDefaulMap.put("misStepStatusCd", -1);
@@ -281,9 +321,9 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						korDefaulMap.put("rewardNm", chlData.get("korRewardNo"));
 						korDefaulMap.put("compList", new ArrayList<>());
 						
-						korBookMisList.add(korDefaulMap);
+						korBookMisList.add(korDefaulMap);*/
 						
-						korMap.put("misList", korBookMisList);
+						korMap.put("misList", null);
 					}
 					
 				} catch (Exception e) {
@@ -357,7 +397,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 			        engParamMap.put("cd", chlData.get("engChCd"));
 					
 					ArrayList<Map<String, Object>> engMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(engParamMap, "LrnLogAdm.spAdminChallengeMisList");
-					if(engMisList.size() > 0) {
+					if(engMisList.size() > 1) {
 						for(Map<String, Object> bookMisItem : engMisList) {
 							Map<String, Object> engMisMap = new LinkedHashMap<>();
 							
@@ -391,11 +431,51 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						
 						engMap.put("misList", engBookMisList);
 						
+					} else if (engMisList.size() == 1) {
+						Map<String, Object> engListIndexOne = engMisList.get(0);
+						
+						if(engListIndexOne.get("misStep") != null) {
+							Map<String, Object> engMisMap = new LinkedHashMap<>();
+							
+							engMisMap.put("misStep", engListIndexOne.get("misStep") + "단계");
+							engMisMap.put("misStepStatusCd", engListIndexOne.get("sttCd"));
+							engMisMap.put("misTotalCnt", engListIndexOne.get("totalCnt"));
+							engMisMap.put("misCompCnt", engListIndexOne.get("fnshCnt"));
+							engMisMap.put("rewardNm", engListIndexOne.get("rewardNo"));
+							
+							Map<String, Object> engBookParam = new HashMap<>();
+							engBookParam.put("chCd", chlData.get("engChCd"));
+							engBookParam.put("grade", engListIndexOne.get("grade"));
+							engBookParam.put("misStep", engListIndexOne.get("misStep"));
+							engBookParam.put("misNo", engListIndexOne.get("step"));
+							
+							ArrayList<Map<String, Object>> engBookList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(engBookParam, "LrnLogAdm.spAdminChallengeBookList");
+							ArrayList<String> engBookNmList = new ArrayList<>();
+							
+							/*한글 독서습관 완료한 책 제목 데이터*/
+							for(Map<String, Object> bookItem : engBookList) {
+								String bookNm = (bookItem.get("bookNm") != null) ? bookItem.get("bookNm").toString() : null;
+								
+								if(bookNm != null) {
+									engBookNmList.add(bookNm);
+								}
+							}
+							
+							engMisMap.put("compList", engBookNmList);
+							engBookMisList.add(engMisMap);
+							
+							engMap.put("misList", engBookMisList);
+						} else {
+							engMap.put("chCd", chlData.get("engChCd"));
+							engMap.put("chNm", chlData.get("engChNm"));
+							
+							engMap.put("misList", null);
+						}
 					} else {
 						engMap.put("chCd", chlData.get("engChCd"));
 						engMap.put("chNm", chlData.get("engChNm"));
 						
-						Map<String, Object> engDefaulMap = new LinkedHashMap<>();
+						/*Map<String, Object> engDefaulMap = new LinkedHashMap<>();
 						
 						engDefaulMap.put("misStep", null);
 						engDefaulMap.put("misStepStatusCd", -1);
@@ -404,9 +484,9 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						engDefaulMap.put("rewardNm", "-");
 						engDefaulMap.put("compList", new ArrayList<>());
 						
-						engBookMisList.add(engDefaulMap);
+						engBookMisList.add(engDefaulMap);*/
 						
-						engMap.put("misList", engBookMisList);
+						engMap.put("misList", null);
 					}
 					
 				} catch (Exception e) {

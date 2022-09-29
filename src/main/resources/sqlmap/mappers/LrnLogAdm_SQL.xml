@@ -92,7 +92,8 @@
 		{call lrn_log.sp_admin_monthly_challenge_stt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
 			  #{startYymm, mode=IN, jdbcType=INTEGER},
-			  #{endYymm, mode=IN, jdbcType=INTEGER}
+			  #{endYymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	
