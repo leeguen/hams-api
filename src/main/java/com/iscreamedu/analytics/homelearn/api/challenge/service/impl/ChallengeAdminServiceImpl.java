@@ -164,6 +164,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				}*/
 				data.put("mtpImgUrl", waterDropData.get("mtpImgUrl").toString());
 				data.put("waterDropCnt", waterDropData.get("monthlyWaterDropCnt"));
+				data.put("mm", Integer.parseInt(curMm));
 				
 				/*챌린지 보상 개수 조회*/
 				Map<String, Object> rewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyChRewardStt");
