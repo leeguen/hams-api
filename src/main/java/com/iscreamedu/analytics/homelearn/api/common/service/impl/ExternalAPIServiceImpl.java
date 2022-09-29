@@ -93,6 +93,9 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	
 	@Value("${extapi.hl.api.url}")
 	String HL_AI_API; //홈런 API 주소
+	
+	@Value("${extapi.methcell.api.url}")
+	String AI_METH_CELL_API;	//수학의 세포들 API 주소
 		
 	@Override
 	public Map callExternalAPI(Map<String, Object> paramMap) throws Exception {
@@ -367,6 +370,7 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("aiReport/")){
+	        	// 실시간 학생 정보 조회
 	        	try {
 		        	String studId = "";
 		        	if(paramMap.containsKey("p")) {
@@ -407,8 +411,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("bookList")){
-	        	try {
-		    		
+	        	// 국어챌린지 : 북까페 책제목 + 추천도서 리스트 조회 : https://dev-api.home-learn.com/swagger-ui.html#!/challenge/bookStateUsingPOST
+	        	try {		    		
 		    		String url = HLBOOKCAFE_API + apiName;
 		        	LOGGER.debug("url : " + url);
 		        	LOGGER.debug("param : " + paramMap.toString());
@@ -447,8 +451,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("bookState")){
-	        	try {
-		    		
+	        	// 국어챌린지 : 북까페 책읽기 상태 값 리스트 조회 : https://dev-api.home-learn.com/swagger-ui.html#!/challenge/bookStateUsingPOST
+	        	try {		    		
 		    		String url = HLBOOKCAFE_API + apiName;
 		    		LOGGER.debug("url : " + url);
 		        	LOGGER.debug("param : " + paramMap.toString());
@@ -492,8 +496,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("studyStatus")){
-	        	try {
-		    		
+	        	// 튜터 첫로그인시 챌린지에서의 실시간 정보 조회 : 미션 갱신용 
+	        	try {		    		
 		    		String url = HL_AI_API + apiName; 
 		    		LOGGER.debug("url : " + url);
 		        	LOGGER.debug("token : " + paramMap.get("token").toString());
@@ -537,8 +541,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 	        		setResult(msgKey, msgMap);
 	        	}
 	        } else if(apiName.equals("sendMessage")){
-	        	try {
-		    		
+	        	// 홈런톡 전송 : 체험회원 미션완료시 발송 : https://wiki.i-screamedu.com/pages/viewpage.action?pageId=81530747
+	        	try {		    		
 		    		String url = HL_AI_API + apiName; 
 		    		LOGGER.debug("url : " + url);
 		        	LOGGER.debug("token : " + paramMap.get("token").toString());
@@ -568,6 +572,42 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	LOGGER.debug("data : " + responseData.get("data"));
 		        	
 		        	if("200".equals(responseData.get("code").toString())) {
+		        		setResult(dataKey, responseData.get("data"));
+		        	} else {
+		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+		        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+		        		msgMap.put("result", "(" + responseData.get("code") + ")" + responseData.get("message"));
+		        		setResult(msgKey, msgMap);
+		        	}
+		        	
+		         } catch(Exception e) {
+	        		LOGGER.debug("error:" + e.getMessage());
+	        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
+	        		msgMap.put("resultCode", ValidationCode.EX_API_ERROR.getCode());
+	        		msgMap.put("result", ValidationCode.EX_API_ERROR.getMessage());
+	        		setResult(msgKey, msgMap);
+	        	}
+	        } else if(apiName.equals("chlg/")){
+	        	// MathCell-chlg-001 -  챌린지 API 수학세포 유저 조회 : https://wiki.i-screamedu.com/pages/viewpage.action?pageId=84494317
+	        	try {
+		    		String url = AI_METH_CELL_API + apiName; 
+    				url += paramMap.get("studId").toString() + "/" + paramMap.get("yymm").toString();
+		    		LOGGER.debug("url : " + url);
+		        	paramMap.remove("apiName");
+		        	paramMap.remove("yymm");
+		        	
+		        	//�뙆�씪誘명꽣 �꽭�똿
+		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
+		        	URI apiUri = builder.build().encode().toUri();  
+		        	
+		        	LinkedHashMap responseData = restTemplate.getForObject(apiUri, LinkedHashMap.class);
+
+		        	LOGGER.debug("apiUri : " + apiUri);
+		        	LOGGER.debug("status : " + responseData.get("status"));
+		        	LOGGER.debug("message : " + responseData.get("message"));
+		        	LOGGER.debug("data : " + responseData.get("data"));
+		        	
+		        	if("200".equals(responseData.get("status").toString())) {
 		        		setResult(dataKey, responseData.get("data"));
 		        	} else {
 		        		LinkedHashMap msgMap = new LinkedHashMap<String, Object>();
