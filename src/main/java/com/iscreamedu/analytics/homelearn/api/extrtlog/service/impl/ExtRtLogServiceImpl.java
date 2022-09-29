@@ -189,7 +189,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 								paramMap.put("studType", realTimeStud_studType);
 								paramMap.put("grade", resetStudInfoMap.get("grade"));
 								
-								// 미션 삭제('MLG','MEN','MKB','MCC') 후 재생성 (because... 재체험-체험 미션 재등록 or 중등상품 변경으로 미션 대상 아님)
+								// 미션 삭제('MLG','MEN','MKB','MMC') 후 재생성 (because... 재체험-체험 미션 재등록 or 중등상품 변경으로 미션 대상 아님)
 								if(resetStudCnt > 0) {
 						        	commonMapperLrnLog.insert(paramMap, "LrnLog.ispChMisDailyAddMission");
 									LOGGER.debug("갱신된 학생 정보로 오늘의 미션 생성 : ispChMisDailyAddMission 호출 : " + paramMap.get("studId"));
