@@ -347,12 +347,99 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				
 				/*수학의 세포들*/
 				try {
-					mathMap.put("chCd", chlData.get("mathChCd"));
+					/*Map<String, Object> studInfoParamMap = new HashMap<>();
+					
+					studInfoParamMap.put("p", paramMap.get("p"));
+		        	studInfoParamMap.put("apiName", "aiReport.");
+		            
+		            Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+		            
+		            int grade = (studInfoMap != null && studInfoMap.get("grade") != null) ? Integer.parseInt(studInfoMap.get("grade").toString()) : 0;
+		            
+		            if(grade > 2 && grade < 7) {
+		            	
+		            }*/
+					
+		            mathMap.put("chCd", chlData.get("mathChCd"));
 					mathMap.put("chNm", chlData.get("mathChNm"));
 					
 					Map<String, Object> mathParamMap = new HashMap<>();
+					
+					String mathYymm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMM"));
+					String mathmm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("MM"));
+					int mathMm = Integer.parseInt(mathmm); 
 			        
 					mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+					mathParamMap.put("apiName", "chlg/");
+					mathParamMap.put("yymm", Integer.parseInt(mathYymm));
+					
+					Map<String, Object> mathCellData =  (Map<String, Object>) externalAPIservice.callExternalAPI(mathParamMap).get("data");	
+					
+					if(mathCellData != null) {
+						Map<String, Object> mathCellDetailData = (Map<String, Object>) mathCellData.get("progressData");
+						
+						int mathStudType = (mathCellData.get("mcStudType") != null) ? Integer.parseInt(mathCellData.get("mcStudType").toString()) : 0;
+						int mathPeriod = (mathCellData.get("periodData") != null) ? Integer.parseInt(mathCellData.get("periodData").toString()) : 0;
+						String mathStatusNm = (mathCellData.get("mcStudStatus") != null) ? mathCellData.get("mcStudStatus").toString() : "미신청";
+						
+						int mathSttCd = -1;
+						String mathSttNm = "신청하기";
+						
+						Map<String, Object> mathRewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminChallengeMathCellRewardStt");
+						int mathRewardCnt = Integer.parseInt(mathRewardData.get("rewardNm").toString());
+						String mathReward = (mathRewardCnt == 0 && mathPeriod == 2 ) ? "실패" : mathRewardData.get("rewardNm").toString();
+						
+						if(mathStudType == 1) { /*함께하기*/
+							if(mathPeriod == 2) {
+								mathSttNm = "결과확인";
+								mathSttCd = 2;
+							} else if(mathPeriod == 1) {
+								if(mathStatusNm.equals("신청")) {
+									mathSttNm = "진행중";
+									mathSttCd = 1;
+								}
+							} else {
+								if(mathStatusNm.equals("신청")) {
+									mathSttNm = "신청완료";
+									mathSttCd = 1;
+								}
+							}
+							
+						} else if(mathStudType == 2) { /*혼자하기*/
+							if(mathPeriod == 2) {
+								mathSttNm = "완료";
+								mathSttCd = 2;
+							} else {
+								if(mathStatusNm.equals("신청")) {
+									mathSttNm = "진행중";
+									mathSttCd = 1;
+								}
+							}
+						}
+						
+						
+						mathMap.put("chCd", chlData.get("mathChCd"));
+						mathMap.put("chNm", chlData.get("mathChNm"));
+						mathMap.put("misStep", String.valueOf(mathMm)+ "월");
+						mathMap.put("misStepStatusCd", mathSttCd);
+						mathMap.put("misStepStatusNm", mathSttNm);
+						mathMap.put("misTotalCnt", mathCellDetailData.get("totalMissionNmb"));
+						mathMap.put("misCompCnt", mathCellDetailData.get("solvedQuestionNmb"));
+						mathMap.put("rewardNm", mathReward);
+						mathMap.put("compList", new ArrayList<>());
+					} else {
+						mathMap.put("chCd", chlData.get("mathChCd"));
+						mathMap.put("chNm", chlData.get("mathChNm"));
+						mathMap.put("misStep", null);
+						mathMap.put("misStepStatusCd", -1);
+						mathMap.put("misStepStatusNm", "신청하기");
+						mathMap.put("misTotalCnt", null);
+						mathMap.put("misCompCnt", null);
+						mathMap.put("rewardNm", "-");
+						mathMap.put("compList", new ArrayList<>());
+					}
+		            
+					/*mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
 					mathParamMap.put("today", Integer.parseInt(today));
 					mathParamMap.put("startYymm", startYymm);
 			        mathParamMap.put("endYymm", endYymm);
@@ -378,7 +465,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						mathMap.put("misCompCnt", null);
 						mathMap.put("rewardNm", "-");
 						mathMap.put("compList", new ArrayList<>());
-					}
+					}*/
 					
 				} catch (Exception e) {
 					System.out.println("getChStepUpMisStt > mathCell Error : " + e);

@@ -50,6 +50,13 @@
 		 )}
 	</select>
 	
+	<select id="spAdminChallengeMathCellRewardStt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_challenge_mathcell_reward_stt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
 	<select id="spAdminHabitStt" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_admin_habit_stt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
