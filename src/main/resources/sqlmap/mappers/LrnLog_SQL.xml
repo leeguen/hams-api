@@ -155,6 +155,15 @@
 		)}
 	</insert>
 	
+	<insert id="ispChCLUMmcRewardAction" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_ch_clu_mmc_reward_action (
+              #{studId, mode=IN, jdbcType=INTEGER}
+              , #{yyyyMm, mode=IN, jdbcType=INTEGER}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
 	<insert id="dspChCHLParticleActionDel" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.dsp_ch_chl_particle_action (
               #{studId, mode=IN, jdbcType=INTEGER}
@@ -173,6 +182,14 @@
 	
 	<insert id="dspDailyHistoryChallengeCluDel" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.dsp_ch_clu_reward_action (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		 )}
+	</insert>		
+	
+	<insert id="dspDailyHistoryChallengeCluMmcDel" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.dsp_ch_clu_mmc_reward_action (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 			  , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}

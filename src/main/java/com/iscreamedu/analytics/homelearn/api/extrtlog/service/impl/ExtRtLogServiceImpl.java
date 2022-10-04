@@ -626,9 +626,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		
 		return result;
 	}
-
-	
-	@Override
+@Override
 	public LinkedHashMap setFnParticle(Map<String, Object> paramMap) throws Exception {
 		//Validation
 		ValidationUtil vu = new ValidationUtil();
@@ -848,5 +846,119 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		
 		return result;
 	}
+	
+
+	@Override
+	public LinkedHashMap setFnObjectRewardMmc(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		paramMap.put("regAdminId", "STUD_EXTRTLOG");
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId","yyyyMm"}, paramMap);
+		
+		if(vu.isValid()) {
+			String strResultMsg = null;
+			LinkedHashMap message = new LinkedHashMap();			
+			try {
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.ispChCLUMmcRewardAction");
+				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+				strResultMsg = paramMap.get("outResultMsg").toString();
+				if(nResultCnt > 0) {					
+					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+					message.put("result","등록 완료 : "+strResultMsg);
+					setResult(msgKey, message);			
+//							갱신된 미션 정보 리로드					
+				} else {
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("result", strResultMsg);
+					setResult(msgKey, message);
+				}
+			} catch(Exception e) {
+				String[] errorMsgList = e.getMessage().split(": ");
+				strResultMsg = "Registration failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+				message.put("result", strResultMsg);
+				setResult(msgKey, message);
+				try {
+					JSONObject jsonMap = new JSONObject();
+					Date nowDate = new Date();
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+					
+					jsonMap.putAll(paramMap);
+					Map<String, Object> paramMap2 = new LinkedHashMap();
+					paramMap2.put("inProcName", "isp_ch_clu_mmc_reward_action");
+					paramMap2.put("inProcStep", 0);
+					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+					paramMap2.put("inParam", jsonMap.toJSONString());
+					paramMap2.put("inErrorNo", 0);
+					paramMap2.put("inErrorTitle", "insert error");
+					paramMap2.put("inErrorMsg", strResultMsg);
+					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+				} catch(Exception e2) {}
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+
+
+	@Override
+	public LinkedHashMap resetObjectRewardMmc(Map<String, Object> paramMap) throws Exception {
+		//Validation
+		ValidationUtil vu = new ValidationUtil();
+		getStudId(paramMap);
+		paramMap.put("regAdminId", "STUD_EXTRTLOG");
+		//1.필수값 체크
+		vu.checkRequired(new String[] {"studId"}, paramMap);
+		
+		if(vu.isValid()) {
+			String strResultMsg = null;
+			LinkedHashMap message = new LinkedHashMap();			
+			try {
+			    commonMapperLrnLog.insert(paramMap, "LrnLog.dspDailyHistoryChallengeCluMmcDel");
+				Integer nResultCnt = Integer.valueOf(paramMap.get("outResultCnt").toString());
+				strResultMsg = paramMap.get("outResultMsg").toString();
+				if(nResultCnt > 0) {					
+					message.put("resultCode", ValidationCode.REG_SUCCESS.getCode());
+					message.put("result","삭제 완료 : "+strResultMsg);
+					setResult(msgKey, message);					
+				} else {
+					message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+					message.put("result", strResultMsg);
+					setResult(msgKey, message);
+				}
+			} catch(Exception e) {
+				String[] errorMsgList = e.getMessage().split(": ");
+				strResultMsg = "Delete failed [ " + errorMsgList[errorMsgList.length-1] + " ]";
+				message.put("resultCode", ValidationCode.REG_FAILED.getCode());
+				message.put("result", strResultMsg);
+				setResult(msgKey, message);
+				try {
+					JSONObject jsonMap = new JSONObject();
+					Date nowDate = new Date();
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
+					
+					jsonMap.putAll(paramMap);
+					Map<String, Object> paramMap2 = new LinkedHashMap();
+					paramMap2.put("inProcName", "dsp_ch_clu_reward_action");
+					paramMap2.put("inProcStep", 0);
+					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
+					paramMap2.put("inParam", jsonMap.toJSONString());
+					paramMap2.put("inErrorNo", 0);
+					paramMap2.put("inErrorTitle", "insert error");
+					paramMap2.put("inErrorMsg", strResultMsg);
+					commonMapperLrnLog.insert(paramMap2, "LrnLog.ispErrorLog");
+				} catch(Exception e2) {}
+			}
+		} else {
+			setResult(msgKey, vu.getResult());
+		}
+		
+		return result;
+	}
+	
 
 }

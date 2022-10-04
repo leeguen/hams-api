@@ -170,4 +170,33 @@ public class ExtRtLogController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	/***
+	 * STUD-CH-018	메타포 오브젝트 현황 : 한 단계 UP 챌린지 보상 완료 등록
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@PostMapping(value="/regFnObjectRewardMmc", produces = "application/json; charset=utf8")
+    @ResponseBody
+    public ResponseEntity setFnObjectRewardMmc(@RequestBody Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)extRtLogService.setFnObjectRewardMmc(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
+	
+	/***
+	 * STUD-CH-019	메타포 오브젝트 현황 : 한 단계 UP 챌린지 보상 완료 등록 (수학의세포들 챌린지 - 음악) - 데이터 리셋(테스트용)
+	 * @param params
+	 * @param req
+	 * @param res
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value="/resetObjectRewardMmc")
+	@ResponseBody
+    public ResponseEntity resetObjectRewardMmc(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)extRtLogService.resetObjectRewardMmc(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 }
