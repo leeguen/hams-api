@@ -125,7 +125,8 @@ public class GroupDashboardServiceImpl implements GroupDashboardService {
 		vu.checkRequired(new String[] {"currCon", "svcOpenDe"}, paramMap);
 		if(vu.isValid()) { 			
 			if(paramMap.get("currCon").toString().toLowerCase().equals("w")) {
-				setResult(dataKey, ms_mapper.getList(paramMap, "Group_MS.selectGetYymmWk") );
+				//setResult(dataKey, ms_mapper.getList(paramMap, "Group_MS.selectGetYymmWk") );
+				setResult(dataKey, ms_mapper.getList(paramMap, "Group_MS.selectGetYymmWkTest") );
 			} else if(paramMap.get("currCon").toString().toLowerCase().equals("m")){
 				setResult(dataKey, ms_mapper.getList(paramMap, "Group_MS.selectGetYymm") );	
 			}
