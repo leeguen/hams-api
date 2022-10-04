@@ -200,6 +200,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 				data.put("mmcRewardList", new ArrayList<>());
 			}
 			
+			if(rewardList.size() == 0 && mmcRewardList.size() == 0) {
+				setNoDataMessage();
+			}			
 		} else {
 			setResult(msgKey, vu.getResult());
 		}
