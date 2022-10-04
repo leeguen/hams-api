@@ -158,7 +158,6 @@
 	<insert id="ispChCLUMmcRewardAction" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_clu_mmc_reward_action (
               #{studId, mode=IN, jdbcType=INTEGER}
-              , #{yyyyMm, mode=IN, jdbcType=INTEGER}
               , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
               , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
 		)}

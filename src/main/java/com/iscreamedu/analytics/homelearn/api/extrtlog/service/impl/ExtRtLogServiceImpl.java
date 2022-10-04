@@ -855,7 +855,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 		getStudId(paramMap);
 		paramMap.put("regAdminId", "STUD_EXTRTLOG");
 		//1.필수값 체크
-		vu.checkRequired(new String[] {"studId","yyyyMm"}, paramMap);
+		vu.checkRequired(new String[] {"studId"}, paramMap);
 		
 		if(vu.isValid()) {
 			String strResultMsg = null;
@@ -943,7 +943,7 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 					
 					jsonMap.putAll(paramMap);
 					Map<String, Object> paramMap2 = new LinkedHashMap();
-					paramMap2.put("inProcName", "dsp_ch_clu_reward_action");
+					paramMap2.put("inProcName", "dsp_ch_clu_mmc_reward_action");
 					paramMap2.put("inProcStep", 0);
 					paramMap2.put("inYyyymmdd", simpleDateFormat.format(nowDate));
 					paramMap2.put("inParam", jsonMap.toJSONString());
