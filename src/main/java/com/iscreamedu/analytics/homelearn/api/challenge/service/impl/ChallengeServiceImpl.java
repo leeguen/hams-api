@@ -164,6 +164,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
 					}
 					catch(Exception e) {
+						LOGGER.debug("getChMetaphorObjectStt : 국어챌린지 보상 오브젝트 - rewardMap error : " + e.getMessage());	
 					}
 					
 //					if(rewardMotionList == null || rewardMotionList.size() == 0) {
@@ -187,6 +188,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
 					}
 					catch(Exception e) {
+						LOGGER.debug("getChMetaphorObjectStt : 수학의 세포들 보상 오브젝트 - mmcRewardList error : " + e.getMessage());	
 					}
 					
 					rewardMap.put("rewardMotionList", rewardMotionList);
@@ -333,16 +335,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 			        				// 진행률 100% 넘어갈때... 완료 변경
 			        				item.put("stepStatusCd", 2);
 			        				item.put("progressRate", 100);
+			        				cluList_mmc_progressData.put("stepStatusCd", 2);
+			        				cluList_mmc_progressData.put("progressRate", 100);
+			        				cluList_mmc_progressData.put("mcStudStatus", Integer.parseInt(cluList_mmc.get("mcStudType").toString()));
 			        				// 보상 지급 - 증복 지급 제외.
 			        				// CH_MIS_REALTIME_STT_MMC 에 등록.
-//			        				commonMapperLrnLog.insert(cluList_mmc_progressData, "LrnLog.ispCompleteMissioneMmc");
-//			        				Integer nResultCnt = Integer.valueOf(cluList_mmc_progressData.get("outResultCnt").toString());
-//			        				String strResultMsg = paramMap.get("outResultMsg").toString();
-//			        				if(nResultCnt > 0) {					
-//			        					LOGGER.debug("getChStepUpMissionInfo : 수학의 세포들 - 보상 지급 성공");	
-//			        				} else {
-//			        					LOGGER.debug("getChStepUpMissionInfo : 수학의 세포들 - 보상 지급 실패 [" + strResultMsg + "]");	
-//			        				}
+			        				commonMapperLrnLog.insert(cluList_mmc_progressData, "LrnLog.ispCompleteMissioneMmc");
+			        				Integer nResultCnt = Integer.valueOf(cluList_mmc_progressData.get("outResultCnt").toString());
+			        				String strResultMsg = paramMap.get("outResultMsg").toString();
+			        				if(nResultCnt > 0) {					
+			        					LOGGER.debug("getChStepUpMissionInfo : 수학의 세포들 - 보상 지급 성공");	
+			        				} else {
+			        					LOGGER.debug("getChStepUpMissionInfo : 수학의 세포들 - 보상 지급 실패 [" + strResultMsg + "]");	
+			        				}
 			        			}
 			        		}
 		        		} catch(Exception e) {
@@ -601,6 +606,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
 					}
 					catch(Exception e) {
+						LOGGER.debug("getKoreanBookChReward : 국어책_챌린지_보상_정보 - data error : " + e.getMessage());	
 					}
 					
 					if(rewardMotionList == null || rewardMotionList.size() == 0) {
