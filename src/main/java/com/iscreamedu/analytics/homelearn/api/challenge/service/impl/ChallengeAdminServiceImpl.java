@@ -385,8 +385,13 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						int mathSttCd = -1;
 						String mathSttNm = "신청하기";
 						
-						Map<String, Object> mathRewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminChallengeMathCellRewardStt");
-						int mathRewardCnt = Integer.parseInt(mathRewardData.get("rewardNm").toString());
+						Map<String, Object> mathParamsMap = new HashMap<>();
+				        
+						mathParamsMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+						mathParamsMap.put("endYymm", endYymm);
+						
+						Map<String, Object> mathRewardData = (Map<String, Object>) commonMapperLrnLog.get(mathParamsMap, "LrnLogAdm.spAdminChallengeMathCellRewardStt");
+						int mathRewardCnt = Integer.parseInt(mathRewardData.get("rewardCnt").toString());
 						String mathReward = (mathRewardCnt == 0 && mathPeriod == 2 ) ? "실패" : mathRewardData.get("rewardNm").toString();
 						
 						if(mathStudType == 1) { /*함께하기*/
@@ -416,7 +421,6 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 								}
 							}
 						}
-						
 						
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
