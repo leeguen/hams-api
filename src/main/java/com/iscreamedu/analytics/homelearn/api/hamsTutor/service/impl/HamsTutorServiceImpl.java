@@ -57,8 +57,8 @@ public class HamsTutorServiceImpl implements HamsTutorService {
     	studInfoParamMap.put("apiName", "aiReport.");
         
         LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
-        //Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
-        Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
+        Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+        //Map<String,Object> studInfoMap = (Map<String, Object>) callExApi(studInfoParamMap).get("data");
         
         //DB 조회
         LinkedHashMap<String,Object> lrnBasicInfo = (LinkedHashMap)mapper.get(paramMap,TUTOR_NAMESPACE + ".getLrnBasicInfo");
