@@ -64,6 +64,19 @@
 		)}
 	</insert>
 	
+	<insert id="ispCompleteMissioneMmc" parameterType="hashMap" statementType="CALLABLE">
+		{call lrn_log.isp_complete_mission_mmc (
+              #{studId, mode=IN, jdbcType=INTEGER}
+		 	  , #{mcStudType, mode=IN, jdbcType=INTEGER}
+              , #{stepStatusCd, mode=IN, jdbcType=INTEGER}
+              , #{totalMissionNmb, mode=IN, jdbcType=INTEGER}
+              , #{solvedQuestionNmb, mode=IN, jdbcType=INTEGER}
+              , #{progressRate, mode=IN, jdbcType=INTEGER}
+              , #{outResultCnt, mode=OUT, jdbcType=INTEGER}
+              , #{outResultMsg, mode=OUT, jdbcType=LONGVARCHAR}
+		)}
+	</insert>
+	
 	<insert id="ispChMisStepStatusChange" parameterType="hashMap" statementType="CALLABLE">
 		{call lrn_log.isp_ch_mis_step_status_change (
               #{studId, mode=IN, jdbcType=INTEGER}
@@ -208,6 +221,12 @@
 	
 	<select id="spMonthyHistoryChallengeCluReward" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_monthly_history_challenge_clu_reward (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spMonthyHistoryChallengeMmcReward" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_monthly_history_challenge_clu_reward_mmc (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
