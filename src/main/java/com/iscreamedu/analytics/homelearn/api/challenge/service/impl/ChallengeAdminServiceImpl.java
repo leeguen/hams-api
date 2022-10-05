@@ -1009,7 +1009,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						}
 						
 						/*수학의 세포들 챌린지 데이터*/
-						if(challData.get("mathRewardCnt") != null) {
+						/*if(challData.get("mathRewardCnt") != null) {
 							Map<String, Object> mathCellParam = new HashMap<>();
 							mathCellParam.put("studId", paramMap.get("studId"));
 							mathCellParam.put("today", Integer.parseInt(today));
@@ -1052,7 +1052,12 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 							mathMap.put("chNm", challData.get("mathChNm"));
 							mathMap.put("rewardCnt", challData.get("mathRewardCnt"));
 							mathMap.put("monthList", new ArrayList<>());
-						}
+						}*/
+						
+						mathMap.put("chCd", challData.get("mathChCd"));
+						mathMap.put("chNm", challData.get("mathChNm"));
+						mathMap.put("rewardCnt", 0);
+						mathMap.put("monthList", new ArrayList<>());
 						
 						/*영어 독서습관 챌린지 데이터*/
 						if(challData.get("engRewardCnt") != null) {
