@@ -399,19 +399,24 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 								mathSttNm = "결과확인";
 								mathSttCd = 2;
 							} else if(mathPeriod == 1) {
-								if(mathStatusNm.equals("신청")) {
+								/*if(mathStatusNm.equals("신청")) {
 									mathSttNm = "진행중";
 									mathSttCd = 1;
-								}
+								}*/
+								mathSttNm = "진행중";
+								mathSttCd = 1;
 							} else {
 								if(mathStatusNm.equals("신청")) {
 									mathSttNm = "신청완료";
 									mathSttCd = 1;
+								} else {
+									mathSttNm = "신청하기";
+									mathSttCd = -1;
 								}
 							}
 							
 						} else if(mathStudType == 2) { /*혼자하기*/
-							if(mathPeriod == 2) {
+							/*if(mathPeriod == 2) {
 								mathSttNm = "완료";
 								mathSttCd = 2;
 							} else {
@@ -419,6 +424,14 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									mathSttNm = "진행중";
 									mathSttCd = 1;
 								}
+							}*/
+							
+							if(mathStatusNm.equals("신청")) {
+								mathSttNm = "진행중";
+								mathSttCd = 1;
+							} else {
+								mathSttNm = "시작하기";
+								mathSttCd = -1;
 							}
 						}
 						
@@ -997,10 +1010,41 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						
 						/*수학의 세포들 챌린지 데이터*/
 						if(challData.get("mathRewardCnt") != null) {
+							Map<String, Object> mathCellParam = new HashMap<>();
+							mathCellParam.put("studId", paramMap.get("studId"));
+							mathCellParam.put("today", Integer.parseInt(today));
+							mathCellParam.put("startYymm", startYymm);
+							mathCellParam.put("endYymm", getEndYymmForMeta(paramMap.get("yyyy").toString()));
+							mathCellParam.put("chCd", "MMC");
+							
+							Map<String, Object> mathRewardCnt = (Map<String, Object>) commonMapperLrnLog.get(mathCellParam, "LrnLogAdm.spAdminChallengeMathCellRewardCnt");
+							
 							mathMap.put("chCd", challData.get("mathChCd"));
 							mathMap.put("chNm", challData.get("mathChNm"));
-							mathMap.put("rewardCnt", challData.get("mathRewardCnt"));
-							mathMap.put("monthList", new ArrayList<>());
+							mathMap.put("rewardCnt", mathRewardCnt.get("rewardCnt"));
+							
+							ArrayList<Map<String, Object>> mathCellMisList = new ArrayList<>();
+							ArrayList<Map<String, Object>> mathMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(mathCellParam, "LrnLogAdm.spAdminMonthlyChallengeHistory");
+							
+							if(mathMisList != null && mathMisList.size() > 0) {
+								for(Map<String, Object> mathMisItem : mathMisList) {
+									Map<String, Object> mathCellMap = new LinkedHashMap<>();
+									
+									int sttCd = (mathMisItem.get("sttCd") != null) ? Integer.parseInt(mathMisItem.get("sttCd").toString()) : -1;
+									
+									mathCellMap.put("dt", mathMisItem.get("dt"));
+									mathCellMap.put("misStep", mathMisItem.get("misStep") + "월");
+									mathCellMap.put("misStepStatusCd", mathMisItem.get("sttCd"));
+									mathCellMap.put("misTotalCnt", mathMisItem.get("totalCnt"));
+									mathCellMap.put("misCompCnt", mathMisItem.get("fnshCnt"));
+									
+									mathCellMisList.add(mathCellMap);
+								}
+								
+								mathMap.put("monthList", mathCellMisList);
+							} else {
+								mathMap.put("monthList", new ArrayList<>());
+							}
 							
 						} else {
 							mathMap.put("chCd", challData.get("mathChCd"));

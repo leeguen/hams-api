@@ -113,5 +113,13 @@
 			  #{chCd, mode=IN, jdbcType=VARCHAR}
 		 )}
 	</select>
+	
+	<select id="spAdminChallengeMathCellRewardCnt" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_challenge_mathcell_reward_cnt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
 </mapper>
 	
