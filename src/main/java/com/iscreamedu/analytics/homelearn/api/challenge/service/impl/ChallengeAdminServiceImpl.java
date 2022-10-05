@@ -1037,6 +1037,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									mathCellMap.put("misStepStatusCd", mathMisItem.get("sttCd"));
 									mathCellMap.put("misTotalCnt", mathMisItem.get("totalCnt"));
 									mathCellMap.put("misCompCnt", mathMisItem.get("fnshCnt"));
+									mathCellMap.put("rewardNm", mathMisItem.get("rewardNm"));
 									
 									mathCellMisList.add(mathCellMap);
 								}
