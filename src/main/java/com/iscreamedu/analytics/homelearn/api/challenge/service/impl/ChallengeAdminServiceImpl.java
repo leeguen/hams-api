@@ -438,7 +438,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
 						
-						Map<String, Object> mathMisMap = new HashMap<>();
+						Map<String, Object> mathMisMap = new LinkedHashMap<>();
 						
 						mathMisMap.put("misStep", String.valueOf(mathMm)+ "월");
 						mathMisMap.put("misStepStatusCd", mathSttCd);
