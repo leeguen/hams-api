@@ -437,13 +437,19 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
-						mathMap.put("misStep", String.valueOf(mathMm)+ "월");
-						mathMap.put("misStepStatusCd", mathSttCd);
-						mathMap.put("misStepStatusNm", mathSttNm);
-						mathMap.put("misTotalCnt", mathCellDetailData.get("totalMissionNmb"));
-						mathMap.put("misCompCnt", mathCellDetailData.get("solvedQuestionNmb"));
-						mathMap.put("rewardNm", mathReward);
-						mathMap.put("compList", new ArrayList<>());
+						
+						Map<String, Object> mathMisMap = new HashMap<>();
+						
+						mathMisMap.put("misStep", String.valueOf(mathMm)+ "월");
+						mathMisMap.put("misStepStatusCd", mathSttCd);
+						mathMisMap.put("misStepStatusNm", mathSttNm);
+						mathMisMap.put("misTotalCnt", mathCellDetailData.get("totalMissionNmb"));
+						mathMisMap.put("misCompCnt", mathCellDetailData.get("solvedQuestionNmb"));
+						mathMisMap.put("rewardNm", mathReward);
+						mathMisMap.put("compList", new ArrayList<>());
+						mathCellMisList.add(mathMisMap);
+						
+						mathMap.put("misList", mathCellMisList);
 					} else {
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
