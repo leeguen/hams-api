@@ -447,13 +447,14 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					} else {
 						mathMap.put("chCd", chlData.get("mathChCd"));
 						mathMap.put("chNm", chlData.get("mathChNm"));
-						mathMap.put("misStep", null);
-						mathMap.put("misStepStatusCd", -1);
-						mathMap.put("misStepStatusNm", "신청하기");
+						/*mathMap.put("misStep", null);
+						mathMap.put("misStepStatusCd", null);
+						mathMap.put("misStepStatusNm", null);
 						mathMap.put("misTotalCnt", null);
 						mathMap.put("misCompCnt", null);
 						mathMap.put("rewardNm", "-");
-						mathMap.put("compList", new ArrayList<>());
+						mathMap.put("compList", new ArrayList<>());*/
+						mathMap.put("misList", null);
 					}
 		            
 					/*mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
