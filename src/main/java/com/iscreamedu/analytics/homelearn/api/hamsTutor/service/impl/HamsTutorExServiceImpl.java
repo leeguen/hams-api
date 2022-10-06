@@ -795,6 +795,26 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         vu.checkRequired(new String[] {"studId"}, paramMap);
         
         if(vu.isValid()) {
+        	
+        	/*For Qa*/
+        	int studId = Integer.valueOf(paramMap.get("studId").toString());
+        	
+        	if(studId == 2074128) {
+        		studId = 1105985;
+        		paramMap.put("studId", studId);
+    		}
+        	
+        	if(studId == 2071547) {
+        		studId = 786575;
+        		paramMap.put("studId", studId);
+    		}
+        	
+        	if(studId == 2085360) {
+        		studId = 124400;
+        		paramMap.put("studId", studId);
+    		}
+        	/*For Qa*/
+        	
         	ArrayList<Map<String,Object>> visionReportList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftList");
             
             data.put("reportCnt", visionReportList.size());
@@ -829,6 +849,23 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         	if(vu1.isValid()) {
         		int studId = Integer.valueOf(paramMap.get("studId").toString());
         		paramMap.put("studId", studId);
+        		
+        		/*For Qa*/
+            	if(studId == 2074128) {
+            		studId = 1105985;
+            		paramMap.put("studId", studId);
+        		}
+            	
+            	if(studId == 2071547) {
+            		studId = 786575;
+            		paramMap.put("studId", studId);
+        		}
+            	
+            	if(studId == 2085360) {
+            		studId = 124400;
+            		paramMap.put("studId", studId);
+        		}
+            	/*For Qa*/
         		
         		data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
                 
