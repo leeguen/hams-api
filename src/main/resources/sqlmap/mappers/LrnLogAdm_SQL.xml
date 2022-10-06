@@ -50,6 +50,14 @@
 		 )}
 	</select>
 	
+	<select id="spAdminChallengeMathcellCompleteCnt" parameterType="hashMap" resultType="int">
+		{call lrn_log.sp_admin_challenge_mathcell_complete_cnt (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{yyyymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
 	<select id="spAdminChallengeMathCellRewardStt" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_admin_challenge_mathcell_reward_stt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
@@ -114,11 +122,22 @@
 		 )}
 	</select>
 	
-	<select id="spAdminChallengeMathCellRewardCnt" parameterType="hashMap" resultType="resultMap">
+	<select id="spAdminChallengeMathCellRewardCnt" parameterType="hashMap" resultType="int">
 		{call lrn_log.sp_admin_challenge_mathcell_reward_cnt (
 			  #{studId, mode=IN, jdbcType=INTEGER},
 			  #{startYymm, mode=IN, jdbcType=INTEGER},
-			  #{endYymm, mode=IN, jdbcType=INTEGER}
+			  #{currYymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spAdminMonthlyMathcellHistory" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_admin_monthly_mathcell_history (
+			  #{studId, mode=IN, jdbcType=INTEGER},
+			  #{startYymm, mode=IN, jdbcType=INTEGER},
+			  #{endYymm, mode=IN, jdbcType=INTEGER},
+			  #{currYymm, mode=IN, jdbcType=INTEGER},
+			  #{today, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 </mapper>
