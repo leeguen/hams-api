@@ -170,14 +170,44 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				Map<String, Object> rewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyChRewardStt");
 				
 				try {
-					data.put("mathCellCnt", rewardData.get("mathCellRewardCnt"));
-					data.put("korBookCnt", rewardData.get("korBookRewardCnt"));
-					data.put("engBookCnt", rewardData.get("engBookRewardCnt"));
+					Map<String, Object> mathParamMap = new HashMap<>();
+					 
+					String mathYymm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMM"));
+					String mathmm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("MM"));
+					int mathMm = Integer.parseInt(mathmm); 
+			        
+					mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+					mathParamMap.put("apiName", "chlg/");
+					mathParamMap.put("yymm", Integer.parseInt(mathYymm));
+					
+					Map<String, Object> mathCellData =  (Map<String, Object>) externalAPIservice.callExternalAPI(mathParamMap).get("data");	
+					
+					if(mathCellData != null) {
+						data.put("mathCellCnt", rewardData.get("mathCellRewardCnt"));
+					} else {
+						data.put("mathCellCnt", null);
+					}
+				} catch (Exception e) {
+					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt > mathCellReward Error : " + e);
+					data.put("mathCellCnt", null);
+				}
+				
+				try {
+					if(rewardData.get("korBookRewardCnt") != null) {
+						data.put("korBookCnt", rewardData.get("korBookRewardCnt"));
+					} else {
+						data.put("korBookCnt", null);
+					}
+					
+					if(rewardData.get("engBookRewardCnt") != null) {
+						data.put("engBookCnt", rewardData.get("engBookRewardCnt"));
+					} else {
+						data.put("engBookCnt", null);
+					}
 				} catch (Exception e) {
 					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt Error : " + e);
-					data.put("mathCellCnt", 0);
-					data.put("korBookCnt", 0);
-					data.put("engBookCnt", 0);
+					data.put("korBookCnt", null);
+					data.put("engBookCnt", null);
 				}
 				setResult(dataKey, data);		
 			} else {
@@ -619,7 +649,8 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				misList.add(korMap);
 				misList.add(engMap);
 				
-				data.put("misList", misList);
+				//data.put("challengeList", misList);
+                data.put("misList", misList);
 				setResult(dataKey, data);
 				
 				/*try {
@@ -964,7 +995,6 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						if(challData.get("korRewardCnt") != null) {
 							korMap.put("chCd", challData.get("korChCd"));
 							korMap.put("chNm", challData.get("korChNm"));
-							korMap.put("rewardCnt", challData.get("korRewardCnt"));
 							
 							paramMap.put("chCd", "MKB");
 							ArrayList<Map<String, Object>> korBookMisList = new ArrayList<>();
@@ -1014,15 +1044,18 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									korBookMisList.add(korBookMap);
 								}
 								
+								korMap.put("rewardCnt", challData.get("korRewardCnt"));
 								korMap.put("monthList", korBookMisList);
 							} else {
+								korMap.put("rewardCnt", null);
 								korMap.put("monthList", new ArrayList<>());
 							}
 							
 						} else {
 							korMap.put("chCd", challData.get("korChCd"));
 							korMap.put("chNm", challData.get("korChNm"));
-							korMap.put("rewardCnt", challData.get("korRewardCnt"));
+							/*korMap.put("rewardCnt", challData.get("korRewardCnt"));*/
+							korMap.put("rewardCnt", null);
 							korMap.put("monthList", new ArrayList<>());
 						}
 						
@@ -1039,7 +1072,6 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 							
 							mathMap.put("chCd", challData.get("mathChCd"));
 							mathMap.put("chNm", challData.get("mathChNm"));
-							mathMap.put("rewardCnt", mathRewardCnt);
 							
 							ArrayList<Map<String, Object>> mathCellMisList = new ArrayList<>();
 							ArrayList<Map<String, Object>> mathMisList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(mathCellParam, "LrnLogAdm.spAdminMonthlyMathcellHistory");
@@ -1062,15 +1094,18 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									mathCellMisList.add(mathCellMap);
 								}
 								
+								mathMap.put("rewardCnt", mathRewardCnt);
 								mathMap.put("monthList", mathCellMisList);
 							} else {
+								mathMap.put("rewardCnt", null);
 								mathMap.put("monthList", new ArrayList<>());
 							}
 							
 						} else {
 							mathMap.put("chCd", challData.get("mathChCd"));
 							mathMap.put("chNm", challData.get("mathChNm"));
-							mathMap.put("rewardCnt", challData.get("mathRewardCnt"));
+							/*mathMap.put("rewardCnt", challData.get("mathRewardCnt"));*/
+							mathMap.put("rewardCnt", null);
 							mathMap.put("monthList", new ArrayList<>());
 						}
 						
@@ -1084,7 +1119,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 						} else {
 							engMap.put("chCd", challData.get("engChCd"));
 							engMap.put("chNm", challData.get("engChNm"));
-							engMap.put("rewardCnt", challData.get("engRewardCnt"));
+							engMap.put("rewardCnt", null);
 							engMap.put("monthList", new ArrayList<>());
 						}
 						
