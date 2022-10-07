@@ -185,29 +185,29 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 					if(mathCellData != null) {
 						data.put("mathCellCnt", rewardData.get("mathCellRewardCnt"));
 					} else {
-						data.put("mathCellCnt", null);
+						data.put("mathCellCnt", 0);
 					}
 				} catch (Exception e) {
 					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt > mathCellReward Error : " + e);
-					data.put("mathCellCnt", null);
+					data.put("mathCellCnt", 0);
 				}
 				
 				try {
 					if(rewardData.get("korBookRewardCnt") != null) {
 						data.put("korBookCnt", rewardData.get("korBookRewardCnt"));
 					} else {
-						data.put("korBookCnt", null);
+						data.put("korBookCnt", 0);
 					}
 					
 					if(rewardData.get("engBookRewardCnt") != null) {
 						data.put("engBookCnt", rewardData.get("engBookRewardCnt"));
 					} else {
-						data.put("engBookCnt", null);
+						data.put("engBookCnt", 0);
 					}
 				} catch (Exception e) {
 					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt Error : " + e);
-					data.put("korBookCnt", null);
-					data.put("engBookCnt", null);
+					data.put("korBookCnt", 0);
+					data.put("engBookCnt", 0);
 				}
 				setResult(dataKey, data);		
 			} else {
