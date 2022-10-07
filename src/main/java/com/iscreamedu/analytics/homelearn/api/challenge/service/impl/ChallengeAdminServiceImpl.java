@@ -170,42 +170,12 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				Map<String, Object> rewardData = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLogAdm.spAdminMonthlyChRewardStt");
 				
 				try {
-					Map<String, Object> mathParamMap = new HashMap<>();
-					 
-					String mathYymm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMM"));
-					String mathmm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("MM"));
-					int mathMm = Integer.parseInt(mathmm); 
-			        
-					mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
-					mathParamMap.put("apiName", "chlg/");
-					mathParamMap.put("yymm", Integer.parseInt(mathYymm));
-					
-					Map<String, Object> mathCellData =  (Map<String, Object>) externalAPIservice.callExternalAPI(mathParamMap).get("data");	
-					
-					if(mathCellData != null) {
-						data.put("mathCellCnt", rewardData.get("mathCellRewardCnt"));
-					} else {
-						data.put("mathCellCnt", 0);
-					}
-				} catch (Exception e) {
-					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt > mathCellReward Error : " + e);
-					data.put("mathCellCnt", 0);
-				}
-				
-				try {
-					if(rewardData.get("korBookRewardCnt") != null) {
-						data.put("korBookCnt", rewardData.get("korBookRewardCnt"));
-					} else {
-						data.put("korBookCnt", 0);
-					}
-					
-					if(rewardData.get("engBookRewardCnt") != null) {
-						data.put("engBookCnt", rewardData.get("engBookRewardCnt"));
-					} else {
-						data.put("engBookCnt", 0);
-					}
+                    data.put("mathCellCnt", rewardData.get("mathCellRewardCnt"));
+                    data.put("korBookCnt", rewardData.get("korBookRewardCnt"));
+                    data.put("engBookCnt", rewardData.get("engBookRewardCnt"));
 				} catch (Exception e) {
 					System.out.println("LrnLogAdm.spAdminMonthlyChRewardSt Error : " + e);
+					data.put("mathCellCnt", 0);
 					data.put("korBookCnt", 0);
 					data.put("engBookCnt", 0);
 				}
