@@ -619,8 +619,8 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 				misList.add(korMap);
 				misList.add(engMap);
 				
-				//data.put("challengeList", misList);
-                data.put("misList", misList);
+				data.put("challengeList", misList);
+                //data.put("misList", misList);
 				setResult(dataKey, data);
 				
 				/*try {
