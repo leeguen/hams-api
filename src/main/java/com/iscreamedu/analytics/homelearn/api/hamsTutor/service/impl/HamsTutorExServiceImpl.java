@@ -797,7 +797,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         if(vu.isValid()) {
         	
         	/*For Qa*/
-        	int studId = Integer.valueOf(paramMap.get("studId").toString());
+        	/*int studId = Integer.valueOf(paramMap.get("studId").toString());
         	
         	if(studId == 2074128) {
         		studId = 1105985;
@@ -812,7 +812,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         	if(studId == 2085360) {
         		studId = 124400;
         		paramMap.put("studId", studId);
-    		}
+    		}*/
         	/*For Qa*/
         	
         	ArrayList<Map<String,Object>> visionReportList = (ArrayList<Map<String, Object>>) commonMapperTutor.getList(paramMap, "HamsTutorNft.selectVisionNftList");
@@ -824,10 +824,6 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         } else {
         	setResult(msgKey, vu.getResult());
         }
-        
-        //paramMap.put("studId", 4995);
-        
-        
 
         //리턴
         return result;
@@ -851,7 +847,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         		paramMap.put("studId", studId);
         		
         		/*For Qa*/
-            	if(studId == 2074128) {
+            	/*if(studId == 2074128) {
             		studId = 1105985;
             		paramMap.put("studId", studId);
         		}
@@ -864,7 +860,7 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
             	if(studId == 2085360) {
             		studId = 124400;
             		paramMap.put("studId", studId);
-        		}
+        		}*/
             	/*For Qa*/
         		
         		data = (LinkedHashMap<String, Object>) commonMapperTutor.get(paramMap, "HamsTutorNft.selectVisionNft");
@@ -923,10 +919,6 @@ public class HamsTutorExServiceImpl implements HamsTutorExService {
         } else {
         	setResult(msgKey, vu.getResult());
         }
-        
-        /*paramMap.put("studId", 4995);
-        paramMap.put("yymm", 202207);
-        paramMap.put("term", 1);*/
 
         //리턴
         return result;
