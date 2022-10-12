@@ -532,6 +532,7 @@ public class StudLrnTypeServiceImpl implements StudLrnTypeService {
             	if(studTypeId < 3) {
             		data.put("studType", studInfoMap.get("divCdNm"));
             	}
+            	data.put("studTypeId", studTypeIds);
             	data.put("lrnSttCd", lrnSttCdApi);
             	data.put("studStatus", studStatus);
             	data.put("studStatusDetail", studStatusDetail);
