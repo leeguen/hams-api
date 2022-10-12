@@ -42,14 +42,10 @@
 		        max(yyyymm_key) as end_yymm
 			from sc_dsb.vw_dm_wk_dt
 			where ( 
-					#{svcOpenDe}::DATE - interval '1 MONTH'
-					between coalesce(mon_dt, coalesce(tue_dt, coalesce(wed_dt, coalesce(thu_dt, coalesce(fri_dt, coalesce(sat_dt, sun_dt))))))
-						and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt)))))) 
+					#{svcOpenDe}::DATE IN (mon_dt, tue_dt, wed_dt, thu_dt, fri_dt, sat_dt, sun_dt)
 				)
 				or (
-					now() + interval '5.5 HOUR'
-					between coalesce(mon_dt, coalesce(tue_dt, coalesce(wed_dt, coalesce(thu_dt, coalesce(fri_dt, coalesce(sat_dt, sun_dt))))))
-						and coalesce(sun_dt, coalesce(sat_dt, coalesce(fri_dt, coalesce(thu_dt, coalesce(wed_dt, coalesce(tue_dt, mon_dt))))))
+					(now() + interval '5.5 HOUR')::DATE IN (mon_dt, tue_dt, wed_dt, thu_dt, fri_dt, sat_dt, sun_dt)
 				)
 		) b on a.yyyymm_key <![CDATA[>=]]> b.start_yymm 
 			and a.yyyymm_key <![CDATA[<]]> b.end_yymm
