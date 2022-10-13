@@ -1,6 +1,7 @@
 package com.iscreamedu.analytics.homelearn.api.student.controller;
 
 import com.iscreamedu.analytics.homelearn.api.common.security.CipherUtil;
+import com.iscreamedu.analytics.homelearn.api.student.service.StudHomeLogService;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnAnalService;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnLogService;
 import com.iscreamedu.analytics.homelearn.api.student.service.StudLrnTypeService;
@@ -29,6 +30,9 @@ public class StudentController {
 	
 	@Autowired
 	StudLrnLogService studLrnLogService;
+	
+	@Autowired
+	StudHomeLogService studHomeLogService;
 
     private HttpHeaders headers;
     private LinkedHashMap body;
@@ -351,4 +355,65 @@ public class StudentController {
         body = (LinkedHashMap<String, Object>) studLrnLogService.getStudLrnExLog(studId);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
+    
+    /**
+     * 상장 목록 - 관리자 페이지용 (STUD-HL-001)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogList")
+    public ResponseEntity getHlogList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 목록 - 학습기용 (STUD-HL-002)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogDetailList")
+    public ResponseEntity getHlogDetailList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogDetailList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 썸네일 목록 (STUD-HL-003)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogThnList")
+    public ResponseEntity getHlogThnList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogThnList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 상세 정보 (STUD-HL-004)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogDetail")
+    public ResponseEntity getHlogDetail(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogDetail(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 정보 (STUD-HL-005)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogInfo")
+    public ResponseEntity getHlogInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+
 }
