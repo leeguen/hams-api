@@ -106,6 +106,7 @@ public class ChallengeController {
 		return new ResponseEntity(body, headers, HttpStatus.OK);
 	}
 	
+	
 	/***
 	 * STUD-CH-006
 	 * 오늘의 미션 정보 : 매일 홈런하는 습관 카운트 (홈앱에서 호출)
