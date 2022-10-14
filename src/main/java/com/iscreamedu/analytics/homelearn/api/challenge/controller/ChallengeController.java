@@ -115,12 +115,12 @@ public class ChallengeController {
 	 * @return
 	 * @throws Exception
 	 */
-//	@RequestMapping(value="/getChHabitCnt")
-//    @ResponseBody
-//    public ResponseEntity getChallengeSummaryCnt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
-//		body = (LinkedHashMap)challengeService.getChallengeHabitCnt(params);
-//		return new ResponseEntity(body, headers, HttpStatus.OK);
-//	}
+	@RequestMapping(value="/getChHabitCnt")
+    @ResponseBody
+    public ResponseEntity getChallengeSummaryCnt(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res) throws Exception {
+		body = (LinkedHashMap)challengeService.getChallengeHabitCnt(params);
+		return new ResponseEntity(body, headers, HttpStatus.OK);
+	}
 	
 	
 	/***
