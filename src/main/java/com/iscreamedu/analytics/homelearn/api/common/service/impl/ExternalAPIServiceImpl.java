@@ -596,7 +596,6 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
 		        	paramMap.remove("apiName");
 		        	paramMap.remove("yymm");
 		        	
-		        	//�뙆�씪誘명꽣 �꽭�똿
 		        	UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
 		        	URI apiUri = builder.build().encode().toUri();  
 		        	
