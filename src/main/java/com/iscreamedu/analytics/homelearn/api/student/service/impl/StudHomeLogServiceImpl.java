@@ -36,9 +36,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
-public class StudLrnHomeLogServiceImpl implements StudHomeLogService {
+public class StudHomeLogServiceImpl implements StudHomeLogService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StudLrnHomeLogServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StudHomeLogServiceImpl.class);
 
     private LinkedHashMap<String, Object> result;
     private LinkedHashMap<String, Object> decodeResult;
@@ -96,6 +96,42 @@ public class StudLrnHomeLogServiceImpl implements StudHomeLogService {
             homelogList.add(homelogMap1);
             
             data.put("hlogList", homelogList);
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map getHlogCnt(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
+        if(vu.isValid()) {
+        	 /*상장 목록 수 조회*/
+            
+            /*상장 목록 수 조회*/
+            ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
+            Map<String, Object> homelogMap = new LinkedHashMap<>();
+            homelogMap.put("yyyy", 2022);
+            homelogMap.put("hLogCount", 100);
+            
+            Map<String, Object> homelogMap1 = new LinkedHashMap<>();
+            homelogMap1.put("yyyy", 2021);
+            homelogMap1.put("hLogCount", 0);
+            
+            homelogList.add(homelogMap);
+            homelogList.add(homelogMap1);
+            
+            data.put("hLogCountList", homelogList);
             
             setResult(dataKey,data);
         } else {
@@ -282,6 +318,47 @@ public class StudLrnHomeLogServiceImpl implements StudHomeLogService {
             data.put("endPeriod", "2022-10-31");
             data.put("cont", "위 학생은.... 칭찬합니다.");
             data.put("templateCd", 1);
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map getTempInfo(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
+        if(vu.isValid()) {
+        	 /*상장 목록 수 조회*/
+            
+            /*상장 목록 수 조회*/
+        	
+        	ArrayList<Map<String, Object>> templateList = new ArrayList<>();
+        	
+        	Map<String, Object> templateMap = new LinkedHashMap<String, Object>();
+        	Map<String, Object> templateMap1 = new LinkedHashMap<String, Object>();
+        	
+        	templateMap.put("cd", 1);
+        	templateMap.put("name", "템플릿 1 이름");
+        	templateMap.put("url", "템플릿 1 URL");
+        	
+        	templateMap1.put("cd", 2);
+        	templateMap1.put("name", "템플릿 2 이름");
+        	templateMap1.put("url", "템플릿 2 URL");
+        	
+        	templateList.add(templateMap);
+        	templateList.add(templateMap1);
+        	
+        	data.put("templateList", templateList);
             
             setResult(dataKey,data);
         } else {

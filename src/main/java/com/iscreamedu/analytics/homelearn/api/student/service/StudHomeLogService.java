@@ -6,6 +6,8 @@ public interface StudHomeLogService {
 
     public Map getHlogList (Map<String,Object> paramMap) throws Exception;
     
+    public Map getHlogCnt (Map<String,Object> paramMap) throws Exception;
+    
     public Map getHlogDetailList (Map<String,Object> paramMap) throws Exception;
     
     public Map getHlogThnList (Map<String,Object> paramMap) throws Exception;
@@ -13,4 +15,6 @@ public interface StudHomeLogService {
     public Map getHlogDetail (Map<String,Object> paramMap) throws Exception;
 
     public Map getHlogInfo (Map<String,Object> paramMap) throws Exception;
+    
+    public Map getTempInfo (Map<String,Object> paramMap) throws Exception;
 }

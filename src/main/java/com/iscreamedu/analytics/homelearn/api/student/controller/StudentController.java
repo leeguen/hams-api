@@ -374,6 +374,18 @@ public class StudentController {
      * @return
      * @throws Exception
      */
+    @GetMapping("/getHlogCnt")
+    public ResponseEntity getHlogCnt(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogCnt(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 목록 - 학습기용 (STUD-HL-003)
+     * @param params
+     * @return
+     * @throws Exception
+     */
     @GetMapping("/getHlogDetailList")
     public ResponseEntity getHlogDetailList(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogDetailList(params);
@@ -381,7 +393,7 @@ public class StudentController {
     }
     
     /**
-     * 상장 썸네일 목록 (STUD-HL-003)
+     * 상장 썸네일 목록 (STUD-HL-004)
      * @param params
      * @return
      * @throws Exception
@@ -393,7 +405,7 @@ public class StudentController {
     }
     
     /**
-     * 상장 상세 정보 (STUD-HL-004)
+     * 상장 상세 정보 (STUD-HL-005)
      * @param params
      * @return
      * @throws Exception
@@ -405,7 +417,7 @@ public class StudentController {
     }
     
     /**
-     * 상장 정보 (STUD-HL-005)
+     * 상장 정보 (STUD-HL-006)
      * @param params
      * @return
      * @throws Exception
@@ -413,6 +425,18 @@ public class StudentController {
     @GetMapping("/getHlogInfo")
     public ResponseEntity getHlogInfo(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 정보 (STUD-HL-007)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getTempInfo")
+    public ResponseEntity getTempInfo(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getTempInfo(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 
