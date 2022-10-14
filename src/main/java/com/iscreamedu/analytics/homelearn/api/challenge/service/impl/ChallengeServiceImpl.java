@@ -290,7 +290,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 								/*
 								 * "data": { "mcStudStatus": "결과확인", "mcStudType": 1, "periodData": 2,
 								 * "progressData": { "totalMissionNmb": 80, "solvedQuestionNmb": 20,
-								 * "trueQuestionNmb": 9, "falseQuestionNmb": 11, "progressRate": 0.25 } }
+								 * "trueQuestionNmb": 9, "falseQuestionNmb": 11, "progressRate": 25 } }
 								 */
 			        			// cluList_mmc.get("mcStudType") // 수학세포 등록 타입 (1-함께하기, 2- 혼자하기)
 								/*
