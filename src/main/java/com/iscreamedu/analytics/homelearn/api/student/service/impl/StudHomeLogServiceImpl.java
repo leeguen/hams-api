@@ -467,7 +467,8 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     		if(paramMap.get("cd") != null) {
     			maxCd = Integer.parseInt(paramMap.get("cd").toString());
     		} else {
-    			Map<String,Object> tchrMaxCdData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.spTchrManualHomelogMaxCd");
+    			//Map<String,Object> tchrMaxCdData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.spTchrManualHomelogMaxCd");
+    			Map<String,Object> tchrMaxCdData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogMaxCd");
     			
     			int cdCnt = Integer.parseInt(tchrMaxCdData.get("cnt").toString());
     			
@@ -498,7 +499,8 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         	int row = 0;
         	
         	try {
-        		row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
+        		row = commonMapperLrnType.insert(paramMap,"Homelog.regHomelog");
+        		//row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
         	} catch (Exception e) {
         		System.out.println("Homelog.spRegTchrManualHomelog Insert Error");
 			}
@@ -595,7 +597,8 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         	paramMap.put("cd", Integer.parseInt(cd));
         	
         	try {
-        		row = commonMapperLrnType.update(paramMap,"Homelog.spDelTchrManualHomelog");
+        		row = commonMapperLrnType.update(paramMap,"Homelog.delHomelog");
+        		//row = commonMapperLrnType.update(paramMap,"Homelog.spDelTchrManualHomelog");
         	} catch (Exception e) {
         		System.out.println("Homelog.spRegTchrManualHomelog Update Error");
 			}

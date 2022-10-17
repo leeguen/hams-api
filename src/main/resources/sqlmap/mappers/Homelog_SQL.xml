@@ -10,6 +10,16 @@
 		 )}
 	</select>
 	
+	<select id="selectHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogMaxCd */
+		SELECT
+			COUNT(*) AS CNT,
+			MAX(CD) AS MAX_CD
+		FROM es_s_dashboard.TCHR_MANUAL_HOMELOG_INFO
+		WHERE TCHR_ID = #{tchrId}
+			AND YYMM = #{yymm};
+	</select>
+	
 	<select id="spRegTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
 		/* Homelog.spRegTchrManualHomelog */
 		{call es_s_dashboard.reg_homelog (
@@ -28,6 +38,55 @@
 			  #{templateCd, mode=IN, jdbcType=VARCHAR}
 		 )}
 	</select>
+	
+	<insert id="regHomelog" parameterType="hashMap">
+		/* Homelog.regHomelog */
+		INSERT INTO TCHR_MANUAL_HOMELOG_INFO
+		(
+			TCHR_ID,
+			YYMM,
+			DT,
+			CD,
+			NAME,
+			MEMO,
+			PROPERTY_NM,
+			PROPERTY_CONT,
+			PERIOD_NM,
+			PERIOD_STT_DT,
+			PERIOD_END_DT,
+			CONT,
+			TEMPLATE_CD,
+			REG_DTTM
+		)
+		VALUES
+		(
+			#{tchrId},
+			#{yymm},
+			#{yymmdd},
+			#{cd},
+			#{name},
+			#{memo},
+			#{propertyName},
+			#{propertyContent},
+			#{periodName},
+			#{startPeriod},
+			#{endPeriod},
+			#{cont},
+			#{templateCd},
+			DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		)
+		ON DUPLICATE KEY UPDATE 
+			NAME=#{name},
+			MEMO = #{memo},
+			PROPERTY_NM = #{propertyName},
+			PROPERTY_CONT = #{propertyContent},
+			PERIOD_NM = #{periodName},
+			PERIOD_STT_DT=#{startPeriod}, 
+			PERIOD_END_DT = #{endPeriod},
+			CONT = #{cont},
+			TEMPLATE_CD = #{templateCd},
+			UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR);
+	</insert>
 	
 	<insert id="setHomelog" parameterType="hashMap">
 		/* Homelog.setHomelog */
@@ -54,6 +113,16 @@
 			  #{cd, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
+	
+	<update id="delHomelog" parameterType="hashMap">
+		/* Homelog.delHomelog */
+		UPDATE TCHR_MANUAL_HOMELOG_INFO 
+		SET DELETE_CHECK = 'Y',
+			UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR),
+	        DEL_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		WHERE TCHR_ID = #{tchrId}
+			AND CD = #{cd};
+	</update>
 	
 </mapper>
 	
