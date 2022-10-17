@@ -369,7 +369,7 @@ public class StudentController {
     }
     
     /**
-     * 상장 목록 - 학습기용 (STUD-HL-002)
+     * 상장 수여 수 (STUD-HL-002)
      * @param params
      * @return
      * @throws Exception
@@ -429,7 +429,7 @@ public class StudentController {
     }
     
     /**
-     * 상장 정보 (STUD-HL-007)
+     * 템플릿 정보 (STUD-HL-007)
      * @param params
      * @return
      * @throws Exception
@@ -437,6 +437,66 @@ public class StudentController {
     @GetMapping("/getTempInfo")
     public ResponseEntity getTempInfo(@RequestParam Map<String,Object> params) throws Exception {
         body = (LinkedHashMap<String, Object>) studHomeLogService.getTempInfo(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 템플릿 목록 (STUD-HL-008)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getHlogTempList")
+    public ResponseEntity getHlogTempList(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.getHlogTempList(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 템플릿 삭제 (STUD-HL-009)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/delHlogTemp")
+    public ResponseEntity delHlogTemp(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.delHlogTemp(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 생성 (STUD-HL-010)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/regHlog")
+    public ResponseEntity regHlog(@RequestBody Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.regHlog(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 수여 (STUD-HL-011)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/setHlog")
+    public ResponseEntity setHlog(@RequestBody Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.setHlog(params);
+        return new ResponseEntity(body,headers, HttpStatus.OK);
+    }
+    
+    /**
+     * 상장 삭제 (STUD-HL-012)
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/delHlog")
+    public ResponseEntity delHlog(@RequestParam Map<String,Object> params) throws Exception {
+        body = (LinkedHashMap<String, Object>) studHomeLogService.delHlog(params);
         return new ResponseEntity(body,headers, HttpStatus.OK);
     }
 

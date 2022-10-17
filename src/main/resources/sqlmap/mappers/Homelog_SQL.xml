@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Homelog">
+	
+	<select id="spTchrManualHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.spTchrManualHomelogMaxCd */
+		{call es_s_dashboard.tchr_hoemlog_max_cd (
+			  #{tchrId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spRegTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.spRegTchrManualHomelog */
+		{call es_s_dashboard.reg_homelog (
+			  #{tchrId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER},
+			  #{yymmdd, mode=IN, jdbcType=INTEGER},
+			  #{cd, mode=IN, jdbcType=INTEGER},
+			  #{memo, mode=IN, jdbcType=VARCHAR},
+			  #{name, mode=IN, jdbcType=VARCHAR},
+			  #{propertyName, mode=IN, jdbcType=VARCHAR},
+			  #{propertyContent, mode=IN, jdbcType=VARCHAR},
+			  #{periodName, mode=IN, jdbcType=VARCHAR},
+			  #{startPeriod, mode=IN, jdbcType=VARCHAR},
+			  #{endPeriod, mode=IN, jdbcType=VARCHAR},
+			  #{cont, mode=IN, jdbcType=VARCHAR},
+			  #{templateCd, mode=IN, jdbcType=VARCHAR}
+		 )}
+	</select>
+	
+	<insert id="setHomelog" parameterType="hashMap">
+		/* Homelog.setHomelog */
+		INSERT INTO STUD_MANUAL_HOMELOG
+		(
+			STUD_ID,
+		    DT,
+		    CD,
+		    STATUS,
+		    PRST_DT,
+		    TCHR_ID,
+		    REG_DTTM
+		)
+		VALUES
+		<foreach item="item" index="index" collection="list" separator=",">
+			(#{item.studId}, #{item.dt}, #{item.cd}, #{item.status}, #{item.dt}, #{item.tchrId}, DATE_ADD(NOW(), INTERVAL 9 HOUR))       
+		</foreach>
+	</insert>
+	
+	<select id="spDelTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.spDelTchrManualHomelog */
+		{call es_s_dashboard.del_homelog (
+			  #{tchrId, mode=IN, jdbcType=INTEGER},
+			  #{cd, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+</mapper>
+	

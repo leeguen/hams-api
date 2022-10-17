@@ -17,4 +17,14 @@ public interface StudHomeLogService {
     public Map getHlogInfo (Map<String,Object> paramMap) throws Exception;
     
     public Map getTempInfo (Map<String,Object> paramMap) throws Exception;
+    
+    public Map getHlogTempList (Map<String,Object> paramMap) throws Exception;
+    
+    public Map delHlogTemp (Map<String,Object> paramMap) throws Exception;
+    
+    public Map regHlog (Map<String,Object> paramMap) throws Exception;
+    
+    public Map setHlog (Map<String,Object> paramMap) throws Exception;
+    
+    public Map delHlog (Map<String,Object> paramMap) throws Exception;
 }

@@ -50,6 +50,9 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     @Autowired
     CommonMapperLrnDm studLrnAnalMapper;
     
+    @Autowired
+    CommonMapperLrnType commonMapperLrnType;
+    
     @Override
     public Map getHlogList(Map<String,Object> paramMap) throws Exception {
         Map<String,Object> data = new LinkedHashMap<>();
@@ -367,6 +370,249 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         
 	    return result; 
     }
+    
+    @Override
+    public Map getHlogTempList(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
+        if(vu.isValid()) {
+        	 /*상장 목록 수 조회*/
+            
+            /*상장 목록 수 조회*/
+        	
+        	ArrayList<Map<String, Object>> templateList = new ArrayList<>();
+        	
+        	Map<String, Object> templateMap = new LinkedHashMap<String, Object>();
+        	Map<String, Object> templateMap1 = new LinkedHashMap<String, Object>();
+        	
+        	templateMap.put("cd", 22100001);
+        	templateMap.put("name", "[22년 2학기 상장] 수행률 100%");
+        	
+        	templateMap1.put("cd", 22100002);
+        	templateMap1.put("name", "[22년 2학기 상장] 수행률 80%");
+        	
+        	templateList.add(templateMap);
+        	templateList.add(templateMap1);
+        	
+        	data.put("templateList", templateList);
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map delHlogTemp(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getStudId(paramMap);
+        
+        vu.checkRequired(new String[] {"studId"}, paramMap);
+        if(vu.isValid()) {
+        	 /*상장 목록 수 조회*/
+            
+            /*상장 목록 수 조회*/
+        	
+        	data.put("resultMessage", "22100001 상장 삭제 성공");
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map regHlog(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getTchrId(paramMap);
+        
+        vu.checkRequired(new String[] {"tchrId"}, paramMap);
+        if(vu.isValid()) {
+        	 /*상장 목록 수 조회*/
+            
+            /*상장 목록 수 조회*/
+        	
+        	Calendar month = Calendar.getInstance();
+        	month.add(Calendar.MONTH , 0);
+            String stringYymm = new java.text.SimpleDateFormat("yyyyMM").format(month.getTime());
+    		int yymm = Integer.parseInt(stringYymm);
+        	
+    		String stringYymmdd = new java.text.SimpleDateFormat("yyyyMMdd").format(month.getTime());
+    		int yymmdd = Integer.parseInt(stringYymmdd);
+    		
+    		
+    		paramMap.put("yymm", yymm);
+    		paramMap.put("yymmdd", yymmdd);
+        	
+    		int maxCd = 0;
+    		
+    		if(paramMap.get("cd") != null) {
+    			maxCd = Integer.parseInt(paramMap.get("cd").toString());
+    		} else {
+    			Map<String,Object> tchrMaxCdData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.spTchrManualHomelogMaxCd");
+    			
+    			int cdCnt = Integer.parseInt(tchrMaxCdData.get("cnt").toString());
+    			
+    			if(cdCnt == 0) { 
+    				Calendar cdMonth = Calendar.getInstance();
+    				cdMonth.add(Calendar.MONTH , 0);
+    				String currYymm = new java.text.SimpleDateFormat("yyMM").format(cdMonth.getTime());
+    				currYymm = currYymm + "0001";
+    				
+    				maxCd = Integer.parseInt(currYymm);
+    				
+    			} else {
+    				maxCd = Integer.parseInt(tchrMaxCdData.get("maxCd").toString()) + 1;
+    			}
+    		}
+    		
+        	
+        	paramMap.put("cd", maxCd);
+        	
+        	if(paramMap.get("startPeriod") != null) {
+        		paramMap.put("startPeriod", Integer.parseInt(paramMap.get("startPeriod").toString().replace("-", "")));
+        	}
+        	
+        	if(paramMap.get("endPeriod") != null) {
+        		paramMap.put("endPeriod", Integer.parseInt(paramMap.get("endPeriod").toString().replace("-", "")));
+        	}
+        	
+        	int row = 0;
+        	
+        	try {
+        		row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
+        	} catch (Exception e) {
+        		System.out.println("Homelog.spRegTchrManualHomelog Insert Error");
+			}
+        	
+        	if(row > 0) {
+        		data.put("resultMessage", maxCd + " 상장 생성");
+        	} else {
+        		data.put("resultMessage", maxCd + " 상장 생성 실패");
+        	}
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map setHlog(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getTchrId(paramMap);
+        
+        vu.checkRequired(new String[] {"tchrId"}, paramMap);
+        if(vu.isValid()) {
+        	ArrayList<Map<String, Object>> studList = new ArrayList<>();
+        	
+        	int tchrId = Integer.parseInt(paramMap.get("tchrId").toString());
+        	String cd = paramMap.get("cd").toString();
+        	ArrayList<Integer> studIdList = (ArrayList<Integer>) paramMap.get("studIds");
+        	
+        	String today = LocalDate.now(ZoneId.of("Asia/Seoul")).toString();
+        	String todayDate = today.replace("-", "");
+        	
+        	for(int studId : studIdList) {
+        		Map<String,Object> insertMap = new LinkedHashMap<String, Object>();
+        		
+        		insertMap.put("studId", studId);
+        		insertMap.put("dt", Integer.parseInt(todayDate));
+        		insertMap.put("cd", Integer.parseInt(cd));
+        		insertMap.put("status", 1);
+        		insertMap.put("prstDt", Integer.parseInt(todayDate));
+        		insertMap.put("tchrId", tchrId);
+        		
+        		studList.add(insertMap);
+        	}
+        	
+        	Map<String,Object> insertParamsMap = new LinkedHashMap<String, Object>();
+        	
+        	int row = 0;
+        	
+        	insertParamsMap.put("list", studList);
+        	
+        	try {
+        		row = commonMapperLrnType.insert(insertParamsMap,"Homelog.setHomelog");
+        	} catch (Exception e) {
+        		System.out.println("Homelog.setHomelog Insert Error");
+			}
+        	
+        	if(row > 0) {
+        		data.put("resultMessage", studIdList.size() + "건 상장 수여");
+        	} else {
+        		data.put("resultMessage", "상장 수여 실패");
+        	}
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
+    
+    @Override
+    public Map delHlog(Map<String,Object> paramMap) throws Exception {
+        Map<String,Object> data = new LinkedHashMap<>();
+        
+        ValidationUtil vu = new ValidationUtil();
+        ValidationUtil vu1 = new ValidationUtil();
+        
+        getTchrId(paramMap);
+        
+        vu.checkRequired(new String[] {"tchrId"}, paramMap);
+        if(vu.isValid()) {
+        	
+        	String cd = paramMap.get("cd").toString();
+        	
+        	int row = 0;
+        	
+        	paramMap.put("cd", Integer.parseInt(cd));
+        	
+        	try {
+        		row = commonMapperLrnType.update(paramMap,"Homelog.spDelTchrManualHomelog");
+        	} catch (Exception e) {
+        		System.out.println("Homelog.spRegTchrManualHomelog Update Error");
+			}
+        	
+        	if(row > 0) {
+        		data.put("resultMessage", cd + " 상장 삭제");
+        	} else {
+        		data.put("resultMessage", cd + " 상장 삭제 실패");
+        	}
+            
+            setResult(dataKey,data);
+        } else {
+        	setResult(msgKey, vu.getResult());
+        }
+        
+	    return result; 
+    }
 
     /**
      * 서비스단에서 리턴되는 결과(메시지,데이터 object를 포함한 result)세팅.
@@ -416,6 +662,35 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 				if(decodedStr != null) {
 					//DB params
 					params.put("studId",studId);
+				}
+			} catch (Exception e) {
+				LOGGER.debug("p Parameter Incorrect");
+				
+				//p값 복호화 실패
+				decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
+				decodeResult.put("result", "p : Incorrect");
+			}
+		}
+	}
+	
+	/***
+     * 파라미터에서 tchrId 추출
+     * @param params
+     * @throws Exception
+     */
+	private void getTchrId(Map<String, Object> params) throws Exception {
+		decodeResult = new LinkedHashMap<String, Object>();
+		if(!params.containsKey("tchrId") && params.containsKey("p")) {
+			//복호화
+			try {
+				CipherUtil cp = CipherUtil.getInstance();
+				String decodedStr = cp.AES_Decode(params.get("p").toString());
+				
+				int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
+				
+				if(decodedStr != null) {
+					//DB params
+					params.put("tchrId",studId);
 				}
 			} catch (Exception e) {
 				LOGGER.debug("p Parameter Incorrect");
