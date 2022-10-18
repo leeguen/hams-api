@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="Homelog">
+
+	<select id="selectHomelogPageCnt" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogPageCnt */
+		SELECT
+			COUNT(*) AS TOTAL_CNT,
+		    CAST(CEIL((COUNT(*) / 10)) AS UNSIGNED) AS PAGE_CNT
+		FROM STUD_MANUAL_HOMELOG
+		WHERE STUD_ID = #{studId}
+			AND YYYY = #{yyyy};
+	</select>
 	
 	<select id="spTchrManualHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
 		/* Homelog.spTchrManualHomelogMaxCd */
@@ -15,7 +25,14 @@
 		SELECT
 			COUNT(*) AS CNT,
 			MAX(CD) AS MAX_CD
-		FROM es_s_dashboard.TCHR_MANUAL_HOMELOG_INFO
+		<choose>
+			<when test='grpCd != null and grpCd == "A"'>
+		FROM TCHR_AUTO_HOMELOG_INFO
+			</when>
+			<otherwise>
+		FROM TCHR_MANUAL_HOMELOG_INFO
+			</otherwise>
+		</choose>
 		WHERE TCHR_ID = #{tchrId}
 			AND YYMM = #{yymm};
 	</select>
@@ -41,7 +58,14 @@
 	
 	<insert id="regHomelog" parameterType="hashMap">
 		/* Homelog.regHomelog */
+		<choose>
+			<when test='grpCd != null and grpCd == "A"'>
+		INSERT INTO TCHR_AUTO_HOMELOG_INFO
+			</when>
+			<otherwise>
 		INSERT INTO TCHR_MANUAL_HOMELOG_INFO
+			</otherwise>
+		</choose>
 		(
 			TCHR_ID,
 			YYMM,
@@ -95,6 +119,7 @@
 			STUD_ID,
 		    DT,
 		    CD,
+		    YYYY,
 		    STATUS,
 		    PRST_DT,
 		    TCHR_ID,
@@ -102,7 +127,7 @@
 		)
 		VALUES
 		<foreach item="item" index="index" collection="list" separator=",">
-			(#{item.studId}, #{item.dt}, #{item.cd}, #{item.status}, #{item.dt}, #{item.tchrId}, DATE_ADD(NOW(), INTERVAL 9 HOUR))       
+			(#{item.studId}, #{item.dt}, #{item.cd}, #{item.yyyy}, #{item.status}, #{item.dt}, #{item.tchrId}, DATE_ADD(NOW(), INTERVAL 9 HOUR))       
 		</foreach>
 	</insert>
 	

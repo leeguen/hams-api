@@ -224,6 +224,28 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             data.put("pageCnt", 10);
             data.put("currPage", 1);
             
+            if(paramMap.get("yyyy") == null) {
+            	Calendar month = Calendar.getInstance();
+            	month.add(Calendar.MONTH , 0);
+                String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+        		int yyyy = Integer.parseInt(stringYymm);
+        		
+        		paramMap.put("yyyy", yyyy);
+            }
+            
+            Map<String,Object> pageCntData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogPageCnt");
+            
+            if(pageCntData != null) {
+            	data.put("totalCnt", pageCntData.get("totalCnt"));
+                data.put("pageCnt", pageCntData.get("pageCnt"));
+            }
+            
+            if(paramMap.get("page") != null) {
+            	data.put("currPage", paramMap.get("page"));
+            } else {
+            	data.put("currPage", 1);
+            }
+            
             ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
             Map<String, Object> homelogMap = new LinkedHashMap<>();
             homelogMap.put("cd", 22100001);
@@ -458,11 +480,20 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     		String stringYymmdd = new java.text.SimpleDateFormat("yyyyMMdd").format(month.getTime());
     		int yymmdd = Integer.parseInt(stringYymmdd);
     		
+    		int tchrId = Integer.parseInt(paramMap.get("tchrId").toString());
     		
     		paramMap.put("yymm", yymm);
     		paramMap.put("yymmdd", yymmdd);
         	
     		int maxCd = 0;
+    		String grpCd = null;
+    		
+    		if(paramMap.get("grpCd") != null) {
+    			if(paramMap.get("grpCd").toString().equals("A")) {
+    				grpCd = paramMap.get("grpCd").toString();
+    				paramMap.put("tchrId", 0);
+    			}
+    		}
     		
     		if(paramMap.get("cd") != null) {
     			maxCd = Integer.parseInt(paramMap.get("cd").toString());
@@ -475,7 +506,13 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     			if(cdCnt == 0) { 
     				Calendar cdMonth = Calendar.getInstance();
     				cdMonth.add(Calendar.MONTH , 0);
-    				String currYymm = new java.text.SimpleDateFormat("yyMM").format(cdMonth.getTime());
+    				
+    				String currYymm = null;
+    				if(grpCd != null && grpCd.equals("A")) {
+    					currYymm = new java.text.SimpleDateFormat("yyyyMM").format(cdMonth.getTime());
+    				} else {
+    					currYymm = new java.text.SimpleDateFormat("yyMM").format(cdMonth.getTime());
+    				}
     				currYymm = currYymm + "0001";
     				
     				maxCd = Integer.parseInt(currYymm);
@@ -484,33 +521,41 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     				maxCd = Integer.parseInt(tchrMaxCdData.get("maxCd").toString()) + 1;
     			}
     		}
-    		
         	
         	paramMap.put("cd", maxCd);
-        	
-        	if(paramMap.get("startPeriod") != null) {
+    		
+    		if(paramMap.get("startPeriod") != null) {
         		paramMap.put("startPeriod", Integer.parseInt(paramMap.get("startPeriod").toString().replace("-", "")));
         	}
         	
         	if(paramMap.get("endPeriod") != null) {
         		paramMap.put("endPeriod", Integer.parseInt(paramMap.get("endPeriod").toString().replace("-", "")));
         	}
+    		
+    		int row = 0;
         	
-        	int row = 0;
-        	
-        	try {
-        		row = commonMapperLrnType.insert(paramMap,"Homelog.regHomelog");
-        		//row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
-        	} catch (Exception e) {
-        		System.out.println("Homelog.spRegTchrManualHomelog Insert Error");
-			}
+    		if(grpCd != null && grpCd.equals("A")) {
+    			try {
+            		row = commonMapperLrnType.insert(paramMap,"Homelog.regHomelog");
+            		//row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
+            	} catch (Exception e) {
+            		System.out.println("Homelog.spRegTchrManualHomelog Insert Error");
+    			}
+    		} else {
+    			try {
+            		row = commonMapperLrnType.insert(paramMap,"Homelog.regHomelog");
+            		//row = commonMapperLrnType.insert(paramMap,"Homelog.spRegTchrManualHomelog");
+            	} catch (Exception e) {
+            		System.out.println("Homelog.spRegTchrManualHomelog Insert Error");
+    			}
+    		}
         	
         	if(row > 0) {
         		data.put("resultMessage", maxCd + " 상장 생성");
         	} else {
         		data.put("resultMessage", maxCd + " 상장 생성 실패");
         	}
-            
+    		
             setResult(dataKey,data);
         } else {
         	setResult(msgKey, vu.getResult());
@@ -531,25 +576,48 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         vu.checkRequired(new String[] {"tchrId"}, paramMap);
         if(vu.isValid()) {
         	ArrayList<Map<String, Object>> studList = new ArrayList<>();
+        	ArrayList<Integer> studIdList = new ArrayList<>();
+        	ArrayList<Integer> cdList = new ArrayList<>();
         	
         	int tchrId = Integer.parseInt(paramMap.get("tchrId").toString());
         	String cd = paramMap.get("cd").toString();
-        	ArrayList<Integer> studIdList = (ArrayList<Integer>) paramMap.get("studIds");
+        	
+        	if(paramMap.get("studIds").getClass().getSimpleName().equals("Integer")) {
+        		int studId = Integer.parseInt(paramMap.get("studIds").toString());
+        		studIdList.add(studId);
+        	} else {
+        		studIdList = (ArrayList<Integer>) paramMap.get("studIds");
+        	}
+        	
+        	if(paramMap.get("cd").getClass().getSimpleName().equals("Integer")) {
+        		int cdData = Integer.parseInt(paramMap.get("cd").toString());
+        		cdList.add(cdData);
+        	} else {
+        		cdList = (ArrayList<Integer>) paramMap.get("cd");
+        	}
         	
         	String today = LocalDate.now(ZoneId.of("Asia/Seoul")).toString();
         	String todayDate = today.replace("-", "");
         	
-        	for(int studId : studIdList) {
-        		Map<String,Object> insertMap = new LinkedHashMap<String, Object>();
-        		
-        		insertMap.put("studId", studId);
-        		insertMap.put("dt", Integer.parseInt(todayDate));
-        		insertMap.put("cd", Integer.parseInt(cd));
-        		insertMap.put("status", 1);
-        		insertMap.put("prstDt", Integer.parseInt(todayDate));
-        		insertMap.put("tchrId", tchrId);
-        		
-        		studList.add(insertMap);
+        	Calendar month = Calendar.getInstance();
+        	month.add(Calendar.MONTH , 0);
+            String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+    		int yyyy = Integer.parseInt(stringYymm);
+        	
+        	for(int studIds : studIdList) {
+        		for(int cds : cdList) {
+        			Map<String,Object> insertMap = new LinkedHashMap<String, Object>();
+            		
+            		insertMap.put("studId", studIds);
+            		insertMap.put("dt", Integer.parseInt(todayDate));
+            		insertMap.put("cd", cds);
+            		insertMap.put("yyyy", yyyy);
+            		insertMap.put("status", 1);
+            		insertMap.put("prstDt", Integer.parseInt(todayDate));
+            		insertMap.put("tchrId", tchrId);
+            		
+            		studList.add(insertMap);
+        		}
         	}
         	
         	Map<String,Object> insertParamsMap = new LinkedHashMap<String, Object>();
@@ -565,7 +633,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 			}
         	
         	if(row > 0) {
-        		data.put("resultMessage", studIdList.size() + "건 상장 수여");
+        		data.put("resultMessage", row + "건 상장 수여");
         	} else {
         		data.put("resultMessage", "상장 수여 실패");
         	}

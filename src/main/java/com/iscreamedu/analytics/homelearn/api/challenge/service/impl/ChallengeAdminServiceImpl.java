@@ -438,7 +438,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									mathSttNm = "진행중";
 									mathSttCd = 1;
 								} else {
-									mathSttNm = "시작하기";
+									mathSttNm = "신청하기";
 									mathSttCd = -1;
 								}
 							}
