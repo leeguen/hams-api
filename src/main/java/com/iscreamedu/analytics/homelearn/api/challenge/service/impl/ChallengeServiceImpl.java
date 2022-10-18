@@ -303,31 +303,43 @@ public class ChallengeServiceImpl implements ChallengeService {
 								6	MIS_STATUS	미션종료/결과확인
 								-1	MIS_STATUS	미션 시작전
 								*/
-			        			// db상 이미 완료인 건은 stepStatusCd 은 변경하지 않음!!
+			        			// db상 이미 완료(stepStatusCd=2)인 건은 stepStatusCd 은 변경하지 않음!!			        			
 			        			if(cluList_mmc.get("mcStudType").toString().equals("1")) {		// 수학세포 등록 타입 (1-함께하기)
 			        				// 수학세포 기간 정보 (0: 신청기간, 1: 학습기간, 2: 결과기간)
 			        				if(cluList_mmc.get("periodData").toString().equals("2")) {	
-			        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", 1);	
-					        			item.put("stepStatusCdNm", "결과확인");		
+			        					if(!item.get("stepStatusCd").toString().equals("2")) {
+			        						item.put("stepStatusCd", 1);	
+			        					}	
+		        						item.put("stepStatusCdNm", "결과확인");	
 				        			} else if(cluList_mmc.get("periodData").toString().equals("1")) {
-				        				if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", 1);	
-					        			item.put("stepStatusCdNm", "진행중");	
+				        				if(!item.get("stepStatusCd").toString().equals("2")) {
+				        					item.put("stepStatusCd", 1);	
+				        				}
+			        					item.put("stepStatusCdNm", "진행중");	
 				        			} else if(cluList_mmc.get("periodData").toString().equals("0")) {
 				        				if(cluList_mmc.get("mcStudStatus").toString().equals("신청")) {
-				        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", 1);	
-						        			item.put("stepStatusCdNm", "신청완료");		
+				        					if(!item.get("stepStatusCd").toString().equals("2")) {
+				        						item.put("stepStatusCd", 1);	
+				        					}
+			        						item.put("stepStatusCdNm", "신청완료");
 				        				} else {
-				        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", -1);	
-						        			item.put("stepStatusCdNm", "신청하기");		
+				        					if(!item.get("stepStatusCd").toString().equals("2")) {
+				        						item.put("stepStatusCd", -1);	
+				        					}		
+						        			item.put("stepStatusCdNm", "신청하기");
 				        				}
 				        			}
-			        			} else { 	// 수학세포 등록 타입 (2- 혼자하기/0- 미지정(신청전))
-			        				if(cluList_mmc.get("mcStudStatus").toString().equals("신청")) {
-			        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", 1);	
-					        			item.put("stepStatusCdNm", "진행중");		
+			        			} else { 	// 수학세포 등록 타입 (2- 혼자하기/0- 미지정(신청전))			        				
+			        				if(item.get("stepStatusCd").toString().equals("2")) {
+					        			item.put("stepStatusCdNm", "완료");	
 			        				} else {
-			        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", -1);	
-					        			item.put("stepStatusCdNm", "신청하기");		
+			        					if(cluList_mmc.get("mcStudStatus").toString().equals("신청")) {
+			        						item.put("stepStatusCd", 1);	
+						        			item.put("stepStatusCdNm", "진행중");		
+			        					} else {
+			        						item.put("stepStatusCd", -1);	
+			        						item.put("stepStatusCdNm", "신청하기");	
+			        					}
 			        				}
 			        			}
 			        			Map<String, Object> cluList_mmc_progressData= (Map<String, Object>)cluList_mmc.get("progressData");
