@@ -321,13 +321,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 						        			item.put("stepStatusCdNm", "신청하기");		
 				        				}
 				        			}
-			        			} else { 	// 수학세포 등록 타입 (2- 혼자하기)
+			        			} else { 	// 수학세포 등록 타입 (2- 혼자하기/0- 미지정(신청전))
 			        				if(cluList_mmc.get("mcStudStatus").toString().equals("신청")) {
 			        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", 1);	
 					        			item.put("stepStatusCdNm", "진행중");		
 			        				} else {
 			        					if(!item.get("stepStatusCd").toString().equals("2")) item.put("stepStatusCd", -1);	
-					        			item.put("stepStatusCdNm", "시작하기");		
+					        			item.put("stepStatusCdNm", "신청하기");		
 			        				}
 			        			}
 			        			Map<String, Object> cluList_mmc_progressData= (Map<String, Object>)cluList_mmc.get("progressData");
