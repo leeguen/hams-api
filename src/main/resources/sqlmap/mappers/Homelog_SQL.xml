@@ -7,17 +7,93 @@
 		SELECT
 			COUNT(*) AS TOTAL_CNT,
 		    CAST(CEIL((COUNT(*) / 10)) AS UNSIGNED) AS PAGE_CNT
-		FROM STUD_MANUAL_HOMELOG
+		FROM STUD_HOMELOG_HISTORY
 		WHERE STUD_ID = #{studId}
 			AND YYYY = #{yyyy};
 	</select>
 	
-	<select id="spTchrManualHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
-		/* Homelog.spTchrManualHomelogMaxCd */
-		{call es_s_dashboard.tchr_hoemlog_max_cd (
-			  #{tchrId, mode=IN, jdbcType=INTEGER},
-			  #{yymm, mode=IN, jdbcType=INTEGER}
-		 )}
+	<select id="selectHomelogCntList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogCntList */
+		SELECT
+		    YYYY,
+		    COUNT(*) AS H_LOG_CNT
+		FROM STUD_HOMELOG_HISTORY
+		WHERE STUD_ID = #{studId}
+		<choose>
+			<when test='startYyyy != null and endYyyy != null'>
+			AND YYYY BETWEEN #{startYyyy} AND #{endYyyy}
+			</when>
+			<when test='startYyyy != null and endYyyy == null'>
+			AND YYYY = #{startYyyy}
+			</when>
+			<when test='startYyyy == null and endYyyy != null'>
+			AND YYYY = #{endYyyy}
+			</when>
+		</choose>
+		GROUP BY STUD_ID, YYYY;
+	</select>
+	
+	<select id="selectHomelogDetailList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogDetailList */
+		SELECT
+			CD,
+			ID,
+		    GRP,
+		    GRP_CD,
+		    NAME,
+		    STUD_NAME,
+		    PROPERTY,
+		    PERIOD,
+		    CONT,
+		    TCHR_NAME,
+		    TEMPLATE_URL,
+		    DATE_FORMAT(REG_DTTM, '%Y-%m-%d %H:%i:%s') AS REG_DTTM
+		FROM (
+			SELECT
+				A.CD,
+				CONCAT('ISE-FFC-99-', RIGHT(A.CD,4)) AS ID,
+				'학습분석 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				NULL AS STUD_NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				CASE
+					WHEN B.PERIOD_STT_DT IS NULL AND B.PERIOD_END_DT IS NULL THEN NULL
+					ELSE CONCAT(B.PERIOD_STT_DT, ' ~ ', B.PERIOD_END_DT)
+				END AS PERIOD,
+				B.CONT,
+				'아이뚜루' AS TCHR_NAME,
+				B.TEMPLATE_CD AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_AUTO_HOMELOG_INFO B ON B.TCHR_ID = 0 AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+			UNION ALL
+			SELECT
+				A.CD,
+				CONCAT('ISE-FFC-',LEFT(RIGHT(A.CD,6),2),'-', RIGHT(A.CD,4)) AS ID,
+				'선생님 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				NULL AS STUD_NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				CASE
+					WHEN B.PERIOD_STT_DT IS NULL AND B.PERIOD_END_DT IS NULL THEN NULL
+					ELSE CONCAT(B.PERIOD_STT_DT, ' ~ ', B.PERIOD_END_DT)
+				END AS PERIOD,
+				B.CONT,
+				NULL AS TCHR_NAME,
+				B.TEMPLATE_CD AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_MANUAL_HOMELOG_INFO B ON A.TCHR_ID = B.TCHR_ID AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+		) A
+		ORDER BY REG_DTTM, CD
+		LIMIT 10
+		OFFSET #{page};
 	</select>
 	
 	<select id="selectHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
@@ -35,25 +111,6 @@
 		</choose>
 		WHERE TCHR_ID = #{tchrId}
 			AND YYMM = #{yymm};
-	</select>
-	
-	<select id="spRegTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
-		/* Homelog.spRegTchrManualHomelog */
-		{call es_s_dashboard.reg_homelog (
-			  #{tchrId, mode=IN, jdbcType=INTEGER},
-			  #{yymm, mode=IN, jdbcType=INTEGER},
-			  #{yymmdd, mode=IN, jdbcType=INTEGER},
-			  #{cd, mode=IN, jdbcType=INTEGER},
-			  #{memo, mode=IN, jdbcType=VARCHAR},
-			  #{name, mode=IN, jdbcType=VARCHAR},
-			  #{propertyName, mode=IN, jdbcType=VARCHAR},
-			  #{propertyContent, mode=IN, jdbcType=VARCHAR},
-			  #{periodName, mode=IN, jdbcType=VARCHAR},
-			  #{startPeriod, mode=IN, jdbcType=VARCHAR},
-			  #{endPeriod, mode=IN, jdbcType=VARCHAR},
-			  #{cont, mode=IN, jdbcType=VARCHAR},
-			  #{templateCd, mode=IN, jdbcType=VARCHAR}
-		 )}
 	</select>
 	
 	<insert id="regHomelog" parameterType="hashMap">
@@ -114,11 +171,12 @@
 	
 	<insert id="setHomelog" parameterType="hashMap">
 		/* Homelog.setHomelog */
-		INSERT INTO STUD_MANUAL_HOMELOG
+		INSERT INTO STUD_HOMELOG_HISTORY
 		(
 			STUD_ID,
 		    DT,
 		    CD,
+		    GRP_CD,
 		    YYYY,
 		    STATUS,
 		    PRST_DT,
@@ -127,9 +185,56 @@
 		)
 		VALUES
 		<foreach item="item" index="index" collection="list" separator=",">
-			(#{item.studId}, #{item.dt}, #{item.cd}, #{item.yyyy}, #{item.status}, #{item.dt}, #{item.tchrId}, DATE_ADD(NOW(), INTERVAL 9 HOUR))       
+			(#{item.studId}, #{item.dt}, #{item.cd}, #{item.grpCd}, #{item.yyyy}, #{item.status}, #{item.dt}, #{item.tchrId}, DATE_ADD(NOW(), INTERVAL 9 HOUR))       
 		</foreach>
 	</insert>
+	
+	<update id="delHomelog" parameterType="hashMap">
+		/* Homelog.delHomelog */
+		UPDATE TCHR_MANUAL_HOMELOG_INFO 
+		SET DEL_YN = 'Y',
+			UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR),
+	        DEL_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		WHERE TCHR_ID = #{tchrId}
+			AND CD = #{cd};
+	</update>
+	
+	<update id="delHomelogForStud" parameterType="hashMap">
+		/* Homelog.delHomelogForStud */
+		UPDATE STUD_MANUAL_HOMELOG 
+		SET DEL_YN = 'Y',
+			UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR),
+	        DEL_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
+		WHERE TCHR_ID = #{tchrId}
+			AND CD = #{cd};
+	</update>
+	
+	<select id="spTchrManualHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.spTchrManualHomelogMaxCd */
+		{call es_s_dashboard.tchr_hoemlog_max_cd (
+			  #{tchrId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select>
+	
+	<select id="spRegTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.spRegTchrManualHomelog */
+		{call es_s_dashboard.reg_homelog (
+			  #{tchrId, mode=IN, jdbcType=INTEGER},
+			  #{yymm, mode=IN, jdbcType=INTEGER},
+			  #{yymmdd, mode=IN, jdbcType=INTEGER},
+			  #{cd, mode=IN, jdbcType=INTEGER},
+			  #{memo, mode=IN, jdbcType=VARCHAR},
+			  #{name, mode=IN, jdbcType=VARCHAR},
+			  #{propertyName, mode=IN, jdbcType=VARCHAR},
+			  #{propertyContent, mode=IN, jdbcType=VARCHAR},
+			  #{periodName, mode=IN, jdbcType=VARCHAR},
+			  #{startPeriod, mode=IN, jdbcType=VARCHAR},
+			  #{endPeriod, mode=IN, jdbcType=VARCHAR},
+			  #{cont, mode=IN, jdbcType=VARCHAR},
+			  #{templateCd, mode=IN, jdbcType=VARCHAR}
+		 )}
+	</select>
 	
 	<select id="spDelTchrManualHomelog" parameterType="hashMap" resultType="resultMap">
 		/* Homelog.spDelTchrManualHomelog */
@@ -138,16 +243,5 @@
 			  #{cd, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
-	
-	<update id="delHomelog" parameterType="hashMap">
-		/* Homelog.delHomelog */
-		UPDATE TCHR_MANUAL_HOMELOG_INFO 
-		SET DELETE_CHECK = 'Y',
-			UPD_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR),
-	        DEL_DTTM = DATE_ADD(NOW(), INTERVAL 9 HOUR)
-		WHERE TCHR_ID = #{tchrId}
-			AND CD = #{cd};
-	</update>
-	
 </mapper>
 	

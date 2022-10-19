@@ -53,6 +53,9 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     @Autowired
     CommonMapperLrnType commonMapperLrnType;
     
+    @Autowired
+	ExternalAPIService externalAPIservice;
+    
     @Override
     public Map getHlogList(Map<String,Object> paramMap) throws Exception {
         Map<String,Object> data = new LinkedHashMap<>();
@@ -119,11 +122,19 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         
         vu.checkRequired(new String[] {"studId"}, paramMap);
         if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
+        	 /*상장 수 조회*/
+        	if(paramMap.get("startYyyy") != null) {
+        		paramMap.put("startYyyy", (!paramMap.get("startYyyy").toString().equals("")) ? Integer.parseInt(paramMap.get("startYyyy").toString()) : null);
+        	}
+        	
+        	if(paramMap.get("endYyyy") != null) {
+        		paramMap.put("endYyyy", (!paramMap.get("endYyyy").toString().equals("")) ? Integer.parseInt(paramMap.get("endYyyy").toString()) : null);
+        	}
+        	
+            ArrayList<Map<String, Object>> homelogList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogCntList");
+            /*상장 수 조회*/
             
-            /*상장 목록 수 조회*/
-            ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
-            Map<String, Object> homelogMap = new LinkedHashMap<>();
+            /*Map<String, Object> homelogMap = new LinkedHashMap<>();
             homelogMap.put("yyyy", 2022);
             homelogMap.put("hLogCount", 100);
             
@@ -132,7 +143,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             homelogMap1.put("hLogCount", 0);
             
             homelogList.add(homelogMap);
-            homelogList.add(homelogMap1);
+            homelogList.add(homelogMap1);*/
             
             data.put("hLogCountList", homelogList);
             
@@ -156,15 +167,64 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         vu.checkRequired(new String[] {"studId"}, paramMap);
         if(vu.isValid()) {
         	 /*상장 목록 수 조회*/
+        	
+        	Calendar month = Calendar.getInstance();
+        	month.add(Calendar.MONTH , 0);
+            String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+    		int yyyy = Integer.parseInt(stringYymm);
+        	
+        	if(paramMap.get("yyyy") != null) {
+        		paramMap.put("yyyy", (!paramMap.get("yyyy").toString().equals("")) ? Integer.parseInt(paramMap.get("yyyy").toString()): yyyy);
+        	} else {
+        		paramMap.put("yyyy", yyyy);
+        	}
+        	
+            data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogPageCnt");
+            
+            int totalCnt = Integer.parseInt(data.get("totalCnt").toString());
+            
+            if(paramMap.get("page") != null) {
+        		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
+        		paramMap.put("page", pageIndex * 10);
+        		
+        		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
+        	} else {
+        		paramMap.put("page", 0);
+        		data.put("currPage", (totalCnt > 0) ? 1 : 0);
+        	}
             
             /*상장 목록 수 조회*/
         	
-        	data.put("totalCnt", 100);
+        	/*data.put("totalCnt", 100);
             data.put("pageCnt", 10);
-            data.put("currPage", 1);
+            data.put("currPage", 1);*/
             
-            ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
-            Map<String, Object> homelogMap = new LinkedHashMap<>();
+            ArrayList<Map<String, Object>> homelogList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogDetailList");
+            
+            if(homelogList != null && homelogList.size() > 0) {
+            	Map<String,Object> studInfoParamMap = new HashMap<>();
+        		String p = encodeStudId("0&"+paramMap.get("studId"));
+            	
+            	studInfoParamMap.put("p", p);
+            	studInfoParamMap.put("apiName", "aiReport.");
+                
+                LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+                Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+                
+                String studName = null;
+                
+                if(studInfoMap != null) {
+                	studName = (studInfoMap.get("name") != null) ? studInfoMap.get("name").toString() : null;
+                }
+                
+                if(studName != null) {
+                	for(Map<String, Object> homelogItem : homelogList) {
+                		homelogItem.put("studName", studName);
+                	}
+                }
+            }
+            
+            /*Map<String, Object> homelogMap = new LinkedHashMap<>();
             homelogMap.put("cd", 22100001);
             homelogMap.put("id", "ISE-FFC-10-0001");
             homelogMap.put("grp", "선생님 상");
@@ -193,7 +253,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             homelogMap1.put("regDttm", "2022-10-07 10:30:00");
             
             homelogList.add(homelogMap);
-            homelogList.add(homelogMap1);
+            homelogList.add(homelogMap1);*/
             
             data.put("hlogList", homelogList);
             
@@ -608,9 +668,12 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         		for(int cds : cdList) {
         			Map<String,Object> insertMap = new LinkedHashMap<String, Object>();
             		
+        			String grpCd = (String.valueOf(cds).length() > 8) ? "A" : "M";
+        			
             		insertMap.put("studId", studIds);
             		insertMap.put("dt", Integer.parseInt(todayDate));
             		insertMap.put("cd", cds);
+            		insertMap.put("grpCd", grpCd);
             		insertMap.put("yyyy", yyyy);
             		insertMap.put("status", 1);
             		insertMap.put("prstDt", Integer.parseInt(todayDate));
@@ -741,6 +804,9 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 				decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
 				decodeResult.put("result", "p : Incorrect");
 			}
+		} else if(params.containsKey("studId")) {
+			int studId = Integer.parseInt(params.get("studId").toString());
+			params.put("studId",studId);
 		}
 	}
 	
@@ -770,6 +836,9 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 				decodeResult.put("resultCode", ValidationCode.REQUIRED.getCode());
 				decodeResult.put("result", "p : Incorrect");
 			}
+		} else if(params.containsKey("tchrId")) {
+			int tchrId = Integer.parseInt(params.get("tchrId").toString());
+			params.put("tchrId",tchrId);
 		}
 	}
 	
