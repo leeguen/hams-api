@@ -357,6 +357,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        				// 진행률 100% 넘어갈때... 완료 변경
 				        				item.put("stepStatusCd", 2);
 				        				item.put("progressRate", 100);
+				        				item.put("stepStatusCdNm", "완료");
 				        				
 				        				cluList_mmc_progressData.put("stepStatusCd", 2);
 				        				cluList_mmc_progressData.put("progressRate", 100);
