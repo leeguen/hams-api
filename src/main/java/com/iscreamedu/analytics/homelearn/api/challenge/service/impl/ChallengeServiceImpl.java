@@ -357,8 +357,18 @@ public class ChallengeServiceImpl implements ChallengeService {
 				        				// 진행률 100% 넘어갈때... 완료 변경
 				        				item.put("stepStatusCd", 2);
 				        				item.put("progressRate", 100);
-				        				item.put("stepStatusCdNm", "완료");
-				        				
+				        				if(cluList_mmc.get("mcStudType").toString().equals("1")) {		// 수학세포 등록 타입 (1-함께하기)
+				        					// 수학세포 기간 정보 (0: 신청기간, 1: 학습기간, 2: 결과기간)
+					        				if(cluList_mmc.get("periodData").toString().equals("2")) {	
+					        					item.put("stepStatusCdNm", "결과확인");	
+						        			} else if(cluList_mmc.get("periodData").toString().equals("1")) {
+						        				item.put("stepStatusCdNm", "진행중");	
+						        			} else if(cluList_mmc.get("periodData").toString().equals("0")) {
+						        				item.put("stepStatusCdNm", "신청완료");
+						        			}
+				        				} else {	// 수학세포 등록 타입 (2- 혼자하기)			      
+				        					item.put("stepStatusCdNm", "완료");
+				        				}
 				        				cluList_mmc_progressData.put("stepStatusCd", 2);
 				        				cluList_mmc_progressData.put("progressRate", 100);
 				        				
