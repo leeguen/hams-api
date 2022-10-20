@@ -329,6 +329,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 				ArrayList<Map<String, Object>> reportList = new ArrayList<>();
 				//Map<String, Object> monthDataMap = new LinkedHashMap<>();
 				
+				/*For QA*/
+				String testId = paramMap.get("studId").toString();
+				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+		        List<String> testIdList = Arrays.asList(testIds);
+				
+				if(testIdList.contains(testId)) {
+					paramMap.put("studId", 2331204);
+				}
+				/*For QA*/
+				
 				Map<String,Object> studInfoData = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getStudInfo");
 				
 				int startDt = (studInfoData != null && studInfoData.get("sttDt") != null) ? Integer.parseInt(studInfoData.get("sttDt").toString().replace("-", "")) : 0;
@@ -498,6 +508,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
 	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
 	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSummaryList");
 	        				examSubjList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getExamSubjSummary");
@@ -595,6 +615,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> examMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> examSubjList = new ArrayList<>();
 	        				Map<String, Object> examQuesMap = new LinkedHashMap<String, Object>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnSummary");
 	        				aLrnList = (ArrayList<Map<String, Object>>) studLrnAnalMapper.getList(paramMap, "StudReport.getALrnSummaryList");
@@ -720,6 +750,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -780,6 +820,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> attRtDataList = new ArrayList<>();
 	        				
 	        				Map<String, Object> yymmDataMap = new LinkedHashMap<String, Object>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -869,6 +919,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -976,6 +1036,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				ArrayList<Map<String, Object>> lrnExRtSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> lrnExRtList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -1110,6 +1180,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnHabit");
 	        				lrnhabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMaxLrnHabit");
 	        				
@@ -1174,6 +1254,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> learnMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> lrnhabitMap = new LinkedHashMap<String, Object>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				learnMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getLrnHabit");
 	        				lrnhabitMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getMaxLrnHabit");
@@ -1271,6 +1361,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> concnDayList = new ArrayList<>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -1331,6 +1431,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> concnMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> concnList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> concnDayList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -1420,6 +1530,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 							Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
 							ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
 							
+							/*For QA*/
+							String testId = paramMap.get("studId").toString();
+							String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+					        List<String> testIdList = Arrays.asList(testIds);
+							
+							if(testIdList.contains(testId)) {
+								paramMap.put("studId", 2331204);
+							}
+							/*For QA*/
+							
 							aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
 							
 							if(aLrnDataMap.get("subjNm") != null) {
@@ -1469,6 +1589,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid() && vu2.isValid()) {
 	        				Map<String, Object> aLrnDataMap = new LinkedHashMap<String, Object>();
 							ArrayList<Map<String, Object>> aLrnList = new ArrayList<>();
+							
+							/*For QA*/
+							String testId = paramMap.get("studId").toString();
+							String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+					        List<String> testIdList = Arrays.asList(testIds);
+							
+							if(testIdList.contains(testId)) {
+								paramMap.put("studId", 2331204);
+							}
+							/*For QA*/
 							
 							aLrnDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getALrnStt");
 							
@@ -1548,6 +1678,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymm);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -1655,6 +1795,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				
 	        				ArrayList<Map<String, Object>> examScoreSubjList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> examScoreList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
 	        				yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -1789,6 +1939,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			if(vu1.isValid()) {
 	        				Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				if(incrtNoteMap != null) {
 	        					data.put("msg", incrtNoteMap.get("msg"));
@@ -1835,6 +1995,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        			
 	        			if(vu1.isValid() && vu2.isValid()) {
         					Map<String, Object> incrtNoteMap = new LinkedHashMap<String, Object>();
+        					
+        					/*For QA*/
+        					String testId = paramMap.get("studId").toString();
+        					String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+        			        List<String> testIdList = Arrays.asList(testIds);
+        					
+        					if(testIdList.contains(testId)) {
+        						paramMap.put("studId", 2331204);
+        					}
+        					/*For QA*/
 	        				
     						incrtNoteMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getIncrtNoteStt");
 	        				
@@ -1913,6 +2083,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -2022,6 +2202,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> slvHabitMap = new LinkedHashMap<String, Object>();
 	        				Map<String, Object> slvHabitQuesMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
@@ -2161,6 +2351,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
 	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
+	        				
 	        				paramMap.put("reportYymm", yymm);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
 	        				
@@ -2260,6 +2460,16 @@ public class StudLrnAnalServiceImpl implements StudLrnAnalService {
 	        				Map<String, Object> slvHabitMsgMap = new LinkedHashMap<String, Object>();
 	        				ArrayList<Map<String, Object>> slvHabitList = new ArrayList<>();
 	        				ArrayList<Map<String, Object>> slvHabitDataList = new ArrayList<>();
+	        				
+	        				/*For QA*/
+	        				String testId = paramMap.get("studId").toString();
+	        				String[] testIds = {"2446003","2446007","2446009","2446012","2446014","2446015","2466611","2229528","2267082","2467065","2467066","2467067"};
+	        		        List<String> testIdList = Arrays.asList(testIds);
+	        				
+	        				if(testIdList.contains(testId)) {
+	        					paramMap.put("studId", 2331204);
+	        				}
+	        				/*For QA*/
 	        				
 	        				paramMap.put("reportYymm", yymmwk);
         					yymmDataMap = (Map<String, Object>) studLrnAnalMapper.get(paramMap, "StudReport.getPeriod");
