@@ -451,8 +451,21 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 							}
 							
 							if(mathRewardCnt > 0) {
-								mathSttNm = "완료";
-								mathSttCd = 2;
+								if(mathStudType == 1) {
+									if(mathPeriod == 2) {
+										mathSttNm = "결과확인";
+										mathSttCd = 2;
+									} else if(mathPeriod == 1) {
+										mathSttNm = "진행중";
+										mathSttCd = 1;
+									} else if(mathPeriod == 0) {
+										mathSttNm = "신청완료";
+										mathSttCd = 1;
+									}
+								} else {
+									mathSttNm = "완료";
+									mathSttCd = 2;
+								}
 							}
 							
 							mathMap.put("chCd", chlData.get("mathChCd"));
