@@ -33,6 +33,65 @@
 		GROUP BY STUD_ID, YYYY;
 	</select>
 	
+	<select id="selectHomelogAdminList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogAdminList */
+		SELECT
+			CD,
+		    GRP,
+		    GRP_CD,
+		    NAME,
+		    PROPERTY,
+		    CONT,
+		    TCHR_NAME,
+		    STATUS,
+		    TEMPLATE_URL,
+		    DATE_FORMAT(REG_DTTM, '%Y-%m-%d %H:%i:%s') AS REG_DTTM
+		FROM (
+			SELECT
+				A.CD,
+				'학습분석 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				B.CONT,
+				'아이뚜루' AS TCHR_NAME,
+				CASE
+					WHEN A.EXPS_YN = 'Y' AND A.DEL_YN = 'N' THEN '수여 완료'
+			        WHEN A.EXPS_YN = 'N' AND A.DEL_YN = 'N' THEN CONCAT('수여 대기중', '(', DATE_FORMAT(A.PRST_DT, '%y.%m.%d'), '수여)')
+			        WHEN A.DEL_YN = 'Y' THEN '삭제 완료'
+			    END AS STATUS,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_AUTO_HOMELOG_INFO B ON B.TCHR_ID = 0 AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+			UNION ALL
+			SELECT
+				A.CD,
+				'선생님 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				B.CONT,
+				NULL AS TCHR_NAME,
+				CASE
+					WHEN A.EXPS_YN = 'Y' AND A.DEL_YN = 'N' THEN '수여 완료'
+			        WHEN A.EXPS_YN = 'N' AND A.DEL_YN = 'N' THEN CONCAT('수여 대기중', '(', DATE_FORMAT(A.PRST_DT, '%y.%m.%d'), '수여)')
+			        WHEN A.DEL_YN = 'Y' THEN '삭제 완료'
+			    END AS STATUS,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_MANUAL_HOMELOG_INFO B ON A.TCHR_ID = B.TCHR_ID AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+		) A
+		ORDER BY REG_DTTM, CD
+		LIMIT 10
+		OFFSET #{page};
+	</select>
+	
 	<select id="selectHomelogDetailList" parameterType="hashMap" resultType="resultMap">
 		/* Homelog.selectHomelogDetailList */
 		SELECT
@@ -63,7 +122,7 @@
 				END AS PERIOD,
 				B.CONT,
 				'아이뚜루' AS TCHR_NAME,
-				B.TEMPLATE_CD AS TEMPLATE_URL,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
 				A.REG_DTTM
 			FROM STUD_HOMELOG_HISTORY A
 			JOIN TCHR_AUTO_HOMELOG_INFO B ON B.TCHR_ID = 0 AND A.CD = B.CD AND B.DEL_YN = 'N'
@@ -84,7 +143,49 @@
 				END AS PERIOD,
 				B.CONT,
 				NULL AS TCHR_NAME,
-				B.TEMPLATE_CD AS TEMPLATE_URL,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_MANUAL_HOMELOG_INFO B ON A.TCHR_ID = B.TCHR_ID AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+		) A
+		ORDER BY REG_DTTM, CD
+		LIMIT 10
+		OFFSET #{page};
+	</select>
+	
+	<select id="selectHomelogThumbList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogThumbList */
+		SELECT
+			CD,
+		    GRP,
+		    GRP_CD,
+		    NAME,
+		    PROPERTY,
+		    TEMPLATE_URL,
+		    DATE_FORMAT(REG_DTTM, '%Y-%m-%d %H:%i:%s') AS REG_DTTM
+		FROM (
+			SELECT
+				A.CD,
+				'학습분석 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
+				A.REG_DTTM
+			FROM STUD_HOMELOG_HISTORY A
+			JOIN TCHR_AUTO_HOMELOG_INFO B ON B.TCHR_ID = 0 AND A.CD = B.CD AND B.DEL_YN = 'N'
+			WHERE A.STUD_ID = #{studId}
+				AND A.YYYY = #{yyyy}
+			UNION ALL
+			SELECT
+				A.CD,
+				'선생님 상' AS GRP,
+				A.GRP_CD,
+				B.NAME,
+				B.PROPERTY_CONT AS PROPERTY,
+				(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
 				A.REG_DTTM
 			FROM STUD_HOMELOG_HISTORY A
 			JOIN TCHR_MANUAL_HOMELOG_INFO B ON A.TCHR_ID = B.TCHR_ID AND A.CD = B.CD AND B.DEL_YN = 'N'

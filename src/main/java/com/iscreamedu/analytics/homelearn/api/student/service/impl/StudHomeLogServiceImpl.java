@@ -67,15 +67,40 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         
         vu.checkRequired(new String[] {"studId"}, paramMap);
         if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
+        	Calendar month = Calendar.getInstance();
+        	month.add(Calendar.MONTH , 0);
+            String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+    		int yyyy = Integer.parseInt(stringYymm);
+        	
+        	if(paramMap.get("yyyy") != null) {
+        		paramMap.put("yyyy", (!paramMap.get("yyyy").toString().equals("")) ? Integer.parseInt(paramMap.get("yyyy").toString()): yyyy);
+        	} else {
+        		paramMap.put("yyyy", yyyy);
+        	}
+        	
+            data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogPageCnt");
+            
+            int totalCnt = Integer.parseInt(data.get("totalCnt").toString());
+            
+            if(paramMap.get("page") != null) {
+        		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
+        		paramMap.put("page", pageIndex * 10);
+        		
+        		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
+        	} else {
+        		paramMap.put("page", 0);
+        		data.put("currPage", (totalCnt > 0) ? 1 : 0);
+        	}
             
             /*상장 목록 수 조회*/
         	
-        	data.put("totalCnt", 100);
+        	/*data.put("totalCnt", 100);
             data.put("pageCnt", 10);
-            data.put("currPage", 1);
+            data.put("currPage", 1);*/
             
-            ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
+            ArrayList<Map<String, Object>> homelogList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogAdminList");
+            
+            /*ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
             Map<String, Object> homelogMap = new LinkedHashMap<>();
             homelogMap.put("cd", 22100001);
             homelogMap.put("grp", "선생님 상");
@@ -99,7 +124,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             homelogMap1.put("regDttm", "2022-10-07 10:30:00");
             
             homelogList.add(homelogMap);
-            homelogList.add(homelogMap1);
+            homelogList.add(homelogMap1);*/
             
             data.put("hlogList", homelogList);
             
@@ -277,36 +302,42 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         vu.checkRequired(new String[] {"studId"}, paramMap);
         if(vu.isValid()) {
         	 /*상장 목록 수 조회*/
-            
-            /*상장 목록 수 조회*/
         	
-        	data.put("totalCnt", 100);
-            data.put("pageCnt", 10);
-            data.put("currPage", 1);
-            
-            if(paramMap.get("yyyy") == null) {
-            	Calendar month = Calendar.getInstance();
-            	month.add(Calendar.MONTH , 0);
-                String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
-        		int yyyy = Integer.parseInt(stringYymm);
-        		
+        	Calendar month = Calendar.getInstance();
+        	month.add(Calendar.MONTH , 0);
+            String stringYymm = new java.text.SimpleDateFormat("yyyy").format(month.getTime());
+    		int yyyy = Integer.parseInt(stringYymm);
+        	
+        	if(paramMap.get("yyyy") != null) {
+        		paramMap.put("yyyy", (!paramMap.get("yyyy").toString().equals("")) ? Integer.parseInt(paramMap.get("yyyy").toString()): yyyy);
+        	} else {
         		paramMap.put("yyyy", yyyy);
-            }
+        	}
+        	
+            data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogPageCnt");
             
-            Map<String,Object> pageCntData = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogPageCnt");
-            
-            if(pageCntData != null) {
-            	data.put("totalCnt", pageCntData.get("totalCnt"));
-                data.put("pageCnt", pageCntData.get("pageCnt"));
-            }
+            int totalCnt = Integer.parseInt(data.get("totalCnt").toString());
             
             if(paramMap.get("page") != null) {
-            	data.put("currPage", paramMap.get("page"));
-            } else {
-            	data.put("currPage", 1);
-            }
+        		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
+        		paramMap.put("page", pageIndex * 10);
+        		
+        		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
+        	} else {
+        		paramMap.put("page", 0);
+        		data.put("currPage", (totalCnt > 0) ? 1 : 0);
+        	}
             
-            ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
+            /*상장 목록 수 조회*/
+            
+            ArrayList<Map<String, Object>> homelogList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogThumbList");
+            
+        	/*data.put("totalCnt", 100);
+            data.put("pageCnt", 10);
+            data.put("currPage", 1);*/
+            
+            /*ArrayList<Map<String, Object>> homelogList = new ArrayList<>();
+            
             Map<String, Object> homelogMap = new LinkedHashMap<>();
             homelogMap.put("cd", 22100001);
             homelogMap.put("grp", "선생님 상");
@@ -326,7 +357,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             homelogMap1.put("regDttm", "2022-10-07 10:30:00");
             
             homelogList.add(homelogMap);
-            homelogList.add(homelogMap1);
+            homelogList.add(homelogMap1);*/
             
             data.put("hlogList", homelogList);
             
