@@ -204,38 +204,37 @@ public class ExtRtLogServiceImpl implements ExtRtLogService {
 							paramMap.put("studType", studInfo.get("studType"));
 							paramMap.put("grade", studInfo.get("grade"));
 							LOGGER.debug("학생정보 실시간 조회 실패");	
-						}
-	
-		        		LOGGER.debug("token 체크 : 실시간 미션 갱신용");
-						//미션 실시간 갱신
-						if(req.getHeader("token") != null && !req.getHeader("token").toString().isEmpty()) {
-							
-			        		LOGGER.debug("token : "+req.getHeader("token").toString());
-							Map<String,Object> missionCondition = new HashMap<>();
-							ArrayList<Map<String, Object>> missionList = new ArrayList<>();
-							
-							// 3. 미션 실시간 정보 call api -> 등록
-							// 홈런 API 조회
-							Map<String, Object> missionConditionMap = new HashMap<>();			
-							missionConditionMap.put("token", req.getHeader("token").toString());
-							missionConditionMap.put("apiName","studyStatus");
-							missionCondition = (Map<String, Object>) externalAPIservice.callExternalAPI(missionConditionMap).get("data");	
-							if(missionCondition != null) {
-							
-	//							"data": {
-	//						        "todayStudy": true,
-	//						        "incompleteStudy": true,
-	//						        "errnote": true
-	//						    }
-								// 미션 갱신
-								if(missionCondition.containsKey("todayStudy") && missionCondition.containsKey("incompleteStudy") && missionCondition.containsKey("errnote")) 
-								{
-									//키값 모두 존재시 호출
-									missionCondition.put("studId", paramMap.get("studId"));
-			        			
-									// 4. 오늘 미션 갱신
-									commonMapperLrnLog.insert(missionCondition, "LrnLog.ispRealTimeAddMission");
-								}
+						}		        		
+					}
+					
+					LOGGER.debug("token 체크 : 실시간 미션 갱신용");
+					//미션 실시간 갱신 ( 신규회원도- 오늘의학습이 해당됨 )
+					if(req.getHeader("token") != null && !req.getHeader("token").toString().isEmpty()) {
+						
+		        		LOGGER.debug("token : "+req.getHeader("token").toString());
+						Map<String,Object> missionCondition = new HashMap<>();
+						ArrayList<Map<String, Object>> missionList = new ArrayList<>();
+						
+						// 3. 미션 실시간 정보 call api -> 등록
+						// 홈런 API 조회
+						Map<String, Object> missionConditionMap = new HashMap<>();			
+						missionConditionMap.put("token", req.getHeader("token").toString());
+						missionConditionMap.put("apiName","studyStatus");
+						missionCondition = (Map<String, Object>) externalAPIservice.callExternalAPI(missionConditionMap).get("data");	
+						if(missionCondition != null) {						
+//							"data": {
+//						        "todayStudy": true,
+//						        "incompleteStudy": true,
+//						        "errnote": true
+//						    }
+							// 미션 갱신
+							if(missionCondition.containsKey("todayStudy") && missionCondition.containsKey("incompleteStudy") && missionCondition.containsKey("errnote")) 
+							{
+								//키값 모두 존재시 호출
+								missionCondition.put("studId", paramMap.get("studId"));
+		        			
+								// 4. 오늘 미션 갱신
+								commonMapperLrnLog.insert(missionCondition, "LrnLog.ispRealTimeAddMission");
 							}
 						}
 					}
