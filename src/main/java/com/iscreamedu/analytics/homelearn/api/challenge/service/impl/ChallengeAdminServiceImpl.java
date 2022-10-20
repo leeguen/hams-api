@@ -435,12 +435,24 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 								}*/
 								
 								if(mathStatusNm.equals("신청")) {
-									mathSttNm = "진행중";
-									mathSttCd = 1;
+									int progressRate = (mathCellDetailData.get("progressRate") != null) ? Integer.parseInt(mathCellDetailData.get("progressRate").toString()) : 0;
+									
+									if(progressRate > 99) {
+										mathSttNm = "완료";
+										mathSttCd = 2;
+									} else {
+										mathSttNm = "진행중";
+										mathSttCd = 1;
+									}
 								} else {
-									mathSttNm = "시작하기";
+									mathSttNm = "신청하기";
 									mathSttCd = -1;
 								}
+							}
+							
+							if(mathRewardCnt > 0) {
+								mathSttNm = "완료";
+								mathSttCd = 2;
 							}
 							
 							mathMap.put("chCd", chlData.get("mathChCd"));
