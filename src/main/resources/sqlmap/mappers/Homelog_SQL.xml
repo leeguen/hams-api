@@ -197,6 +197,100 @@
 		OFFSET #{page};
 	</select>
 	
+	<select id="selectHomelogDetail" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogDetail */
+		SELECT
+			A.CD,
+			CONCAT('ISE-FFC-',LEFT(RIGHT(A.CD,6),2),'-', RIGHT(A.CD,4)) AS ID,
+			CASE
+				WHEN A.GRP_CD = 'A' THEN '학습분석 상'
+				ELSE '선생님 상'  
+			END AS GRP,
+			A.GRP_CD,
+			B.NAME,
+			NULL AS STUD_NAME,
+			B.PROPERTY_CONT AS PROPERTY,
+			CASE
+				WHEN B.PERIOD_STT_DT IS NULL AND B.PERIOD_END_DT IS NULL THEN NULL
+				ELSE CONCAT(B.PERIOD_STT_DT, ' ~ ', B.PERIOD_END_DT)
+			END AS PERIOD,
+			B.CONT,
+			NULL AS TCHR_NAME,
+			(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = B.TEMPLATE_CD) AS TEMPLATE_URL,
+			NULL AS SHORT_URL,
+			DATE_FORMAT(A.REG_DTTM, '%Y-%m-%d %H:%i:%s') AS REG_DTTM
+		<choose>
+			<when test='grpCd != null and grpCd == "A"'>
+		FROM STUD_HOMELOG_HISTORY A
+		JOIN TCHR_AUTO_HOMELOG_INFO B ON B.TCHR_ID = 0 AND A.CD = B.CD
+			</when>
+			<otherwise>
+		FROM STUD_HOMELOG_HISTORY A
+		JOIN TCHR_MANUAL_HOMELOG_INFO B ON A.TCHR_ID = B.TCHR_ID AND A.CD = B.CD
+			</otherwise>
+		</choose>
+		WHERE A.STUD_ID = #{studId}
+			AND A.CD = #{cd};
+	</select>
+	
+	<select id="selectHomelogInfo" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogInfo */
+		SELECT
+			A.CD,
+			A.MEMO,
+			A.NAME,
+		    CASE
+				WHEN #{grpCd} = 'A' THEN '학습분석 상'
+		        ELSE '선생님 상'
+		    END AS GRP,
+		    #{grpCd} AS GRP_CD,
+			'뚜루뚜루' AS STUD_NAME,
+			A.PROPERTY_NM AS PROPERTY_NAME,
+		    A.PROPERTY_CONT AS PROPERTY_CONTENT,
+		    DATE_FORMAT(A.PERIOD_STT_DT, '%Y-%m-%d') AS START_PERIOD,
+		    DATE_FORMAT(A.PERIOD_END_DT, '%Y-%m-%d') AS END_PERIOD,
+			A.CONT,
+			(SELECT CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') FROM TEMPLATE_INFO WHERE CD = A.TEMPLATE_CD) AS TEMPLATE_URL
+		<choose>
+			<when test='grpCd != null and grpCd == "A"'>
+		FROM TCHR_AUTO_HOMELOG_INFO A
+			</when>
+			<otherwise>
+		FROM TCHR_MANUAL_HOMELOG_INFO A
+			</otherwise>
+		</choose>
+		WHERE A.TCHR_ID = #{tchrId}
+			AND A.CD = #{cd};
+	</select>
+	
+	<select id="selectTemplateList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectTemplateList */
+		SELECT
+			CD,
+		    TEMPLATE_NM AS NAME,
+		    CONCAT(TEMPLATE_URL, TEMPLATE_NM, '.png') AS URL
+		FROM TEMPLATE_INFO
+		WHERE CD > 0
+			AND GRP = 'T';
+	</select>
+	
+	<select id="selectHomelogTemplateList" parameterType="hashMap" resultType="resultMap">
+		/* Homelog.selectHomelogTemplateList */
+		SELECT
+			CD,
+			MEMO
+		<choose>
+			<when test='grpCd != null and grpCd == "A"'>
+		FROM TCHR_AUTO_HOMELOG_INFO
+		WHERE TCHR_ID = 0;
+			</when>
+			<otherwise>
+		FROM TCHR_MANUAL_HOMELOG_INFO
+		WHERE TCHR_ID = #{tchrId};
+			</otherwise>
+		</choose>
+	</select>
+	
 	<select id="selectHomelogMaxCd" parameterType="hashMap" resultType="resultMap">
 		/* Homelog.selectHomelogMaxCd */
 		SELECT

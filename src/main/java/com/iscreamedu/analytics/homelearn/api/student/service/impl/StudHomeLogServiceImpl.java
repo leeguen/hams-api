@@ -84,7 +84,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             
             if(paramMap.get("page") != null) {
         		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
-        		paramMap.put("page", pageIndex * 10);
+        		paramMap.put("page", (pageIndex * 10) - 10);
         		
         		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
         	} else {
@@ -210,7 +210,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             
             if(paramMap.get("page") != null) {
         		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
-        		paramMap.put("page", pageIndex * 10);
+        		paramMap.put("page", (pageIndex * 10) - 10);
         		
         		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
         	} else {
@@ -227,20 +227,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             ArrayList<Map<String, Object>> homelogList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogDetailList");
             
             if(homelogList != null && homelogList.size() > 0) {
-            	Map<String,Object> studInfoParamMap = new HashMap<>();
-        		String p = encodeStudId("0&"+paramMap.get("studId"));
-            	
-            	studInfoParamMap.put("p", p);
-            	studInfoParamMap.put("apiName", "aiReport.");
-                
-                LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
-                Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
-                
-                String studName = null;
-                
-                if(studInfoMap != null) {
-                	studName = (studInfoMap.get("name") != null) ? studInfoMap.get("name").toString() : null;
-                }
+            	String studName = getStudNm(paramMap);
                 
                 if(studName != null) {
                 	for(Map<String, Object> homelogItem : homelogList) {
@@ -320,7 +307,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
             
             if(paramMap.get("page") != null) {
         		int pageIndex = (!paramMap.get("page").toString().equals("")) ? Integer.parseInt(paramMap.get("page").toString()): 0;
-        		paramMap.put("page", pageIndex * 10);
+        		paramMap.put("page", (pageIndex * 10) - 10);
         		
         		data.put("currPage", (totalCnt > 0) ? (pageIndex == 0) ? 1 : pageIndex : 0);
         	} else {
@@ -380,25 +367,41 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         
         vu.checkRequired(new String[] {"studId"}, paramMap);
         if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
-            
-            /*상장 목록 수 조회*/
+        	vu1.checkRequired(new String[] {"cd", "grpCd"}, paramMap);
         	
-        	data.put("cd", 22100001);
-        	data.put("id", "ISE-FFC-10-0001");
-        	data.put("grp", "선생님 상");
-        	data.put("grpCd", "M");
-        	data.put("name", "성실 만렙 상");
-            data.put("studName", "뚜루뚜루");
-            data.put("property", "홈런 챌린지 - 영어책 모두 읽기");
-            data.put("period", "2022년 10월 01일 ~ 2022년 10월 11일");
-            data.put("cont", "위 학생은.... 칭찬합니다.");
-            data.put("tchrName", "아이뚜루");
-            data.put("templateUrl", "템플릿 URL");
-            data.put("shortUrl", "단축 URL");
-            data.put("regDttm", "2022-10-06 10:30:00");
-            
-            setResult(dataKey,data);
+        	if(vu1.isValid()) {
+        		/*상장 상세 조회*/
+        		data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogDetail");
+        		/*상장 상세 조회*/
+        		
+        		/*학생 이름 조회*/
+        		if(data != null) {
+        			String studNm = getStudNm(paramMap);
+            		
+            		if(studNm != null) {
+            			data.put("studName", studNm);
+            		}
+        		}
+                /*학생 이름 조회*/
+        		
+				/*data.put("cd", 22100001);
+				data.put("id", "ISE-FFC-10-0001");
+				data.put("grp", "선생님 상");
+				data.put("grpCd", "M");
+				data.put("name", "성실 만렙 상");
+				data.put("studName", "뚜루뚜루");
+				data.put("property", "홈런 챌린지 - 영어책 모두 읽기");
+				data.put("period", "2022년 10월 01일 ~ 2022년 10월 11일");
+				data.put("cont", "위 학생은.... 칭찬합니다.");
+				data.put("tchrName", "아이뚜루");
+				data.put("templateUrl", "템플릿 URL");
+				data.put("shortUrl", "단축 URL");
+				data.put("regDttm", "2022-10-06 10:30:00");*/
+               
+				setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, vu1.getResult());
+        	}
         } else {
         	setResult(msgKey, vu.getResult());
         }
@@ -413,29 +416,47 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        getStudId(paramMap);
+        getTchrId(paramMap);
         
-        vu.checkRequired(new String[] {"studId"}, paramMap);
+        vu.checkRequired(new String[] {"tchrId"}, paramMap);
         if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
-            
-            /*상장 목록 수 조회*/
+        	vu1.checkRequired(new String[] {"cd", "grpCd"}, paramMap);
         	
-        	data.put("cd", 22100001);
-        	data.put("grp", "선생님 상");
-        	data.put("grpCd", "M");
-        	data.put("memo", "상장 메모");
-        	data.put("name", "성실 만렙 상");
-            data.put("studName", "뚜루뚜루");
-            data.put("propertyName", "목표");
-            data.put("propertyContent", "홈런 챌린지 - 영어책 모두 읽기");
-            data.put("periodName", "독서 기간");
-            data.put("startPeriod", "2022-10-01");
-            data.put("endPeriod", "2022-10-31");
-            data.put("cont", "위 학생은.... 칭찬합니다.");
-            data.put("templateCd", 1);
-            
-            setResult(dataKey,data);
+        	if(vu1.isValid()) {
+        		 /*상장 목록 수 조회*/
+            	data = (Map<String, Object>) commonMapperLrnType.get(paramMap, "Homelog.selectHomelogInfo");
+                /*상장 목록 수 조회*/
+            	
+            	if(data != null) {
+            		String studNm = null;
+            		
+            		if(paramMap.get("studId") != null && !paramMap.get("studId").toString().equals("")) {
+            			studNm = getStudNm(paramMap);
+            		}
+            		
+            		if(studNm != null) {
+            			data.put("studName", studNm);
+            		}
+            	}
+            	
+            	/*data.put("cd", 22100001);
+            	data.put("grp", "선생님 상");
+            	data.put("grpCd", "M");
+            	data.put("memo", "상장 메모");
+            	data.put("name", "성실 만렙 상");
+                data.put("studName", "뚜루뚜루");
+                data.put("propertyName", "목표");
+                data.put("propertyContent", "홈런 챌린지 - 영어책 모두 읽기");
+                data.put("periodName", "독서 기간");
+                data.put("startPeriod", "2022-10-01");
+                data.put("endPeriod", "2022-10-31");
+                data.put("cont", "위 학생은.... 칭찬합니다.");
+                data.put("templateCd", 1);*/
+                
+                setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, vu1.getResult());
+        	}
         } else {
         	setResult(msgKey, vu.getResult());
         }
@@ -447,39 +468,11 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
     public Map getTempInfo(Map<String,Object> paramMap) throws Exception {
         Map<String,Object> data = new LinkedHashMap<>();
         
-        ValidationUtil vu = new ValidationUtil();
-        ValidationUtil vu1 = new ValidationUtil();
+        ArrayList<Map<String, Object>> templateList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectTemplateList");
         
-        getStudId(paramMap);
+        data.put("templateList", templateList);
         
-        vu.checkRequired(new String[] {"studId"}, paramMap);
-        if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
-            
-            /*상장 목록 수 조회*/
-        	
-        	ArrayList<Map<String, Object>> templateList = new ArrayList<>();
-        	
-        	Map<String, Object> templateMap = new LinkedHashMap<String, Object>();
-        	Map<String, Object> templateMap1 = new LinkedHashMap<String, Object>();
-        	
-        	templateMap.put("cd", 1);
-        	templateMap.put("name", "템플릿 1 이름");
-        	templateMap.put("url", "템플릿 1 URL");
-        	
-        	templateMap1.put("cd", 2);
-        	templateMap1.put("name", "템플릿 2 이름");
-        	templateMap1.put("url", "템플릿 2 URL");
-        	
-        	templateList.add(templateMap);
-        	templateList.add(templateMap1);
-        	
-        	data.put("templateList", templateList);
-            
-            setResult(dataKey,data);
-        } else {
-        	setResult(msgKey, vu.getResult());
-        }
+        setResult(dataKey,data);
         
 	    return result; 
     }
@@ -491,31 +484,35 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
         ValidationUtil vu = new ValidationUtil();
         ValidationUtil vu1 = new ValidationUtil();
         
-        getStudId(paramMap);
+        getTchrId(paramMap);
         
-        vu.checkRequired(new String[] {"studId"}, paramMap);
+        vu.checkRequired(new String[] {"tchrId"}, paramMap);
         if(vu.isValid()) {
-        	 /*상장 목록 수 조회*/
-            
-            /*상장 목록 수 조회*/
+        	vu1.checkRequired(new String[] {"grpCd"}, paramMap);
         	
-        	ArrayList<Map<String, Object>> templateList = new ArrayList<>();
-        	
-        	Map<String, Object> templateMap = new LinkedHashMap<String, Object>();
-        	Map<String, Object> templateMap1 = new LinkedHashMap<String, Object>();
-        	
-        	templateMap.put("cd", 22100001);
-        	templateMap.put("name", "[22년 2학기 상장] 수행률 100%");
-        	
-        	templateMap1.put("cd", 22100002);
-        	templateMap1.put("name", "[22년 2학기 상장] 수행률 80%");
-        	
-        	templateList.add(templateMap);
-        	templateList.add(templateMap1);
-        	
-        	data.put("templateList", templateList);
-            
-            setResult(dataKey,data);
+        	if(vu1.isValid()) {
+        		 /*상장 목록 수 조회*/
+        		ArrayList<Map<String, Object>> templateList = (ArrayList<Map<String, Object>>) commonMapperLrnType.getList(paramMap, "Homelog.selectHomelogTemplateList");
+                /*상장 목록 수 조회*/
+        		
+            	/*Map<String, Object> templateMap = new LinkedHashMap<String, Object>();
+            	Map<String, Object> templateMap1 = new LinkedHashMap<String, Object>();
+            	
+            	templateMap.put("cd", 22100001);
+            	templateMap.put("name", "[22년 2학기 상장] 수행률 100%");
+            	
+            	templateMap1.put("cd", 22100002);
+            	templateMap1.put("name", "[22년 2학기 상장] 수행률 80%");
+            	
+            	templateList.add(templateMap);
+            	templateList.add(templateMap1);*/
+            	
+            	data.put("templateList", templateList);
+                
+                setResult(dataKey,data);
+        	} else {
+        		setResult(msgKey, vu1.getResult());
+        	}
         } else {
         	setResult(msgKey, vu.getResult());
         }
@@ -854,7 +851,7 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 				CipherUtil cp = CipherUtil.getInstance();
 				String decodedStr = cp.AES_Decode(params.get("p").toString());
 				
-				int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[1]) ;
+				int studId = (!decodedStr.contains("&")) ? Integer.parseInt(decodedStr) : Integer.parseInt(decodedStr.split("&")[0]) ;
 				
 				if(decodedStr != null) {
 					//DB params
@@ -880,5 +877,25 @@ public class StudHomeLogServiceImpl implements StudHomeLogService {
 		encodeStudId = cps.AES_Encode(studId);
 		
 		return encodeStudId;
+	}
+	
+	/*학생 이름 조회*/
+	private String getStudNm(Map<String, Object> params) throws Exception{
+		String studName = null;
+		
+		Map<String,Object> studInfoParamMap = new HashMap<>();
+		String p = encodeStudId("0&"+params.get("studId"));
+		
+		studInfoParamMap.put("p", p);
+		studInfoParamMap.put("apiName", "aiReport.");
+		
+		LinkedHashMap<String,String> studInfo = new LinkedHashMap<>();
+		Map<String,Object> studInfoMap = (Map<String, Object>) externalAPIservice.callExternalAPI(studInfoParamMap).get("data");
+		
+		if(studInfoMap != null) {
+			studName = (studInfoMap.get("name") != null) ? studInfoMap.get("name").toString() : null;
+		}
+		
+		return studName;
 	}
 }
