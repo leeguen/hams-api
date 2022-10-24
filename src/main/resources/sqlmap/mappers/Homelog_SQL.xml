@@ -278,13 +278,15 @@
 		/* Homelog.selectHomelogTemplateList */
 		SELECT
 			CD,
-			MEMO
+			MEMO,
 		<choose>
 			<when test='grpCd != null and grpCd == "A"'>
+			'A' AS GRP_CD
 		FROM TCHR_AUTO_HOMELOG_INFO
 		WHERE TCHR_ID = 0;
 			</when>
 			<otherwise>
+			'M' AS GRP_CD
 		FROM TCHR_MANUAL_HOMELOG_INFO
 		WHERE TCHR_ID = #{tchrId};
 			</otherwise>
