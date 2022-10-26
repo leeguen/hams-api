@@ -496,7 +496,61 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 							mathMap.put("misList", null);
 						}
 					} else {
-						mathMap.put("misList", null);
+						//String todayDate = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("dd"));
+						Map<String, Object> mathParamMap = new HashMap<>();
+						
+						String mathYymm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMM"));
+						String mathmm = LocalDateTime.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("MM"));
+						int mathMm = Integer.parseInt(mathmm); 
+				        
+						mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+						mathParamMap.put("apiName", "chlg/");
+						mathParamMap.put("yymm", Integer.parseInt(mathYymm));
+						
+						Map<String, Object> mathCellData =  (Map<String, Object>) externalAPIservice.callExternalAPI(mathParamMap).get("data");	
+						
+						/*함께하기 결과확인 상태 시 노출*/
+						if(mathCellData != null) {
+							Map<String, Object> mathCellDetailData = (Map<String, Object>) mathCellData.get("progressData");
+							
+							int mathStudType = (mathCellData.get("mcStudType") != null) ? Integer.parseInt(mathCellData.get("mcStudType").toString()) : 0;
+							int mathPeriod = (mathCellData.get("periodData") != null) ? Integer.parseInt(mathCellData.get("periodData").toString()) : 0;
+							
+							/*mathStudType = 1 > 함께하기 / mathPeriod = 2 > 결과 확인 상태*/
+							if(mathStudType == 1 && mathPeriod == 2) {
+								Map<String, Object> mathParamsMap = new HashMap<>();
+						        
+								mathParamsMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
+								mathParamsMap.put("endYymm", endYymm);
+								
+								Map<String, Object> mathRewardData = (Map<String, Object>) commonMapperLrnLog.get(mathParamsMap, "LrnLogAdm.spAdminChallengeMathCellRewardStt");
+								int mathRewardCnt = Integer.parseInt(mathRewardData.get("rewardCnt").toString());
+								String mathReward = (mathRewardCnt == 0 && mathPeriod == 2 ) ? "실패" : mathRewardData.get("rewardNm").toString();
+								
+								String mathSttNm = "결과확인";
+								int mathSttCd = 2;
+								
+								mathMap.put("chCd", chlData.get("mathChCd"));
+								mathMap.put("chNm", chlData.get("mathChNm"));
+								
+								Map<String, Object> mathMisMap = new LinkedHashMap<>();
+								
+								mathMisMap.put("misStep", String.valueOf(mathMm)+ "월");
+								mathMisMap.put("misStepStatusCd", mathSttCd);
+								mathMisMap.put("misStepStatusNm", mathSttNm);
+								mathMisMap.put("misTotalCnt", mathCellDetailData.get("totalMissionNmb"));
+								mathMisMap.put("misCompCnt", mathCellDetailData.get("solvedQuestionNmb"));
+								mathMisMap.put("rewardNm", mathReward);
+								mathMisMap.put("compList", new ArrayList<>());
+								mathCellMisList.add(mathMisMap);
+								
+								mathMap.put("misList", mathCellMisList);
+							} else {
+								mathMap.put("misList", null);
+							}
+						} else {
+							mathMap.put("misList", null);
+						}
 					}
 		            
 					/*mathParamMap.put("studId", Integer.parseInt(paramMap.get("studId").toString()));
