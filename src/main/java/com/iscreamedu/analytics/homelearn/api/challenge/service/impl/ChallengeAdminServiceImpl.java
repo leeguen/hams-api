@@ -448,6 +448,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 								} else {
 									mathSttNm = "신청하기";
 									mathSttCd = -1;
+									mathReward = "-";
 								}
 							}
 							
