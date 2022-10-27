@@ -440,6 +440,7 @@ public class ChallengeAdminServiceImpl implements ChallengeAdminService {
 									if(progressRate > 99) {
 										mathSttNm = "완료";
 										mathSttCd = 2;
+										mathReward = "음악";
 									} else {
 										mathSttNm = "진행중";
 										mathSttCd = 1;
