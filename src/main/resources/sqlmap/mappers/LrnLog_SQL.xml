@@ -227,8 +227,15 @@
 		 )}
 	</select>
 	
-	<select id="spMonthyHistoryChallengeMtp" parameterType="hashMap" resultType="resultMap">
+	<!-- <select id="spMonthyHistoryChallengeMtp" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_monthly_history_challenge_mtp (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
+			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select> -->
+	<select id="spMonthyHistoryChallengeMtp" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_monthly_history_challenge_mtp_re (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 			  , #{startYyyyMm, mode=IN, jdbcType=INTEGER}
 			  , #{endYyyyMm, mode=IN, jdbcType=INTEGER}
@@ -247,19 +254,29 @@
 		 )}
 	</select>
 	
-	<select id="spDailyHistoryChallengeChlSummary" parameterType="hashMap" resultType="resultMap">
+<!-- 	<select id="spDailyHistoryChallengeChlSummary" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_daily_history_challenge_chl_summary (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
+	</select> -->	
+	<select id="spDailyHistoryChallengeChlSummary" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_chl_summary_re (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 		 )}
 	</select>
 	
-	<select id="spDailyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
+	<!-- <select id="spDailyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_daily_history_challenge_chl (
 			  #{studId, mode=IN, jdbcType=INTEGER}
 			  , #{expCd, mode=IN, jdbcType=INTEGER}
 		 )}
+	</select> -->
+	<select id="spDailyHistoryChallengeChl" parameterType="hashMap" resultType="resultMap">
+		{call lrn_log.sp_daily_history_challenge_chl_re (
+			  #{studId, mode=IN, jdbcType=INTEGER}
+		 )}
 	</select>
-	
+		
 	<select id="spDailyHistoryChallengeChlExp" parameterType="hashMap" resultType="resultMap">
 		{call lrn_log.sp_daily_history_challenge_chl_exp (
 			  #{studId, mode=IN, jdbcType=INTEGER}

@@ -225,22 +225,22 @@ public class ChallengeServiceImpl implements ChallengeService {
 			data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spDailyHistoryChallengeChlSummary");
 			if(data != null) {
 				
-				//홈런 API 조회
-		        Map<String,Object> realTimeStudInfo = new HashMap<>();
-		        Map<String,Object> apiParamMap = new HashMap<>();
-		        apiParamMap.put("studId", paramMap.get("studId"));
-		        apiParamMap.put("apiName", "aiReport/");
+//				//홈런 API 조회
+//		        Map<String,Object> realTimeStudInfo = new HashMap<>();
+//		        Map<String,Object> apiParamMap = new HashMap<>();
+//		        apiParamMap.put("studId", paramMap.get("studId"));
+//		        apiParamMap.put("apiName", "aiReport/");
+//		        
+//		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(apiParamMap).get("data");
+//		        
+//		        int expCd = 1;
+//		        
+//		        if(realTimeStudInfo != null) {
+//		        	int divCd = (realTimeStudInfo.get("divCd") != null) ? Integer.parseInt((realTimeStudInfo.get("divCd")).toString()) : 10003;
+//		        	expCd = (divCd == 10004) ? 0 : 1;
+//		        }
 		        
-		        realTimeStudInfo =  (Map<String,Object>) externalAPIservice.callExternalAPI(apiParamMap).get("data");
-		        
-		        int expCd = 1;
-		        
-		        if(realTimeStudInfo != null) {
-		        	int divCd = (realTimeStudInfo.get("divCd") != null) ? Integer.parseInt((realTimeStudInfo.get("divCd")).toString()) : 10003;
-		        	expCd = (divCd == 10004) ? 0 : 1;
-		        }
-		        
-		        paramMap.put("expCd", expCd);
+		        paramMap.put("expCd", null);
 		        
 		        chlList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap, "LrnLog.spDailyHistoryChallengeChl");
 				
@@ -284,8 +284,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 		        		String strYymm = sdf.format(nowDate);
 		        		extParamMap.put("yymm", strYymm);
 		        		Map<String, Object> cluList_mmc = new HashMap<>();
-		        		cluList_mmc =  (Map<String, Object>) externalAPIservice.callExternalAPI(extParamMap).get("data");	
 		        		try {
+		        			cluList_mmc =  (Map<String, Object>) externalAPIservice.callExternalAPI(extParamMap).get("data");	
+		        		
 			        		if(cluList_mmc != null) {
 								/*
 								 * "data": { "mcStudStatus": "결과확인", "mcStudType": 1, "periodData": 2,
@@ -627,32 +628,36 @@ public class ChallengeServiceImpl implements ChallengeService {
 		
 		//1.필수값 체크
 		vu.checkRequired(new String[] {"studId","misStep"}, paramMap);
-		if(vu.isValid()) {		
-			try {	
-				data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spKoreanBookChReward");
-				
-				if(data != null) {
-					try {
-						Map<String,Object> paramMap_motionList = new HashMap<>();
-						paramMap_motionList.put("motionNoList", data.get("motionNoList").toString());
-						rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
-					}
-					catch(Exception e) {
-						LOGGER.debug("getKoreanBookChReward : 국어책_챌린지_보상_정보 - data error : " + e.getMessage());	
-					}
+		if(vu.isValid()) {
+			if(paramMap.get("misStep").toString().toLowerCase().equals("null")) {
+				setNoDataMessage();
+			} else {		
+				try {	
+					data = (Map<String, Object>) commonMapperLrnLog.get(paramMap, "LrnLog.spKoreanBookChReward");
 					
-					if(rewardMotionList == null || rewardMotionList.size() == 0) {
-						rewardMotionList = new ArrayList<>();
+					if(data != null) {
+						try {
+							Map<String,Object> paramMap_motionList = new HashMap<>();
+							paramMap_motionList.put("motionNoList", data.get("motionNoList").toString());
+							rewardMotionList = (ArrayList<Map<String, Object>>) commonMapperLrnLog.getList(paramMap_motionList, "LrnLog.spRewardMotionList");
+						}
+						catch(Exception e) {
+							LOGGER.debug("getKoreanBookChReward : 국어책_챌린지_보상_정보 - data error : " + e.getMessage());	
+						}
+						
+						if(rewardMotionList == null || rewardMotionList.size() == 0) {
+							rewardMotionList = new ArrayList<>();
+						}
+						
+						data.put("rewardMotionList", rewardMotionList);
+						data.remove("motionNoList");
+						setResult(dataKey, data);
+					} else {
+						setNoDataMessage();
 					}
-					
-					data.put("rewardMotionList", rewardMotionList);
-					data.remove("motionNoList");
-					setResult(dataKey, data);
-				} else {
+				} catch (Exception e) {
 					setNoDataMessage();
 				}
-			} catch (Exception e) {
-				setNoDataMessage();
 			}
 			
 		} else {
